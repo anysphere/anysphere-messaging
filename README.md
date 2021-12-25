@@ -1,2 +1,2 @@
-# veil
-The world's first completely private messenger.
+# anysphere
+The world's first completely private messenger. For freedom.
