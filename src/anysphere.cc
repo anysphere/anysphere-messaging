@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 
-#include "messenger.grpc.pb.h"
+#include "schema/messenger.grpc.pb.h"
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -21,11 +21,11 @@ void print_localtime() {
   std::cout << std::asctime(std::localtime(&result));
 }
 
-void test(std::shared_ptr<Channel> channel,
-          std::unique_ptr<Greeter::Stub> stub) {
+std::string test(std::shared_ptr<Channel> channel,
+                 std::unique_ptr<Messenger::Stub> stub) {
   // Data we are sending to the server.
   RegisterInfo request;
-  request.set_publicKey("hi_i_am_public_key");
+  request.set_publickey("hi_i_am_public_key");
 
   // Container for the data we expect from the server.
   RegisterResponse reply;
@@ -43,7 +43,7 @@ void test(std::shared_ptr<Channel> channel,
   } else {
     std::cout << status.error_code() << ": " << status.error_message()
               << std::endl;
-    return "RPC failed";
+    return "No Message";
   }
 }
 
@@ -58,9 +58,9 @@ int main(int argc, char** argv) {
   std::shared_ptr<Channel> channel =
       grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials());
 
-  std::unique_ptr<Greeter::Stub> stub = Greeter::NewStub(channel);
+  std::unique_ptr<Messenger::Stub> stub = Messenger::NewStub(channel);
 
-  test(channel, stub);
+  test(channel, std::move(stub));
 
   return 0;
 }
