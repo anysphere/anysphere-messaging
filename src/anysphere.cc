@@ -1,10 +1,8 @@
 #include <ctime>
-#include <string>
 #include <iostream>
+#include <string>
 
-std::string get_greet(const std::string& who) {
-  return "Hello " + who;
-}
+std::string get_greet(const std::string& who) { return "Hello " + who; }
 
 void print_localtime() {
   std::time_t result = std::time(nullptr);
