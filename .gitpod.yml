@@ -1,0 +1,14 @@
+image:
+  file: .gitpod.Dockerfile
+tasks:
+  - init: |
+      brew install bazel && bazel build //client/src:anysphere
+ports:
+  - port: 5900
+    onOpen: ignore
+  - port: 6080 # VNC for X11 C++ GUI Development
+    onOpen: open-preview
+  
+vscode:
+  extensions:
+    - ms-vscode.cpptools
