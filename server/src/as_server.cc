@@ -5,6 +5,12 @@
 #include <memory>
 #include <string>
 
+#ifdef BAZEL_BUILD
+#include "schema/messenger.grpc.pb.h"
+#else
+#include "schema/messenger.grpc.pb.h"
+#endif
+
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
@@ -25,8 +31,11 @@ class MessengerServiceImpl final : public Messenger::Service {
   Status Register(ServerContext* context, const RegisterInfo* registerInfo,
                   RegisterResponse* registerResponse) override {
     std::cout << get_greet("world") << std::endl;
+
+    // return empty Status
+    return Status::OK;
   }
-}
+};
 
 int main(int argc, char** argv) {
   std::string server_address("0.0.0.0:50051");
