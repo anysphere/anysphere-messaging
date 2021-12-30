@@ -12,9 +12,9 @@ http_archive(
 http_archive(
     name = "com_github_grpc_grpc",
     urls = [
-        "https://github.com/grpc/grpc/archive/YOUR_GRPC_COMMIT_SHA.tar.gz",
+        "https://github.com/grpc/grpc/archive/b0f37a22bbae12a4b225a88be6d18d5e41dce881.tar.gz",
     ],
-    strip_prefix = "grpc-YOUR_GRPC_COMMIT_SHA",
+    strip_prefix = "grpc-b0f37a22bbae12a4b225a88be6d18d5e41dce881",
 )
 
 
