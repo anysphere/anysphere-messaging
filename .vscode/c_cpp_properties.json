@@ -4,7 +4,8 @@
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/opt/homebrew/opt/grpc"
+                "/opt/homebrew/opt/grpc",
+                "/private/var/tmp/_bazel_sualeh/39d7406b82f7235a3fefe5e0e301d280/execroot/__main__/bazel-out/darwin_arm64-fastbuild/bin/schema/**"
             ],
             "defines": [],
             "macFrameworkPath": [],
