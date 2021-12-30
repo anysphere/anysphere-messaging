@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 
+#include "messenger.grpc.pb.h"
+
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;

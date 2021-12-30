@@ -4,7 +4,7 @@ cc_binary(
     name = "anysphere",
     srcs = ["anysphere.cc"],
     deps = [
-        "//schema:messenger_cc_proto",
+        "//schema:messenger_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
     ],
 )
