@@ -2,7 +2,8 @@ image:
   file: .gitpod.Dockerfile
 tasks:
   - init: |
-      brew install bazel && bazel build //client/src:anysphere
+      bazel build //client/src:anysphere &&
+      bazel build //server/src:as_server
 ports:
   - port: 5900
     onOpen: ignore

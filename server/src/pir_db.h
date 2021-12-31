@@ -30,6 +30,8 @@ class pir_answer_type_base {
   virtual auto deserialize_from_string(string& ) noexcept -> string = 0;
 };
 
+// TODO: this should be templated by a single thing — a PIR implementation,
+// and each of these types should be PIR::index_type, PIR::value_type, PIR::query_type, etc etc
 template <typename index_type, 
   typename value_type, 
   class pir_query_type,
