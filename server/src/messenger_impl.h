@@ -11,6 +11,8 @@
 #include "schema/messenger.grpc.pb.h"
 #endif
 
+#include "pir_common.h"
+
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
@@ -39,11 +41,23 @@ class MessengerImpl final : public Messenger::Service {
   Status SendMessage(
       ServerContext *context, const messenger::SendMessageInfo *sendMessageInfo,
       messenger::SendMessageResponse *sendMessageResponse) override {
-    // check that the authentication token corresponds to the index
-    // check that the message is not too long
-    std::cout << "world" << std::endl;
+    auto index = sendMessageInfo->index();
+    pir_index_t pir_index = index;
+    if (sendMessageInfo->authentication_token() != "hello") {
+      std::cerr << "incorrect authentication token" << std::endl;
+      return Status::CANCELLED;
+    }
 
-    // return empty Status
+    auto message = sendMessageInfo->message();
+    if (message.size() != sizeof(pir_value_t)) {
+      std::cerr << "incorrect message size" << std::endl;
+      return Status::CANCELLED;
+    }
+    pir_value_t pir_value;
+    std::copy(message.begin(), message.end(), pir_value.begin());
+
+    pir.set_value(pir_index, pir_value);
+
     return Status::OK;
   }
 
@@ -56,7 +70,7 @@ class MessengerImpl final : public Messenger::Service {
     pir_query_t query;
     bool success = query.deserialize_from_string(input_query);
     if (!success) {
-      std::cout << "error deserializing query" << std::endl;
+      std::cerr << "error deserializing query" << std::endl;
       return Status::CANCELLED;
     }
 
