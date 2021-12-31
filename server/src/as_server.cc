@@ -1,6 +1,8 @@
 
 #include "messenger_impl.h"
 
+#include "nonprivate_pir.h"
+
 // TODO(sualeh): turn on clang-tidy with bazel
 
 // draft of structure:
@@ -15,11 +17,8 @@
 //      split the PIR into multiple shards, and perform the queries on each
 //      shard)
 
+
 // TODO: look into AsyncService; might be useful for performance
-using index_type = uint64_t;
-using value_type = std::string;
-using pir_query_type = pir_query_type_base;
-using pir_answer_type = pir_answer_type_base;
 
 int main(int argc, char **argv) {
   std::string server_address("0.0.0.0:50051");
@@ -27,10 +26,9 @@ int main(int argc, char **argv) {
     server_address = argv[1];
   }
 
-  PirDB<index_type, value_type, pir_query_type, pir_answer_type> pir_db;
+  NonPrivatePIR pir;
 
-  MessengerImpl<index_type, value_type, pir_answer_type, pir_query_type>
-      messenger_service(pir_db);
+  MessengerImpl<NonPrivatePIR> messenger_service(pir);
 
   ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());

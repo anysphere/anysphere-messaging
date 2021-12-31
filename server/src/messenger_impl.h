@@ -5,8 +5,6 @@
 #include <memory>
 #include <string>
 
-#include "pir_db.h"
-
 #ifdef BAZEL_BUILD
 #include "schema/messenger.grpc.pb.h"
 #else
@@ -20,14 +18,10 @@ using grpc::Status;
 
 using messenger::Messenger;
 
-using std::make_shared;
-using std::shared_ptr;
 using std::string;
 
-template <typename index_type, typename value_type, typename pir_answer_type,
-          typename pir_query_type>
+template<typename PIR>
 class MessengerImpl final : public Messenger::Service {
-  using PirDB = PirDB<index_type, value_type, pir_query_type, pir_answer_type>;
   // TODO: add a thread safety argument (because the methods may be called from
   // different threads)
   // TODO: add representation invariant
@@ -56,28 +50,28 @@ class MessengerImpl final : public Messenger::Service {
       const messenger::ReceiveMessageInfo *receiveMessageInfo,
       messenger::ReceiveMessageResponse *receiveMessageResponse) override {
     auto input_query = receiveMessageInfo->pir_query();
-    pir_query_type query;
+    PIR::query_type query;
     bool success = query.deserialize_from_string(input_query);
     if (!success) {
       std::cout << "error deserializing query" << std::endl;
       return Status::CANCELLED;
     }
 
-    pir_answer_type answer = pir_db.get_value_privately(query);
+    PIR::answer_type answer = pir.get_value_privately(query);
 
     // serialize pir_answer_type
     string answer_string = answer.serialize_to_string();
 
     // TODO: use set_pir_answer or set_allocated_pir_answer?
-    receiveMessageResponse->set_pir_answer(answer_string);
+    receiveMessageResponse->set_pir_answer(std::move(answer_string));
 
     // return empty Status
     return Status::OK;
   }
 
  public:
-  MessengerImpl(const PirDB & pir_db) : pir_db(pir_db) {}
+  MessengerImpl(const PIR & pir) : pir(pir) {}
 
  private:
-  const PirDB & pir_db;
+  const PIR & pir;
 };
