@@ -23,10 +23,40 @@ We need a PIR algorithm. All PIR algorithms in use depend on a homomorphic encry
 
 ## PIR algorithms
 
-There doesn’t seem to be a production-ready PIR library yet.
+There doesn’t seem to be a production-ready PIR library yet. All of them are bad research code. But that's ok!
 
-- SealPIR
-  - paper:
-  - [https://github.com/microsoft/SealPIR](https://github.com/microsoft/SealPIR)
-  - old code, needs to be completely rewritten, but can be used for inspiration
-- OnionPIR
+Ideally, once again here, we want to create something that can be swapped out. So we just need to define a good interface. How to deal with multiretrievals, though? They are important for performance.
+
+- SealPIR:
+  - paper: https://eprint.iacr.org/2017/1142.pdf
+  - code: [https://github.com/microsoft/SealPIR](https://github.com/microsoft/SealPIR)
+  - uses SEAL (duh)
+  - what pung v2 uses, which means that it can be integrated with PBCs for multi-retrieval
+  - request size:
+  - server runtime: ???
+  - multi: ???
+- OnionPIR:
+  - paper: https://eprint.iacr.org/2021/1081.pdf
+  - code: [https://github.com/mhmughees/Onion-PIR](https://github.com/mhmughees/Onion-PIR)
+  - uses SEAL
+  - not used by any anonymous communication
+  - request size: ???
+  - server runtime: ???
+  - multi: ???
+- FastPIR:
+  - paper: https://www.usenix.org/system/files/osdi21-ahmad.pdf
+  - code: [https://github.com/ishtiyaque/fastpir](https://github.com/ishtiyaque/fastpir)
+  - uses SEAL
+  - what addra uses
+  - request size: ???
+  - server runtime: ???
+  - multi: ???
+- XPIR:
+  - precursor to SealPIR it seems
+  - NO!
+
+#### notes
+
+- the onionPIR comparison in table 3 & 4 use 30KB entries, whereas the sealPIR table 9 uses 288byte entries. is there a tradeoff between onionPIR and sealPIR as the entries get bigger?
+- for MVP: just use sealPIR. it has the least ugly code.
+- for MVP: ignore multi-retrieval.
