@@ -1,5 +1,9 @@
 {
     "editor.formatOnSave": true,
+    "bazel-cpp-tools.compileCommands.targets": [
+        "//client/src:anysphere",
+        "//server/src:as_server",
+    ],
     "python.formatting.provider": "black",
     "[javascript]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
