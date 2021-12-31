@@ -7,6 +7,7 @@ cc_binary(
         "nonprivate_pir.h",
         "nonprivate_pir.cc",
         "pir_common.h",
+        "account_manager.h",
         "as_server.cc"
     ],
     deps = [

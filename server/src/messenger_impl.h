@@ -12,6 +12,7 @@
 #endif
 
 #include "pir_common.h"
+#include "account_manager.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -32,9 +33,13 @@ class MessengerImpl final : public Messenger::Service {
   Status Register(ServerContext *context,
                   const messenger::RegisterInfo *registerInfo,
                   messenger::RegisterResponse *registerResponse) override {
-    std::cout << "world" << std::endl;
+    try {
+      account_manager.generate_account(registerInfo->public_key());
+    } catch(const AccountManagerException & e) {
+      std::cerr << "AccountManagerException: " << e.what() << std::endl;
+      return Status(grpc::StatusCode::UNAVAILABLE, e.what());
+    }
 
-    // return empty Status
     return Status::OK;
   }
 
@@ -43,15 +48,20 @@ class MessengerImpl final : public Messenger::Service {
       messenger::SendMessageResponse *sendMessageResponse) override {
     auto index = sendMessageInfo->index();
     pir_index_t pir_index = index;
-    if (sendMessageInfo->authentication_token() != "hello") {
-      std::cerr << "incorrect authentication token" << std::endl;
-      return Status::CANCELLED;
+    try {
+      if (account_manager.valid_index_access(sendMessageInfo->authentication_token(), index)) {
+        std::cerr << "incorrect authentication token" << std::endl;
+        return Status(grpc::StatusCode::UNAUTHENTICATED, "incorrect authentication token");
+      }
+    } catch(const AccountManagerException & e) {
+      std::cerr << "AccountManagerException: " << e.what() << std::endl;
+      return Status(grpc::StatusCode::UNAVAILABLE, e.what());
     }
 
     auto message = sendMessageInfo->message();
     if (message.size() != sizeof(pir_value_t)) {
       std::cerr << "incorrect message size" << std::endl;
-      return Status::CANCELLED;
+      return Status(grpc::StatusCode::INVALID_ARGUMENT, "incorrect message size");
     }
     pir_value_t pir_value;
     std::copy(message.begin(), message.end(), pir_value.begin());
@@ -71,7 +81,7 @@ class MessengerImpl final : public Messenger::Service {
     bool success = query.deserialize_from_string(input_query);
     if (!success) {
       std::cerr << "error deserializing query" << std::endl;
-      return Status::CANCELLED;
+      return Status(grpc::StatusCode::INVALID_ARGUMENT, "error deserializing query");
     }
 
     pir_answer_t answer = pir.get_value_privately(query);
@@ -84,8 +94,9 @@ class MessengerImpl final : public Messenger::Service {
   }
 
  public:
-  MessengerImpl(PIR & pir) : pir(pir) {}
+  MessengerImpl(PIR & pir, AccountManager & account_manager) : pir(pir), account_manager(account_manager) {}
 
  private:
   PIR & pir;
+  AccountManager & account_manager;
 };

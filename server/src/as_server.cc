@@ -2,6 +2,7 @@
 #include "messenger_impl.h"
 
 #include "nonprivate_pir.h"
+#include "account_manager.h"
 
 // TODO(sualeh): turn on clang-tidy with bazel
 
@@ -27,8 +28,9 @@ int main(int argc, char **argv) {
   }
 
   NonPrivatePIR pir;
+  AccountManager account_manager;
 
-  MessengerImpl<NonPrivatePIR> messenger_service(pir);
+  MessengerImpl<NonPrivatePIR> messenger_service(pir, account_manager);
 
   ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
