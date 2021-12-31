@@ -5,13 +5,14 @@
 #include <memory>
 #include <string>
 
-#include "pir_db.h"
-
 #ifdef BAZEL_BUILD
 #include "schema/messenger.grpc.pb.h"
 #else
 #include "schema/messenger.grpc.pb.h"
 #endif
+
+#include "pir_common.h"
+#include "account_manager.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -20,34 +21,53 @@ using grpc::Status;
 
 using messenger::Messenger;
 
-using std::make_shared;
-using std::shared_ptr;
 using std::string;
 
-template <typename index_type, typename value_type, typename pir_answer_type,
-          typename pir_query_type>
+template<typename PIR>
 class MessengerImpl final : public Messenger::Service {
-  using PirDB = PirDB<index_type, value_type, pir_query_type, pir_answer_type>;
+  using pir_query_t = typename PIR::pir_query_t;
+  using pir_answer_t = typename PIR::pir_answer_t;
   // TODO: add a thread safety argument (because the methods may be called from
   // different threads)
   // TODO: add representation invariant
   Status Register(ServerContext *context,
                   const messenger::RegisterInfo *registerInfo,
                   messenger::RegisterResponse *registerResponse) override {
-    std::cout << "world" << std::endl;
+    try {
+      account_manager.generate_account(registerInfo->public_key());
+    } catch(const AccountManagerException & e) {
+      std::cerr << "AccountManagerException: " << e.what() << std::endl;
+      return Status(grpc::StatusCode::UNAVAILABLE, e.what());
+    }
 
-    // return empty Status
     return Status::OK;
   }
 
   Status SendMessage(
       ServerContext *context, const messenger::SendMessageInfo *sendMessageInfo,
       messenger::SendMessageResponse *sendMessageResponse) override {
-    // check that the authentication token corresponds to the index
-    // check that the message is not too long
-    std::cout << "world" << std::endl;
+    auto index = sendMessageInfo->index();
+    pir_index_t pir_index = index;
+    try {
+      if (account_manager.valid_index_access(sendMessageInfo->authentication_token(), index)) {
+        std::cerr << "incorrect authentication token" << std::endl;
+        return Status(grpc::StatusCode::UNAUTHENTICATED, "incorrect authentication token");
+      }
+    } catch(const AccountManagerException & e) {
+      std::cerr << "AccountManagerException: " << e.what() << std::endl;
+      return Status(grpc::StatusCode::UNAVAILABLE, e.what());
+    }
 
-    // return empty Status
+    auto message = sendMessageInfo->message();
+    if (message.size() != sizeof(pir_value_t)) {
+      std::cerr << "incorrect message size" << std::endl;
+      return Status(grpc::StatusCode::INVALID_ARGUMENT, "incorrect message size");
+    }
+    pir_value_t pir_value;
+    std::copy(message.begin(), message.end(), pir_value.begin());
+
+    pir.set_value(pir_index, pir_value);
+
     return Status::OK;
   }
 
@@ -55,29 +75,28 @@ class MessengerImpl final : public Messenger::Service {
       ServerContext *context,
       const messenger::ReceiveMessageInfo *receiveMessageInfo,
       messenger::ReceiveMessageResponse *receiveMessageResponse) override {
+
     auto input_query = receiveMessageInfo->pir_query();
-    pir_query_type query;
+    pir_query_t query;
     bool success = query.deserialize_from_string(input_query);
     if (!success) {
-      std::cout << "error deserializing query" << std::endl;
-      return Status::CANCELLED;
+      std::cerr << "error deserializing query" << std::endl;
+      return Status(grpc::StatusCode::INVALID_ARGUMENT, "error deserializing query");
     }
 
-    pir_answer_type answer = pir_db.get_value_privately(query);
+    pir_answer_t answer = pir.get_value_privately(query);
 
-    // serialize pir_answer_type
     string answer_string = answer.serialize_to_string();
 
-    // TODO: use set_pir_answer or set_allocated_pir_answer?
-    receiveMessageResponse->set_pir_answer(answer_string);
+    receiveMessageResponse->set_pir_answer(std::move(answer_string));
 
-    // return empty Status
     return Status::OK;
   }
 
  public:
-  MessengerImpl(const PirDB & pir_db) : pir_db(pir_db) {}
+  MessengerImpl(PIR & pir, AccountManager & account_manager) : pir(pir), account_manager(account_manager) {}
 
  private:
-  const PirDB & pir_db;
+  PIR & pir;
+  AccountManager & account_manager;
 };

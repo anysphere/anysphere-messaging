@@ -15,6 +15,7 @@
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
     "files.associations": {
+        "*.mdx": "markdown",
         "string": "cpp",
         "__bit_reference": "cpp",
         "__config": "cpp",
@@ -103,6 +104,12 @@
         "*.tcc": "cpp",
         "memory_resource": "cpp",
         "stop_token": "cpp",
-        "__bits": "cpp"
+        "__bits": "cpp",
+        "cfenv": "cpp",
+        "csignal": "cpp",
+        "future": "cpp",
+        "scoped_allocator": "cpp",
+        "typeindex": "cpp",
+        "valarray": "cpp"
     },
 }
