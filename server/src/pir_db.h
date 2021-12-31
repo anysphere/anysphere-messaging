@@ -34,8 +34,8 @@ class pir_answer_type_base {
 // and each of these types should be PIR::index_type, PIR::value_type, PIR::query_type, etc etc
 template <typename index_type, 
   typename value_type, 
-  class pir_query_type,
-  class pir_answer_type>
+  typename pir_query_type,
+  typename pir_answer_type>
   requires std::is_base_of_v<pir_query_type_base, pir_query_type> &&
   std::is_base_of_v<pir_answer_type_base, pir_answer_type>
 class PirDB {

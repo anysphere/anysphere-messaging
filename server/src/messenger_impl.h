@@ -27,7 +27,7 @@ using std::string;
 template <typename index_type, typename value_type, typename pir_answer_type,
           typename pir_query_type>
 class MessengerImpl final : public Messenger::Service {
-  using PirDB = PirDB<index_type, value_type, pir_query_type, pir_answer_type>>;
+  using PirDB = PirDB<index_type, value_type, pir_query_type, pir_answer_type>;
   // TODO: add a thread safety argument (because the methods may be called from
   // different threads)
   // TODO: add representation invariant
@@ -63,7 +63,7 @@ class MessengerImpl final : public Messenger::Service {
       return Status::CANCELLED;
     }
 
-    pir_answer_type answer = pir_db->get_value_privately(query);
+    pir_answer_type answer = pir_db.get_value_privately(query);
 
     // serialize pir_answer_type
     string answer_string = answer.serialize_to_string();
@@ -76,8 +76,8 @@ class MessengerImpl final : public Messenger::Service {
   }
 
  public:
-  MessengerImpl(shared_ptr<PirDB> pir_db_ptr) : pir_db(pir_db_ptr) {}
+  MessengerImpl(const PirDB & pir_db) : pir_db(pir_db) {}
 
  private:
-  shared_ptr<PirDB> pir_db;
+  const PirDB & pir_db;
 };

@@ -14,7 +14,6 @@
 //      solution to performing the PIR (when memory usage becomes a problem,
 //      split the PIR into multiple shards, and perform the queries on each
 //      shard)
-//    -
 
 // TODO: look into AsyncService; might be useful for performance
 using index_type = uint64_t;
@@ -28,8 +27,7 @@ int main(int argc, char **argv) {
     server_address = argv[1];
   }
 
-  auto pir_db = make_shared<
-      PirDB<index_type, value_type, pir_query_type, pir_answer_type>>();
+  PirDB<index_type, value_type, pir_query_type, pir_answer_type> pir_db;
 
   MessengerImpl<index_type, value_type, pir_answer_type, pir_query_type>
       messenger_service(pir_db);
