@@ -16,15 +16,13 @@ using messenger::RegisterResponse;
 
 std::string get_greet(const std::string &who) { return "Hello " + who; }
 
-void print_localtime()
-{
+void print_localtime() {
   std::time_t result = std::time(nullptr);
   std::cout << std::asctime(std::localtime(&result));
 }
 
 int test(std::shared_ptr<Channel> channel,
-         std::unique_ptr<Messenger::Stub> stub)
-{
+         std::unique_ptr<Messenger::Stub> stub) {
   // Data we are sending to the server.
   RegisterInfo request;
   // request.set_publickey("hi_i_am_public_key");
@@ -40,23 +38,18 @@ int test(std::shared_ptr<Channel> channel,
   Status status = stub->Register(&context, request, &reply);
 
   // Act upon its status.
-  if (status.ok())
-  {
+  if (status.ok()) {
     return 1;
-  }
-  else
-  {
+  } else {
     std::cout << status.error_code() << ": " << status.error_message()
               << std::endl;
     return 0;
   }
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   std::string server_address("0.0.0.0:50051");
-  if (argc > 1)
-  {
+  if (argc > 1) {
     server_address = argv[1];
   }
   std::cout << "Client querying server address: " << server_address
