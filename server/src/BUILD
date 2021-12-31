@@ -4,7 +4,9 @@ cc_binary(
     name = "as_server",
     srcs = [
         "messenger_impl.h",
-        "pir_db.h",
+        "nonprivate_pir.h",
+        "nonprivate_pir.cc",
+        "pir_common.h",
         "as_server.cc"
     ],
     deps = [

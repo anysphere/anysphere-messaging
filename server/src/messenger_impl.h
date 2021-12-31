@@ -22,6 +22,8 @@ using std::string;
 
 template<typename PIR>
 class MessengerImpl final : public Messenger::Service {
+  using pir_query_t = typename PIR::pir_query_t;
+  using pir_answer_t = typename PIR::pir_answer_t;
   // TODO: add a thread safety argument (because the methods may be called from
   // different threads)
   // TODO: add representation invariant
@@ -50,14 +52,14 @@ class MessengerImpl final : public Messenger::Service {
       const messenger::ReceiveMessageInfo *receiveMessageInfo,
       messenger::ReceiveMessageResponse *receiveMessageResponse) override {
     auto input_query = receiveMessageInfo->pir_query();
-    PIR::query_type query;
+    pir_query_t query;
     bool success = query.deserialize_from_string(input_query);
     if (!success) {
       std::cout << "error deserializing query" << std::endl;
       return Status::CANCELLED;
     }
 
-    PIR::answer_type answer = pir.get_value_privately(query);
+    pir_answer_t answer = pir.get_value_privately(query);
 
     // serialize pir_answer_type
     string answer_string = answer.serialize_to_string();
@@ -70,8 +72,8 @@ class MessengerImpl final : public Messenger::Service {
   }
 
  public:
-  MessengerImpl(const PIR & pir) : pir(pir) {}
+  MessengerImpl(PIR & pir) : pir(pir) {}
 
  private:
-  const PIR & pir;
+  PIR & pir;
 };

@@ -2,11 +2,11 @@
 
 #include <vector>
 #include <string>
+#include <array>
 
 #include "pir_common.h"
 
 using std::array;
-using std::byte;
 using std::vector;
 using std::string;
 
@@ -39,7 +39,7 @@ struct NonPrivatePIRAnswer {
     if (s.size() != MESSAGE_SIZE) {
       return false;
     }
-    value = s.data();
+    std::copy(s.begin(), s.end(), value.begin());
 
     return true;
   }
@@ -48,11 +48,10 @@ struct NonPrivatePIRAnswer {
 
 // TODO: add thread safety argument
 class NonPrivatePIR {
-
+ public:
   using pir_query_t = NonPrivatePIRQuery;
   using pir_answer_t = NonPrivatePIRAnswer;
 
- public:
   NonPrivatePIR();
 
   auto set_value(pir_index_t index, pir_value_t value) -> void;
