@@ -51,6 +51,7 @@ class MessengerImpl final : public Messenger::Service {
       ServerContext *context,
       const messenger::ReceiveMessageInfo *receiveMessageInfo,
       messenger::ReceiveMessageResponse *receiveMessageResponse) override {
+
     auto input_query = receiveMessageInfo->pir_query();
     pir_query_t query;
     bool success = query.deserialize_from_string(input_query);
@@ -61,13 +62,10 @@ class MessengerImpl final : public Messenger::Service {
 
     pir_answer_t answer = pir.get_value_privately(query);
 
-    // serialize pir_answer_type
     string answer_string = answer.serialize_to_string();
 
-    // TODO: use set_pir_answer or set_allocated_pir_answer?
     receiveMessageResponse->set_pir_answer(std::move(answer_string));
 
-    // return empty Status
     return Status::OK;
   }
 
