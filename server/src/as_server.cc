@@ -17,32 +17,60 @@ using grpc::ServerContext;
 using grpc::Status;
 
 using messenger::Messenger;
-using messenger::RegisterInfo;
-using messenger::RegisterResponse;
 
-std::string get_greet(const std::string& who) { return "Hello " + who; }
+// draft of structure:
+//    - there are two kinds of databases. one contains all the messages and only the messages, and is the one
+//      we do PIR on. the other contains auxiliary non-private information, like (authentication_token -> allocation) map,
+//      and possibly other things. we care a lot about the latter database to be persistent, whereas the former
+//      need not be persistent. so probably what we want is a postgres instance for storing all non-private info,
+//      and an in-memory / custom solution to performing the PIR (when memory usage becomes a problem, split the PIR
+//      into multiple shards, and perform the queries on each shard)
+//    -
 
-void print_localtime() {
-  std::time_t result = std::time(nullptr);
-  std::cout << std::asctime(std::localtime(&result));
-}
+// TODO: look into AsyncService; might be useful for performance
+class MessengerImpl final : public Messenger::Service
+{
+  // TODO: add a thread safety argument (because the methods may be called from different threads)
+  // TODO: add representation invariant
 
-class MessengerServiceImpl final : public Messenger::Service {
-  Status Register(ServerContext* context, const RegisterInfo* registerInfo,
-                  RegisterResponse* registerResponse) override {
-    std::cout << get_greet("world") << std::endl;
+  Status Register(ServerContext *context, const messenger::RegisterInfo *registerInfo,
+                  messenger::RegisterResponse *registerResponse) override
+  {
+    std::cout << "world" << std::endl;
+
+    // return empty Status
+    return Status::OK;
+  }
+
+  Status SendMessage(ServerContext *context, const messenger::SendMessageInfo *sendMessageInfo,
+                     messenger::SendMessageResponse *sendMessageResponse) override
+  {
+      // check that the authentication token corresponds to the index
+      // check that the message is not too long
+    std::cout << "world" << std::endl;
+
+    // return empty Status
+    return Status::OK;
+  }
+
+  Status ReceiveMessage(ServerContext *context, const messenger::ReceiveMessageInfo *receiveMessageInfo,
+                        messenger::ReceiveMessageResponse *receiveMessageResponse) override
+  {
+    std::cout << "world" << std::endl;
 
     // return empty Status
     return Status::OK;
   }
 };
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
   std::string server_address("0.0.0.0:50051");
-  if (argc > 1) {
+  if (argc > 1)
+  {
     server_address = argv[1];
   }
-  MessengerServiceImpl service;
+  MessengerImpl service;
 
   ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
