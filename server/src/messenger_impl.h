@@ -27,7 +27,7 @@ using std::string;
 template <typename index_type, typename value_type, typename pir_answer_type,
           typename pir_query_type>
 class MessengerImpl final : public Messenger::Service {
-  using PirDB = PirDB<index_type, value_type>;
+  using PirDB = PirDB<index_type, value_type, pir_query_type, pir_answer_type>>;
   // TODO: add a thread safety argument (because the methods may be called from
   // different threads)
   // TODO: add representation invariant

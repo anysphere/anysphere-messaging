@@ -39,10 +39,10 @@ template <typename index_type,
   requires std::is_base_of_v<pir_query_type_base, pir_query_type> &&
   std::is_base_of_v<pir_answer_type_base, pir_answer_type>
 class PirDB {
-  static_assert(std::derived_from<pir_answer_type, pir_answer_type_base> == true,
-    "pir_answer_type must be derived from pir_answer_type_base");
-  static_assert(std::derived_from<pir_query_type, pir_query_type_base> == true,
-    "pir_query_type must be derived from pir_query_type_base");
+  // static_assert(std::derived_from<pir_answer_type, pir_answer_type_base> == true,
+  //   "pir_answer_type must be derived from pir_answer_type_base");
+  // static_assert(std::derived_from<pir_query_type, pir_query_type_base> == true,
+  //   "pir_query_type must be derived from pir_query_type_base");
 
   // TODO: this needs to be threadsafe
  public:

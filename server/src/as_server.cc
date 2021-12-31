@@ -19,6 +19,8 @@
 // TODO: look into AsyncService; might be useful for performance
 using index_type = uint64_t;
 using value_type = std::string;
+using pir_query_type = pir_query_type_base;
+using pir_answer_type = pir_answer_type_base;
 
 int main(int argc, char **argv) {
   std::string server_address("0.0.0.0:50051");
@@ -27,7 +29,7 @@ int main(int argc, char **argv) {
   }
 
   auto pir_db = make_shared<
-      PirDB<index_type, value_type>>();
+      PirDB<index_type, value_type, pir_query_type, pir_answer_type>>();
 
   MessengerImpl<index_type, value_type, pir_answer_type, pir_query_type>
       messenger_service(pir_db);
