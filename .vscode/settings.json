@@ -1,5 +1,5 @@
 {
-    "editor.formatOnSave": false,
+    "editor.formatOnSave": true,
     "bazel-cpp-tools.compileCommands.targets": [
         "//client/src:anysphere",
         "//server/src:as_server",
@@ -110,6 +110,8 @@
         "future": "cpp",
         "scoped_allocator": "cpp",
         "typeindex": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "charconv": "cpp",
+        "shared_mutex": "cpp"
     },
 }

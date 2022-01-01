@@ -1,6 +1,4 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
-load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
-
 
 cc_binary(
     name = "as_server",
@@ -18,4 +16,14 @@ cc_binary(
         "@com_github_grpc_grpc//:grpc++",
         "@libpqxx//:libpqxx",
     ],
+    defines = select({
+        "//conditions:default": ["USE_POSTGRES_DB"],
+        ":in_memory_db": ["USE_MEMORY_DB"],
+    })
+    
+)
+
+config_setting(
+    name = "in_memory_db",
+    values = {"define": "memdb=true"}
 )

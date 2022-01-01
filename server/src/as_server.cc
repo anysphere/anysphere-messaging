@@ -18,20 +18,45 @@
 //      split the PIR into multiple shards, and perform the queries on each
 //      shard)
 
-
 // TODO: look into AsyncService; might be useful for performance
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   std::string server_address("0.0.0.0:50051");
-  if (argc > 1) {
-    server_address = argv[1];
+  std::string db_address("127.0.0.1");
+
+  vector<string> args(argv + 1, argv + argc);
+  string infname, outfname;
+
+  // Loop over command-line args
+  for (auto i = args.begin(); i != args.end(); ++i)
+  {
+    if (*i == "-h" || *i == "--help")
+    {
+      std::cout << "Syntax: as_server -a <server_address> -d <db_address> -m <in_memory_db>" << std::endl;
+      std::cout << "  -a <server_address>  Address to listen on (default: " << server_address << ")" << std::endl;
+      std::cout << "  -d <db_address>      Address of database (default: " << db_address << ")" << std::endl;
+      return 0;
+    }
+    else if (*i == "-a")
+    {
+      server_address = *++i;
+    }
+    else if (*i == "-d")
+    {
+      db_address = *++i;
+    }
   }
 
   NonPrivatePIR pir;
-  AccountManagerInMemory account_manager;
-  // AccountManagerPostgres account_manager;
+#ifdef USE_MEMORY_DB
+  using AccountManager = AccountManagerInMemory;
+#else
+  using AccountManager = AccountManagerPostgres;
+#endif
+  AccountManager account_manager;
 
-  MessengerImpl<NonPrivatePIR, AccountManagerInMemory> messenger_service(pir, account_manager);
+  MessengerImpl<NonPrivatePIR, AccountManager> messenger_service(pir, account_manager);
 
   ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
