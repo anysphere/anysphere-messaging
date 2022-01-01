@@ -27,26 +27,6 @@ git_repository(
        remote = "https://github.com/erenon/bazel_clang_tidy.git",
 )
 
-# nix for packages
-http_archive(
-    name = "io_tweag_rules_nixpkgs",
-    strip_prefix = "rules_nixpkgs-6178f2aae7a90370f2132abafa977701afc6fb4e",
-    urls = ["https://github.com/tweag/rules_nixpkgs/archive/6178f2aae7a90370f2132abafa977701afc6fb4e.tar.gz"],
-)
-
-load("@io_tweag_rules_nixpkgs//nixpkgs:repositories.bzl", "rules_nixpkgs_dependencies")
-rules_nixpkgs_dependencies()
-
-load("@io_tweag_rules_nixpkgs//nixpkgs:nixpkgs.bzl", "nixpkgs_git_repository", "nixpkgs_package", "nixpkgs_cc_configure")
-
-# load("@io_tweag_rules_nixpkgs//nixpkgs:toolchains/go.bzl", "nixpkgs_go_configure") # optional
-
-# install postgres
-nixpkgs_package(
-    name = "postgresql",
-    repositories = { "nixpkgs": "@nixpkgs//:default.nix" }
-)
-
 # libpqxx for postgres
 http_archive(
     name = "rules_foreign_cc",
@@ -70,7 +50,7 @@ filegroup(
 new_git_repository(
     name = "libpqxx",
     build_file_content = _ALL_CONTENT,
-    commit = "de66f0063ad7c133074223c2c1a34f8e8b03d211",
+    commit = "9100bef4b7488d05d414bd5f58a6811f4dae636e",
     remote = "https://github.com/jtv/libpqxx",
 )
 

@@ -28,9 +28,10 @@ int main(int argc, char **argv) {
   }
 
   NonPrivatePIR pir;
-  AccountManager account_manager;
+  AccountManagerInMemory account_manager;
+  // AccountManagerPostgres account_manager;
 
-  MessengerImpl<NonPrivatePIR> messenger_service(pir, account_manager);
+  MessengerImpl<NonPrivatePIR, AccountManagerInMemory> messenger_service(pir, account_manager);
 
   ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
