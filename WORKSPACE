@@ -39,17 +39,9 @@ load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_depende
 
 rules_foreign_cc_dependencies()
 
-_ALL_CONTENT = """\
-filegroup(
-    name = "all_srcs",
-    srcs = glob(["**"]),
-    visibility = ["//visibility:public"],
-)
-"""
-
 new_git_repository(
     name = "libpqxx",
-    build_file_content = _ALL_CONTENT,
+    build_file = "//:libpqxx.BUILD",
     commit = "9100bef4b7488d05d414bd5f58a6811f4dae636e",
     remote = "https://github.com/jtv/libpqxx",
 )
