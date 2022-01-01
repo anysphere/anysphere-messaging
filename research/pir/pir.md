@@ -33,6 +33,10 @@ Ideally, once again here, we want to create something that can be swapped out. S
   - uses SEAL (duh)
   - what pung v2 uses, which means that it can be integrated with PBCs for multi-retrieval
   - uses BFV as a black box
+  - BFV operations:
+   - ADD(cipher, cipher)
+   - MULT(plain, cipher)
+   - SUB(cipher, k): converts enc(p(x)) to enc(p(x^k)). WEIRD.
   - request size:
   - server runtime: ???
   - multi: ???
@@ -51,6 +55,11 @@ Ideally, once again here, we want to create something that can be swapped out. S
   - uses SEAL
   - what addra uses
   - uses BFV as a black box
+  - BFV operations:
+   - ADD(cipher, cipher)
+   - MULT(plain, cipher)
+   - ROWROTATE(cipher, i): rotates each row of the 2 x N/2 matrix by i. WEIRD.
+   - COLROTATE(cipher): swaps the two rows. WEIRD.
   - feels like the easiest thing to implement!!!! i like it. maybe not ideal but good thing to start with at least.
   - request size: ???
   - server runtime: ???
