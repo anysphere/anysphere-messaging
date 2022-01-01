@@ -14,12 +14,11 @@ using messenger::Messenger;
 using messenger::RegisterInfo;
 using messenger::RegisterResponse;
 
-std::string get_greet(const std::string &who) { return "Hello " + who; }
-
-void print_localtime() {
-  std::time_t result = std::time(nullptr);
-  std::cout << std::asctime(std::localtime(&result));
-}
+// needs to store local data that is persisted between rounds, like:
+// - whether registered or not
+// - authentication token and allocation indices
+// - which friends are assigned to which indices
+// can we store this in sqlite?
 
 int test(std::shared_ptr<Channel> channel,
          std::unique_ptr<Messenger::Stub> stub) {
