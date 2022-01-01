@@ -14,3 +14,4 @@ RUN echo 'export CCX=clang++' >> /home/gitpod/.bashrc
 RUN git config --global alias.c commit
 RUN git config --global alias.s commit
 RUN git config --global alias.p commit
+RUN git config --global pull.ff only
