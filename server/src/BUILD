@@ -16,6 +16,7 @@ cc_binary(
         "//schema:messenger_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@libpqxx//:libpqxx",
+        "@seal//:seal",
     ],
     defines = select({
         "//conditions:default": ["USE_POSTGRES_DB"],

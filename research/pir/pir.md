@@ -32,6 +32,7 @@ Ideally, once again here, we want to create something that can be swapped out. S
   - code: [https://github.com/microsoft/SealPIR](https://github.com/microsoft/SealPIR)
   - uses SEAL (duh)
   - what pung v2 uses, which means that it can be integrated with PBCs for multi-retrieval
+  - uses BFV as a black box
   - request size:
   - server runtime: ???
   - multi: ???
@@ -40,6 +41,7 @@ Ideally, once again here, we want to create something that can be swapped out. S
   - code: [https://github.com/mhmughees/Onion-PIR](https://github.com/mhmughees/Onion-PIR)
   - uses SEAL
   - not used by any anonymous communication
+  - uses BFV as a black box
   - request size: ???
   - server runtime: ???
   - multi: ???
@@ -48,6 +50,7 @@ Ideally, once again here, we want to create something that can be swapped out. S
   - code: [https://github.com/ishtiyaque/fastpir](https://github.com/ishtiyaque/fastpir)
   - uses SEAL
   - what addra uses
+  - uses BFV as a black box
   - request size: ???
   - server runtime: ???
   - multi: ???
