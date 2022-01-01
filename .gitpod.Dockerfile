@@ -10,3 +10,7 @@ RUN echo 'export CC=clang' >> /home/gitpod/.bashrc
 
 RUN echo 'export CCX=clang++' >> /home/gitpod/.bashrc
 #RUN echo 'export CCX=g++' >> /home/gitpod/.bashrc
+
+RUN git config --global alias.c commit
+RUN git config --global alias.s commit
+RUN git config --global alias.p commit
