@@ -70,7 +70,7 @@ filegroup(
 new_git_repository(
     name = "libpqxx",
     build_file_content = _ALL_CONTENT,
-    commit = "5fe041dd185d808f98df8327a583f1a55fccc15f",
+    commit = "de66f0063ad7c133074223c2c1a34f8e8b03d211",
     remote = "https://github.com/jtv/libpqxx",
 )
 

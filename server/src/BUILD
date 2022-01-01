@@ -1,5 +1,6 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
-load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
+# load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
 
 
 cc_binary(
@@ -20,14 +21,26 @@ cc_binary(
     ],
 )
 
-configure_make(
+# configure_make(
+#     name = "libpqxx",
+#     args = [
+#         "-j4",  # Make it faster by using more processes.
+#     ],
+#     configure_options = [
+#         "--disable-documentation",
+#         "--with-postgres-include=/opt/homebrew/opt/libpq/include",
+#     ],
+#     lib_source = "@libpqxx//:all_srcs",
+#     out_static_libs = [
+#         "libpqxx.a",
+#     ],
+# )
+
+cmake(
     name = "libpqxx",
-    args = [
-        "-j4",  # Make it faster by using more processes.
-    ],
-    configure_options = [
-        "--disable-documentation",
-    ],
+    cache_entries = {
+        "CMAKE_C_FLAGS": "-fPIC",
+    },
     lib_source = "@libpqxx//:all_srcs",
     out_static_libs = [
         "libpqxx.a",
