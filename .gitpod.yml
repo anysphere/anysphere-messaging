@@ -2,7 +2,7 @@ image:
   file: .gitpod.Dockerfile
 tasks:
   - name: Prepare Bazel
-    before: "./scripts/gitpod-init.sh"
+    before: "./gitpod-init.sh"
     init: bazel build //...
 ports:
   - port: 5900
