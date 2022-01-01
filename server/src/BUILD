@@ -4,8 +4,9 @@ cc_binary(
     name = "as_server",
     srcs = [
         "messenger_impl.h",
-        "pir/nonprivate_pir.h",
-        "pir/nonprivate_pir.cc",
+        "pir/nonprivate/nonprivate_pir.h",
+        "pir/nonprivate/nonprivate_pir.cc",
+        "pir/sealpir/seal_test.h",
         "pir/pir_common.h",
         "account_manager.h",
         "as_server.cc"
