@@ -1,5 +1,6 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
 load("@bazel_tools//tools/cpp:cc_configure.bzl", "cc_configure")
 
 cc_configure()
@@ -24,6 +25,53 @@ git_repository(
        name = "bazel_clang_tidy",
        commit = "69aa13e6d7cf102df70921c66be15d4592251e56",
        remote = "https://github.com/erenon/bazel_clang_tidy.git",
+)
+
+# nix for packages
+http_archive(
+    name = "io_tweag_rules_nixpkgs",
+    strip_prefix = "rules_nixpkgs-6178f2aae7a90370f2132abafa977701afc6fb4e",
+    urls = ["https://github.com/tweag/rules_nixpkgs/archive/6178f2aae7a90370f2132abafa977701afc6fb4e.tar.gz"],
+)
+
+load("@io_tweag_rules_nixpkgs//nixpkgs:repositories.bzl", "rules_nixpkgs_dependencies")
+rules_nixpkgs_dependencies()
+
+load("@io_tweag_rules_nixpkgs//nixpkgs:nixpkgs.bzl", "nixpkgs_git_repository", "nixpkgs_package", "nixpkgs_cc_configure")
+
+# load("@io_tweag_rules_nixpkgs//nixpkgs:toolchains/go.bzl", "nixpkgs_go_configure") # optional
+
+# install postgres
+nixpkgs_package(
+    name = "postgresql",
+    repositories = { "nixpkgs": "@nixpkgs//:default.nix" }
+)
+
+# libpqxx for postgres
+http_archive(
+    name = "rules_foreign_cc",
+    sha256 = "5470b22db8974824a1994593f117b0ef8c2e5fb474fd30a7473fcfd77d8d1ed7",
+    strip_prefix = "rules_foreign_cc-f01fd353ee2adcd55aab899c12fa2733223228a1",
+    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/f01fd353ee2adcd55aab899c12fa2733223228a1.tar.gz",
+)
+
+load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
+
+rules_foreign_cc_dependencies()
+
+_ALL_CONTENT = """\
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
+"""
+
+new_git_repository(
+    name = "libpqxx",
+    build_file_content = _ALL_CONTENT,
+    commit = "5fe041dd185d808f98df8327a583f1a55fccc15f",
+    remote = "https://github.com/jtv/libpqxx",
 )
 
 # grpc and rules_proto
