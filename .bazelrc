@@ -1,3 +1,5 @@
+try-import %workspace%/.user.bazelrc
+
 # By default build in C++20 mode
 build --cxxopt=-std=c++20
 

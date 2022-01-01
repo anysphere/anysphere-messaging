@@ -1,15 +1,15 @@
 image:
   file: .gitpod.Dockerfile
 tasks:
-  - init: |
-      bazel build //client/src:anysphere &&
-      bazel build //server/src:as_server
+  - name: Prepare Bazel
+    before: "./scripts/gitpod-init.sh"
+    init: bazel build //...
 ports:
   - port: 5900
     onOpen: ignore
   - port: 6080 # VNC for X11 C++ GUI Development
     onOpen: open-preview
-  
+
 vscode:
   extensions:
     - ms-vscode.cpptools
