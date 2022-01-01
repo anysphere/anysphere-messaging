@@ -13,3 +13,7 @@ ports:
 vscode:
   extensions:
     - ms-vscode.cpptools
+    - github.copilot
+    - galexite.bazel-cpp-tools
+    - bazelbuild.vscode-bazel
+    - ms-vscode.cpptools-extension-pack
