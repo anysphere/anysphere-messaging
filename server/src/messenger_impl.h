@@ -11,7 +11,7 @@
 #include "schema/messenger.grpc.pb.h"
 #endif
 
-#include "pir_common.h"
+#include "pir/pir_common.h"
 #include "account_manager.h"
 
 using grpc::Server;

@@ -1,7 +1,7 @@
 
 #include "messenger_impl.h"
 
-#include "nonprivate_pir.h"
+#include "pir/nonprivate_pir.h"
 #include "account_manager.h"
 
 // TODO(sualeh): turn on clang-tidy with bazel
