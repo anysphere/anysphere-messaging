@@ -51,6 +51,7 @@ Ideally, once again here, we want to create something that can be swapped out. S
   - uses SEAL
   - what addra uses
   - uses BFV as a black box
+  - feels like the easiest thing to implement!!!! i like it. maybe not ideal but good thing to start with at least.
   - request size: ???
   - server runtime: ???
   - multi: ???
