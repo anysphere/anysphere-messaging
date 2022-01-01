@@ -3,6 +3,9 @@
 #include <ctime>
 #include <iostream>
 #include <string>
+#include <chrono>
+#include <ctime>
+#include <thread>
 
 #include "schema/messenger.grpc.pb.h"
 
@@ -54,12 +57,28 @@ int main(int argc, char **argv) {
   std::cout << "Client querying server address: " << server_address
             << std::endl;
 
-  std::shared_ptr<Channel> channel =
-      grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials());
+  // std::shared_ptr<Channel> channel =
+  //     grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials());
 
-  std::unique_ptr<Messenger::Stub> stub = Messenger::NewStub(channel);
+  // std::unique_ptr<Messenger::Stub> stub = Messenger::NewStub(channel);
 
-  test(channel, std::move(stub));
+  // test(channel, std::move(stub));
+  
+  // get the local time using the system clock
+  auto t = std::chrono::system_clock().now();
+
+  // get a duration using chrono
+  auto duration = std::chrono::milliseconds(500);
+
+  while (true) {
+    // get the time difference from t
+    auto now = std::chrono::system_clock().now();
+    auto diff = now - t;
+
+    std::cout << "I have been running for " << diff.count()/1000 << "ms" << std::endl;
+    // sleep for 500 milliseconds
+    std::this_thread::sleep_for(duration);
+  }
 
   return 0;
 }
