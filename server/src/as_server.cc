@@ -3,6 +3,7 @@
 
 #include "pir/nonprivate/nonprivate_pir.h"
 #include "pir/sealpir/seal_test.h"
+#include "pir/fastpir/fastpir_test.h"
 #include "account_manager.h"
 
 // TODO(sualeh): turn on clang-tidy with bazel
@@ -50,7 +51,8 @@ int main(int argc, char **argv)
   }
 
   // NonPrivatePIR pir;
-  SealPIR pir;
+  // SealPIR pir;
+  FastPIR pir;
 #ifdef USE_MEMORY_DB
   using AccountManager = AccountManagerInMemory;
 #else
@@ -59,7 +61,8 @@ int main(int argc, char **argv)
   AccountManager account_manager;
 
   // MessengerImpl<NonPrivatePIR, AccountManager> messenger_service(pir, account_manager);
-  MessengerImpl<SealPIR, AccountManager> messenger_service(pir, account_manager);
+  // MessengerImpl<SealPIR, AccountManager> messenger_service(pir, account_manager);
+  MessengerImpl<FastPIR, AccountManager> messenger_service(pir, account_manager);
 
   ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
