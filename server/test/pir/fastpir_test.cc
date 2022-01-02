@@ -17,9 +17,13 @@ TEST(FastPirTest, Basic)
     pir.set_value(idx, value);
 
     FastPIRClient client;
-    auto query = client.query(idx);
+    auto query = client.query(idx, 1);
 
-    auto answer = pir.get_value_privately(query);
+    auto serialized_query = query.serialize_to_string();
+
+    auto deserialized_query = pir.query_from_string(serialized_query);
+
+    auto answer = pir.get_value_privately(deserialized_query);
 
     auto decoded_value = client.decode(answer);
 

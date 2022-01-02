@@ -38,11 +38,23 @@ auto get_submatrix_as_uint64s(const vector<byte> &db, size_t db_row_length_in_bi
     return coeffs;
 }
 
+template <typename Ciphertext_t, typename GaloisKeys_t>
 struct FastPIRQuery
 {
     // TODO: STORE GALOIS KEYS IN POSTGRES, DO NOT SEND IN EVERY QUERY BECAUSE THEY DO NOT CHANGE
-    vector<seal::Ciphertext> query;
-    seal::GaloisKeys galois_keys;
+    vector<Ciphertext_t> query;
+    GaloisKeys_t galois_keys;
+
+    auto serialize_to_string() noexcept(false) -> string
+    {
+        std::stringstream s_stream;
+        galois_keys.save(s_stream);
+        for (const auto &c : query)
+        {
+            c.save(s_stream);
+        }
+        return s_stream.str();
+    }
 
     // throws if deserialization fails
     auto deserialize_from_string(const string &s, seal::SEALContext sc) noexcept(false) -> void
@@ -83,7 +95,7 @@ struct FastPIRAnswer
 class FastPIR
 {
 public:
-    using pir_query_t = FastPIRQuery;
+    using pir_query_t = FastPIRQuery<seal::Ciphertext, seal::GaloisKeys>;
     using pir_answer_t = FastPIRAnswer;
 
     FastPIR() : sc(create_context_params()), batch_encoder(sc), evaluator(sc), seal_slot_count(batch_encoder.slot_count())
