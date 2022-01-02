@@ -41,13 +41,14 @@ using std::cin;
 using std::make_unique;
 using std::string;
 
+// The message struct to store and send messages.
 struct Message {
  public:
   Message() = default;
   Message(const string& msg, const string& friend_name)
       : msg_(msg), friend_(friend_name) {}
-  string msg_;
-  string friend_;
+  Msg msg_;
+  Name friend_;
   absl::Time time_;
   constexpr static auto file_address_ = UI_FILE;
 
@@ -70,10 +71,42 @@ struct Message {
   bool friend_is_empty() const { return friend_.empty(); }
 };
 
+// The friend struct to store the name and public key of a friend.
+// When a friend is complete we can add it to the config
+struct Friend {
+ public:
+  Friend() = default;
+  Friend(const string& name, const string& public_key)
+      : name_(name), public_key_(public_key) {}
+  Name name_;
+  PublicKey public_key_;
+  absl::Time time_;
+  constexpr static auto file_address_ = CONFIG_FILE;
+
+  bool complete() const { return !name_is_empty() && !public_key_is_empty(); }
+  void set_time() { time_ = absl::Now(); }
+
+  void add() {
+    set_time();
+    write_friend_to_file(file_address_, name_, public_key_, time_);
+    clear();
+  }
+
+  void clear() {
+    name_.clear();
+    public_key_.clear();
+  }
+
+ private:
+  bool name_is_empty() const { return name_.empty(); }
+  bool public_key_is_empty() const { return public_key_.empty(); }
+};
+
 int main() {
   // setup cli
 
   Message message_to_send;
+  Friend friend_to_add;
 
   auto rootMenu = make_unique<Menu>("anysphere");
 
@@ -139,7 +172,7 @@ int main() {
           out << "Message sent to " << message_to_send.friend_ << ": "
               << message_to_send.msg_ << "\n";
           message_to_send.send();
-          out << "Press Esc or type 'anysphere' to go to your main inbox.\n";
+          out << "Type 'anysphere' to go to your main inbox.\n";
         } else {
           out << "Now type `friend:` with your friend name.\n";
         }
@@ -152,14 +185,95 @@ int main() {
   inboxMenu->Insert(
       "friend",
       [](std::ostream& out, string friend_name) {
-        out << "Showing messages from your friend " << friend_name << "\n";
-        out << "Press Esc or type 'anysphere' to go to your main inbox.\n ";
+        out << StrCat("Showing (the last 15) messages from your friend ",
+                      friend_name, "\n");
+
+        out << "--------------------------------\n";
+        auto messages = read_friend_messages_from_file(friend_name, 15);
+        for (const auto& message : messages) {
+          out << StrCat(message["friend"].get<string>(), ": \n",
+                        "time: ", message["time"].get<string>(), "\n",
+                        message["message"].get<string>(), "\n\n",
+                        "--------------------------------\n");
+        }
+        out << "Type 'anysphere' to go to your main inbox.\n ";
         // go to the main inbox.
       },
       "Show the messages from a friend");
+  inboxMenu->Insert(
+      "names",
+      [](std::ostream& out) {
+        out << "Showing all your friends:\n\n";
+        auto friends = read_friends_from_file();
+        for (const auto& friend_ : friends) {
+          out << friend_["name"].get<string>() << "\n";
+        }
+        if (friends.empty()) {
+          out << "You have no friends :(\n";
+        }
+        if (friends.size() == 1) {
+          out << "YOU have 1 friend :)\n";
+        } else {
+          out << StrCat("THERE YOUR ARE! YOU HAVE ", friends.size(),
+                        " FRIENDS\n");
+        }
 
+        out << "Type 'anysphere' to go to your main inbox.\n ";
+      },
+      "Show all your friends");
+
+  /* Friends interface
+    You can add friends with the command "add-friend ${friend_name} ${friend
+    public key}"
+    You can also open the add-friend menu with "friend"
+  */
+  auto friendsMenu = make_unique<Menu>("friends");
+  friendsMenu->Insert(
+      "add-friend",
+      [](std::ostream& out, string friend_name, string friend_public_key) {
+        out << StrCat("Adding friend: ", friend_name,
+                      " with public key: ", friend_public_key, "\n");
+        out << "Type 'anysphere' to go to your main inbox.\n ";
+        // go to the main inbox.
+      },
+      "Add a friend to your friends list");
+  friendsMenu->Insert(
+      "name",
+      [&](std::ostream& out, string friend_name) {
+        friend_to_add.name_ = friend_name;
+        if (friend_to_add.complete()) {
+          out << StrCat("Adding friend: ", friend_name,
+                        " with public key: ", friend_to_add.public_key_, "\n");
+          friend_to_add.add();
+          out << "Type 'anysphere' to go to your main inbox.\n ";
+          // go to the main inbox.
+        } else {
+          out << "Now type `public-key` with your friend's public key.\n";
+          out << "Press Esv or type 'anysphere' to return to the menu.\n";
+        }
+      },
+      "Set the name of your friend");
+  friendsMenu->Insert(
+      "public-key",
+      [&](std::ostream& out, string friend_public_key) {
+        friend_to_add.public_key_ = friend_public_key;
+        if (friend_to_add.complete()) {
+          out << StrCat("Adding friend: ", friend_to_add.name_,
+                        " with public key: ", friend_to_add.public_key_, "\n");
+          friend_to_add.add();
+          out << "Type 'anysphere' to go to your main inbox.\n ";
+          // go to the main inbox.
+        } else {
+          out << "Now type `name` with your friend's name.\n";
+          out << "Press Esv or type 'anysphere' to return to the menu.\n";
+        }
+      },
+      "Set the public key of your friend");
+
+  // Just add all the submenus to the root menu
   rootMenu->Insert(std::move(messageMenu));
   rootMenu->Insert(std::move(inboxMenu));
+  rootMenu->Insert(std::move(friendsMenu));
 
   Cli cli(std::move(rootMenu));
   SetColor();

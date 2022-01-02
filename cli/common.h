@@ -8,8 +8,8 @@
 #include <vector>
 
 #include "absl/strings/str_cat.h"
-#include "absl/time/time.h"
 #include "absl/time/clock.h"
+#include "absl/time/time.h"
 #include "nlohmann_json.h"
 
 using std::cout;
@@ -30,6 +30,10 @@ constexpr auto UI_FILE = "/workspace/anysphere/logs/ui.ndjson";
 constexpr auto UI_URGENT_FILE = "/workspace/anysphere/logs/ui_urgent.ndjson";
 constexpr auto CLIENT_FILE = "/workspace/anysphere/logs/client.ndjson";
 constexpr auto CONFIG_FILE = "/workspace/anysphere/logs/config.ndjson";
+
+using Msg = string;
+using PublicKey = string;
+using Name = string;
 
 /**
  * @brief This function gets the last line of a file
@@ -122,12 +126,10 @@ auto get_last_lines(string filename, int n) {
     for (auto& line : lines) {
       cout << line << endl;
     }
-    
 
     fin.close();
   }
   return lines;
-
 }
 
 auto get_new_entries(const string& file_address, const Time& last_timestamp)
@@ -190,11 +192,16 @@ auto write_msg_to_file(string file_address, string msg, string type) -> void {
   }
 }
 
-auto write_msg_to_file(string type, string file_address, string msg, string friend_name, Time time) -> void {
+auto write_msg_to_file(string type, string file_address, Msg msg,
+                       Name friend_name, Time time) -> void {
   auto file = std::ofstream(file_address, std::ios_base::app);
 
   auto send_time = absl::FormatTime(time, utc);
-  json jmsg = {{"timestamp", send_time}, {"type", type}, {"message", msg}, {"friend", friend_name}};
+
+  json jmsg = {{"timestamp", send_time},
+               {"type", type},
+               {"message", msg},
+               {"friend", friend_name}};
   if (file.is_open()) {
     file << std::setw(4) << jmsg.dump() << std::endl;
     cout << jmsg.dump() << endl;
@@ -202,3 +209,56 @@ auto write_msg_to_file(string type, string file_address, string msg, string frie
   }
 }
 
+auto write_friend_to_file(string file_address, Name friend_name, PublicKey key,
+                          Time time) -> void {
+  auto file = std::ofstream(file_address, std::ios_base::app);
+
+  auto send_time = absl::FormatTime(time, utc);
+  json jmsg = {{"timestamp", send_time},
+               {"type", "FRIEND"},
+               {"name", friend_name},
+               {"public_key", key}};
+  if (file.is_open()) {
+    file << std::setw(4) << jmsg.dump() << std::endl;
+    cout << jmsg.dump() << endl;
+    file.close();
+  }
+}
+
+auto read_friend_messages_from_file(Name friend_name, size_t number)
+    -> vector<json> {
+  constexpr auto file_address = CLIENT_FILE;
+  auto file = std::ifstream(file_address);
+  vector<json> messages;
+  string line;
+  while (std::getline(file, line)) {
+    auto j = json::parse(line);
+    if (j["type"].get<string>() == "FRIEND" &&
+        j["name"].get<string>() == friend_name) {
+      messages.push_back(j);
+    }
+  }
+  file.close();
+
+  // cut off the last n messages
+  if (messages.size() > number) {
+    messages.erase(messages.begin(),
+                   messages.begin() + messages.size() - number);
+  }
+  return messages;
+}
+
+auto read_friends_from_file() -> vector<json> {
+  constexpr auto file_address = CONFIG_FILE;
+  auto file = std::ifstream(file_address);
+  vector<json> friends;
+  string line;
+  while (std::getline(file, line)) {
+    auto j = json::parse(line);
+    if (j["type"].get<string>() == "FRIEND") {
+      friends.push_back(j);
+    }
+  }
+  file.close();
+  return friends;
+}
