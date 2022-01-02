@@ -9,6 +9,7 @@ cc_library(
         "account_manager.h",
         "messenger_impl.h",
         "pir/fastpir/fastpir.h",
+        "pir/fastpir/fastpir_client.h",
         "pir/fastpir/fastpir_config.h",
         "pir/nonprivate/nonprivate_pir.h",
         "pir/pir_common.h",

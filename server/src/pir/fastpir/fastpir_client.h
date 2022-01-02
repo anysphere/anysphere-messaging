@@ -23,4 +23,4 @@ public:
 
 private:
     seal::SEALContext sc;
-}
+};

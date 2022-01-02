@@ -21,6 +21,25 @@ using std::vector;
 
 constexpr size_t SEAL_DB_COLUMNS = CEIL_DIV(MESSAGE_SIZE_BITS, PLAIN_BITS);
 
+// extract a submatrix from a matrix db, where each row in the submatrix is a uint64_t
+//
+// db is a row-major stored matrix with db_row_length_in_bits bits per row.
+// subm_top_left_corner_in_bits represent the index of the top left corner of the submatrix, in bits.
+// subm_row_length_in_bits is the number of bits in each row of the submatrix.
+// subm_cols is the number of columns in the submatrix.
+//
+// note: if subm_top_left_corner_in_bits + subm_row_length_in_bits goes past the right edge of the matrix, we DONT want
+// to wrap around, but instead pretend that the db matrix is padded to the right with 0s.
+//
+// precondition: db.size() is a multiple of row_length_in_bits/8
+//
+//
+auto get_submatrix_as_uint64s(const vector<byte> &db, size_t db_row_length_in_bits, size_t subm_top_left_corner_in_bits, size_t subm_row_length_in_bits, size_t subm_cols) -> vector<uint64_t>
+{
+    vector<uint64_t> coeffs(subm_cols);
+    return coeffs;
+}
+
 struct FastPIRQuery
 {
     // TODO: STORE GALOIS KEYS IN POSTGRES, DO NOT SEND IN EVERY QUERY BECAUSE THEY DO NOT CHANGE
@@ -147,15 +166,15 @@ private:
     // db is an num_indices x MESSAGE_SIZE matrix
     // it contains the raw data, in row-major order
     vector<byte> db;
-    int num_indices = 0;
+    size_t num_indices = 0;
     // seal context contains the parameters for the homomorphic encryption scheme
     seal::SEALContext sc;
     seal::BatchEncoder batch_encoder;
     seal::Evaluator evaluator;
     // number of slots in the plaintext
-    int seal_slot_count;
+    size_t seal_slot_count;
     // this will be basically ceil(num_indices / seal_slot_count)
-    int seal_db_rows = 0;
+    size_t seal_db_rows = 0;
     // seal_db contains a seal plaintext-encoded version of db
     // note that because of races, we might not have that this is exactly true...
     // the dimension of this database is seal_db_rows x SEAL_DB_COLUMNS, stored in row-major order
@@ -182,7 +201,7 @@ private:
         auto seal_db_index = index / seal_slot_count;
         auto db_start_block_index = db_index(seal_db_index * seal_slot_count);
 
-        for (int j = 0; j < SEAL_DB_COLUMNS; j++)
+        for (size_t j = 0; j < SEAL_DB_COLUMNS; j++)
         {
             auto plain_text_coeffs = get_submatrix_as_uint64s(db, MESSAGE_SIZE_BITS, db_start_block_index + j * PLAIN_BITS, PLAIN_BITS, seal_slot_count);
             seal_db[seal_db_index * SEAL_DB_COLUMNS + j] = seal::Plaintext(plain_text_coeffs);
@@ -191,22 +210,3 @@ private:
         check_rep();
     }
 };
-
-// extract a submatrix from a matrix db, where each row in the submatrix is a uint64_t
-//
-// db is a row-major stored matrix with db_row_length_in_bits bits per row.
-// subm_top_left_corner_in_bits represent the index of the top left corner of the submatrix, in bits.
-// subm_row_length_in_bits is the number of bits in each row of the submatrix.
-// subm_cols is the number of columns in the submatrix.
-//
-// note: if subm_top_left_corner_in_bits + subm_row_length_in_bits goes past the right edge of the matrix, we DONT want
-// to wrap around, but instead pretend that the db matrix is padded to the right with 0s.
-//
-// precondition: db.size() is a multiple of row_length_in_bits/8
-//
-//
-auto get_submatrix_as_uint64s(const vector<byte> &db, size_t db_row_length_in_bits, size_t subm_top_left_corner_in_bits, size_t subm_row_length_in_bits, size_t subm_cols) -> vector<uint64_t>
-{
-    vector<uint64_t> coeffs(subm_cols);
-    return coeffs;
-}

@@ -3,12 +3,14 @@
 #include <cstddef>
 #include <cstdint>
 #include <array>
+#include <vector>
 
 // these parameters are taken from https://github.com/ishtiyaque/FastPIR/blob/master/src/bfvparams.h
 // TODO: optimize them
 
 using std::array;
 using std::size_t;
+using std::vector;
 
 constexpr size_t POLY_MODULUS_DEGREE = 4096;
 
