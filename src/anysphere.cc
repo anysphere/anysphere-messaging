@@ -1,7 +1,6 @@
 
-#include "ui_urgent.h"
 #include "ui_msg.h"
-
+#include "ui_urgent.h"
 
 int main(int argc, char **argv) {
   std::string server_address("0.0.0.0:50051");
@@ -26,58 +25,53 @@ int main(int argc, char **argv) {
   }
 
   // connect to the anysphere servers
-  // std::cout << "Client querying server address: " << server_address
-  //           << std::endl;
-  // std::shared_ptr<Channel> channel =
-  //     grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials());
-  // std::unique_ptr<Messenger::Stub> stub = Messenger::NewStub(channel);
-  
-  // get the local time using the system clock
-  auto start_t = std::chrono::system_clock().now();
+  std::cout << "Client querying server address: " << server_address
+            << std::endl;
+  std::shared_ptr<Channel> channel =
+      grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials());
+  std::unique_ptr<Messenger::Stub> stub = Messenger::NewStub(channel);
 
-  // get a duration using chrono
-  auto duration = std::chrono::milliseconds(100);
-  auto round_duration = std::chrono::milliseconds(1000);
+  // get the local time using the system clock
+  auto start_t = absl::Now();
+
+  // keep the duration in chrono for thread sleeping.
+  constexpr auto duration = std::chrono::milliseconds(100);
+  constexpr auto round_duration = absl::Milliseconds(1000);
 
   // set the time to 0
-  auto last_ui_timestamp = std::chrono::system_clock::time_point::min();
-  auto last_ui_urgent_timestamp = std::chrono::system_clock::time_point::min();
+  auto last_ui_timestamp = absl::Time();
+  auto last_ui_urgent_timestamp = absl::Time();
 
-  write_msg_to_file(client_write_file_address, "client started");
-  auto new_msg = get_new_entries(client_write_file_address, last_ui_timestamp);
-  return 0; 
-
+  write_msg_to_file(ui_write_file_address,
+                    StrCat("Anysphere is worth ",
+                           absl::Uniform(gen_, 100, 1000000000), " dollars"),
+                    "MESSAGE");
 
   while (true) {
-
     // check for new ui write:
-    // read from ui_urgent_file_address
-    // auto ui_urgent_file = std::ifstream(ui_urgent_file_address);
-    // if (ui_urgent_file.is_open()) {
-    //   std::string line;
-    //   while (std::getline(ui_urgent_file, line)) {
-    //     auto j = json::parse(line);
-    //     auto 
-    //   }
-    //   ui_urgent_file.close();
-    // }
-    process_ui_urgent_file(ui_urgent_file_address, last_ui_urgent_timestamp);
+
+    process_ui_urgent_file(ui_urgent_file_address, last_ui_urgent_timestamp,
+                           stub);
+    last_ui_urgent_timestamp = absl::Now();
 
     // get the time difference from t
-    auto now = std::chrono::system_clock().now();
+    auto now = absl::Now();
     auto time_since_last_round = now - start_t;
 
     // if 1s has passed, then do a round
     if (time_since_last_round > round_duration) {
       // do a round
       std::cout << "Client round" << std::endl;
-      // get the local time using the system clock
-      start_t = std::chrono::system_clock().now();
+      start_t = absl::Now();  // reset the start time
 
-      process_ui_file(ui_write_file_address, last_ui_timestamp);
+      cout << "UI file address: " << ui_write_file_address << endl;
+      process_ui_file(ui_write_file_address, last_ui_timestamp, stub);
+      last_ui_timestamp = absl::Now();
+      return 0;
     }
 
     // sleep for 100ms
+
     std::this_thread::sleep_for(duration);
   }
 

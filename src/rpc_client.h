@@ -1,13 +1,5 @@
 #include "common.h"
 
-using grpc::Channel;
-using grpc::ClientContext;
-using grpc::Status;
-
-using messenger::Messenger;
-using messenger::RegisterInfo;
-using messenger::RegisterResponse;
-
 // needs to store local data that is persisted between rounds, like:
 // - whether registered or not
 // - authentication token and allocation indices
@@ -18,7 +10,6 @@ int test(std::shared_ptr<Channel> channel,
          std::unique_ptr<Messenger::Stub> stub) {
   // Data we are sending to the server.
   RegisterInfo request;
-  // request.set_publickey("hi_i_am_public_key");
 
   // Container for the data we expect from the server.
   RegisterResponse reply;
