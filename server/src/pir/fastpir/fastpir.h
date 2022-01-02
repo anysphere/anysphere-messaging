@@ -157,13 +157,8 @@ private:
 
         for (int j = 0; j < SEAL_DB_COLUMNS; j++)
         {
-            vector<uint64_t> plain_text_coeffs(seal_slot_count);
-            for (int slot = 0; slot < seal_slot_count; slot++)
-            {
-
-                plain_text_coeffs[slot] = db
-            }
-            seal_db[seal_db_index * SEAL_DB_COLUMNS + j] = seal::Plaintext(db.begin() + i * seal_slot_count * PLAIN_BITS + j * PLAIN_BITS, seal_slot_count);
+            auto plain_text_coeffs = get_submatrix_as_uint64s(db, MESSAGE_SIZE_BITS, db_start_block_index + j * PLAIN_BITS, PLAIN_BITS, seal_slot_count);
+            seal_db[seal_db_index * SEAL_DB_COLUMNS + j] = seal::Plaintext(plain_text_coeffs);
         }
 
         check_rep();
