@@ -8,6 +8,8 @@
 // these parameters are taken from https://github.com/ishtiyaque/FastPIR/blob/master/src/bfvparams.h
 // TODO: optimize them
 
+#define CEIL_DIV(a, b) (((a) + (b)-1) / (b))
+
 using std::array;
 using std::size_t;
 using std::vector;

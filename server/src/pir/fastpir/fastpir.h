@@ -17,8 +17,6 @@ using std::size_t;
 using std::string;
 using std::vector;
 
-#define CEIL_DIV(a, b) (((a) + (b)-1) / (b))
-
 constexpr size_t SEAL_DB_COLUMNS = CEIL_DIV(MESSAGE_SIZE_BITS, PLAIN_BITS);
 
 // extract a submatrix from a matrix db, where each row in the submatrix is a uint64_t
@@ -146,9 +144,9 @@ public:
 
     auto allocate() noexcept -> pir_index_t
     {
-        auto new_index = num_indices;
-        num_indices++;
-        db.resize(num_indices);
+        auto new_index = db_rows;
+        db_rows++;
+        db.resize(db_rows * MESSAGE_SIZE);
         update_seal_db(new_index);
         check_rep();
         return new_index;
@@ -163,17 +161,17 @@ public:
     }
 
 private:
-    // db is an num_indices x MESSAGE_SIZE matrix
+    // db is an db_rows x MESSAGE_SIZE matrix
     // it contains the raw data, in row-major order
     vector<byte> db;
-    size_t num_indices = 0;
+    size_t db_rows = 0;
     // seal context contains the parameters for the homomorphic encryption scheme
     seal::SEALContext sc;
     seal::BatchEncoder batch_encoder;
     seal::Evaluator evaluator;
     // number of slots in the plaintext
     size_t seal_slot_count;
-    // this will be basically ceil(num_indices / seal_slot_count)
+    // this will be basically ceil(db_rows / seal_slot_count)
     size_t seal_db_rows = 0;
     // seal_db contains a seal plaintext-encoded version of db
     // note that because of races, we might not have that this is exactly true...
@@ -182,9 +180,9 @@ private:
 
     auto check_rep() const -> void
     {
-        assert(db.size() == num_indices * MESSAGE_SIZE);
+        assert(db.size() == db_rows * MESSAGE_SIZE);
 
-        assert(seal_db_rows == CEIL_DIV(num_indices, seal_slot_count));
+        assert(seal_db_rows == CEIL_DIV(db_rows, seal_slot_count));
         assert(seal_db.size() == seal_db_rows * SEAL_DB_COLUMNS);
     }
 
@@ -195,7 +193,7 @@ private:
 
     auto update_seal_db(pir_index_t index) -> void
     {
-        seal_db_rows = CEIL_DIV(num_indices, seal_slot_count);
+        seal_db_rows = CEIL_DIV(db_rows, seal_slot_count);
         seal_db.resize(seal_db_rows * SEAL_DB_COLUMNS);
 
         auto seal_db_index = index / seal_slot_count;
