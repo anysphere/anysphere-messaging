@@ -28,7 +28,11 @@ void process_ui_file(const string& ui_file_address,
   for (auto& entry : new_entries) {
     auto type = entry["type"].get<string>();
     auto jt = entry["timestamp"].get<string>();
-    Time timestamp = absl::FromUnixSeconds(std::stoull(jt));
+    // BUG(sualeh): Fix this using ParseTime
+    Time timastamp;
+    string err;
+    absl::ParseTime("%Y-%m-%d %H:%M:%S %z", jt, &timastamp, &err);
+    // Time timestamp = absl::FromUnixSeconds(std::stoull(jt));
 
     auto msg = entry["message"].get<string>();
 
@@ -42,7 +46,7 @@ void process_ui_file(const string& ui_file_address,
     // static auto last_timestamp = timestamp;
     // static auto last_message = entry["message"];
 
-    if (type == "MESSAGE") {
+    if (type == "MESSAGE" && timastamp > last_ui_timestamp) {
       // call register rpc to send the register request
       SendMessageInfo request;
 

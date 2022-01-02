@@ -33,6 +33,7 @@ constexpr auto CONFIG_FILE = "/workspace/anysphere/logs/config.ndjson";
 
 using Msg = string;
 using PublicKey = string;
+using PrivateKey = string;
 using Name = string;
 
 /**
@@ -218,6 +219,23 @@ auto write_friend_to_file(string file_address, Name friend_name, PublicKey key,
                {"type", "FRIEND"},
                {"name", friend_name},
                {"public_key", key}};
+  if (file.is_open()) {
+    file << std::setw(4) << jmsg.dump() << std::endl;
+    cout << jmsg.dump() << endl;
+    file.close();
+  }
+}
+
+auto register_profile_to_file(string file_address, Name name, PublicKey key,
+                              PrivateKey private_key, Time time) -> void {
+  auto file = std::ofstream(file_address, std::ios_base::app);
+
+  auto send_time = absl::FormatTime(time, utc);
+  json jmsg = {{"timestamp", send_time},
+               {"type", "REGISTER"},
+               {"name", name},
+               {"public_key", key},
+               {"private_key", private_key}};
   if (file.is_open()) {
     file << std::setw(4) << jmsg.dump() << std::endl;
     cout << jmsg.dump() << endl;

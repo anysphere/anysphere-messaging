@@ -102,6 +102,42 @@ struct Friend {
   bool public_key_is_empty() const { return public_key_.empty(); }
 };
 
+struct Profile {
+ public:
+  Profile(const string& name, const string& public_key,
+          const string& private_key)
+      : name_(name), public_key_(public_key), private_key_(private_key) {}
+  Name name_;
+  PublicKey public_key_;
+  PrivateKey private_key_;
+  absl::Time time_;
+  constexpr static auto file_address_ = CONFIG_FILE;
+
+  bool complete() const {
+    return !name_is_empty() && !public_key_is_empty() &&
+           !private_key_is_empty();
+  }
+  void set_time() { time_ = absl::Now(); }
+
+  void add() {
+    set_time();
+    register_profile_to_file(file_address_, name_, public_key_, private_key_,
+                             time_);
+    clear();
+  }
+
+  void clear() {
+    name_.clear();
+    public_key_.clear();
+    private_key_.clear();
+  }
+
+ private:
+  bool name_is_empty() const { return name_.empty(); }
+  bool public_key_is_empty() const { return public_key_.empty(); }
+  bool private_key_is_empty() const { return private_key_.empty(); }
+};
+
 int main() {
   // setup cli
 
@@ -179,6 +215,19 @@ int main() {
       },
       "Open a text menu to message a friend.");
 
+  /* Register interface
+   */
+  rootMenu->Insert(
+      "register (name, public_key, private_key)",
+      [&](std::ostream& out, string name, string public_key,
+          string private_key) {
+        Profile profile(name, public_key, private_key);
+        profile.add();
+
+        out << "Profile registered: " << name << " :\n";
+      },
+      "Open a text menu to register a friend.");
+
   /* Inbox interface
    */
   auto inboxMenu = make_unique<Menu>("inbox");
@@ -228,6 +277,16 @@ int main() {
     You can also open the add-friend menu with "friend"
   */
   auto friendsMenu = make_unique<Menu>("friends");
+  rootMenu->Insert(
+      "add-friend (friend, public_key)",
+      [&](std::ostream& out, string friend_name, string public_key) {
+        Friend friend_(friend_name, public_key);
+        friend_.add();
+        out << StrCat("Adding friend ", friend_name, " with public key ",
+                      public_key, "\n");
+        out << "Type 'anysphere' to go to your main inbox.\n ";
+      },
+      "Add a friend to your friends list");
   friendsMenu->Insert(
       "add-friend",
       [](std::ostream& out, string friend_name, string friend_public_key) {
