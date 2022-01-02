@@ -22,13 +22,16 @@ constexpr size_t SEAL_DB_COLUMNS = CEIL_DIV(MESSAGE_SIZE_BITS, PLAIN_BITS);
 
 struct FastPIRQuery
 {
+    // TODO: STORE GALOIS KEYS IN POSTGRES, DO NOT SEND IN EVERY QUERY BECAUSE THEY DO NOT CHANGE
     vector<seal::Ciphertext> query;
+    seal::GaloisKeys galois_keys;
 
     // throws if deserialization fails
     auto deserialize_from_string(const string &s, seal::SEALContext sc) noexcept(false) -> void
     {
         auto s_stream = std::stringstream(s);
         size_t position = 0;
+        position += galois_keys.load(sc, s_stream);
         while (position < s.size())
         {
             seal::Ciphertext c;
@@ -50,10 +53,10 @@ struct FastPIRAnswer
         return s_stream.str();
     }
     // throws if deserialization fails
-    auto deserialize_from_string(const string &s, seal::SEALContext sc) noexcept(false) -> bool
+    auto deserialize_from_string(const string &s, seal::SEALContext sc) noexcept(false) -> void
     {
         auto s_stream = std::stringstream(s);
-        return answer.load(sc, s_stream);
+        answer.load(sc, s_stream);
     }
 };
 
@@ -65,7 +68,7 @@ public:
     using pir_query_t = FastPIRQuery;
     using pir_answer_t = FastPIRAnswer;
 
-    FastPIR() : sc(create_context_params()), batch_encoder(sc), seal_slot_count(batch_encoder.slot_count())
+    FastPIR() : sc(create_context_params()), batch_encoder(sc), evaluator(sc), seal_slot_count(batch_encoder.slot_count())
     {
         check_rep();
     }
@@ -77,10 +80,48 @@ public:
         check_rep();
     }
 
-    auto get_value_privately(pir_query_t pir_query) noexcept -> pir_answer_t
+    auto get_value_privately(pir_query_t pir_query) noexcept(false) -> pir_answer_t
     {
-        // TODO: this is the hard part. do it
-        return pir_answer_t{};
+        if (pir_query.query.size() > seal_db_rows)
+        {
+            throw std::invalid_argument("query too large");
+        }
+        // note: pir_query might contain fewer ciphertexts than we expect, but that is ok!
+        vector<seal::Ciphertext> compressed_cols(SEAL_DB_COLUMNS);
+        for (size_t i = 0; i < SEAL_DB_COLUMNS; ++i)
+        {
+            evaluator.multiply_plain(pir_query.query[0], seal_db[0 + i], compressed_cols[i]);
+            for (size_t j = 1; j < pir_query.query.size(); ++j)
+            {
+                seal::Ciphertext tmp;
+                evaluator.multiply_plain(pir_query.query[j], seal_db[j * SEAL_DB_COLUMNS + i], tmp);
+                evaluator.add_inplace(compressed_cols[i], tmp);
+            }
+        }
+        seal::Ciphertext s_top = compressed_cols[0];
+        seal::Ciphertext s_bottom = compressed_cols[seal_slot_count / 2];
+        // combine using rotations!
+        // TODO: optimize this by using the clever galois key thing
+        for (size_t i = 0; i < SEAL_DB_COLUMNS; ++i)
+        {
+            if (i == 0 || i == seal_slot_count / 2)
+            {
+                continue;
+            }
+            if (i < seal_slot_count / 2)
+            {
+                evaluator.rotate_rows_inplace(compressed_cols[i], -i, pir_query.galois_keys);
+                evaluator.add_inplace(s_top, compressed_cols[i]);
+            }
+            else
+            {
+                evaluator.rotate_rows_inplace(compressed_cols[i], -i + seal_slot_count / 2, pir_query.galois_keys);
+                evaluator.add_inplace(s_bottom, compressed_cols[i]);
+            }
+        }
+        evaluator.rotate_columns_inplace(s_bottom, pir_query.galois_keys);
+        evaluator.add_inplace(s_top, s_bottom);
+        return pir_answer_t{s_top};
     }
 
     auto allocate() noexcept -> pir_index_t
@@ -103,29 +144,28 @@ public:
 
 private:
     // db is an num_indices x MESSAGE_SIZE matrix
-    // it contains the raw data
+    // it contains the raw data, in row-major order
     vector<byte> db;
     int num_indices = 0;
     // seal context contains the parameters for the homomorphic encryption scheme
     seal::SEALContext sc;
     seal::BatchEncoder batch_encoder;
+    seal::Evaluator evaluator;
     // number of slots in the plaintext
     int seal_slot_count;
-    // seal_db must have # of rows a multiple of seal_slot_count
+    // this will be basically ceil(num_indices / seal_slot_count)
     int seal_db_rows = 0;
     // seal_db contains a seal plaintext-encoded version of db
     // note that because of races, we might not have that this is exactly true...
-    // the dimension of this database is seal_db_rows x SEAL_DB_COLUMNS
+    // the dimension of this database is seal_db_rows x SEAL_DB_COLUMNS, stored in row-major order
     vector<seal::Plaintext> seal_db;
 
     auto check_rep() const -> void
     {
         assert(db.size() == num_indices * MESSAGE_SIZE);
 
-        assert(seal_db_rows % seal_slot_count == 0);
+        assert(seal_db_rows == CEIL_DIV(num_indices, seal_slot_count));
         assert(seal_db.size() == seal_db_rows * SEAL_DB_COLUMNS);
-        assert(seal_db.size() * PLAIN_BITS >= num_indices * MESSAGE_SIZE_BITS);
-        assert(seal_db.size() * PLAIN_BITS < num_indices * MESSAGE_SIZE_BITS + seal_slot_count * SEAL_DB_COLUMNS * PLAIN_BITS);
     }
 
     auto db_index(pir_index_t index) const -> int
@@ -149,7 +189,7 @@ private:
 
     auto update_seal_db(pir_index_t index) -> void
     {
-        seal_db_rows = CEIL_DIV(num_indices * MESSAGE_SIZE_BITS, seal_slot_count * PLAIN_BITS);
+        seal_db_rows = CEIL_DIV(num_indices, seal_slot_count);
         seal_db.resize(seal_db_rows * SEAL_DB_COLUMNS);
 
         auto seal_db_index = index / seal_slot_count;

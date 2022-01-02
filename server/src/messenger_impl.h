@@ -113,7 +113,16 @@ class MessengerImpl final : public Messenger::Service
       return Status(grpc::StatusCode::INVALID_ARGUMENT, e.what());
     }
 
-    auto answer = pir.get_value_privately(query);
+    pir_answer_t answer;
+    try
+    {
+      answer = pir.get_value_privately(query);
+    }
+    catch (const std::invalid_argument &e)
+    {
+      std::cerr << "invalid_argument: " << e.what() << std::endl;
+      return Status(grpc::StatusCode::INVALID_ARGUMENT, e.what());
+    }
 
     string answer_string;
     try
