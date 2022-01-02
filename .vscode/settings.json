@@ -111,6 +111,7 @@
         "scoped_allocator": "cpp",
         "typeindex": "cpp",
         "valarray": "cpp",
+        "charconv": "cpp",
         "shared_mutex": "cpp"
     },
 }

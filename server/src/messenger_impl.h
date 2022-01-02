@@ -23,7 +23,7 @@ using messenger::Messenger;
 
 using std::string;
 
-template<typename PIR>
+template<typename PIR, typename AccountManager>
 class MessengerImpl final : public Messenger::Service {
   using pir_query_t = typename PIR::pir_query_t;
   using pir_answer_t = typename PIR::pir_answer_t;
