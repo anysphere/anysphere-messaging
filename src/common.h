@@ -41,6 +41,7 @@ absl::TimeZone utc = absl::UTCTimeZone();
 constexpr auto UI_FILE = "/workspace/anysphere/logs/ui.ndjson";
 constexpr auto UI_URGENT_FILE = "/workspace/anysphere/logs/ui_urgent.ndjson";
 constexpr auto CLIENT_FILE = "/workspace/anysphere/logs/client.ndjson";
+constexpr auto CONFIG_FILE = "/workspace/anysphere/logs/config.ndjson";
 
 /**
  * @brief This function gets the last line of a file

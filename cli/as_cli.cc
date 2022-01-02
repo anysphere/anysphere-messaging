@@ -51,9 +51,7 @@ struct Message {
   absl::Time time_;
   constexpr static auto file_address_ = UI_FILE;
 
-  bool complete() const {
-    return !message_is_empty() && !friend_is_empty();
-  }
+  bool complete() const { return !message_is_empty() && !friend_is_empty(); }
   void set_time() { time_ = absl::Now(); }
 
   void send() {
@@ -83,19 +81,6 @@ int main() {
       "menu", [](std::ostream& out) { out << "Hello, world\n"; },
       "The Anysphere menu");
   rootMenu->Insert(
-      "message",
-      [&](std::ostream& out, string x) {
-        out << "Send a message to friend: " << x << " :)\n";
-        out << "Write your message below:\n";
-        out << "Message:\n";
-        // get the message from the user
-        string message;
-        cin >> message;
-
-        out << "Message sent to " << x << ": " << message << "\n";
-      },
-      "Open a text meny to message a friend.");
-  rootMenu->Insert(
       "color",
       [](std::ostream& out) {
         out << "Colors ON\n";
@@ -110,8 +95,24 @@ int main() {
       },
       "Disable colors in the cli");
 
-  auto messageMenu = make_unique<Menu>("message");
+  /* Messaging interface
 
+  Use the two different options to send a message to a friend.
+  */
+  rootMenu->Insert(
+      "message (friend, message)",
+      [&](std::ostream& out, string friend_name, string message) {
+        Message msg(message, friend_name);
+        msg.send();
+
+        out << "Message sent to " << friend_name << ": " << message << "\n";
+      },
+      StrCat("Open a text menu to message a friend.",
+             "You can also use the command line interface with `message` to "
+             "send messages.",
+             "Interface `message ${friend} ${message}`"));
+
+  auto messageMenu = make_unique<Menu>("message");
   messageMenu->Insert(
       "friend",
       [&](std::ostream& out, string friend_name) {
@@ -145,22 +146,17 @@ int main() {
       },
       "Open a text menu to message a friend.");
 
+  /* Inbox interface
+   */
   auto inboxMenu = make_unique<Menu>("inbox");
   inboxMenu->Insert(
       "friend",
       [](std::ostream& out, string friend_name) {
         out << "Showing messages from your friend " << friend_name << "\n";
-        out << "Press Esc or type 'anysphere' to go to your main inbox.\n";
+        out << "Press Esc or type 'anysphere' to go to your main inbox.\n ";
         // go to the main inbox.
       },
       "Show the messages from a friend");
-  //   inboxMenu->Insert(
-  //       "back",
-  //       [](std::ostream& out) {
-  //         out << "Going back to the main inbox\n";
-  //         // go to the main inbox.
-  //       },
-  //       "Go back to the main inbox");
 
   rootMenu->Insert(std::move(messageMenu));
   rootMenu->Insert(std::move(inboxMenu));
