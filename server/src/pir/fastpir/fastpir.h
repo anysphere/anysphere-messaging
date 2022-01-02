@@ -73,6 +73,8 @@ public:
     auto set_value(pir_index_t index, pir_value_t value) noexcept -> void
     {
         std::copy(value.begin(), value.end(), db.begin() + index * MESSAGE_SIZE);
+        update_seal_db(index);
+        check_rep();
     }
 
     auto get_value_privately(pir_query_t pir_query) noexcept -> pir_answer_t
@@ -86,6 +88,8 @@ public:
         auto new_index = num_indices;
         num_indices++;
         db.resize(num_indices);
+        update_seal_db(new_index);
+        check_rep();
         return new_index;
     }
 
@@ -141,5 +145,27 @@ private:
         params.set_coeff_modulus(coeff_modulus);
         params.set_plain_modulus(PLAIN_MODULUS);
         return params;
+    }
+
+    auto update_seal_db(pir_index_t index) -> void
+    {
+        seal_db_rows = CEIL_DIV(num_indices * MESSAGE_SIZE_BITS, seal_slot_count * PLAIN_BITS);
+        seal_db.resize(seal_db_rows * SEAL_DB_COLUMNS);
+
+        auto seal_db_index = index / seal_slot_count;
+        auto db_start_block_index = seal_db_index * seal_slot_count * MESSAGE_SIZE;
+
+        for (int j = 0; j < SEAL_DB_COLUMNS; j++)
+        {
+            vector<uint64_t> plain_text_coeffs(seal_slot_count);
+            for (int slot = 0; slot < seal_slot_count; slot++)
+            {
+                // get bits 
+                plain_text_coeffs[slot] = db
+            }
+            seal_db[seal_db_index * SEAL_DB_COLUMNS + j] = seal::Plaintext(db.begin() + i * seal_slot_count * PLAIN_BITS + j * PLAIN_BITS, seal_slot_count);
+        }
+
+        check_rep();
     }
 };
