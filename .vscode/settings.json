@@ -1,5 +1,5 @@
 {
-    "editor.formatOnSave": false,
+    "editor.formatOnSave": true,
     "bazel-cpp-tools.compileCommands.targets": [
         "//client/cli:anysphere-cli",
     ],
