@@ -1,8 +1,7 @@
 {
-    "editor.formatOnSave": true,
+    "editor.formatOnSave": false,
     "bazel-cpp-tools.compileCommands.targets": [
-        "//client/src:anysphere",
-        "//server/src:as_server",
+        "//client/cli:anysphere-cli",
     ],
     "python.formatting.provider": "black",
     "[javascript]": {
