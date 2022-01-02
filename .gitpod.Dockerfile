@@ -5,7 +5,7 @@ RUN sudo apt-get update && sudo apt-get install -y build-essential cmake valgrin
 
 RUN brew install bazel && brew install buildifier && brew install grpcurl
  
-RUN go install github.com/fullstorydev/grpcui/cmd/grpcui@latest
+# RUN go install github.com/fullstorydev/grpcui/cmd/grpcui@latest
 
 RUN echo 'export CC=clang' >> /home/gitpod/.bashrc
 #RUN echo 'export CC=gcc' >> /home/gitpod/.bashrc
