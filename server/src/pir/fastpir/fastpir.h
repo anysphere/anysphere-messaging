@@ -153,14 +153,14 @@ private:
         seal_db.resize(seal_db_rows * SEAL_DB_COLUMNS);
 
         auto seal_db_index = index / seal_slot_count;
-        auto db_start_block_index = seal_db_index * seal_slot_count * MESSAGE_SIZE;
+        auto db_start_block_index = db_index(seal_db_index * seal_slot_count);
 
         for (int j = 0; j < SEAL_DB_COLUMNS; j++)
         {
             vector<uint64_t> plain_text_coeffs(seal_slot_count);
             for (int slot = 0; slot < seal_slot_count; slot++)
             {
-                // get bits 
+
                 plain_text_coeffs[slot] = db
             }
             seal_db[seal_db_index * SEAL_DB_COLUMNS + j] = seal::Plaintext(db.begin() + i * seal_slot_count * PLAIN_BITS + j * PLAIN_BITS, seal_slot_count);
@@ -169,3 +169,22 @@ private:
         check_rep();
     }
 };
+
+// extract a submatrix from a matrix db, where each row in the submatrix is a uint64_t
+//
+// db is a row-major stored matrix with db_row_length_in_bits bits per row.
+// subm_top_left_corner_in_bits represent the index of the top left corner of the submatrix, in bits.
+// subm_row_length_in_bits is the number of bits in each row of the submatrix.
+// subm_cols is the number of columns in the submatrix.
+//
+// note: if subm_top_left_corner_in_bits + subm_row_length_in_bits goes past the right edge of the matrix, we DONT want
+// to wrap around, but instead pretend that the db matrix is padded to the right with 0s.
+//
+// precondition: db.size() is a multiple of row_length_in_bits/8
+//
+//
+auto get_submatrix_as_uint64s(const vector<byte> &db, size_t db_row_length_in_bits, size_t subm_top_left_corner_in_bits, size_t subm_row_length_in_bits, size_t subm_cols) -> vector<uint64_t>
+{
+    vector<uint64_t> coeffs(subm_cols);
+    return coeffs;
+}
