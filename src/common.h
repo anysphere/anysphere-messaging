@@ -38,6 +38,10 @@ using messenger::RegisterResponse;
 absl::BitGen gen_;
 absl::TimeZone utc = absl::UTCTimeZone();
 
+constexpr auto UI_FILE = "/workspace/anysphere/logs/ui.ndjson";
+constexpr auto UI_URGENT_FILE = "/workspace/anysphere/logs/ui_urgent.ndjson";
+constexpr auto CLIENT_FILE = "/workspace/anysphere/logs/client.ndjson";
+
 /**
  * @brief This function gets the last line of a file
  * @property: Nonconsuming: It does not consume the charachters, it only scans

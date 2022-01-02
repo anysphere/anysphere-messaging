@@ -9,9 +9,9 @@ int main(int argc, char **argv) {
   }
 
   // file address of where the UI and client will communicate
-  auto ui_write_file_address("/etc/anysphere/ui.jsonl");
-  auto ui_urgent_file_address("/etc/anysphere/ui-urgent.jsonl");
-  auto client_write_file_address("/etc/anysphere/client.jsonl");
+  auto ui_write_file_address(UI_FILE);
+  auto ui_urgent_file_address(UI_URGENT_FILE);
+  auto client_write_file_address(CLIENT_FILE);
   if (argc > 4) {
     ui_write_file_address = argv[2];
     ui_urgent_file_address = argv[3];
