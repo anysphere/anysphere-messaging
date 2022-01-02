@@ -1,6 +1,7 @@
 #pragma once
 
 #include <seal/seal.h>
+#include <assert.h>
 
 #pragma once
 
