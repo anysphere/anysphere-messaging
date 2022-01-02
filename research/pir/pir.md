@@ -8,6 +8,7 @@ We need a PIR algorithm. All PIR algorithms in use depend on a homomorphic encry
          1. license: MIT ✅
          2. release year: 2015
          3. supported by microsoft
+         4. documentation: excellent. the example directory is amazing.
       2. [https://gitlab.com/palisade/palisade-development](https://gitlab.com/palisade/palisade-development)
          1. license: BSD-2 ✅
          2. release year: 2014
