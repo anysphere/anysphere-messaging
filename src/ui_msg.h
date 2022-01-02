@@ -71,7 +71,6 @@ void process_ui_file(const string& ui_file_address,
       //   request.set_message(entry["message"]);
 
       //   SendMessageResponse reply;
-
       //   ClientContext context;
 
       //   Status status = stub->Register(&context, request, &reply);
