@@ -50,6 +50,8 @@ Ideally, once again here, we want to create something that can be swapped out. S
   - request size: ???
   - server runtime: ???
   - multi: ???
+  - response size does not seem to be our bottleneck.
+   - although.... having a small response size means we can send much more data which is very good.
 - FastPIR:
   - paper: https://www.usenix.org/system/files/osdi21-ahmad.pdf
   - code: [https://github.com/ishtiyaque/fastpir](https://github.com/ishtiyaque/fastpir)
@@ -67,7 +69,7 @@ Ideally, once again here, we want to create something that can be swapped out. S
   - server runtime: ???
   - multi: ???
 - XPIR:
-  - precursor to SealPIR it seems
+  - precursor to SealPIR it seems 
   - NO!
 
 #### notes
@@ -75,3 +77,6 @@ Ideally, once again here, we want to create something that can be swapped out. S
 - the onionPIR comparison in table 3 & 4 use 30KB entries, whereas the sealPIR table 9 uses 288byte entries. is there a tradeoff between onionPIR and sealPIR as the entries get bigger?
 - for MVP: just use sealPIR. it has the least ugly code.
 - for MVP: ignore multi-retrieval.
+
+conclusion:
+- fastPIR is the best. even though we need to investigate whether probabilistic batch codes still work with it. i believe they do.
