@@ -111,7 +111,6 @@ struct Profile {
   PublicKey public_key_;
   PrivateKey private_key_;
   absl::Time time_;
-  constexpr static auto file_address_ = CONFIG_FILE;
 
   bool complete() const {
     return !name_is_empty() && !public_key_is_empty() &&
@@ -121,8 +120,7 @@ struct Profile {
 
   void add() {
     set_time();
-    register_profile_to_file(file_address_, name_, public_key_, private_key_,
-                             time_);
+    register_profile_to_file(name_, public_key_, private_key_, time_);
     clear();
   }
 
@@ -240,9 +238,9 @@ int main() {
         out << "--------------------------------\n";
         auto messages = read_friend_messages_from_file(friend_name, 15);
         for (const auto& message : messages) {
-          out << StrCat(message["friend"].get<string>(), ": \n",
+          out << StrCat(message["name"].get<string>(), ": \n",
                         "time: ", message["time"].get<string>(), "\n",
-                        message["message"].get<string>(), "\n\n",
+                        message["msg"].get<string>(), "\n\n",
                         "--------------------------------\n");
         }
         out << "Type 'anysphere' to go to your main inbox.\n ";

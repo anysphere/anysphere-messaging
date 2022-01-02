@@ -226,8 +226,9 @@ auto write_friend_to_file(string file_address, Name friend_name, PublicKey key,
   }
 }
 
-auto register_profile_to_file(string file_address, Name name, PublicKey key,
-                              PrivateKey private_key, Time time) -> void {
+auto register_profile_to_file(Name name, PublicKey key, PrivateKey private_key,
+                              Time time) -> void {
+  constexpr static auto file_address = UI_URGENT_FILE;
   auto file = std::ofstream(file_address, std::ios_base::app);
 
   auto send_time = absl::FormatTime(time, utc);
@@ -241,6 +242,15 @@ auto register_profile_to_file(string file_address, Name name, PublicKey key,
     cout << jmsg.dump() << endl;
     file.close();
   }
+
+  // also write this to the config
+  constexpr static auto config_address = CONFIG_FILE;
+  auto config_file = std::ofstream(config_address, std::ios_base::app);
+  if (config_file.is_open()) {
+    config_file << std::setw(4) << jmsg.dump() << std::endl;
+    cout << jmsg.dump() << endl;
+    config_file.close();
+  }
 }
 
 auto read_friend_messages_from_file(Name friend_name, size_t number)
@@ -251,7 +261,7 @@ auto read_friend_messages_from_file(Name friend_name, size_t number)
   string line;
   while (std::getline(file, line)) {
     auto j = json::parse(line);
-    if (j["type"].get<string>() == "FRIEND" &&
+    if (j["type"].get<string>() == "MESSAGE_RECIEVED" &&
         j["name"].get<string>() == friend_name) {
       messages.push_back(j);
     }

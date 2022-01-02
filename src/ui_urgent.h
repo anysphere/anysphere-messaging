@@ -15,9 +15,9 @@ void process_ui_urgent_file(const string& ui_urgent_file_address,
   }
   auto entry = new_entries.back();
 
-  auto type = entry["type"];
-  auto timestamp = entry["timestamp"];
-  if (type == "register") {
+  auto type = entry["type"].get<string>();
+  auto timestamp = entry["timestamp"].get<string>();
+  if (type == "REGISTER") {
     // call register rpc to send the register request
     RegisterInfo request;
     auto publickey = 543210;
