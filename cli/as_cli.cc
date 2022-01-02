@@ -27,21 +27,55 @@
  * DEALINGS IN THE SOFTWARE.
  ******************************************************************************/
 
-#include <cli/cli.h>
-#include <cli/clifilesession.h>
-#include <cli/loopscheduler.h>
-
+#include "cli/cli.h"
+#include "cli/clifilesession.h"
 #include "cli/clilocalsession.h"
+#include "cli/loopscheduler.h"
+#include "common.h"
 
 using MainScheduler = cli::LoopScheduler;
 #include <fstream>
 
 using namespace cli;
+using std::cin;
 using std::make_unique;
 using std::string;
 
+struct Message {
+ public:
+  Message() = default;
+  Message(const string& msg, const string& friend_name)
+      : msg_(msg), friend_(friend_name) {}
+  string msg_;
+  string friend_;
+  absl::Time time_;
+  constexpr static auto file_address_ = UI_FILE;
+
+  bool complete() const {
+    return !message_is_empty() && !friend_is_empty();
+  }
+  void set_time() { time_ = absl::Now(); }
+
+  void send() {
+    set_time();
+    write_msg_to_file("MESSAGE", file_address_, msg_, friend_, time_);
+    clear();
+  }
+
+  void clear() {
+    msg_.clear();
+    friend_.clear();
+  }
+
+ private:
+  bool message_is_empty() const { return msg_.empty(); }
+  bool friend_is_empty() const { return friend_.empty(); }
+};
+
 int main() {
   // setup cli
+
+  Message message_to_send;
 
   auto rootMenu = make_unique<Menu>("anysphere");
 
@@ -50,9 +84,15 @@ int main() {
       "The Anysphere menu");
   rootMenu->Insert(
       "message",
-      [](std::ostream& out, string x) {
+      [&](std::ostream& out, string x) {
         out << "Send a message to friend: " << x << " :)\n";
-        // show messages from friend x
+        out << "Write your message below:\n";
+        out << "Message:\n";
+        // get the message from the user
+        string message;
+        cin >> message;
+
+        out << "Message sent to " << x << ": " << message << "\n";
       },
       "Open a text meny to message a friend.");
   rootMenu->Insert(
@@ -71,11 +111,37 @@ int main() {
       "Disable colors in the cli");
 
   auto messageMenu = make_unique<Menu>("message");
+
   messageMenu->Insert(
       "friend",
-      [](std::ostream& out, string friend_name) {
-        out << "Send a message to friend: " << friend_name << " :)";
-        out << "Press Esc or type 'anysphere' to go to your main inbox.\n";
+      [&](std::ostream& out, string friend_name) {
+        out << "Send a message to friend: " << friend_name << " :)\n";
+
+        message_to_send.friend_ = friend_name;
+        if (message_to_send.complete()) {
+          out << "Message sent to " << friend_name << ": "
+              << message_to_send.msg_ << "\n";
+          message_to_send.send();
+        } else {
+          out << "Now type `write` with your message.\n";
+          out << "Press Esv or type 'anysphere' to return to the menu.\n";
+        }
+      },
+      "Open a text menu to message a friend.");
+  messageMenu->Insert(
+      "write",
+      [&](std::ostream& out, string message) {
+        out << "Send a message to friend: " << message << " :\n";
+
+        message_to_send.msg_ = message;
+        if (message_to_send.complete()) {
+          out << "Message sent to " << message_to_send.friend_ << ": "
+              << message_to_send.msg_ << "\n";
+          message_to_send.send();
+          out << "Press Esc or type 'anysphere' to go to your main inbox.\n";
+        } else {
+          out << "Now type `friend:` with your friend name.\n";
+        }
       },
       "Open a text menu to message a friend.");
 
