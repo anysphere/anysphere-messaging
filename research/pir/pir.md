@@ -78,6 +78,27 @@ Ideally, once again here, we want to create something that can be swapped out. S
 - the onionPIR comparison in table 3 & 4 use 30KB entries, whereas the sealPIR table 9 uses 288byte entries. is there a tradeoff between onionPIR and sealPIR as the entries get bigger?
 - for MVP: just use sealPIR. it has the least ugly code.
 - for MVP: ignore multi-retrieval.
+- "Thus, it may
+    be beneficial to use Microsoft SEAL in secret-key mode whenever the public
+    key is not truly needed." from `6_serialization.cc`
+- be careful: "Currently Microsoft SEAL supports only little-endian systems." problem for distribution?
 
 conclusion:
 - fastPIR is the best. even though we need to investigate whether probabilistic batch codes still work with it. i believe they do.
+
+## parameter choices
+
+1. see http://homomorphicencryption.org/wp-content/uploads/2018/11/HomomorphicEncryptionStandardv1.1.pdf for information.
+
+## questions
+
+1. "To enable batching, we need to set the plain_modulus to be a prime number
+    congruent to 1 modulo 2*poly_modulus_degree." in `2_encoders.cc`. WHY?
+2. how does fastPIR do the fast rotation? maybe implement it itself?
+
+## optimizations
+
+1. can we trade off some of the fastPIR rotation-style stuff for faster computation time but larger response size? security is still fine and we can still decrypt. so literally a performance engineering question.
+2. PBC for multi-retrieval
+3. gzip the response / query? (seems like seal is already doing this...)
+4. use modulus switching to reduce the ciphertext size? probably our parameters should be set competitively enough that this should never be possible though... see `seal_examples/3_levels.c`. seems like this is mostly used for ckks though which we will not use.
