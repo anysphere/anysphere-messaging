@@ -11,7 +11,7 @@
 #include "schema/messenger.grpc.pb.h"
 #endif
 
-#include "pir_common.h"
+#include "pir/pir_common.h"
 #include "account_manager.h"
 
 using grpc::Server;
@@ -23,8 +23,9 @@ using messenger::Messenger;
 
 using std::string;
 
-template<typename PIR, typename AccountManager>
-class MessengerImpl final : public Messenger::Service {
+template <typename PIR, typename AccountManager>
+class MessengerImpl final : public Messenger::Service
+{
   using pir_query_t = typename PIR::pir_query_t;
   using pir_answer_t = typename PIR::pir_answer_t;
   // TODO: add a thread safety argument (because the methods may be called from
@@ -32,10 +33,14 @@ class MessengerImpl final : public Messenger::Service {
   // TODO: add representation invariant
   Status Register(ServerContext *context,
                   const messenger::RegisterInfo *registerInfo,
-                  messenger::RegisterResponse *registerResponse) override {
-    try {
+                  messenger::RegisterResponse *registerResponse) override
+  {
+    try
+    {
       account_manager.generate_account(registerInfo->public_key());
-    } catch(const AccountManagerException & e) {
+    }
+    catch (const AccountManagerException &e)
+    {
       std::cerr << "AccountManagerException: " << e.what() << std::endl;
       return Status(grpc::StatusCode::UNAVAILABLE, e.what());
     }
@@ -45,21 +50,27 @@ class MessengerImpl final : public Messenger::Service {
 
   Status SendMessage(
       ServerContext *context, const messenger::SendMessageInfo *sendMessageInfo,
-      messenger::SendMessageResponse *sendMessageResponse) override {
+      messenger::SendMessageResponse *sendMessageResponse) override
+  {
     auto index = sendMessageInfo->index();
     pir_index_t pir_index = index;
-    try {
-      if (account_manager.valid_index_access(sendMessageInfo->authentication_token(), index)) {
+    try
+    {
+      if (account_manager.valid_index_access(sendMessageInfo->authentication_token(), index))
+      {
         std::cerr << "incorrect authentication token" << std::endl;
         return Status(grpc::StatusCode::UNAUTHENTICATED, "incorrect authentication token");
       }
-    } catch(const AccountManagerException & e) {
+    }
+    catch (const AccountManagerException &e)
+    {
       std::cerr << "AccountManagerException: " << e.what() << std::endl;
       return Status(grpc::StatusCode::UNAVAILABLE, e.what());
     }
 
     auto message = sendMessageInfo->message();
-    if (message.size() != sizeof(pir_value_t)) {
+    if (message.size() != sizeof(pir_value_t))
+    {
       std::cerr << "incorrect message size" << std::endl;
       return Status(grpc::StatusCode::INVALID_ARGUMENT, "incorrect message size");
     }
@@ -74,12 +85,14 @@ class MessengerImpl final : public Messenger::Service {
   Status ReceiveMessage(
       ServerContext *context,
       const messenger::ReceiveMessageInfo *receiveMessageInfo,
-      messenger::ReceiveMessageResponse *receiveMessageResponse) override {
+      messenger::ReceiveMessageResponse *receiveMessageResponse) override
+  {
 
     auto input_query = receiveMessageInfo->pir_query();
     pir_query_t query;
     bool success = query.deserialize_from_string(input_query);
-    if (!success) {
+    if (!success)
+    {
       std::cerr << "error deserializing query" << std::endl;
       return Status(grpc::StatusCode::INVALID_ARGUMENT, "error deserializing query");
     }
@@ -93,10 +106,10 @@ class MessengerImpl final : public Messenger::Service {
     return Status::OK;
   }
 
- public:
-  MessengerImpl(PIR & pir, AccountManager & account_manager) : pir(pir), account_manager(account_manager) {}
+public:
+  MessengerImpl(PIR &pir, AccountManager &account_manager) : pir(pir), account_manager(account_manager) {}
 
- private:
-  PIR & pir;
-  AccountManager & account_manager;
+private:
+  PIR &pir;
+  AccountManager &account_manager;
 };

@@ -3,7 +3,7 @@
 #include <random>
 #include <pqxx/pqxx>
 
-#include "pir_common.h"
+#include "pir/pir_common.h"
 
 using std::pair;
 using std::string;
