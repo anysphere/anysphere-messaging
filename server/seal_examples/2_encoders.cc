@@ -103,7 +103,7 @@ void example_batch_encoder()
     pod_matrix[0] = 0ULL;
     pod_matrix[1] = 1ULL;
     pod_matrix[2] = 2ULL;
-    pod_matrix[3] = 3ULL;
+    pod_matrix[3] = 1032193ULL + 3ULL;
     pod_matrix[row_size] = 4ULL;
     pod_matrix[row_size + 1] = 5ULL;
     pod_matrix[row_size + 2] = 6ULL;

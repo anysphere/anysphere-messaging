@@ -7,6 +7,7 @@ using std::array;
 
 // MESSAGE_SIZE is the size of the message in bytes
 constexpr size_t MESSAGE_SIZE = 1024;
+constexpr size_t MESSAGE_SIZE_BITS = MESSAGE_SIZE * 8;
 
 using byte = unsigned char;
 

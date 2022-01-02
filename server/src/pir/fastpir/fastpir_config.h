@@ -18,9 +18,10 @@ constexpr uint64_t PRIME_55 = 36'028'797'018'652'673ULL;
 
 constexpr array<uint64_t, 2> COEFF_MODULUS_FACTORIZATION({PRIME_54, PRIME_55});
 
-constexpr uint64_t PLAIN_BIT = 18;
+// number of bits we store per coefficient. we store a power of 2 because performing modulo mod 2 is much much faster, when encoding
+constexpr uint64_t PLAIN_BITS = 18;
 
-// must be greater than 2^PLAIN_BIT
+// must be greater than 2^PLAIN_BITS
 // must also be congruent to 1 modulo 2*POLY_MODULUS_DEGREE
 // finally, must also be a prime
 constexpr uint64_t PLAIN_MODULUS = 270'337;
