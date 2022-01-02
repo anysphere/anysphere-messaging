@@ -64,6 +64,7 @@ public:
 
   auto set_value(pir_index_t index, pir_value_t value) -> void;
   auto get_value_privately(pir_query_t pir_query) -> pir_answer_t;
+  auto allocate() -> pir_index_t;
 
 private:
   vector<pir_value_t> db;

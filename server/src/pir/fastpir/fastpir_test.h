@@ -76,6 +76,14 @@ public:
         return FastPIRAnswer{db[pir_query.index]};
     }
 
+    auto allocate() -> pir_index_t
+    {
+        auto new_index = db.size();
+        db.push_back(pir_value_t{});
+        return new_index;
+    }
+
 private:
+    // db is an
     vector<pir_value_t> db;
 };

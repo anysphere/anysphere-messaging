@@ -24,7 +24,7 @@ struct AccountManagerException : public std::exception
 class AccountManagerInMemory
 {
 public:
-    auto generate_account(const string &public_key) -> pair<string, vector<pir_index_t>>
+    auto generate_account(const string &public_key, pir_index_t allocation) -> pair<string, vector<pir_index_t>>
     {
         // TODO: use cryptographic randomness here (not critical for privacy)
         string possible_characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -37,7 +37,7 @@ public:
             authentication_token += possible_characters[dis(gen)];
         }
         // TODO: support more accounts
-        vector<pir_index_t> indices({next_index++});
+        vector<pir_index_t> indices({allocation});
 
         token_to_index_map[authentication_token] = indices;
 
@@ -52,7 +52,6 @@ public:
 
 private:
     unordered_map<string, vector<pir_index_t>> token_to_index_map;
-    pir_index_t next_index;
 };
 
 class AccountManagerPostgres
@@ -63,7 +62,7 @@ public:
         std::cout << "Connected to " << conn.dbname() << '\n';
     }
 
-    auto generate_account(const string &public_key) -> pair<string, vector<pir_index_t>>
+    auto generate_account(const string &public_key, pir_index_t allocation) -> pair<string, vector<pir_index_t>>
     {
         pqxx::work W{conn};
         // TODO: use cryptographic randomness here (not critical for privacy)
@@ -77,7 +76,7 @@ public:
             authentication_token += possible_characters[dis(gen)];
         }
         // TODO: support more accounts
-        vector<pir_index_t> indices({next_index++});
+        vector<pir_index_t> indices({allocation});
 
         token_to_index_map[authentication_token] = indices;
 
@@ -97,6 +96,5 @@ public:
 
 private:
     unordered_map<string, vector<pir_index_t>> token_to_index_map;
-    pir_index_t next_index;
     pqxx::connection conn;
 };

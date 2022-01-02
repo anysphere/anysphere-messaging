@@ -37,7 +37,8 @@ class MessengerImpl final : public Messenger::Service
   {
     try
     {
-      account_manager.generate_account(registerInfo->public_key());
+      auto allocation = pir.allocate();
+      account_manager.generate_account(registerInfo->public_key(), allocation);
     }
     catch (const AccountManagerException &e)
     {
