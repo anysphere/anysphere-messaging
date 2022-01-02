@@ -37,7 +37,8 @@ Ideally, once again here, we want to create something that can be swapped out. S
    - ADD(cipher, cipher)
    - MULT(plain, cipher)
    - SUB(cipher, k): converts enc(p(x)) to enc(p(x^k)). WEIRD.
-  - request size:
+  - request size: 64 KB
+  - response size: (unclear, but at least 320 KB)
   - server runtime: ???
   - multi: ???
 - OnionPIR:
@@ -61,7 +62,8 @@ Ideally, once again here, we want to create something that can be swapped out. S
    - ROWROTATE(cipher, i): rotates each row of the 2 x N/2 matrix by i. WEIRD.
    - COLROTATE(cipher): swaps the two rows. WEIRD.
   - feels like the easiest thing to implement!!!! i like it. maybe not ideal but good thing to start with at least.
-  - request size: ???
+  - request size: 32 * (# of users). explanation: n/N ciphertexts where n is # of mailboxes and N is BFV plaintext dimension. so smth like n/N * log(q) * 2N  = n * log(q) or something like that. wtf. this is too big..... or what is log(q)? maybe can only change friends once every day, or something like that... addra claims only a factor of 32 hmmm....
+  - response size: 64 KB
   - server runtime: ???
   - multi: ???
 - XPIR:
