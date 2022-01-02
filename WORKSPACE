@@ -88,3 +88,10 @@ load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
 
 grpc_extra_deps()
 
+new_git_repository(
+    name = "com_github_daniele77_cli",
+    tag = "v2.0.0",
+    build_file = "//:cli_header_lib.BUILD",
+    remote = "https://github.com/daniele77/cli.git",
+)
+
