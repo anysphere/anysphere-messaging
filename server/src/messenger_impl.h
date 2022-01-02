@@ -58,7 +58,7 @@ class MessengerImpl final : public Messenger::Service
     pir_index_t pir_index = index;
     try
     {
-      if (account_manager.valid_index_access(sendMessageInfo->authentication_token(), index))
+      if (account_manager.valid_index_access(sendMessageInfo->authentication_token(), pir_index))
       {
         std::cerr << "incorrect authentication token" << std::endl;
         return Status(grpc::StatusCode::UNAUTHENTICATED, "incorrect authentication token");
@@ -89,19 +89,52 @@ class MessengerImpl final : public Messenger::Service
       const messenger::ReceiveMessageInfo *receiveMessageInfo,
       messenger::ReceiveMessageResponse *receiveMessageResponse) override
   {
-
     auto input_query = receiveMessageInfo->pir_query();
+    // TODO: check that input_query is not too long
+
     pir_query_t query;
-    bool success = query.deserialize_from_string(input_query);
-    if (!success)
+    try
     {
-      std::cerr << "error deserializing query" << std::endl;
-      return Status(grpc::StatusCode::INVALID_ARGUMENT, "error deserializing query");
+      query = pir.query_from_string(input_query);
+    }
+    catch (const std::runtime_error &e)
+    {
+      std::cerr << "runtime_error: " << e.what() << std::endl;
+      return Status(grpc::StatusCode::INTERNAL, e.what());
+    }
+    catch (const std::invalid_argument &e)
+    {
+      std::cerr << "invalid_argument: " << e.what() << std::endl;
+      return Status(grpc::StatusCode::INVALID_ARGUMENT, e.what());
+    }
+    catch (const std::logic_error &e)
+    {
+      std::cerr << "logic_error: " << e.what() << std::endl;
+      return Status(grpc::StatusCode::INVALID_ARGUMENT, e.what());
     }
 
-    pir_answer_t answer = pir.get_value_privately(query);
+    auto answer = pir.get_value_privately(query);
 
-    string answer_string = answer.serialize_to_string();
+    string answer_string;
+    try
+    {
+      answer_string = answer.serialize_to_string();
+    }
+    catch (const std::runtime_error &e)
+    {
+      std::cerr << "runtime_error: " << e.what() << std::endl;
+      return Status(grpc::StatusCode::INTERNAL, e.what());
+    }
+    catch (const std::invalid_argument &e)
+    {
+      std::cerr << "invalid_argument: " << e.what() << std::endl;
+      return Status(grpc::StatusCode::INVALID_ARGUMENT, e.what());
+    }
+    catch (const std::logic_error &e)
+    {
+      std::cerr << "logic_error: " << e.what() << std::endl;
+      return Status(grpc::StatusCode::INVALID_ARGUMENT, e.what());
+    }
 
     receiveMessageResponse->set_pir_answer(std::move(answer_string));
 

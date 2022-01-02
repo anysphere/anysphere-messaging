@@ -9,51 +9,47 @@
 #include <array>
 
 #include "../pir_common.h"
+#include "fastpir_config.h"
 
 using std::array;
+using std::size_t;
 using std::string;
 using std::vector;
 
 struct FastPIRQuery
 {
-    pir_index_t index;
+    vector<seal::Ciphertext> query;
 
-    auto serialize_to_string() noexcept -> string
+    // throws if deserialization fails
+    auto deserialize_from_string(const string &s, seal::SEALContext sc) noexcept(false) -> void
     {
-        return reinterpret_cast<const char *>(index);
-    }
-    // returns: whether deserialization was successful
-    auto deserialize_from_string(const string &s) noexcept -> bool
-    {
-        if (s.size() != sizeof(pir_index_t))
+        auto s_stream = std::stringstream(s);
+        size_t position = 0;
+        while (position < s.size())
         {
-            return false;
+            seal::Ciphertext c;
+            position += c.load(sc, s_stream);
+            query.push_back(c);
         }
-        index = *reinterpret_cast<const pir_index_t *>(s.data());
-
-        return true;
     }
 };
 
 struct FastPIRAnswer
 {
-    pir_value_t value;
+    seal::Ciphertext answer;
 
-    auto serialize_to_string() noexcept -> string
+    // throws if serialization fails
+    auto serialize_to_string() noexcept(false) -> string
     {
-        string s(value.begin(), value.end());
-        return s;
+        std::stringstream s_stream;
+        answer.save(s_stream);
+        return s_stream.str();
     }
-    // returns: whether deserialization was successful
-    auto deserialize_from_string(const string &s) noexcept -> bool
+    // throws if deserialization fails
+    auto deserialize_from_string(const string &s, seal::SEALContext sc) noexcept(false) -> bool
     {
-        if (s.size() != MESSAGE_SIZE)
-        {
-            return false;
-        }
-        std::copy(s.begin(), s.end(), value.begin());
-
-        return true;
+        auto s_stream = std::stringstream(s);
+        return answer.load(sc, s_stream);
     }
 };
 
@@ -65,19 +61,20 @@ public:
     using pir_query_t = FastPIRQuery;
     using pir_answer_t = FastPIRAnswer;
 
-    FastPIR() {}
+    FastPIR() : sc(create_context()) {}
 
-    auto set_value(pir_index_t index, pir_value_t value) -> void
+    auto set_value(pir_index_t index, pir_value_t value) noexcept -> void
     {
         std::copy(value.begin(), value.end(), db.begin() + index * MESSAGE_SIZE);
     }
 
-    auto get_value_privately(pir_query_t pir_query) -> pir_answer_t
+    auto get_value_privately(pir_query_t pir_query) noexcept -> pir_answer_t
     {
-        return FastPIRAnswer{db[pir_query.index]};
+        // TODO: this is the hard part. do it
+        return pir_answer_t{};
     }
 
-    auto allocate() -> pir_index_t
+    auto allocate() noexcept -> pir_index_t
     {
         auto new_index = num_indices;
         num_indices++;
@@ -85,13 +82,37 @@ public:
         return new_index;
     }
 
+    // throws if deserialization fails
+    auto query_from_string(const string &s) noexcept(false) -> pir_query_t
+    {
+        pir_query_t query;
+        query.deserialize_from_string(s, sc);
+        return query;
+    }
+
 private:
     // db is an num_indices x MESSAGE_SIZE matrix
     vector<byte> db;
     int num_indices = 0;
+    // seal context contains the parameters for the homomorphic encryption scheme
+    seal::SEALContext sc;
 
     auto db_index(pir_index_t index) -> int
     {
         return index * MESSAGE_SIZE;
+    }
+
+    auto create_context() -> seal::SEALContext
+    {
+        seal::EncryptionParameters params(seal::scheme_type::bfv);
+        params.set_poly_modulus_degree(POLY_MODULUS_DEGREE);
+        vector<seal::Modulus> coeff_modulus;
+        for (auto &prime : COEFF_MODULUS_FACTORIZATION)
+        {
+            coeff_modulus.push_back(seal::Modulus(prime));
+        }
+        params.set_coeff_modulus(coeff_modulus);
+        params.set_plain_modulus(PLAIN_MODULUS);
+        return seal::SEALContext(params);
     }
 };

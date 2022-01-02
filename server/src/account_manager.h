@@ -26,6 +26,7 @@ class AccountManagerInMemory
 public:
     auto generate_account(const string &public_key, pir_index_t allocation) -> pair<string, vector<pir_index_t>>
     {
+        // TODO: store galois keys for rotation things!
         // TODO: use cryptographic randomness here (not critical for privacy)
         string possible_characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         std::random_device rd;

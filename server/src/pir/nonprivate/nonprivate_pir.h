@@ -18,16 +18,14 @@ struct NonPrivatePIRQuery
   {
     return reinterpret_cast<const char *>(index);
   }
-  // returns: whether deserialization was successful
-  auto deserialize_from_string(const string &s) noexcept -> bool
+  // throws if deserialization was successful
+  auto deserialize_from_string(const string &s) noexcept(false) -> void
   {
     if (s.size() != sizeof(pir_index_t))
     {
-      return false;
+      throw std::invalid_argument("invalid size");
     }
     index = *reinterpret_cast<const pir_index_t *>(s.data());
-
-    return true;
   }
 };
 
@@ -40,12 +38,12 @@ struct NonPrivatePIRAnswer
     string s(value.begin(), value.end());
     return s;
   }
-  // returns: whether deserialization was successful
-  auto deserialize_from_string(const string &s) noexcept -> bool
+  // throws if deserialization was successful
+  auto deserialize_from_string(const string &s) noexcept(false) -> bool
   {
     if (s.size() != MESSAGE_SIZE)
     {
-      return false;
+      throw std::invalid_argument("invalid size");
     }
     std::copy(s.begin(), s.end(), value.begin());
 
@@ -62,9 +60,12 @@ public:
 
   NonPrivatePIR();
 
-  auto set_value(pir_index_t index, pir_value_t value) -> void;
-  auto get_value_privately(pir_query_t pir_query) -> pir_answer_t;
-  auto allocate() -> pir_index_t;
+  auto set_value(pir_index_t index, pir_value_t value) noexcept -> void;
+  auto get_value_privately(pir_query_t pir_query) noexcept -> pir_answer_t;
+  auto allocate() noexcept -> pir_index_t;
+
+  // may throw if deserialization fails
+  auto query_from_string(const string &s) noexcept(false) -> pir_query_t;
 
 private:
   vector<pir_value_t> db;
