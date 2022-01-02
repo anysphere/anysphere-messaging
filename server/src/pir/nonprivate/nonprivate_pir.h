@@ -4,21 +4,25 @@
 #include <string>
 #include <array>
 
-#include "pir_common.h"
+#include "../pir_common.h"
 
 using std::array;
-using std::vector;
 using std::string;
+using std::vector;
 
-struct NonPrivatePIRQuery {
+struct NonPrivatePIRQuery
+{
   pir_index_t index;
 
-  auto serialize_to_string() noexcept -> string {
+  auto serialize_to_string() noexcept -> string
+  {
     return reinterpret_cast<const char *>(index);
   }
   // returns: whether deserialization was successful
-  auto deserialize_from_string(const string & s) noexcept -> bool {
-    if (s.size() != sizeof(pir_index_t)) {
+  auto deserialize_from_string(const string &s) noexcept -> bool
+  {
+    if (s.size() != sizeof(pir_index_t))
+    {
       return false;
     }
     index = *reinterpret_cast<const pir_index_t *>(s.data());
@@ -27,16 +31,20 @@ struct NonPrivatePIRQuery {
   }
 };
 
-struct NonPrivatePIRAnswer {
+struct NonPrivatePIRAnswer
+{
   pir_value_t value;
 
-  auto serialize_to_string() noexcept -> string {
+  auto serialize_to_string() noexcept -> string
+  {
     string s(value.begin(), value.end());
     return s;
   }
   // returns: whether deserialization was successful
-  auto deserialize_from_string(const string & s) noexcept -> bool {
-    if (s.size() != MESSAGE_SIZE) {
+  auto deserialize_from_string(const string &s) noexcept -> bool
+  {
+    if (s.size() != MESSAGE_SIZE)
+    {
       return false;
     }
     std::copy(s.begin(), s.end(), value.begin());
@@ -45,10 +53,10 @@ struct NonPrivatePIRAnswer {
   }
 };
 
-
 // TODO: add thread safety argument
-class NonPrivatePIR {
- public:
+class NonPrivatePIR
+{
+public:
   using pir_query_t = NonPrivatePIRQuery;
   using pir_answer_t = NonPrivatePIRAnswer;
 
@@ -57,6 +65,6 @@ class NonPrivatePIR {
   auto set_value(pir_index_t index, pir_value_t value) -> void;
   auto get_value_privately(pir_query_t pir_query) -> pir_answer_t;
 
-  private:
-    vector<pir_value_t> db;
+private:
+  vector<pir_value_t> db;
 };

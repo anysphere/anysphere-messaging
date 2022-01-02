@@ -46,6 +46,17 @@ new_git_repository(
     remote = "https://github.com/jtv/libpqxx",
 )
 
+# SEAL
+
+new_git_repository(
+    name = "seal",
+    build_file = "//:seal.BUILD",
+    # commit = "79234726053c45eede688400aa219fdec0810bd8", # version: 3.7.2
+    tag = "v3.7.2-bazel",
+    remote = "https://github.com/anysphere/SEAL",
+)
+
+
 # grpc and rules_proto
 
 http_archive(

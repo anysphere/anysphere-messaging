@@ -4,9 +4,11 @@ cc_binary(
     name = "as_server",
     srcs = [
         "messenger_impl.h",
-        "nonprivate_pir.h",
-        "nonprivate_pir.cc",
-        "pir_common.h",
+        "pir/nonprivate/nonprivate_pir.h",
+        "pir/nonprivate/nonprivate_pir.cc",
+        "pir/sealpir/seal_test.h",
+        "pir/fastpir/fastpir_test.h",
+        "pir/pir_common.h",
         "account_manager.h",
         "as_server.cc"
     ],
@@ -15,6 +17,7 @@ cc_binary(
         "//schema:messenger_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@libpqxx//:libpqxx",
+        "@seal//:seal",
     ],
     defines = select({
         "//conditions:default": ["USE_POSTGRES_DB"],

@@ -15,6 +15,10 @@ bazel run //server/src:as_server
 bazel test --test_output=all //server/test:server_test --host_javabase=@local_jdk//:jdk
 ```
 
+## manual testing
+
+use `grpcurl` to test the server. it is great.
+
 
 ## using in memory db
 
