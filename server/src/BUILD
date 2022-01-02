@@ -7,6 +7,7 @@ cc_binary(
         "pir/nonprivate/nonprivate_pir.h",
         "pir/nonprivate/nonprivate_pir.cc",
         "pir/sealpir/seal_test.h",
+        "pir/fastpir/fastpir_test.h",
         "pir/pir_common.h",
         "account_manager.h",
         "as_server.cc"
