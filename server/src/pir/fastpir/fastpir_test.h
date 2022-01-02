@@ -58,6 +58,7 @@ struct FastPIRAnswer
 };
 
 // TODO: add thread safety argument
+// probablyyyy all races are benign.
 class FastPIR
 {
 public:
@@ -68,7 +69,7 @@ public:
 
     auto set_value(pir_index_t index, pir_value_t value) -> void
     {
-        db[index] = value;
+        std::copy(value.begin(), value.end(), db.begin() + index * MESSAGE_SIZE);
     }
 
     auto get_value_privately(pir_query_t pir_query) -> pir_answer_t
@@ -78,12 +79,19 @@ public:
 
     auto allocate() -> pir_index_t
     {
-        auto new_index = db.size();
-        db.push_back(pir_value_t{});
+        auto new_index = num_indices;
+        num_indices++;
+        db.resize(num_indices);
         return new_index;
     }
 
 private:
-    // db is an
-    vector<pir_value_t> db;
+    // db is an num_indices x MESSAGE_SIZE matrix
+    vector<byte> db;
+    int num_indices = 0;
+
+    auto db_index(pir_index_t index) -> int
+    {
+        return index * MESSAGE_SIZE;
+    }
 };

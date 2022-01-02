@@ -37,6 +37,7 @@ class MessengerImpl final : public Messenger::Service
   {
     try
     {
+      // TODO: allocate in a loop
       auto allocation = pir.allocate();
       account_manager.generate_account(registerInfo->public_key(), allocation);
     }
