@@ -1,11 +1,57 @@
 #include "common.h"
+#include "server/src/pir/fastpir/fastpir_client.h"
 
+using messenger::ReceiveMessageInfo;
+using messenger::ReceiveMessageResponse;
 using messenger::SendMessageInfo;
 using messenger::SendMessageResponse;
 
 auto get_auth_token()
 {
   return StrCat("ThisIsMyGreatAuthToken ", absl::Uniform(gen_, 0, 100));
+}
+
+void retrieve_messages(FastPIRClient &client,
+                       std::unique_ptr<Messenger::Stub> &stub,
+                       int db_rows)
+{
+  for (auto &friend_name : FriendHashTable)
+  {
+    ReceiveMessageInfo request;
+
+    auto friend_info = FriendHashTable[friend_name];
+
+    auto query = client.query(friend_info.read_index, db_rows);
+
+    auto serialized_query = query.serialize_to_string();
+
+    request.set_pir_query(serialized_query);
+
+    ReceiveMessageResponse reply;
+    ClientContext context;
+
+    Status status = stub->ReceiveMessage(&context, request, &reply);
+
+    if (status.ok())
+    {
+      cout << "received message!!!" << endl;
+      auto answer = reply.pir_answer();
+      auto answer_obj = client.answer_from_string(answer);
+      auto decoded_value = client.decode(answer_obj, friend_info.read_index);
+
+      string decoded_string = "";
+      for (auto &c : decoded_value)
+      {
+        decoded_string += c;
+      }
+
+      cout << "actual message: " << decoded_string << endl;
+    }
+    else
+    {
+      cout << status.error_code() << ": " << status.error_message() << endl;
+    }
+  }
 }
 
 void process_ui_file(const string &ui_file_address,
