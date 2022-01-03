@@ -9,7 +9,7 @@
 #include <string>
 #include <array>
 
-#include "../pir_common.h"
+#include "anysphere/pir_common.h"
 #include "fastpir_config.h"
 
 #include "anysphere/utils.h"
