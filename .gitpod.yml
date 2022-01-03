@@ -17,3 +17,4 @@ vscode:
     - galexite.bazel-cpp-tools
     - bazelbuild.vscode-bazel
     - ms-vscode.cpptools-extension-pack
+    - hashicorp.terraform
