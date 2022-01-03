@@ -83,14 +83,6 @@ public:
 
         assert(message_coefficients.size() == seal_slot_count);
 
-        // TODO: remove this because it is debug
-        // std::cout << "message_coefficients: ";
-        // for (auto c : message_coefficients)
-        // {
-        //     std::cout << c << " ";
-        // }
-        // std::cout << std::endl;
-
         // rotate!
         if (index % seal_slot_count > seal_slot_count / 2)
         {
@@ -137,24 +129,6 @@ public:
         }
 
         return pir_value_t{message_bytes};
-    }
-
-    // TODO: REMOVE THIS
-    auto decrypt(seal::Ciphertext ciphertext) -> seal::Plaintext
-    {
-        seal::Plaintext plaintext;
-        decryptor.decrypt(ciphertext, plaintext);
-        return plaintext;
-    }
-
-    // TODO: REMOVE THIS
-    auto get_context() -> seal::SEALContext
-    {
-        return sc;
-    }
-    auto get_secret_key() -> seal::SecretKey
-    {
-        return secret_key;
     }
 
 private:

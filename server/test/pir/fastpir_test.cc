@@ -31,33 +31,11 @@ TEST(FastPirTest, Basic)
     FastPIRClient client;
     auto query = client.query(retrieve_idx, 2);
 
-    // cout << "query[0]: " << client.decrypt(query.query[0]).to_string() << endl;
-
     auto serialized_query = query.serialize_to_string();
 
     auto deserialized_query = pir.query_from_string(serialized_query);
 
-    // cout << "deserialized_query[0]: " << client.decrypt(deserialized_query.query[0]).to_string() << endl;
-    cout << "query len: " << deserialized_query.query.size() << endl;
-    vector<uint64_t> query_vec;
-    seal::BatchEncoder(client.get_context()).decode(client.decrypt(deserialized_query.query[0]), query_vec);
-    cout << "deserialized_query: ";
-    for (const auto &c : query_vec)
-    {
-        cout << static_cast<int>(c) << ",";
-    }
-    cout << endl;
-
-    auto answer = pir.get_value_privately(deserialized_query, seal::Decryptor(client.get_context(), client.get_secret_key()));
-
-    vector<uint64_t> answer_vec;
-    seal::BatchEncoder(client.get_context()).decode(client.decrypt(answer.answer), answer_vec);
-    cout << "answer: ";
-    for (const auto &c : answer_vec)
-    {
-        cout << static_cast<int>(c) << ",";
-    }
-    cout << endl;
+    auto answer = pir.get_value_privately(deserialized_query);
 
     auto decoded_value = client.decode(answer, retrieve_idx);
 
@@ -87,33 +65,11 @@ TEST(FastPirTest, Basic2)
     FastPIRClient client;
     auto query = client.query(retrieve_idx, 2);
 
-    // cout << "query[0]: " << client.decrypt(query.query[0]).to_string() << endl;
-
     auto serialized_query = query.serialize_to_string();
 
     auto deserialized_query = pir.query_from_string(serialized_query);
 
-    // cout << "deserialized_query[0]: " << client.decrypt(deserialized_query.query[0]).to_string() << endl;
-    cout << "query len: " << deserialized_query.query.size() << endl;
-    vector<uint64_t> query_vec;
-    seal::BatchEncoder(client.get_context()).decode(client.decrypt(deserialized_query.query[0]), query_vec);
-    cout << "deserialized_query: ";
-    for (const auto &c : query_vec)
-    {
-        cout << static_cast<int>(c) << ",";
-    }
-    cout << endl;
-
-    auto answer = pir.get_value_privately(deserialized_query, seal::Decryptor(client.get_context(), client.get_secret_key()));
-
-    vector<uint64_t> answer_vec;
-    seal::BatchEncoder(client.get_context()).decode(client.decrypt(answer.answer), answer_vec);
-    cout << "answer: ";
-    for (const auto &c : answer_vec)
-    {
-        cout << static_cast<int>(c) << ",";
-    }
-    cout << endl;
+    auto answer = pir.get_value_privately(deserialized_query);
 
     auto decoded_value = client.decode(answer, retrieve_idx);
 

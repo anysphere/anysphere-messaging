@@ -127,38 +127,13 @@ public:
         check_rep();
     }
 
-    // TODO: REMOVE SECRET KEY HERE THIS IS SUPER IMPORTANT AND ONLY ONLY ONLY FOR DEBUGGING PLSPLSPLS REMOVE IT ASAP PLS SIR I BEG YOU
-    auto get_value_privately(pir_query_t pir_query, seal::Decryptor decryptor) noexcept(false) -> pir_answer_t
+    auto get_value_privately(pir_query_t pir_query) noexcept(false) -> pir_answer_t
     {
-        // TODO: REMOVE THIS
-        // std::cout << "db: ";
-        // for (const auto &c : db)
-        // {
-        //     std::cout << static_cast<int>(c) << ",";
-        // }
-        // std::cout << std::endl;
-        // std::cout << "seal_db_rows: " << seal_db_rows << std::endl;
-        // for (size_t i = 0; i < SEAL_DB_COLUMNS; i++)
-        // {
-        //     std::cout << "seal_db[0][" << i << "] = " << seal_db[i].to_string() << std::endl;
-        // }
         for (size_t i = 0; i < SEAL_DB_COLUMNS; i++)
         {
             std::cout << "seal_db[" << i << "]: ";
             vector<uint64_t> query_vec;
             batch_encoder.decode(seal_db[i], query_vec);
-            for (size_t j = 0; j < 2; j++)
-            {
-                std::cout << static_cast<int>(query_vec[j]) << ",";
-            }
-            for (auto &c : query_vec)
-            {
-                if (c != 0)
-                {
-                    std::cout << "!!!!";
-                }
-            }
-            std::cout << std::endl;
         }
 
         if (pir_query.query.size() > seal_db_rows)
@@ -176,25 +151,6 @@ public:
                 evaluator.multiply_plain(pir_query.query[j], seal_db[j * SEAL_DB_COLUMNS + i], tmp);
                 evaluator.add_inplace(compressed_cols[i], tmp);
             }
-            // print the compressed_cols!
-            // TODO: REMOVE THIS
-            seal::Plaintext plain_col;
-            decryptor.decrypt(compressed_cols[i], plain_col);
-            std::cout << "compressed_cols[" << i << "]: ";
-            vector<uint64_t> query_vec;
-            batch_encoder.decode(plain_col, query_vec);
-            for (size_t j = 0; j < 2; j++)
-            {
-                std::cout << static_cast<int>(query_vec[j]) << ",";
-            }
-            for (auto &c : query_vec)
-            {
-                if (c != 0)
-                {
-                    std::cout << "!!!!";
-                }
-            }
-            std::cout << std::endl;
         }
         // we compress the answer into a single ciphertext. to be able to do that,
         // we need to have that SEAL_DB_COLUMNS <= seal_slot_count, or else we will be overwriting information
@@ -211,67 +167,13 @@ public:
         // TODO: optimize this by using the clever galois key thing
         for (size_t i = 0; i < SEAL_DB_COLUMNS; ++i)
         {
-            seal::Plaintext plain_col;
-            decryptor.decrypt(s_top, plain_col);
-            std::cout << "s_top[" << i << "]: ";
-            vector<uint64_t> query_vec;
-            batch_encoder.decode(plain_col, query_vec);
-            for (size_t j = 0; j < 2; j++)
-            {
-                std::cout << static_cast<int>(query_vec[j]) << ",";
-            }
-            for (auto &c : query_vec)
-            {
-                if (c != 0)
-                {
-                    std::cout << "!!!!";
-                }
-            }
-            std::cout << std::endl;
-
             if (i == 0 || i == seal_slot_count / 2)
             {
                 continue;
             }
             if (i < seal_slot_count / 2)
             {
-                seal::Plaintext plain_col;
-                decryptor.decrypt(compressed_cols[i], plain_col);
-                std::cout << "compressed_cols[" << i << "]: ";
-                vector<uint64_t> query_vec;
-                batch_encoder.decode(plain_col, query_vec);
-                for (size_t j = 0; j < 2; j++)
-                {
-                    std::cout << static_cast<int>(query_vec[j]) << ",";
-                }
-                for (auto &c : query_vec)
-                {
-                    if (c != 0)
-                    {
-                        std::cout << "!!!!";
-                    }
-                }
-                std::cout << std::endl;
                 evaluator.rotate_rows_inplace(compressed_cols[i], -i, pir_query.galois_keys);
-                {
-                    seal::Plaintext plain_col;
-                    decryptor.decrypt(compressed_cols[i], plain_col);
-                    std::cout << "compressed_cols[" << i << "]: ";
-                    vector<uint64_t> query_vec;
-                    batch_encoder.decode(plain_col, query_vec);
-                    for (size_t j = 0; j < 2; j++)
-                    {
-                        std::cout << static_cast<int>(query_vec[j]) << ",";
-                    }
-                    for (auto &c : query_vec)
-                    {
-                        if (c != 0)
-                        {
-                            std::cout << "!!!!";
-                        }
-                    }
-                    std::cout << std::endl;
-                }
                 evaluator.add_inplace(s_top, compressed_cols[i]);
             }
             else
