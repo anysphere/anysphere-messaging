@@ -86,13 +86,13 @@ void process_ui_file(const string &ui_file_address,
 
     auto msg = entry["message"].get<string>();
 
-    if (!FriendHashTable.contains(to))
+    if (!FriendTable.contains(to))
     {
       std::cerr << "FriendHashTable does not contain " << to << endl;
       continue;
     }
 
-    auto friend = FriendHashTable[to];
+    auto friend = FriendTable[to];
 
     auto index = friend.write_index;
     auto key = friend.shared_key;
