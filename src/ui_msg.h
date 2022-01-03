@@ -90,25 +90,6 @@ void process_ui_file(const string &ui_file_address,
           std::cerr << status.error_code() << ": " << status.error_message()
                     << " details:" << status.error_details() << std::endl;
         }
-        // } else if (type == "error") {
-        //   // call register rpc to send the register request
-        //   SendMessageInfo request;
-        //   request.set_index(index);
-        //   request.set_authentication_token(authentication_token);
-        //   request.set_message(entry["message"]);
-
-        //   SendMessageResponse reply;
-        //   ClientContext context;
-
-        //   Status status = stub->Register(&context, request, &reply);
-
-        //   if (status.ok()) {
-        //     std::cout << "Error sent to server: " << request.message() <<
-        //     std::endl;
-        //   } else {
-        //     std::cout << status.error_code() << ": " << status.error_message()
-        //               << std::endl;
-        //   }
       }
     }
     else
