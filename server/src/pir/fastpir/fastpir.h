@@ -131,7 +131,6 @@ public:
     {
         for (size_t i = 0; i < SEAL_DB_COLUMNS; i++)
         {
-            std::cout << "seal_db[" << i << "]: ";
             vector<uint64_t> query_vec;
             batch_encoder.decode(seal_db[i], query_vec);
         }

@@ -75,3 +75,42 @@ TEST(FastPirTest, Basic2)
 
     EXPECT_EQ(decoded_value, expected_value);
 }
+
+TEST(FastPirTest, Basic17)
+{
+    FastPIR pir;
+    for (int i = 0; i < 17; i++) {
+        auto idx = pir.allocate();
+        EXPECT_EQ(idx, 0);
+        std::stringstream ss;
+        ss << "hello " << i;
+        string value_str = ss.str();
+        pir_value_t value;
+        value.fill(0);
+        std::copy(value_str.begin(), value_str.end(), value.begin());
+        pir.set_value(idx, value);
+    }
+
+    for (int i = 0; i < 17; i++) {
+        FastPIRClient client;
+
+        auto query = client.query(i, 17);
+
+        auto serialized_query = query.serialize_to_string();
+
+        auto deserialized_query = pir.query_from_string(serialized_query);
+
+        auto answer = pir.get_value_privately(deserialized_query);
+
+        auto decoded_value = client.decode(answer, i);
+
+        std::stringstream ss;
+        ss << "hello " << i;
+        string value_str = ss.str();
+        pir_value_t expected_value;
+        expected_value.fill(0);
+        std::copy(value_str.begin(), value_str.end(), expected_value.begin());
+
+        EXPECT_EQ(decoded_value, expected_value);
+    }
+}
