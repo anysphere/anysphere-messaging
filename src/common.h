@@ -242,4 +242,5 @@ struct RegisterationInfo {
   vector<int> allocation;
 };
 
-auto FriendTable = std::unordered_map<string, Friend>();
+static auto RegistrationInfo = RegisterationInfo();
+static auto FriendTable = std::unordered_map<string, Friend>();

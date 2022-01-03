@@ -20,8 +20,13 @@ void process_ui_urgent_file(const string& ui_urgent_file_address,
   if (type == "REGISTER") {
     // call register rpc to send the register request
     RegisterInfo request;
-    auto publickey = 543210;
-    request.set_public_key(to_string(publickey));
+    auto public_key = entry["public_key"].get<string>();
+    auto private_key = entry["private_key"].get<string>();
+    request.set_public_key(public_key);
+
+    RegistrationInfo.name = entry["name"].get<string>();
+    RegistrationInfo.public_key = public_key;
+    RegistrationInfo.private_key = private_key;
 
     RegisterResponse reply;
     ClientContext context;
@@ -31,6 +36,11 @@ void process_ui_urgent_file(const string& ui_urgent_file_address,
     if (status.ok()) {
       // TODO(sualeh): tell the UI that the registration was successful
       cout << "register success" << endl;
+
+      RegistrationInfo.authentication_token = reply.authentication_token();
+      auto alloc_repeated = reply.allocation();
+      RegistrationInfo.allocation =
+          vector<int>(alloc_repeated.begin(), alloc_repeated.end());
     } else {
       cout << status.error_code() << ": " << status.error_message() << endl;
     }
