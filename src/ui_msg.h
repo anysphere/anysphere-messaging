@@ -78,7 +78,7 @@ void process_ui_file(const string &ui_file_address,
         else
         {
           std::cout << status.error_code() << ": " << status.error_message()
-                    << std::endl;
+                    << " details:" << status.error_details() << std::endl;
         }
         // } else if (type == "error") {
         //   // call register rpc to send the register request
