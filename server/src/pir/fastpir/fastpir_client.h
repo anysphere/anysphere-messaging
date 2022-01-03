@@ -117,6 +117,14 @@ public:
         return pir_value_t{message_bytes};
     }
 
+    // throws if deserialization fails
+    auto answer_from_string(const string &s) const noexcept(false) -> pir_answer_t
+    {
+        pir_answer_t answer;
+        answer.deserialize_from_string(s, sc);
+        return answer;
+    }
+
 private:
     seal::SEALContext sc;
     seal::BatchEncoder batch_encoder;
