@@ -164,8 +164,17 @@ public:
                 evaluator.add_inplace(compressed_cols[i], tmp);
             }
         }
+        // we compress the answer into a single ciphertext. to be able to do that,
+        // we need to have that SEAL_DB_COLUMNS <= seal_slot_count, or else we will be overwriting information
+        // note: as with all things server-side, this is about availability, not security.
+        assert(SEAL_DB_COLUMNS <= seal_slot_count);
+
         seal::Ciphertext s_top = compressed_cols[0];
-        seal::Ciphertext s_bottom = compressed_cols[seal_slot_count / 2];
+        seal::Ciphertext s_bottom;
+        if (seal_slot_count / 2 < SEAL_DB_COLUMNS)
+        {
+            seal::Ciphertext s_bottom = compressed_cols[seal_slot_count / 2];
+        }
         // combine using rotations!
         // TODO: optimize this by using the clever galois key thing
         for (size_t i = 0; i < SEAL_DB_COLUMNS; ++i)
@@ -185,8 +194,11 @@ public:
                 evaluator.add_inplace(s_bottom, compressed_cols[i]);
             }
         }
-        evaluator.rotate_columns_inplace(s_bottom, pir_query.galois_keys);
-        evaluator.add_inplace(s_top, s_bottom);
+        if (seal_slot_count / 2 < SEAL_DB_COLUMNS)
+        {
+            evaluator.rotate_columns_inplace(s_bottom, pir_query.galois_keys);
+            evaluator.add_inplace(s_top, s_bottom);
+        }
         return pir_answer_t{s_top};
     }
 

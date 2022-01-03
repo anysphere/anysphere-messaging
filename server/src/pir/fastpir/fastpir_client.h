@@ -29,7 +29,7 @@ public:
 
     FastPIRClient(seal::SecretKey secret_key, seal::Serializable<seal::GaloisKeys> galois_keys) : FastPIRClient(create_context_params(), secret_key, galois_keys) {}
 
-    FastPIRClient(seal::SEALContext sc, seal::SecretKey secret_key, seal::Serializable<seal::GaloisKeys> galois_keys) : sc(sc), batch_encoder(sc), seal_slot_count(batch_encoder.slot_count()), secret_key(secret_key), galois_keys(galois_keys), encryptor(sc, secret_key) {}
+    FastPIRClient(seal::SEALContext sc, seal::SecretKey secret_key, seal::Serializable<seal::GaloisKeys> galois_keys) : sc(sc), batch_encoder(sc), seal_slot_count(batch_encoder.slot_count()), secret_key(secret_key), galois_keys(galois_keys), encryptor(sc, secret_key), decryptor(sc, secret_key) {}
 
     auto query(pir_index_t index, size_t db_rows) -> pir_query_t
     {
@@ -70,7 +70,10 @@ public:
 
     auto decode(pir_answer_t answer) -> pir_value_t
     {
-        // TOOD: implement this
+        // auto plain_text = decryptor.decrypt(answer.answer, secret_key);
+        // auto plain_coefficients = plain_text.to_uint64_vector();
+        // auto plain_value = plain_coefficients[0];
+        // return plain_value;
         return pir_value_t{};
     }
 
@@ -82,4 +85,5 @@ private:
     seal::SecretKey secret_key;
     seal::Serializable<seal::GaloisKeys> galois_keys;
     seal::Encryptor encryptor;
+    seal::Decryptor decryptor;
 };
