@@ -2,6 +2,7 @@
 #include <bitset>
 #include <array>
 #include "fastpir_config.h"
+#include "anysphere/utils.h"
 
 using std::array;
 using std::bitset;
@@ -16,48 +17,6 @@ auto gen_galois_keys(seal::KeyGenerator keygen) -> seal::Serializable<seal::Galo
 {
     auto galois_keys = keygen.create_galois_keys();
     return galois_keys;
-}
-
-template <int N>
-auto concat_lsb(const vector<uint64_t> &v) -> vector<byte>
-{
-    // const auto num_bits = 18;
-    bitset<8 * N> bits;
-    vector<byte> result;
-
-    for (size_t i = 0; i < v.size(); i += 8)
-    {
-        bits = 0;
-        for (size_t j = 0; j < 8; j++)
-        {
-            if (i + j >= v.size())
-            {
-                break;
-            }
-            auto extract_N_bits = v[i + j] & ((1 << N) - 1);
-            bits <<= N;
-            bits |= extract_N_bits;
-        }
-        for (size_t j = 0; j < N; j++)
-        {
-            // get 8 bits from the j-th bit to the j+3-th bit
-            bitset<8 *N> mask = 0;
-            mask = (1 << 8) - 1;
-            mask <<= (j * 8);
-            auto extract_bits = (bits & mask) >> (j * 8);
-            byte b = static_cast<byte>(extract_bits.to_ulong());
-            result.push_back(b);
-        }
-    }
-
-    size_t output_size = v.size() * N / 8;
-    assert(output_size <= result.size());
-    for (size_t i = 0; i < result.size() - output_size; i++)
-    {
-        result.pop_back();
-    }
-
-    return result;
 }
 
 class FastPIRClient
@@ -162,7 +121,7 @@ public:
 
         // convert to bytes!
         std::cout << "message_bytes_vector: " << std::endl;
-        auto message_bytes_vector = concat_lsb<PLAIN_BITS>(message_coefficients);
+        auto message_bytes_vector = concat_N_lsb_bits<PLAIN_BITS>(message_coefficients);
         for (auto b : message_bytes_vector)
         {
             std::cout << static_cast<int>(b) << ",";
