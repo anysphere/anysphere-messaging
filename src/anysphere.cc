@@ -41,6 +41,7 @@ int main(int argc, char **argv) {
   // set the time to 0
   auto last_ui_timestamp = absl::Time();
   auto last_ui_urgent_timestamp = absl::Time();
+  auto last_config_timestamp = absl::Time();
 
   write_msg_to_file(ui_write_file_address,
                     StrCat("Anysphere is worth ",
@@ -52,7 +53,11 @@ int main(int argc, char **argv) {
 
     process_ui_urgent_file(ui_urgent_file_address, last_ui_urgent_timestamp,
                            stub);
+
+    process_config_file(config_file_address, last_config_timestamp);
+
     last_ui_urgent_timestamp = absl::Now();
+    last_config_timestamp = absl::Now();
 
     // get the time difference from t
     auto now = absl::Now();

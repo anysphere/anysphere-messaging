@@ -76,30 +76,41 @@ struct Message {
 struct Friend {
  public:
   Friend() = default;
-  Friend(const string& name, const string& public_key)
-      : name_(name), public_key_(public_key) {}
+  Friend(const string& name, const int& write_index, const int& read_index,
+         const string& shared_key)
+      : name_(name),
+        write_index_(write_index),
+        read_index_(read_index),
+        shared_key_(shared_key) {}
   Name name_;
-  PublicKey public_key_;
   absl::Time time_;
+  Name name;
+  int write_index_ = -1;
+  int read_index_ = -1;
+  string shared_key_;
+
   constexpr static auto file_address_ = CONFIG_FILE;
 
-  bool complete() const { return !name_is_empty() && !public_key_is_empty(); }
+  bool complete() const {
+    return !name_is_empty() && !shared_key_is_empty() && write_index_ != -1 &&
+           read_index_ != -1;
+  }
   void set_time() { time_ = absl::Now(); }
 
   void add() {
     set_time();
-    write_friend_to_file(file_address_, name_, public_key_, time_);
+    write_friend_to_file(file_address_, name_, write_index_, read_index_,
+                         shared_key_, time_);
     clear();
   }
 
-  void clear() {
-    name_.clear();
-    public_key_.clear();
-  }
+  void clear() { name_.clear(); }
 
  private:
   bool name_is_empty() const { return name_.empty(); }
-  bool public_key_is_empty() const { return public_key_.empty(); }
+  bool write_index_is_empty() const { return write_index_ == -1; }
+  bool read_index_is_empty() const { return read_index_ == -1; }
+  bool shared_key_is_empty() const { return shared_key_.empty(); }
 };
 
 struct Profile {
@@ -276,61 +287,65 @@ int main() {
   */
   auto friendsMenu = make_unique<Menu>("friends");
   rootMenu->Insert(
-      "add-friend (friend, public_key)",
-      [&](std::ostream& out, string friend_name, string public_key) {
-        Friend friend_(friend_name, public_key);
+      "add-friend (friend, write_index, read_index, shared_key)",
+      [&](std::ostream& out, string friend_name, int write_index,
+          int read_index, string shared_key) {
+        Friend friend_(friend_name, write_index, read_index, shared_key);
         friend_.add();
-        out << StrCat("Adding friend ", friend_name, " with public key ",
-                      public_key, "\n");
+        out << StrCat("Adding friend ", friend_name, " with read_index ",
+                      friend_.write_index_, " and write_index ",
+                      friend_.read_index_, "\n");
         out << "Type 'anysphere' to go to your main inbox.\n ";
       },
       "Add a friend to your friends list");
-  friendsMenu->Insert(
-      "add-friend",
-      [](std::ostream& out, string friend_name, string friend_public_key) {
-        out << StrCat("Adding friend: ", friend_name,
-                      " with public key: ", friend_public_key, "\n");
-        out << "Type 'anysphere' to go to your main inbox.\n ";
-        // go to the main inbox.
-      },
-      "Add a friend to your friends list");
-  friendsMenu->Insert(
-      "name",
-      [&](std::ostream& out, string friend_name) {
-        friend_to_add.name_ = friend_name;
-        if (friend_to_add.complete()) {
-          out << StrCat("Adding friend: ", friend_name,
-                        " with public key: ", friend_to_add.public_key_, "\n");
-          friend_to_add.add();
-          out << "Type 'anysphere' to go to your main inbox.\n ";
-          // go to the main inbox.
-        } else {
-          out << "Now type `public-key` with your friend's public key.\n";
-          out << "Press Esv or type 'anysphere' to return to the menu.\n";
-        }
-      },
-      "Set the name of your friend");
-  friendsMenu->Insert(
-      "public-key",
-      [&](std::ostream& out, string friend_public_key) {
-        friend_to_add.public_key_ = friend_public_key;
-        if (friend_to_add.complete()) {
-          out << StrCat("Adding friend: ", friend_to_add.name_,
-                        " with public key: ", friend_to_add.public_key_, "\n");
-          friend_to_add.add();
-          out << "Type 'anysphere' to go to your main inbox.\n ";
-          // go to the main inbox.
-        } else {
-          out << "Now type `name` with your friend's name.\n";
-          out << "Press Esv or type 'anysphere' to return to the menu.\n";
-        }
-      },
-      "Set the public key of your friend");
+  // friendsMenu->Insert(
+  //     "add-friend",
+  //     [](std::ostream& out, string friend_name, string friend_public_key) {
+  //       out << StrCat("Adding friend: ", friend_name,
+  //                     " with public key: ", friend_public_key, "\n");
+  //       out << "Type 'anysphere' to go to your main inbox.\n ";
+  //       // go to the main inbox.
+  //     },
+  //     "Add a friend to your friends list");
+  // friendsMenu->Insert(
+  //     "name",
+  //     [&](std::ostream& out, string friend_name) {
+  //       friend_to_add.name_ = friend_name;
+  //       if (friend_to_add.complete()) {
+  //         out << StrCat("Adding friend: ", friend_name,
+  //                       " with public key: ", friend_to_add.public_key_,
+  //                       "\n");
+  //         friend_to_add.add();
+  //         out << "Type 'anysphere' to go to your main inbox.\n ";
+  //         // go to the main inbox.
+  //       } else {
+  //         out << "Now type `public-key` with your friend's public key.\n";
+  //         out << "Press Esv or type 'anysphere' to return to the menu.\n";
+  //       }
+  //     },
+  //     "Set the name of your friend");
+  // friendsMenu->Insert(
+  //     "public-key",
+  //     [&](std::ostream& out, string friend_public_key) {
+  //       friend_to_add.public_key_ = friend_public_key;
+  //       if (friend_to_add.complete()) {
+  //         out << StrCat("Adding friend: ", friend_to_add.name_,
+  //                       " with public key: ", friend_to_add.public_key_,
+  //                       "\n");
+  //         friend_to_add.add();
+  //         out << "Type 'anysphere' to go to your main inbox.\n ";
+  //         // go to the main inbox.
+  //       } else {
+  //         out << "Now type `name` with your friend's name.\n";
+  //         out << "Press Esv or type 'anysphere' to return to the menu.\n";
+  //       }
+  //     },
+  //     "Set the public key of your friend");
 
   // Just add all the submenus to the root menu
   rootMenu->Insert(std::move(messageMenu));
   rootMenu->Insert(std::move(inboxMenu));
-  rootMenu->Insert(std::move(friendsMenu));
+  // rootMenu->Insert(std::move(friendsMenu));
 
   Cli cli(std::move(rootMenu));
   SetColor();

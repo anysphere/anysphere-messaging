@@ -210,15 +210,15 @@ auto write_msg_to_file(string type, string file_address, Msg msg,
   }
 }
 
-auto write_friend_to_file(string file_address, Name friend_name, PublicKey key,
-                          Time time) -> void {
+auto write_friend_to_file(string file_address, const Name friend_name,
+                          const int& write_index, const int& read_index,
+                          const string& shared_key, Time time) -> void {
   auto file = std::ofstream(file_address, std::ios_base::app);
 
   auto send_time = absl::FormatTime(time, utc);
-  json jmsg = {{"timestamp", send_time},
-               {"type", "FRIEND"},
-               {"name", friend_name},
-               {"public_key", key}};
+  json jmsg = {{"timestamp", send_time},   {"type", "FRIEND"},
+               {"name", friend_name},      {"write_index", write_index},
+               {"read_index", read_index}, {"shared_key", shared_key}};
   if (file.is_open()) {
     file << std::setw(4) << jmsg.dump() << std::endl;
     cout << jmsg.dump() << endl;

@@ -41,3 +41,38 @@ void process_ui_urgent_file(const string& ui_urgent_file_address,
     exit(1);
   }
 }
+
+void process_config_file(const string& config_file_address,
+                         const Time& last_config_timestamp) {
+  auto new_entries =
+      get_new_entries(config_file_address, last_config_timestamp);
+
+  if (new_entries.empty()) {
+    cout << "no new entries" << endl;
+    return;
+  }
+
+  for (auto entry : new_entries) {
+    auto type = entry["type"].get<string>();
+    auto timestamp = entry["timestamp"].get<string>();
+    if (type == "FRIEND") {
+      auto name = entry["name"].get<string>();
+      if (!FriendTable.contains(name)) {
+        auto write_index = entry["write_index"].get<int>();
+        auto read_index = entry["read_index"].get<int>();
+        auto shared_key = entry["shared_key"].get<string>();
+
+        Friend friend_(name, write_index, read_index, shared_key);
+        FriendTable.insert(name, friend_);
+        cout << "added friend " << name << endl;
+      }
+
+    } else {
+      std::cerr
+          << "Unknown type of message. Ensure that messages are correctly "
+             "written to file. "
+          << type << std::endl;
+      exit(1);
+    }
+  }
+}

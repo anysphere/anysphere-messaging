@@ -7,8 +7,10 @@
 #include <iostream>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
+#include "absl/hash/hash.h"
 #include "absl/random/random.h"
 #include "absl/strings/str_cat.h"
 #include "absl/time/time.h"
@@ -187,6 +189,21 @@ auto get_new_entries(const string& file_address, const Time& last_timestamp)
   return new_entries;
 }
 
+auto get_entries(const string& file_address) -> vector<json> {
+  auto test = json::array();
+  auto entries = vector<json>();
+
+  auto file = std::ifstream(file_address);
+  string line;
+  while (std::getline(file, line)) {
+    auto j = json::parse(line);
+    entries.push_back(j);
+  }
+  file.close();
+
+  return entries;
+}
+
 auto write_msg_to_file(string file_address, string msg, string type) -> void {
   auto file = std::ofstream(file_address, std::ios_base::app);
 
@@ -198,3 +215,31 @@ auto write_msg_to_file(string file_address, string msg, string type) -> void {
     file.close();
   }
 }
+
+struct Friend {
+  Friend() = default;
+  Friend(string name, int write_index, int read_index, string shared_key)
+      : name(name),
+        write_index(write_index),
+        read_index(read_index),
+        shared_key(shared_key){};
+
+  string name;
+  int write_index;
+  int read_index;
+  string shared_key;
+};
+
+struct RegisterationInfo {
+  RegisterationInfo() = default;
+  RegisterationInfo(string name, string public_key, string private_key)
+      : name(name), public_key(public_key), private_key(private_key){};
+
+  string name;
+  string public_key;
+  string private_key;
+  string authentication_token;
+  vector<int> allocation;
+};
+
+auto FriendTable = std::unordered_map<string, Friend>();
