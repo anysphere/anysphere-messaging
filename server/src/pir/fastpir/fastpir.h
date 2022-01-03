@@ -172,6 +172,11 @@ public:
         return query;
     }
 
+    auto get_db_rows() const noexcept -> size_t
+    {
+        return db_rows;
+    }
+
 private:
     // db is an db_rows x MESSAGE_SIZE matrix
     // it contains the raw data, in row-major order

@@ -90,6 +90,9 @@ class MessengerImpl final : public Messenger::Service
 
     pir.set_value(pir_index, pir_value);
 
+    auto db_rows = pir.get_db_rows();
+    reply->set_db_rows(db_rows);
+
     return Status::OK;
   }
 
