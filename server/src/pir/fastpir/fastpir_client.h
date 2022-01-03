@@ -104,22 +104,6 @@ public:
         }
         message_coefficients = message_coefficients_new;
 
-        std::cout << "message_coefficients_new: ";
-        for (auto c : message_coefficients)
-        {
-            std::cout << c << ",";
-        }
-        std::cout << std::endl;
-
-        // convert to bytes!
-        std::cout << "message_bytes_vector: " << std::endl;
-        auto message_bytes_vector = concat_N_lsb_bits<PLAIN_BITS>(message_coefficients);
-        for (auto b : message_bytes_vector)
-        {
-            std::cout << static_cast<int>(b) << ",";
-        }
-        std::cout << std::endl;
-
         assert(message_bytes_vector.size() >= MESSAGE_SIZE);
 
         array<byte, MESSAGE_SIZE> message_bytes;
