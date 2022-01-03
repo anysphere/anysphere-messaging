@@ -15,11 +15,11 @@ void retrieve_messages(FastPIRClient &client,
                        std::unique_ptr<Messenger::Stub> &stub,
                        int db_rows)
 {
-  for (auto &friend_name : FriendHashTable)
+  for (auto &friend_name : FriendTable)
   {
     ReceiveMessageInfo request;
 
-    auto friend_info = FriendHashTable[friend_name];
+    auto friend_info = FriendTable[friend_name];
 
     auto query = client.query(friend_info.read_index, db_rows);
 
