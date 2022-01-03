@@ -76,12 +76,13 @@ TEST(FastPirTest, Basic2)
     EXPECT_EQ(decoded_value, expected_value);
 }
 
-TEST(FastPirTest, Basic17)
+TEST(FastPirTest, Basic10)
 {
     FastPIR pir;
-    for (int i = 0; i < 17; i++) {
+    for (int i = 0; i < 10; i++)
+    {
         auto idx = pir.allocate();
-        EXPECT_EQ(idx, 0);
+        EXPECT_EQ(idx, i);
         std::stringstream ss;
         ss << "hello " << i;
         string value_str = ss.str();
@@ -91,10 +92,11 @@ TEST(FastPirTest, Basic17)
         pir.set_value(idx, value);
     }
 
-    for (int i = 0; i < 17; i++) {
+    for (int i = 0; i < 10; i++)
+    {
         FastPIRClient client;
 
-        auto query = client.query(i, 17);
+        auto query = client.query(i, 10);
 
         auto serialized_query = query.serialize_to_string();
 

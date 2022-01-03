@@ -104,6 +104,8 @@ public:
         }
         message_coefficients = message_coefficients_new;
 
+        auto message_bytes_vector = concat_N_lsb_bits<PLAIN_BITS>(message_coefficients);
+
         assert(message_bytes_vector.size() >= MESSAGE_SIZE);
 
         array<byte, MESSAGE_SIZE> message_bytes;
