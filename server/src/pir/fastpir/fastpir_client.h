@@ -1,5 +1,10 @@
 #include "fastpir.h"
+#include <bitset>
+#include <array>
 #include "fastpir_config.h"
+
+using std::array;
+using std::bitset;
 
 auto gen_secret_key(seal::SEALContext context) -> seal::SecretKey
 {
@@ -29,7 +34,7 @@ public:
 
     FastPIRClient(seal::SecretKey secret_key, seal::Serializable<seal::GaloisKeys> galois_keys) : FastPIRClient(create_context_params(), secret_key, galois_keys) {}
 
-    FastPIRClient(seal::SEALContext sc, seal::SecretKey secret_key, seal::Serializable<seal::GaloisKeys> galois_keys) : sc(sc), batch_encoder(sc), seal_slot_count(batch_encoder.slot_count()), secret_key(secret_key), galois_keys(galois_keys), encryptor(sc, secret_key), decryptor(sc, secret_key) {}
+    FastPIRClient(seal::SEALContext sc, seal::SecretKey secret_key, seal::Serializable<seal::GaloisKeys> galois_keys) : sc(sc), batch_encoder(sc), seal_slot_count(batch_encoder.slot_count()), secret_key(secret_key), galois_keys(galois_keys), encryptor(sc, secret_key), decryptor(sc, secret_key), evaluator(sc) {}
 
     auto query(pir_index_t index, size_t db_rows) -> pir_query_t
     {
@@ -46,7 +51,8 @@ public:
                 auto coefficient_index = index % seal_slot_count;
                 vector<uint64_t> plain_coefficients(seal_slot_count, 0);
                 plain_coefficients[coefficient_index] = 1;
-                seal::Plaintext select_p(plain_coefficients);
+                seal::Plaintext select_p;
+                batch_encoder.encode(plain_coefficients, select_p);
                 query.push_back(encryptor.encrypt_symmetric(select_p));
             }
             else
@@ -68,13 +74,78 @@ public:
         return pir_query;
     }
 
-    auto decode(pir_answer_t answer) -> pir_value_t
+    auto decode(pir_answer_t answer, pir_index_t index) -> pir_value_t
     {
-        // auto plain_text = decryptor.decrypt(answer.answer, secret_key);
-        // auto plain_coefficients = plain_text.to_uint64_vector();
-        // auto plain_value = plain_coefficients[0];
-        // return plain_value;
-        return pir_value_t{};
+        seal::Plaintext plain_answer;
+        decryptor.decrypt(answer.answer, plain_answer);
+
+        vector<uint64_t> message_coefficients;
+        batch_encoder.decode(plain_answer, message_coefficients);
+
+        // TODO: remove this because it is debug
+        std::cout << "message_coefficients: ";
+        for (auto c : message_coefficients)
+        {
+            std::cout << c << " ";
+        }
+        std::cout << std::endl;
+
+        // rotate!
+        if (index % seal_slot_count > seal_slot_count / 2)
+        {
+            vector<uint64_t> message_coefficients_new(seal_slot_count);
+            for (size_t i = 0; i < seal_slot_count; i++)
+            {
+                message_coefficients_new[i] = message_coefficients[(i + seal_slot_count / 2) % seal_slot_count];
+            }
+            message_coefficients = message_coefficients_new;
+        }
+        // rotate even more!
+        vector<uint64_t> message_coefficients_new(seal_slot_count);
+        for (size_t i = 0; i < seal_slot_count; i++)
+        {
+            message_coefficients_new[i] = message_coefficients[(i + seal_slot_count / 2 - (index % (seal_slot_count / 2))) % seal_slot_count];
+        }
+
+        // convert to bytes!
+        bitset<MESSAGE_SIZE_BITS> message_bits;
+        for (size_t i = 0; i < SEAL_DB_COLUMNS; i++)
+        {
+            for (size_t j = 0; j < PLAIN_BITS; j++)
+            {
+                message_bits[i * PLAIN_BITS + j] = message_coefficients_new[i] & (1 << j);
+            }
+        }
+
+        array<byte, MESSAGE_SIZE> message_bytes;
+        for (size_t i = 0; i < MESSAGE_SIZE; i++)
+        {
+            message_bytes[i] = 0;
+            for (size_t j = 0; j < sizeof(byte); j++)
+            {
+                message_bytes[i] |= message_bits[i * sizeof(byte) + j] << j;
+            }
+        }
+
+        return pir_value_t{message_bytes};
+    }
+
+    // TODO: REMOVE THIS
+    auto decrypt(seal::Ciphertext ciphertext) -> seal::Plaintext
+    {
+        seal::Plaintext plaintext;
+        decryptor.decrypt(ciphertext, plaintext);
+        return plaintext;
+    }
+
+    // TODO: REMOVE THIS
+    auto get_context() -> seal::SEALContext
+    {
+        return sc;
+    }
+    auto get_secret_key() -> seal::SecretKey
+    {
+        return secret_key;
     }
 
 private:
@@ -86,4 +157,5 @@ private:
     seal::Serializable<seal::GaloisKeys> galois_keys;
     seal::Encryptor encryptor;
     seal::Decryptor decryptor;
+    seal::Evaluator evaluator;
 };

@@ -25,6 +25,7 @@ cc_library(
         "//server/test:__pkg__",
     ],
     deps = [
+        "//anysphere:utils",
         "//schema:messenger_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@libpqxx",

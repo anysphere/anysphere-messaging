@@ -12,31 +12,12 @@
 #include "../pir_common.h"
 #include "fastpir_config.h"
 
+#include "anysphere/utils.h"
+
 using std::array;
 using std::size_t;
 using std::string;
 using std::vector;
-
-constexpr size_t SEAL_DB_COLUMNS = CEIL_DIV(MESSAGE_SIZE_BITS, PLAIN_BITS);
-
-// extract a submatrix from a matrix db, where each row in the submatrix is a uint64_t
-//
-// db is a row-major stored matrix with db_row_length_in_bits bits per row.
-// subm_top_left_corner_in_bits represent the index of the top left corner of the submatrix, in bits.
-// subm_row_length_in_bits is the number of bits in each row of the submatrix.
-// subm_cols is the number of columns in the submatrix.
-//
-// note: if subm_top_left_corner_in_bits + subm_row_length_in_bits goes past the right edge of the matrix, we DONT want
-// to wrap around, but instead pretend that the db matrix is padded to the right with 0s.
-//
-// precondition: db.size() is a multiple of row_length_in_bits/8
-//
-//
-auto get_submatrix_as_uint64s(const vector<byte> &db, size_t db_row_length_in_bits, size_t subm_top_left_corner_in_bits, size_t subm_row_length_in_bits, size_t subm_cols) -> vector<uint64_t>
-{
-    vector<uint64_t> coeffs(subm_cols);
-    return coeffs;
-}
 
 /*
 Helper function: Prints a matrix of values.
@@ -146,8 +127,22 @@ public:
         check_rep();
     }
 
-    auto get_value_privately(pir_query_t pir_query) noexcept(false) -> pir_answer_t
+    // TODO: REMOVE SECRET KEY HERE THIS IS SUPER IMPORTANT AND ONLY ONLY ONLY FOR DEBUGGING PLSPLSPLS REMOVE IT ASAP PLS SIR I BEG YOU
+    auto get_value_privately(pir_query_t pir_query, seal::Decryptor decryptor) noexcept(false) -> pir_answer_t
     {
+        // TODO: REMOVE THIS
+        std::cout << "db: ";
+        for (const auto &c : db)
+        {
+            std::cout << static_cast<int>(c) << ",";
+        }
+        std::cout << std::endl;
+        std::cout << "seal_db_rows: " << seal_db_rows << std::endl;
+        for (size_t i = 0; i < SEAL_DB_COLUMNS; i++)
+        {
+            std::cout << "seal_db[0][" << i << "] = " << seal_db[i].to_string() << std::endl;
+        }
+
         if (pir_query.query.size() > seal_db_rows)
         {
             throw std::invalid_argument("query too large");
@@ -163,6 +158,11 @@ public:
                 evaluator.multiply_plain(pir_query.query[j], seal_db[j * SEAL_DB_COLUMNS + i], tmp);
                 evaluator.add_inplace(compressed_cols[i], tmp);
             }
+            // print the compressed_cols!
+            // TODO: REMOVE THIS
+            seal::Plaintext plain_col;
+            decryptor.decrypt(compressed_cols[i], plain_col);
+            std::cout << "compressed_cols[" << i << "]: " << plain_col.to_string() << std::endl;
         }
         // we compress the answer into a single ciphertext. to be able to do that,
         // we need to have that SEAL_DB_COLUMNS <= seal_slot_count, or else we will be overwriting information
@@ -202,7 +202,8 @@ public:
         return pir_answer_t{s_top};
     }
 
-    auto allocate() noexcept -> pir_index_t
+    auto
+    allocate() noexcept -> pir_index_t
     {
         auto new_index = db_rows;
         db_rows++;
@@ -262,7 +263,7 @@ private:
         for (size_t j = 0; j < SEAL_DB_COLUMNS; j++)
         {
             auto plain_text_coeffs = get_submatrix_as_uint64s(db, MESSAGE_SIZE_BITS, db_start_block_index + j * PLAIN_BITS, PLAIN_BITS, seal_slot_count);
-            seal_db[seal_db_index * SEAL_DB_COLUMNS + j] = seal::Plaintext(plain_text_coeffs);
+            batch_encoder.encode(plain_text_coeffs, seal_db[seal_db_index * SEAL_DB_COLUMNS + j]);
         }
 
         check_rep();

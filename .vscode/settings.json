@@ -113,6 +113,8 @@
         "charconv": "cpp",
         "shared_mutex": "cpp",
         "gsl_assert": "cpp",
-        "span": "cpp"
+        "span": "cpp",
+        "gsl_byte": "cpp",
+        "*.inc": "cpp"
     },
 }

@@ -50,3 +50,5 @@ auto create_context_params() -> seal::EncryptionParameters
     params.set_plain_modulus(PLAIN_MODULUS);
     return params;
 }
+
+constexpr size_t SEAL_DB_COLUMNS = CEIL_DIV(MESSAGE_SIZE_BITS, PLAIN_BITS);
