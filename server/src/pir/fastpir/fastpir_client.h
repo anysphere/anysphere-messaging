@@ -6,18 +6,58 @@
 using std::array;
 using std::bitset;
 
-auto gen_secret_key(seal::SEALContext context) -> seal::SecretKey
+auto gen_secret_key(seal::KeyGenerator keygen) -> seal::SecretKey
 {
-    seal::KeyGenerator keygen(context);
     auto secret_key = keygen.secret_key();
     return secret_key;
 }
 
-auto gen_galois_keys(seal::SEALContext context) -> seal::Serializable<seal::GaloisKeys>
+auto gen_galois_keys(seal::KeyGenerator keygen) -> seal::Serializable<seal::GaloisKeys>
 {
-    seal::KeyGenerator keygen(context);
     auto galois_keys = keygen.create_galois_keys();
     return galois_keys;
+}
+
+template <int N>
+auto concat_lsb(const vector<uint64_t> &v) -> vector<byte>
+{
+    // const auto num_bits = 18;
+    bitset<8 * N> bits;
+    vector<byte> result;
+
+    for (size_t i = 0; i < v.size(); i += 8)
+    {
+        bits = 0;
+        for (size_t j = 0; j < 8; j++)
+        {
+            if (i + j >= v.size())
+            {
+                break;
+            }
+            auto extract_N_bits = v[i + j] & ((1 << N) - 1);
+            bits <<= N;
+            bits |= extract_N_bits;
+        }
+        for (size_t j = 0; j < N; j++)
+        {
+            // get 8 bits from the j-th bit to the j+3-th bit
+            bitset<8 *N> mask = 0;
+            mask = (1 << 8) - 1;
+            mask <<= (j * 8);
+            auto extract_bits = (bits & mask) >> (j * 8);
+            byte b = static_cast<byte>(extract_bits.to_ulong());
+            result.push_back(b);
+        }
+    }
+
+    size_t output_size = v.size() * N / 8;
+    assert(output_size <= result.size());
+    for (size_t i = 0; i < result.size() - output_size; i++)
+    {
+        result.pop_back();
+    }
+
+    return result;
 }
 
 class FastPIRClient
@@ -30,9 +70,9 @@ public:
 
     FastPIRClient() : FastPIRClient(create_context_params()) {}
 
-    FastPIRClient(seal::SEALContext sc) : FastPIRClient(gen_secret_key(sc), gen_galois_keys(sc)) {}
+    FastPIRClient(seal::SEALContext sc) : FastPIRClient(sc, seal::KeyGenerator(sc)) {}
 
-    FastPIRClient(seal::SecretKey secret_key, seal::Serializable<seal::GaloisKeys> galois_keys) : FastPIRClient(create_context_params(), secret_key, galois_keys) {}
+    FastPIRClient(seal::SEALContext sc, seal::KeyGenerator keygen) : FastPIRClient(sc, keygen.secret_key(), keygen.create_galois_keys()) {}
 
     FastPIRClient(seal::SEALContext sc, seal::SecretKey secret_key, seal::Serializable<seal::GaloisKeys> galois_keys) : sc(sc), batch_encoder(sc), seal_slot_count(batch_encoder.slot_count()), secret_key(secret_key), galois_keys(galois_keys), encryptor(sc, secret_key), decryptor(sc, secret_key), evaluator(sc) {}
 
@@ -82,13 +122,15 @@ public:
         vector<uint64_t> message_coefficients;
         batch_encoder.decode(plain_answer, message_coefficients);
 
+        assert(message_coefficients.size() == seal_slot_count);
+
         // TODO: remove this because it is debug
-        std::cout << "message_coefficients: ";
-        for (auto c : message_coefficients)
-        {
-            std::cout << c << " ";
-        }
-        std::cout << std::endl;
+        // std::cout << "message_coefficients: ";
+        // for (auto c : message_coefficients)
+        // {
+        //     std::cout << c << " ";
+        // }
+        // std::cout << std::endl;
 
         // rotate!
         if (index % seal_slot_count > seal_slot_count / 2)
@@ -102,29 +144,37 @@ public:
         }
         // rotate even more!
         vector<uint64_t> message_coefficients_new(seal_slot_count);
-        for (size_t i = 0; i < seal_slot_count; i++)
+        for (size_t r = 0; r < 2; r++)
         {
-            message_coefficients_new[i] = message_coefficients[(i + seal_slot_count / 2 - (index % (seal_slot_count / 2))) % seal_slot_count];
-        }
-
-        // convert to bytes!
-        bitset<MESSAGE_SIZE_BITS> message_bits;
-        for (size_t i = 0; i < SEAL_DB_COLUMNS; i++)
-        {
-            for (size_t j = 0; j < PLAIN_BITS; j++)
+            for (size_t i = 0; i < seal_slot_count / 2; i++)
             {
-                message_bits[i * PLAIN_BITS + j] = message_coefficients_new[i] & (1 << j);
+                message_coefficients_new[r * seal_slot_count / 2 + i] = message_coefficients[(i + index) % (seal_slot_count / 2) + r * seal_slot_count / 2];
             }
         }
+        message_coefficients = message_coefficients_new;
+
+        std::cout << "message_coefficients_new: ";
+        for (auto c : message_coefficients)
+        {
+            std::cout << c << ",";
+        }
+        std::cout << std::endl;
+
+        // convert to bytes!
+        std::cout << "message_bytes_vector: " << std::endl;
+        auto message_bytes_vector = concat_lsb<PLAIN_BITS>(message_coefficients);
+        for (auto b : message_bytes_vector)
+        {
+            std::cout << static_cast<int>(b) << ",";
+        }
+        std::cout << std::endl;
+
+        assert(message_bytes_vector.size() >= MESSAGE_SIZE);
 
         array<byte, MESSAGE_SIZE> message_bytes;
         for (size_t i = 0; i < MESSAGE_SIZE; i++)
         {
-            message_bytes[i] = 0;
-            for (size_t j = 0; j < sizeof(byte); j++)
-            {
-                message_bytes[i] |= message_bits[i * sizeof(byte) + j] << j;
-            }
+            message_bytes[i] = message_bytes_vector[i];
         }
 
         return pir_value_t{message_bytes};
