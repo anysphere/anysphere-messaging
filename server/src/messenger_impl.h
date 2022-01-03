@@ -21,6 +21,8 @@ using grpc::Status;
 
 using messenger::Messenger;
 
+using std::cout;
+using std::endl;
 using std::string;
 
 template <typename PIR, typename AccountManager>
@@ -35,6 +37,7 @@ class MessengerImpl final : public Messenger::Service
                   const messenger::RegisterInfo *registerInfo,
                   messenger::RegisterResponse *registerResponse) override
   {
+    cout << "Register() called" << endl;
     try
     {
       // TODO: allocate in a loop
@@ -54,6 +57,8 @@ class MessengerImpl final : public Messenger::Service
       ServerContext *context, const messenger::SendMessageInfo *sendMessageInfo,
       messenger::SendMessageResponse *sendMessageResponse) override
   {
+    // TODO: make this into actual logs using actual structured logging
+    cout << "SendMessage() called" << endl;
     auto index = sendMessageInfo->index();
     pir_index_t pir_index = index;
     try
@@ -89,6 +94,7 @@ class MessengerImpl final : public Messenger::Service
       const messenger::ReceiveMessageInfo *receiveMessageInfo,
       messenger::ReceiveMessageResponse *receiveMessageResponse) override
   {
+    cout << "ReceiveMessage() called" << endl;
     auto input_query = receiveMessageInfo->pir_query();
     // TODO: check that input_query is not too long
 
