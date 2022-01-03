@@ -8,13 +8,6 @@ auto get_auth_token()
   return StrCat("ThisIsMyGreatAuthToken ", absl::Uniform(gen_, 0, 100));
 }
 
-auto get_index_and_key(const string &friend_name)
-{
-  auto index = 0;
-  auto key = "oipwqejfascmlkmaskldc";
-  return std::make_pair(index, key);
-}
-
 void process_ui_file(const string &ui_file_address,
                      const Time &last_ui_timestamp,
                      std::unique_ptr<Messenger::Stub> &stub)
@@ -47,9 +40,16 @@ void process_ui_file(const string &ui_file_address,
 
     auto msg = entry["message"].get<string>();
 
-    auto index_and_key = get_index_and_key(to);
-    auto index = index_and_key.first;
-    auto key = index_and_key.second;
+    if (!FriendHashTable.contains(to))
+    {
+      std::cerr << "FriendHashTable does not contain " << to << endl;
+      continue;
+    }
+
+    auto friend = FriendHashTable[to];
+
+    auto index = friend.write_index;
+    auto key = friend.shared_key;
 
     cout << "Sending message to server: " << endl;
     cout << "type: " << type << endl;
@@ -87,7 +87,7 @@ void process_ui_file(const string &ui_file_address,
         }
         else
         {
-          std::cout << status.error_code() << ": " << status.error_message()
+          std::cerr << status.error_code() << ": " << status.error_message()
                     << " details:" << status.error_details() << std::endl;
         }
         // } else if (type == "error") {
