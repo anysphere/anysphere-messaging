@@ -60,6 +60,7 @@ class MessengerImpl final : public Messenger::Service
     // TODO: make this into actual logs using actual structured logging
     cout << "SendMessage() called" << endl;
     auto index = sendMessageInfo->index();
+    cout << "index: " << index << endl;
     pir_index_t pir_index = index;
     try
     {
@@ -74,6 +75,8 @@ class MessengerImpl final : public Messenger::Service
       std::cerr << "AccountManagerException: " << e.what() << std::endl;
       return Status(grpc::StatusCode::UNAVAILABLE, e.what());
     }
+
+    cout << "send message index: " << index << endl;
 
     auto message = sendMessageInfo->message();
     if (message.size() != sizeof(pir_value_t))
