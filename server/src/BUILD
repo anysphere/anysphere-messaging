@@ -8,9 +8,6 @@ cc_library(
     hdrs = [
         "account_manager.h",
         "messenger_impl.h",
-        "pir/fastpir/fastpir.h",
-        "pir/fastpir/fastpir_client.h",
-        "pir/fastpir/fastpir_config.h",
         "pir/nonprivate/nonprivate_pir.h",
         "pir/pir_common.h",
         "pir/sealpir/sealpir.h",
@@ -27,9 +24,9 @@ cc_library(
     deps = [
         "//anysphere:utils",
         "//schema:messenger_cc_grpc",
+        "//server/src/pir/fastpir:fastpir_lib",
         "@com_github_grpc_grpc//:grpc++",
         "@libpqxx",
-        "@seal",
     ],
 )
 
