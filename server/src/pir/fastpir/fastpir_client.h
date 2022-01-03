@@ -51,6 +51,9 @@ public:
             }
             else
             {
+                // TODO: we could use encyptor.encrypt_zero_symmetric here. we would probably want to audit
+                // that code first, though, because it is a less commonly used function so it has a higher risk
+                // of having bugs. and bugs here are CRITICAL.
                 seal::Plaintext p("0");
                 // note: even though these ciphertexts are all encryptions of 0, it is CRUCIAL that they are independent encryptions
                 // that is, this code MAY NOT be moved out of this loop, despite it looking like it can be. the encryption

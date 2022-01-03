@@ -95,6 +95,7 @@ conclusion:
 1. "To enable batching, we need to set the plain_modulus to be a prime number
     congruent to 1 modulo 2*poly_modulus_degree." in `2_encoders.cc`. WHY?
 2. how does fastPIR do the fast rotation? maybe implement it itself?
+3. do we need to care about SEAL_THROW_ON_TRANSPARENT_CIPHERTEXT? basically, seal doesn't like if you multiply a ciphertext by a plaintext that is identically zero, because the only preimage to the zero polynomial is the zero plaintext. but this doesn't actually reveal any information to the server. this doesn't actually affect security for us at all. yep.
 
 ## optimizations
 
