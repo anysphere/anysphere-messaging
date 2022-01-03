@@ -3,10 +3,16 @@
 using messenger::SendMessageInfo;
 using messenger::SendMessageResponse;
 
-auto get_index() { return absl::Uniform(gen_, 0, 100); }
 auto get_auth_token()
 {
   return StrCat("ThisIsMyGreatAuthToken ", absl::Uniform(gen_, 0, 100));
+}
+
+auto get_index_and_key(const string &friend_name)
+{
+  auto index = 0;
+  auto key = "oipwqejfascmlkmaskldc";
+  return std::make_pair(index, key);
 }
 
 void process_ui_file(const string &ui_file_address,
@@ -16,7 +22,6 @@ void process_ui_file(const string &ui_file_address,
   cout << "here" << endl;
   auto new_entries = get_new_entries(ui_file_address, last_ui_timestamp);
 
-  auto index = get_index();
   auto authentication_token = get_auth_token();
 
   if (new_entries.empty())
@@ -33,6 +38,7 @@ void process_ui_file(const string &ui_file_address,
   {
     auto type = entry["type"].get<string>();
     auto jt = entry["timestamp"].get<string>();
+    auto to = entry["to"].get<string>();
     // BUG(sualeh): Fix this using ParseTime
     Time timestamp;
     string err;
@@ -40,6 +46,10 @@ void process_ui_file(const string &ui_file_address,
     // Time timestamp = absl::FromUnixSeconds(std::stoull(jt));
 
     auto msg = entry["message"].get<string>();
+
+    auto index_and_key = get_index_and_key(to);
+    auto index = index_and_key.first;
+    auto key = index_and_key.second;
 
     cout << "Sending message to server: " << endl;
     cout << "type: " << type << endl;
