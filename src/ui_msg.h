@@ -15,11 +15,9 @@ void retrieve_messages(FastPIRClient &client,
                        std::unique_ptr<Messenger::Stub> &stub,
                        int db_rows)
 {
-  for (auto &friend_name : FriendTable)
+  for (auto &[friend_name, friend_info] : FriendTable)
   {
     ReceiveMessageInfo request;
-
-    auto friend_info = FriendTable[friend_name];
 
     auto query = client.query(friend_info.read_index, db_rows);
 
@@ -92,10 +90,10 @@ void process_ui_file(const string &ui_file_address,
       continue;
     }
 
-    auto friend = FriendTable[to];
+    auto friend_info = FriendTable.at(to);
 
-    auto index = friend.write_index;
-    auto key = friend.shared_key;
+    auto index = friend_info.write_index;
+    auto key = friend_info.shared_key;
 
     cout << "Sending message to server: " << endl;
     cout << "type: " << type << endl;

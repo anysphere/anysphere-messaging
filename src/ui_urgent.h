@@ -3,13 +3,15 @@
 
 #include "common.h"
 
-void process_ui_urgent_file(const string& ui_urgent_file_address,
-                            const Time& last_ui_urgent_timestamp,
-                            std::unique_ptr<Messenger::Stub>& stub) {
+void process_ui_urgent_file(const string &ui_urgent_file_address,
+                            const Time &last_ui_urgent_timestamp,
+                            std::unique_ptr<Messenger::Stub> &stub)
+{
   auto new_entries =
       get_new_entries(ui_urgent_file_address, last_ui_urgent_timestamp);
 
-  if (new_entries.empty()) {
+  if (new_entries.empty())
+  {
     cout << "no new entries" << endl;
     return;
   }
@@ -17,7 +19,8 @@ void process_ui_urgent_file(const string& ui_urgent_file_address,
 
   auto type = entry["type"].get<string>();
   auto timestamp = entry["timestamp"].get<string>();
-  if (type == "REGISTER") {
+  if (type == "REGISTER")
+  {
     // call register rpc to send the register request
     RegisterInfo request;
     auto public_key = entry["public_key"].get<string>();
@@ -33,7 +36,8 @@ void process_ui_urgent_file(const string& ui_urgent_file_address,
 
     Status status = stub->Register(&context, request, &reply);
 
-    if (status.ok()) {
+    if (status.ok())
+    {
       // TODO(sualeh): tell the UI that the registration was successful
       cout << "register success" << endl;
 
@@ -41,10 +45,14 @@ void process_ui_urgent_file(const string& ui_urgent_file_address,
       auto alloc_repeated = reply.allocation();
       RegistrationInfo.allocation =
           vector<int>(alloc_repeated.begin(), alloc_repeated.end());
-    } else {
+    }
+    else
+    {
       cout << status.error_code() << ": " << status.error_message() << endl;
     }
-  } else {
+  }
+  else
+  {
     std::cerr << "Unknown type of message. Ensure that messages are correctly "
                  "written to file. "
               << type << std::endl;
@@ -52,32 +60,38 @@ void process_ui_urgent_file(const string& ui_urgent_file_address,
   }
 }
 
-void process_config_file(const string& config_file_address,
-                         const Time& last_config_timestamp) {
+void process_config_file(const string &config_file_address,
+                         const Time &last_config_timestamp)
+{
   auto new_entries =
       get_new_entries(config_file_address, last_config_timestamp);
 
-  if (new_entries.empty()) {
+  if (new_entries.empty())
+  {
     cout << "no new entries" << endl;
     return;
   }
 
-  for (auto entry : new_entries) {
+  for (auto entry : new_entries)
+  {
     auto type = entry["type"].get<string>();
     auto timestamp = entry["timestamp"].get<string>();
-    if (type == "FRIEND") {
+    if (type == "FRIEND")
+    {
       auto name = entry["name"].get<string>();
-      if (!FriendTable.contains(name)) {
+      if (!FriendTable.contains(name))
+      {
         auto write_index = entry["write_index"].get<int>();
         auto read_index = entry["read_index"].get<int>();
         auto shared_key = entry["shared_key"].get<string>();
 
         Friend friend_(name, write_index, read_index, shared_key);
-        FriendTable.insert(name, friend_);
+        FriendTable.insert({name, friend_});
         cout << "added friend " << name << endl;
       }
-
-    } else {
+    }
+    else
+    {
       std::cerr
           << "Unknown type of message. Ensure that messages are correctly "
              "written to file. "
