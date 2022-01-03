@@ -79,6 +79,7 @@ class MessengerImpl final : public Messenger::Service
     cout << "send message index: " << index << endl;
 
     auto message = sendMessageInfo->message();
+    // size MUST be exactly the same for everyone always for privacy!!!
     if (message.size() != sizeof(pir_value_t))
     {
       std::cerr << "incorrect message size" << std::endl;
