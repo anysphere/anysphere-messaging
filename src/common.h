@@ -9,6 +9,7 @@
 #include <thread>
 #include <unordered_map>
 #include <vector>
+#include <filesystem>
 
 #include "absl/hash/hash.h"
 #include "absl/random/random.h"
@@ -16,6 +17,8 @@
 #include "absl/time/time.h"
 #include "nlohmann_json.h"
 #include "schema/messenger.grpc.pb.h"
+#include "anysphere/pir_common.h"
+#include "server/src/pir/fastpir/fastpir_client.h"
 
 using std::cout;
 using std::endl;
@@ -43,7 +46,7 @@ absl::TimeZone utc = absl::UTCTimeZone();
 constexpr auto UI_FILE = "/workspace/anysphere/logs/ui.ndjson";
 constexpr auto UI_URGENT_FILE = "/workspace/anysphere/logs/ui_urgent.ndjson";
 constexpr auto CLIENT_FILE = "/workspace/anysphere/logs/client.ndjson";
-constexpr auto CONFIG_FILE = "/workspace/anysphere/logs/config.ndjson";
+constexpr auto CONFIG_FILE = "/workspace/anysphere/logs/config.json";
 
 /**
  * @brief This function gets the last line of a file
@@ -171,6 +174,10 @@ auto get_new_entries(const string &file_address, const Time &last_timestamp)
   string line;
   while (std::getline(file, line))
   {
+    if (line == "")
+    {
+      continue;
+    }
     auto j = json::parse(line);
     string jt = j["timestamp"].get<string>();
     Time jt_time = absl::FromUnixSeconds(std::stoull(jt));
@@ -180,34 +187,6 @@ auto get_new_entries(const string &file_address, const Time &last_timestamp)
     }
   }
   file.close();
-
-  // cout << "finding a new entry:" << endl;
-  // auto last_line = get_last_lines(file_address, 3);
-
-  // for (auto& line : last_line) {
-  //   cout << line << endl;
-
-  //   // auto entry = json::parse(line);
-  //   // new_entries.push_back(entry);
-  //   return new_entries;
-  // }
-
-  // if (last_line.size() > 0) {
-  //   auto j = json({});
-  //   j = json::parse(last_line);
-
-  //   cout << j << endl;
-
-  //   auto last_timestamp_j = j["timestamp"];
-
-  //   cout << last_timestamp_j << endl;
-  //   auto last_timestamp_j_s = last_timestamp_j.get<long>();
-  //   if (last_timestamp_j_s > last_timestamp_s) {
-  //     new_entries.push_back(j);
-  //   }
-  // } else {
-  //   cout << "no new entries" << endl;
-  // }
 
   return new_entries;
 }
@@ -264,12 +243,73 @@ struct RegisterationInfo
   RegisterationInfo(string name, string public_key, string private_key)
       : name(name), public_key(public_key), private_key(private_key){};
 
+  bool has_registered;
   string name;
   string public_key;
   string private_key;
   string authentication_token;
   vector<int> allocation;
+  // the client needs to know roughly how many rows are in the database.
+  // here we cache the latest number of db_rows we received
+  // TODO: move this out of registrationinfo?
+  int db_rows;
+  // store secret key and galois keys for pir
+  string pir_secret_key;
+  string pir_galois_keys;
+  // make this a ptr because we want it to possibly be null
+  std::unique_ptr<FastPIRClient> pir_client = nullptr;
 };
 
 static auto RegistrationInfo = RegisterationInfo();
 static auto FriendTable = std::unordered_map<string, Friend>();
+
+auto read_config(const string &config_file_address) -> void
+{
+  if (!std::filesystem::exists(config_file_address) || std::filesystem::file_size(config_file_address) == 0)
+  {
+    cout << "creating new config json!" << endl;
+    json j = R"({
+      "has_registered": false,
+      "friends": {}
+    }
+    )"_json;
+    std::ofstream o(config_file_address);
+    o << std::setw(4) << j.dump(4) << std::endl;
+  }
+  auto config_json = json::parse(std::ifstream(config_file_address));
+  if (!config_json.contains("has_registered"))
+  {
+    cout << "config file does not contain has_registered" << endl;
+    return;
+  }
+  if (!config_json.contains("friends"))
+  {
+    cout << "config file does not contain friends" << endl;
+    return;
+  }
+  if (!config_json["has_registered"].get<bool>())
+  {
+    RegistrationInfo.has_registered = false;
+  }
+  else
+  {
+    RegistrationInfo.has_registered = true;
+    RegistrationInfo.name = config_json["registration_info"]["name"].get<string>();
+    RegistrationInfo.public_key = config_json["registration_info"]["public_key"].get<string>();
+    RegistrationInfo.private_key = config_json["registration_info"]["private_key"].get<string>();
+    RegistrationInfo.authentication_token = config_json["registration_info"]["authentication_token"].get<string>();
+    RegistrationInfo.allocation = config_json["registration_info"]["allocation"].get<vector<int>>();
+    RegistrationInfo.db_rows = config_json["registration_info"]["db_rows"].get<int>();
+    RegistrationInfo.pir_secret_key = config_json["registration_info"]["pir_secret_key"].get<string>();
+    RegistrationInfo.pir_galois_keys = config_json["registration_info"]["pir_galois_keys"].get<string>();
+  }
+
+  for (auto &friend_json : config_json["friends"])
+  {
+    FriendTable[friend_json["name"].get<string>()] = Friend(
+        friend_json["name"].get<string>(),
+        friend_json["write_index"].get<int>(),
+        friend_json["read_index"].get<int>(),
+        friend_json["shared_key"].get<string>());
+  }
+}

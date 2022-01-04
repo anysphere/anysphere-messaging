@@ -6,20 +6,19 @@ using messenger::ReceiveMessageResponse;
 using messenger::SendMessageInfo;
 using messenger::SendMessageResponse;
 
-auto get_auth_token()
+void retrieve_messages(const string &output_file_address, std::unique_ptr<Messenger::Stub> &stub)
 {
-  return StrCat("ThisIsMyGreatAuthToken ", absl::Uniform(gen_, 0, 100));
-}
-
-void retrieve_messages(FastPIRClient &client,
-                       std::unique_ptr<Messenger::Stub> &stub,
-                       int db_rows)
-{
+  if (!RegistrationInfo.has_registered)
+  {
+    cout << "hasn't registered yet, so cannot retrieve messages" << endl;
+    return;
+  }
+  auto &client = *RegistrationInfo.pir_client;
   for (auto &[friend_name, friend_info] : FriendTable)
   {
     ReceiveMessageInfo request;
 
-    auto query = client.query(friend_info.read_index, db_rows);
+    auto query = client.query(friend_info.read_index, RegistrationInfo.db_rows);
 
     auto serialized_query = query.serialize_to_string();
 
@@ -44,6 +43,18 @@ void retrieve_messages(FastPIRClient &client,
       }
 
       cout << "actual message: " << decoded_string << endl;
+      {
+        auto file = std::ofstream(output_file_address, std::ios_base::app);
+
+        auto time = absl::FormatTime(absl::Now(), utc);
+        json jmsg = {{"from", friend_name}, {"timestamp", time}, {"message", decoded_string}, {"type", "MESSAGE"}};
+        if (file.is_open())
+        {
+          file << std::setw(4) << jmsg.dump() << std::endl;
+          cout << jmsg.dump() << endl;
+          file.close();
+        }
+      }
     }
     else
     {
@@ -56,10 +67,15 @@ void process_ui_file(const string &ui_file_address,
                      const Time &last_ui_timestamp,
                      std::unique_ptr<Messenger::Stub> &stub)
 {
-  cout << "here" << endl;
+  if (!RegistrationInfo.has_registered)
+  {
+    cout << "hasn't registered yet, so don't send a message" << endl;
+    return;
+  }
+
   auto new_entries = get_new_entries(ui_file_address, last_ui_timestamp);
 
-  auto authentication_token = get_auth_token();
+  auto authentication_token = RegistrationInfo.authentication_token;
 
   if (new_entries.empty())
   {
@@ -117,6 +133,7 @@ void process_ui_file(const string &ui_file_address,
         request.set_index(index);
         request.set_authentication_token(authentication_token);
         request.set_message(msg);
+        // TODO: encrypt message here
 
         SendMessageResponse reply;
 
@@ -126,6 +143,9 @@ void process_ui_file(const string &ui_file_address,
 
         if (status.ok())
         {
+          auto db_rows = reply.db_rows();
+          cout << "db_rows: " << db_rows << endl;
+          RegistrationInfo.db_rows = db_rows;
           std::cout << "Message sent to server: " << request.message()
                     << std::endl;
         }

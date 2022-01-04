@@ -14,19 +14,16 @@ int main(int argc, char **argv)
   auto ui_write_file_address(UI_FILE);
   auto ui_urgent_file_address(UI_URGENT_FILE);
   auto client_write_file_address(CLIENT_FILE);
-  if (argc > 4)
+  auto config_file_address(CONFIG_FILE);
+  if (argc > 5)
   {
     ui_write_file_address = argv[2];
     ui_urgent_file_address = argv[3];
     client_write_file_address = argv[4];
+    config_file_address = argv[5];
   }
 
-  // configuration file
-  auto config_file_address("/etc/anysphere/config.json");
-  if (argc > 5)
-  {
-    config_file_address = argv[4];
-  }
+  read_config(config_file_address);
 
   // connect to the anysphere servers
   std::cout << "Client querying server address: " << server_address
@@ -59,8 +56,6 @@ int main(int argc, char **argv)
     process_ui_urgent_file(ui_urgent_file_address, last_ui_urgent_timestamp,
                            stub);
 
-    process_config_file(config_file_address, last_config_timestamp);
-
     last_ui_urgent_timestamp = absl::Now();
     last_config_timestamp = absl::Now();
 
@@ -78,7 +73,8 @@ int main(int argc, char **argv)
       cout << "UI file address: " << ui_write_file_address << endl;
       process_ui_file(ui_write_file_address, last_ui_timestamp, stub);
       last_ui_timestamp = absl::Now();
-      return 0;
+      // first send, then retrieve, so we have an updated db_rows
+      retrieve_messages(client_write_file_address, stub);
     }
 
     // sleep for 100ms
