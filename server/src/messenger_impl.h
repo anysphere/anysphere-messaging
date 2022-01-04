@@ -71,7 +71,7 @@ class MessengerImpl final : public Messenger::Service
     pir_index_t pir_index = index;
     try
     {
-      if (account_manager.valid_index_access(sendMessageInfo->authentication_token(), pir_index))
+      if (!account_manager.valid_index_access(sendMessageInfo->authentication_token(), pir_index))
       {
         std::cerr << "incorrect authentication token" << std::endl;
         return Status(grpc::StatusCode::UNAUTHENTICATED, "incorrect authentication token");

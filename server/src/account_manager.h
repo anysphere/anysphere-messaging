@@ -5,6 +5,8 @@
 
 #include "anysphere/pir_common.h"
 
+using std::cout;
+using std::endl;
 using std::pair;
 using std::string;
 using std::unordered_map;
@@ -47,8 +49,15 @@ public:
 
     auto valid_index_access(const string &token, pir_index_t index) -> bool
     {
-        return token_to_index_map.find(token) != token_to_index_map.end() &&
-               find(token_to_index_map[token].begin(), token_to_index_map[token].end(), index) != token_to_index_map[token].end();
+        if (!token_to_index_map.contains(token))
+            return false;
+        auto indices = token_to_index_map.at(token);
+        for (auto i : indices)
+        {
+            if (i == index)
+                return true;
+        }
+        return false;
     }
 
 private:
