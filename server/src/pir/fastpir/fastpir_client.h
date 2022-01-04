@@ -1,3 +1,5 @@
+#pragma once
+
 #include "fastpir.h"
 #include <bitset>
 #include <array>
@@ -32,6 +34,8 @@ public:
     FastPIRClient(seal::SEALContext sc) : FastPIRClient(sc, seal::KeyGenerator(sc)) {}
 
     FastPIRClient(seal::SEALContext sc, seal::KeyGenerator keygen) : FastPIRClient(sc, keygen.secret_key(), keygen.create_galois_keys()) {}
+
+    FastPIRClient(seal::SecretKey secret_key, seal::Serializable<seal::GaloisKeys> galois_keys) : FastPIRClient(seal::SEALContext(create_context_params()), secret_key, galois_keys) {}
 
     FastPIRClient(seal::SEALContext sc, seal::SecretKey secret_key, seal::Serializable<seal::GaloisKeys> galois_keys) : sc(sc), batch_encoder(sc), seal_slot_count(batch_encoder.slot_count()), secret_key(secret_key), galois_keys(galois_keys), encryptor(sc, secret_key), decryptor(sc, secret_key), evaluator(sc) {}
 
