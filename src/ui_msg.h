@@ -41,9 +41,17 @@ void retrieve_messages(const string &output_file_address, std::unique_ptr<Messen
       auto answer_obj = client.answer_from_string(answer);
       auto decoded_value = client.decode(answer_obj, friend_info.read_index);
 
+      if (decoded_value[0] == 0)
+      {
+        cout << "empty message for security" << endl;
+        continue;
+      }
+
       string decoded_string = "";
       for (auto &c : decoded_value)
       {
+        if (c == 0)
+          break;
         decoded_string += c;
       }
 
@@ -52,7 +60,7 @@ void retrieve_messages(const string &output_file_address, std::unique_ptr<Messen
         auto file = std::ofstream(output_file_address, std::ios_base::app);
 
         auto time = absl::FormatTime(absl::Now(), utc);
-        json jmsg = {{"from", friend_name}, {"timestamp", time}, {"message", decoded_string}, {"type", "MESSAGE"}};
+        json jmsg = {{"from", friend_name}, {"timestamp", time}, {"message", decoded_string}, {"type", "MESSAGE_RECEIVED"}};
         if (file.is_open())
         {
           file << std::setw(4) << jmsg.dump() << std::endl;
@@ -97,15 +105,12 @@ void process_ui_file(const string &ui_file_address,
 
   for (auto &[friend_name, friend_info] : FriendTable)
   {
-    string message;
-    if (friend_to_message.count(friend_name) == 0)
+    pir_value_t padded_msg;
+    padded_msg.fill(0);
+    if (friend_to_message.count(friend_name) != 0)
     {
-      message = "(empty message for security)";
-    }
-    else
-    {
-
-      message = friend_to_message.at(friend_name);
+      auto message = friend_to_message.at(friend_name);
+      std::copy(message.begin(), message.end(), padded_msg.begin());
     }
 
     auto index = friend_info.write_index;
@@ -125,9 +130,6 @@ void process_ui_file(const string &ui_file_address,
     request.set_index(index);
     request.set_authentication_token(authentication_token);
     // TODO: encrypt message here, pad it to the right length
-    pir_value_t padded_msg;
-    padded_msg.fill(0);
-    std::copy(message.begin(), message.end(), padded_msg.begin());
     string padded_msg_str = "";
     for (auto &c : padded_msg)
     {

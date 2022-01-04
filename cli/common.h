@@ -228,7 +228,7 @@ auto write_msg_to_file(string type, string file_address, Msg msg,
   json jmsg = {{"timestamp", send_time},
                {"type", type},
                {"message", msg},
-               {"friend", friend_name}};
+               {"to", friend_name}};
   if (file.is_open())
   {
     file << std::setw(4) << jmsg.dump() << std::endl;
@@ -283,8 +283,8 @@ auto read_friend_messages_from_file(Name friend_name, size_t number)
   while (std::getline(file, line))
   {
     auto j = json::parse(line);
-    if (j["type"].get<string>() == "MESSAGE_RECIEVED" &&
-        j["name"].get<string>() == friend_name)
+    if (j["type"].get<string>() == "MESSAGE_RECEIVED" &&
+        j["from"].get<string>() == friend_name)
     {
       messages.push_back(j);
     }

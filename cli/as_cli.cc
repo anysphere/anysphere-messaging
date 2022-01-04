@@ -192,7 +192,7 @@ int main()
   Use the two different options to send a message to a friend.
   */
   rootMenu->Insert(
-      "message (friend, message)",
+      "message",
       [&](std::ostream &out, string friend_name, string message)
       {
         Message msg(message, friend_name);
@@ -275,9 +275,9 @@ int main()
         auto messages = read_friend_messages_from_file(friend_name, 15);
         for (const auto &message : messages)
         {
-          out << StrCat(message["name"].get<string>(), ": \n",
-                        "time: ", message["time"].get<string>(), "\n",
-                        message["msg"].get<string>(), "\n\n",
+          out << StrCat(message["from"].get<string>(), ": \n",
+                        "time: ", message["timestamp"].get<string>(), "\n",
+                        message["message"].get<string>(), "\n\n",
                         "--------------------------------\n");
         }
         out << "Type 'anysphere' to go to your main inbox.\n ";
