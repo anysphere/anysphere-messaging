@@ -42,7 +42,14 @@ class MessengerImpl final : public Messenger::Service
     {
       // TODO: allocate in a loop
       auto allocation = pir.allocate();
-      account_manager.generate_account(registerInfo->public_key(), allocation);
+      auto [auth_token, allocation_vec] = account_manager.generate_account(registerInfo->public_key(), allocation);
+
+      for (auto &alloc : allocation_vec)
+      {
+        registerResponse->add_allocation(alloc);
+      }
+      registerResponse->set_public_key(registerInfo->public_key());
+      registerResponse->set_authentication_token(auth_token);
     }
     catch (const AccountManagerException &e)
     {
