@@ -1,16 +1,6 @@
 #pragma once
 
-#include <ctime>
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <thread>
-#include <vector>
-
-#include "absl/strings/str_cat.h"
-#include "absl/time/clock.h"
-#include "absl/time/time.h"
-#include "nlohmann_json.h"
+#include "asphr/asphr.h"
 
 using std::cout;
 using std::endl;
