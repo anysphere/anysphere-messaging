@@ -13,6 +13,11 @@ void retrieve_messages(const string &output_file_address, std::unique_ptr<Messen
     cout << "hasn't registered yet, so cannot retrieve messages" << endl;
     return;
   }
+  if (RegistrationInfo.pir_client == nullptr)
+  {
+    RegistrationInfo.pir_client = std::make_unique<FastPIRClient>(RegistrationInfo.pir_secret_key, RegistrationInfo.pir_galois_keys);
+  }
+
   auto &client = *RegistrationInfo.pir_client;
   for (auto &[friend_name, friend_info] : FriendTable)
   {

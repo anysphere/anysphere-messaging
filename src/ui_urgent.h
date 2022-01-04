@@ -41,6 +41,7 @@ void process_ui_urgent_file(const string &ui_urgent_file_address,
       // TODO(sualeh): tell the UI that the registration was successful
       cout << "register success" << endl;
 
+      RegistrationInfo.has_registered = true;
       RegistrationInfo.authentication_token = reply.authentication_token();
       auto alloc_repeated = reply.allocation();
       RegistrationInfo.allocation =

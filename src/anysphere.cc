@@ -36,8 +36,8 @@ int main(int argc, char **argv)
   auto start_t = absl::Now();
 
   // keep the duration in chrono for thread sleeping.
-  constexpr auto duration = std::chrono::milliseconds(100);
-  constexpr auto round_duration = absl::Milliseconds(1000);
+  constexpr auto duration = std::chrono::milliseconds(1000);
+  constexpr auto round_duration = absl::Milliseconds(5000);
 
   // set the time to 0
   auto last_ui_timestamp = absl::Time();

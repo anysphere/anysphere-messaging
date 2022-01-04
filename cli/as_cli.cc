@@ -42,10 +42,11 @@ using std::make_unique;
 using std::string;
 
 // The message struct to store and send messages.
-struct Message {
- public:
+struct Message
+{
+public:
   Message() = default;
-  Message(const string& msg, const string& friend_name)
+  Message(const string &msg, const string &friend_name)
       : msg_(msg), friend_(friend_name) {}
   Msg msg_;
   Name friend_;
@@ -55,29 +56,32 @@ struct Message {
   bool complete() const { return !message_is_empty() && !friend_is_empty(); }
   void set_time() { time_ = absl::Now(); }
 
-  void send() {
+  void send()
+  {
     set_time();
     write_msg_to_file("MESSAGE", file_address_, msg_, friend_, time_);
     clear();
   }
 
-  void clear() {
+  void clear()
+  {
     msg_.clear();
     friend_.clear();
   }
 
- private:
+private:
   bool message_is_empty() const { return msg_.empty(); }
   bool friend_is_empty() const { return friend_.empty(); }
 };
 
 // The friend struct to store the name and public key of a friend.
 // When a friend is complete we can add it to the config
-struct Friend {
- public:
+struct Friend
+{
+public:
   Friend() = default;
-  Friend(const string& name, const int& write_index, const int& read_index,
-         const string& shared_key)
+  Friend(const string &name, const int &write_index, const int &read_index,
+         const string &shared_key)
       : name_(name),
         write_index_(write_index),
         read_index_(read_index),
@@ -91,13 +95,15 @@ struct Friend {
 
   constexpr static auto file_address_ = CONFIG_FILE;
 
-  bool complete() const {
+  bool complete() const
+  {
     return !name_is_empty() && !shared_key_is_empty() && write_index_ != -1 &&
            read_index_ != -1;
   }
   void set_time() { time_ = absl::Now(); }
 
-  void add() {
+  void add()
+  {
     set_time();
     write_friend_to_file(file_address_, name_, write_index_, read_index_,
                          shared_key_, time_);
@@ -106,48 +112,53 @@ struct Friend {
 
   void clear() { name_.clear(); }
 
- private:
+private:
   bool name_is_empty() const { return name_.empty(); }
   bool write_index_is_empty() const { return write_index_ == -1; }
   bool read_index_is_empty() const { return read_index_ == -1; }
   bool shared_key_is_empty() const { return shared_key_.empty(); }
 };
 
-struct Profile {
- public:
-  Profile(const string& name, const string& public_key,
-          const string& private_key)
+struct Profile
+{
+public:
+  Profile(const string &name, const string &public_key,
+          const string &private_key)
       : name_(name), public_key_(public_key), private_key_(private_key) {}
   Name name_;
   PublicKey public_key_;
   PrivateKey private_key_;
   absl::Time time_;
 
-  bool complete() const {
+  bool complete() const
+  {
     return !name_is_empty() && !public_key_is_empty() &&
            !private_key_is_empty();
   }
   void set_time() { time_ = absl::Now(); }
 
-  void add() {
+  void add()
+  {
     set_time();
     register_profile_to_file(name_, public_key_, private_key_, time_);
     clear();
   }
 
-  void clear() {
+  void clear()
+  {
     name_.clear();
     public_key_.clear();
     private_key_.clear();
   }
 
- private:
+private:
   bool name_is_empty() const { return name_.empty(); }
   bool public_key_is_empty() const { return public_key_.empty(); }
   bool private_key_is_empty() const { return private_key_.empty(); }
 };
 
-int main() {
+int main()
+{
   // setup cli
 
   Message message_to_send;
@@ -156,18 +167,21 @@ int main() {
   auto rootMenu = make_unique<Menu>("anysphere");
 
   rootMenu->Insert(
-      "menu", [](std::ostream& out) { out << "Hello, world\n"; },
+      "menu", [](std::ostream &out)
+      { out << "Hello, world\n"; },
       "The Anysphere menu");
   rootMenu->Insert(
       "color",
-      [](std::ostream& out) {
+      [](std::ostream &out)
+      {
         out << "Colors ON\n";
         SetColor();
       },
       "Enable colors in the cli");
   rootMenu->Insert(
       "nocolor",
-      [](std::ostream& out) {
+      [](std::ostream &out)
+      {
         out << "Colors OFF\n";
         SetNoColor();
       },
@@ -179,7 +193,8 @@ int main() {
   */
   rootMenu->Insert(
       "message (friend, message)",
-      [&](std::ostream& out, string friend_name, string message) {
+      [&](std::ostream &out, string friend_name, string message)
+      {
         Message msg(message, friend_name);
         msg.send();
 
@@ -193,15 +208,19 @@ int main() {
   auto messageMenu = make_unique<Menu>("message");
   messageMenu->Insert(
       "friend",
-      [&](std::ostream& out, string friend_name) {
+      [&](std::ostream &out, string friend_name)
+      {
         out << "Send a message to friend: " << friend_name << " :)\n";
 
         message_to_send.friend_ = friend_name;
-        if (message_to_send.complete()) {
+        if (message_to_send.complete())
+        {
           out << "Message sent to " << friend_name << ": "
               << message_to_send.msg_ << "\n";
           message_to_send.send();
-        } else {
+        }
+        else
+        {
           out << "Now type `write` with your message.\n";
           out << "Press Esv or type 'anysphere' to return to the menu.\n";
         }
@@ -209,16 +228,20 @@ int main() {
       "Open a text menu to message a friend.");
   messageMenu->Insert(
       "write",
-      [&](std::ostream& out, string message) {
+      [&](std::ostream &out, string message)
+      {
         out << "Send a message to friend: " << message << " :\n";
 
         message_to_send.msg_ = message;
-        if (message_to_send.complete()) {
+        if (message_to_send.complete())
+        {
           out << "Message sent to " << message_to_send.friend_ << ": "
               << message_to_send.msg_ << "\n";
           message_to_send.send();
           out << "Type 'anysphere' to go to your main inbox.\n";
-        } else {
+        }
+        else
+        {
           out << "Now type `friend:` with your friend name.\n";
         }
       },
@@ -227,9 +250,10 @@ int main() {
   /* Register interface
    */
   rootMenu->Insert(
-      "register (name, public_key, private_key)",
-      [&](std::ostream& out, string name, string public_key,
-          string private_key) {
+      "register",
+      [&](std::ostream &out, string name, string public_key,
+          string private_key)
+      {
         Profile profile(name, public_key, private_key);
         profile.add();
 
@@ -242,13 +266,15 @@ int main() {
   auto inboxMenu = make_unique<Menu>("inbox");
   inboxMenu->Insert(
       "friend",
-      [](std::ostream& out, string friend_name) {
+      [](std::ostream &out, string friend_name)
+      {
         out << StrCat("Showing (the last 15) messages from your friend ",
                       friend_name, "\n");
 
         out << "--------------------------------\n";
         auto messages = read_friend_messages_from_file(friend_name, 15);
-        for (const auto& message : messages) {
+        for (const auto &message : messages)
+        {
           out << StrCat(message["name"].get<string>(), ": \n",
                         "time: ", message["time"].get<string>(), "\n",
                         message["msg"].get<string>(), "\n\n",
@@ -260,18 +286,24 @@ int main() {
       "Show the messages from a friend");
   inboxMenu->Insert(
       "names",
-      [](std::ostream& out) {
+      [](std::ostream &out)
+      {
         out << "Showing all your friends:\n\n";
         auto friends = read_friends_from_file();
-        for (const auto& friend_ : friends) {
+        for (const auto &friend_ : friends)
+        {
           out << friend_["name"].get<string>() << "\n";
         }
-        if (friends.empty()) {
+        if (friends.empty())
+        {
           out << "You have no friends :(\n";
         }
-        if (friends.size() == 1) {
+        if (friends.size() == 1)
+        {
           out << "YOU have 1 friend :)\n";
-        } else {
+        }
+        else
+        {
           out << StrCat("THERE YOUR ARE! YOU HAVE ", friends.size(),
                         " FRIENDS\n");
         }
@@ -288,8 +320,9 @@ int main() {
   auto friendsMenu = make_unique<Menu>("friends");
   rootMenu->Insert(
       "add-friend (friend, write_index, read_index, shared_key)",
-      [&](std::ostream& out, string friend_name, int write_index,
-          int read_index, string shared_key) {
+      [&](std::ostream &out, string friend_name, int write_index,
+          int read_index, string shared_key)
+      {
         Friend friend_(friend_name, write_index, read_index, shared_key);
         friend_.add();
         out << StrCat("Adding friend ", friend_name, " with read_index ",
@@ -351,16 +384,15 @@ int main() {
   SetColor();
 
   // global exit action
-  cli.ExitAction([](auto& out) {
-    out << "Goodbye! We hope you are enjoying anysphere!\n";
-  });
+  cli.ExitAction([](auto &out)
+                 { out << "Goodbye! We hope you are enjoying anysphere!\n"; });
 
   MainScheduler scheduler;
   CliLocalTerminalSession localSession(cli, scheduler, std::cout, 200);
-  localSession.ExitAction([&scheduler](auto& out) {
+  localSession.ExitAction([&scheduler](auto &out)
+                          {
     out << "Closing App...\n";
-    scheduler.Stop();
-  });
+    scheduler.Stop(); });
 
   scheduler.Run();
 

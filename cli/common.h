@@ -41,90 +41,110 @@ using Name = string;
  * @property: Nonconsuming: It does not consume the charachters, it only scans
  * them.
  */
-auto get_last_line(string filename) {
+auto get_last_line(string filename)
+{
   std::ifstream fin;
   fin.open(filename);
-  if (fin.is_open()) {
-    fin.seekg(-1, std::ios_base::end);  // go to one spot before the EOF
+  if (fin.is_open())
+  {
+    fin.seekg(-1, std::ios_base::end); // go to one spot before the EOF
 
     char ch = fin.get();
     // if we end with a newline, we go back one more
-    while (ch == '\n') {
-      fin.seekg(-2, std::ios_base::cur);  // go to the second last char
+    while (ch == '\n')
+    {
+      fin.seekg(-2, std::ios_base::cur); // go to the second last char
       ch = fin.get();
     }
 
     bool keepLooping = true;
-    while (keepLooping) {
-      if ((int)fin.tellg() <= 1) {  // If the data was at or before the 0th byte
-        fin.seekg(0);               // The first line is the last line
-        keepLooping = false;        // So stop there
-      } else if (ch == '\n') {      // If the data was a newline
-        keepLooping = false;        // Stop at the current position.
-      } else {  // If the data was neither a newline nor at the 0 byte
+    while (keepLooping)
+    {
+      if ((int)fin.tellg() <= 1)
+      {                      // If the data was at or before the 0th byte
+        fin.seekg(0);        // The first line is the last line
+        keepLooping = false; // So stop there
+      }
+      else if (ch == '\n')
+      {                      // If the data was a newline
+        keepLooping = false; // Stop at the current position.
+      }
+      else
+      { // If the data was neither a newline nor at the 0 byte
         fin.seekg(-2,
-                  std::ios_base::cur);  // Move to the front of that data, then
-                                        // to the front of the data before it
+                  std::ios_base::cur); // Move to the front of that data, then
+                                       // to the front of the data before it
       }
 
-      fin.get(ch);  // update the current byte's data
+      fin.get(ch); // update the current byte's data
     }
 
-    fin.seekg(-1, std::ios_base::cur);  // go to the last char
+    fin.seekg(-1, std::ios_base::cur); // go to the last char
     string lastLine;
-    getline(fin, lastLine);  // Read the current line
+    getline(fin, lastLine); // Read the current line
     return lastLine;
   }
   return string();
 }
 
-auto get_last_lines(string filename, int n) {
+auto get_last_lines(string filename, int n)
+{
   // TODO(sualeh): still a bit buggy.
   std::ifstream fin;
   fin.open(filename);
   vector<string> lines;
-  if (fin.is_open()) {
-    fin.seekg(-1, std::ios_base::end);  // go to one spot before the EOF
+  if (fin.is_open())
+  {
+    fin.seekg(-1, std::ios_base::end); // go to one spot before the EOF
 
     char ch = fin.get();
     // if we end with a newline, we go back one more
-    while (ch == '\n') {
-      fin.seekg(-2, std::ios_base::cur);  // go to the second last char
+    while (ch == '\n')
+    {
+      fin.seekg(-2, std::ios_base::cur); // go to the second last char
       ch = fin.get();
     }
 
     int lines_found = 0;
     bool early_exit = false;
 
-    while (lines_found < n && !early_exit) {
-      if ((int)fin.tellg() <= 1) {  // If the data was at or before the 0th byte
-        fin.seekg(0);               // The first line is the last line
+    while (lines_found < n && !early_exit)
+    {
+      if ((int)fin.tellg() <= 1)
+      {               // If the data was at or before the 0th byte
+        fin.seekg(0); // The first line is the last line
 
         early_exit = true;
-      } else if (ch == '\n') {  // If the data was a newline
+      }
+      else if (ch == '\n')
+      { // If the data was a newline
         lines_found++;
-        fin.seekg(-2, std::ios_base::cur);  // continue going back
-
-      } else {  // If the data was neither a newline nor at the 0 byte
+        fin.seekg(-2, std::ios_base::cur); // continue going back
+      }
+      else
+      { // If the data was neither a newline nor at the 0 byte
         // Move to the front of that data, then
         // to the front of the data before it
         fin.seekg(-2, std::ios_base::cur);
       }
 
-      fin.get(ch);  // update the current byte's data
+      fin.get(ch); // update the current byte's data
     }
 
     string line;
-    while (getline(fin, line)) {
+    while (getline(fin, line))
+    {
       lines.push_back(line);
       cout << "here and found line: " << line << endl;
     }
-    while (lines_found < n) {
+    while (lines_found < n)
+    {
       lines.push_back("");
       lines_found++;
     }
 
-    for (auto& line : lines) {
+    for (auto &line : lines)
+    {
       cout << line << endl;
     }
 
@@ -133,18 +153,21 @@ auto get_last_lines(string filename, int n) {
   return lines;
 }
 
-auto get_new_entries(const string& file_address, const Time& last_timestamp)
-    -> vector<json> {
+auto get_new_entries(const string &file_address, const Time &last_timestamp)
+    -> vector<json>
+{
   auto test = json::array();
   auto new_entries = vector<json>();
 
   auto file = std::ifstream(file_address);
   string line;
-  while (std::getline(file, line)) {
+  while (std::getline(file, line))
+  {
     auto j = json::parse(line);
     string jt = j["timestamp"].get<string>();
     Time jt_time = absl::FromUnixSeconds(std::stoull(jt));
-    if (jt_time > last_timestamp) {
+    if (jt_time > last_timestamp)
+    {
       new_entries.push_back(j);
     }
   }
@@ -181,12 +204,14 @@ auto get_new_entries(const string& file_address, const Time& last_timestamp)
   return new_entries;
 }
 
-auto write_msg_to_file(string file_address, string msg, string type) -> void {
+auto write_msg_to_file(string file_address, string msg, string type) -> void
+{
   auto file = std::ofstream(file_address, std::ios_base::app);
 
   auto time = absl::FormatTime(absl::Now(), utc);
   json jmsg = {{"timestamp", time}, {"type", type}, {"message", msg}};
-  if (file.is_open()) {
+  if (file.is_open())
+  {
     file << std::setw(4) << jmsg.dump() << std::endl;
     cout << jmsg.dump() << endl;
     file.close();
@@ -194,7 +219,8 @@ auto write_msg_to_file(string file_address, string msg, string type) -> void {
 }
 
 auto write_msg_to_file(string type, string file_address, Msg msg,
-                       Name friend_name, Time time) -> void {
+                       Name friend_name, Time time) -> void
+{
   auto file = std::ofstream(file_address, std::ios_base::app);
 
   auto send_time = absl::FormatTime(time, utc);
@@ -203,7 +229,8 @@ auto write_msg_to_file(string type, string file_address, Msg msg,
                {"type", type},
                {"message", msg},
                {"friend", friend_name}};
-  if (file.is_open()) {
+  if (file.is_open())
+  {
     file << std::setw(4) << jmsg.dump() << std::endl;
     cout << jmsg.dump() << endl;
     file.close();
@@ -211,15 +238,15 @@ auto write_msg_to_file(string type, string file_address, Msg msg,
 }
 
 auto write_friend_to_file(string file_address, const Name friend_name,
-                          const int& write_index, const int& read_index,
-                          const string& shared_key, Time time) -> void {
+                          const int &write_index, const int &read_index,
+                          const string &shared_key, Time time) -> void
+{
   auto file = std::ofstream(file_address, std::ios_base::app);
 
   auto send_time = absl::FormatTime(time, utc);
-  json jmsg = {{"timestamp", send_time},   {"type", "FRIEND"},
-               {"name", friend_name},      {"write_index", write_index},
-               {"read_index", read_index}, {"shared_key", shared_key}};
-  if (file.is_open()) {
+  json jmsg = {{"timestamp", send_time}, {"type", "FRIEND"}, {"name", friend_name}, {"write_index", write_index}, {"read_index", read_index}, {"shared_key", shared_key}};
+  if (file.is_open())
+  {
     file << std::setw(4) << jmsg.dump() << std::endl;
     cout << jmsg.dump() << endl;
     file.close();
@@ -227,7 +254,8 @@ auto write_friend_to_file(string file_address, const Name friend_name,
 }
 
 auto register_profile_to_file(Name name, PublicKey key, PrivateKey private_key,
-                              Time time) -> void {
+                              Time time) -> void
+{
   constexpr static auto file_address = UI_URGENT_FILE;
   auto file = std::ofstream(file_address, std::ios_base::app);
 
@@ -237,53 +265,52 @@ auto register_profile_to_file(Name name, PublicKey key, PrivateKey private_key,
                {"name", name},
                {"public_key", key},
                {"private_key", private_key}};
-  if (file.is_open()) {
+  if (file.is_open())
+  {
     file << std::setw(4) << jmsg.dump() << std::endl;
     cout << jmsg.dump() << endl;
     file.close();
   }
-
-  // also write this to the config
-  constexpr static auto config_address = CONFIG_FILE;
-  auto config_file = std::ofstream(config_address, std::ios_base::app);
-  if (config_file.is_open()) {
-    config_file << std::setw(4) << jmsg.dump() << std::endl;
-    cout << jmsg.dump() << endl;
-    config_file.close();
-  }
 }
 
 auto read_friend_messages_from_file(Name friend_name, size_t number)
-    -> vector<json> {
+    -> vector<json>
+{
   constexpr auto file_address = CLIENT_FILE;
   auto file = std::ifstream(file_address);
   vector<json> messages;
   string line;
-  while (std::getline(file, line)) {
+  while (std::getline(file, line))
+  {
     auto j = json::parse(line);
     if (j["type"].get<string>() == "MESSAGE_RECIEVED" &&
-        j["name"].get<string>() == friend_name) {
+        j["name"].get<string>() == friend_name)
+    {
       messages.push_back(j);
     }
   }
   file.close();
 
   // cut off the last n messages
-  if (messages.size() > number) {
+  if (messages.size() > number)
+  {
     messages.erase(messages.begin(),
                    messages.begin() + messages.size() - number);
   }
   return messages;
 }
 
-auto read_friends_from_file() -> vector<json> {
+auto read_friends_from_file() -> vector<json>
+{
   constexpr auto file_address = CONFIG_FILE;
   auto file = std::ifstream(file_address);
   vector<json> friends;
   string line;
-  while (std::getline(file, line)) {
+  while (std::getline(file, line))
+  {
     auto j = json::parse(line);
-    if (j["type"].get<string>() == "FRIEND") {
+    if (j["type"].get<string>() == "FRIEND")
+    {
       friends.push_back(j);
     }
   }
