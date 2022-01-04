@@ -11,7 +11,7 @@
 #include "schema/messenger.grpc.pb.h"
 #endif
 
-#include "pir/pir_common.h"
+#include "anysphere/pir_common.h"
 #include "account_manager.h"
 
 using grpc::Server;
@@ -91,7 +91,7 @@ class MessengerImpl final : public Messenger::Service
     pir.set_value(pir_index, pir_value);
 
     auto db_rows = pir.get_db_rows();
-    reply->set_db_rows(db_rows);
+    sendMessageResponse->set_db_rows(db_rows);
 
     return Status::OK;
   }

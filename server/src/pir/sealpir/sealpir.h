@@ -8,7 +8,7 @@
 #include <string>
 #include <array>
 
-#include "../pir_common.h"
+#include "anysphere/pir_common.h"
 
 using std::array;
 using std::string;

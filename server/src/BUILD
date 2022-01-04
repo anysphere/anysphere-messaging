@@ -9,7 +9,6 @@ cc_library(
         "account_manager.h",
         "messenger_impl.h",
         "pir/nonprivate/nonprivate_pir.h",
-        "pir/pir_common.h",
         "pir/sealpir/sealpir.h",
     ],
     defines = select({
