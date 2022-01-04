@@ -217,7 +217,7 @@ auto write_msg_to_file(string file_address, string msg, string type, string to) 
   if (file.is_open())
   {
     file << std::setw(4) << jmsg.dump() << std::endl;
-    cout << jmsg.dump() << endl;
+    cout << "write msg to file: " << jmsg.dump() << endl;
     file.close();
   }
 }
