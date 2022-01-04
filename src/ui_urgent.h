@@ -13,7 +13,8 @@ void process_ui_urgent_file(const string &ui_urgent_file_address,
 
   if (new_entries.empty())
   {
-    cout << "no new entries" << endl;
+    cout << "no new entries"
+         << "last_ui_urgent_timestamp: " << last_ui_urgent_timestamp << endl;
     return;
   }
   for (auto &entry : new_entries)
@@ -25,7 +26,7 @@ void process_ui_urgent_file(const string &ui_urgent_file_address,
       if (RegistrationInfo.has_registered)
       {
         cout << "already registered" << endl;
-        return;
+        continue;
       }
       // call register rpc to send the register request
       RegisterInfo request;
@@ -87,6 +88,7 @@ void process_ui_urgent_file(const string &ui_urgent_file_address,
         Friend friend_(name, write_index, read_index, shared_key);
         FriendTable.insert({name, friend_});
         cout << "added friend " << name << endl;
+        store_friend_table(config_file_address);
       }
     }
     else

@@ -181,7 +181,14 @@ auto get_new_entries(const string &file_address, const Time &last_timestamp)
     }
     auto j = json::parse(line);
     string jt = j["timestamp"].get<string>();
-    Time jt_time = absl::FromUnixSeconds(std::stoull(jt));
+    Time jt_time;
+    string err;
+    absl::ParseTime(absl::RFC3339_full, jt, &jt_time, &err);
+    if (err != "")
+    {
+      cout << "error parsing time: " << err << endl;
+      continue;
+    }
     if (jt_time > last_timestamp)
     {
       new_entries.push_back(j);
@@ -281,6 +288,23 @@ struct RegisterationInfo
 
 static auto RegistrationInfo = RegisterationInfo();
 static auto FriendTable = std::unordered_map<string, Friend>();
+
+auto store_friend_table(const string &config_file_address) -> void
+{
+  json config_json = json::parse(std::ifstream(config_file_address));
+  json friend_table_json = json::array();
+  for (auto &friend_pair : FriendTable)
+  {
+    json friend_json = {{"name", friend_pair.second.name},
+                        {"write_index", friend_pair.second.write_index},
+                        {"read_index", friend_pair.second.read_index},
+                        {"shared_key", friend_pair.second.shared_key}};
+    friend_table_json.push_back(friend_json);
+  }
+  config_json["friends"] = friend_table_json;
+  std::ofstream out(config_file_address);
+  out << std::setw(4) << config_json.dump(4) << std::endl;
+}
 
 auto read_config(const string &config_file_address) -> void
 {

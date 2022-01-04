@@ -93,7 +93,7 @@ public:
   int read_index_ = -1;
   string shared_key_;
 
-  constexpr static auto file_address_ = CONFIG_FILE;
+  constexpr static auto file_address_ = UI_URGENT_FILE;
 
   bool complete() const
   {
@@ -259,7 +259,7 @@ int main()
 
         out << "Profile registered: " << name << " :\n";
       },
-      "Open a text menu to register a friend.");
+      "Register a profile! Parameters: name, public_key, private_key");
 
   /* Inbox interface
    */
@@ -319,7 +319,7 @@ int main()
   */
   auto friendsMenu = make_unique<Menu>("friends");
   rootMenu->Insert(
-      "add-friend (friend, write_index, read_index, shared_key)",
+      "add-friend",
       [&](std::ostream &out, string friend_name, int write_index,
           int read_index, string shared_key)
       {
@@ -330,7 +330,7 @@ int main()
                       friend_.read_index_, "\n");
         out << "Type 'anysphere' to go to your main inbox.\n ";
       },
-      "Add a friend to your friends list");
+      "Add a friend to your friends list! Params: friend_name, write_index, read_index, shared_key");
   // friendsMenu->Insert(
   //     "add-friend",
   //     [](std::ostream& out, string friend_name, string friend_public_key) {

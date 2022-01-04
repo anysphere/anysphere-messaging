@@ -82,92 +82,77 @@ void process_ui_file(const string &ui_file_address,
 
   auto authentication_token = RegistrationInfo.authentication_token;
 
-  if (new_entries.empty())
-  {
-    return;
-  }
+  std::unordered_map<string, string> friend_to_message;
 
   for (auto &entry : new_entries)
   {
-    cout << "entry: " << entry << endl;
-  }
-
-  for (auto &entry : new_entries)
-  {
-    auto type = entry["type"].get<string>();
-    auto jt = entry["timestamp"].get<string>();
     auto to = entry["to"].get<string>();
-    // BUG(sualeh): Fix this using ParseTime
-    Time timestamp;
-    string err;
-    absl::ParseTime(absl::RFC3339_full, jt, &timestamp, &err);
-    // Time timestamp = absl::FromUnixSeconds(std::stoull(jt));
-
-    auto msg = entry["message"].get<string>();
-
     if (!FriendTable.contains(to))
     {
-      std::cerr << "FriendHashTable does not contain " << to << endl;
+      std::cerr << "FriendHashTable does not contain " << to << "; ignoring message" << endl;
       continue;
     }
+    friend_to_message.insert({to, entry["message"].get<string>()});
+  }
 
-    auto friend_info = FriendTable.at(to);
+  for (auto &[friend_name, friend_info] : FriendTable)
+  {
+    string message;
+    if (friend_to_message.count(friend_name) == 0)
+    {
+      message = "(empty message for security)";
+    }
+    else
+    {
+
+      message = friend_to_message.at(friend_name);
+    }
 
     auto index = friend_info.write_index;
     auto key = friend_info.shared_key;
 
     cout << "Sending message to server: " << endl;
-    cout << "type: " << type << endl;
     cout << "index: " << index << endl;
     cout << "authentication_token: " << authentication_token << endl;
-    cout << "message: " << msg << endl;
 
     // static auto last_type = type;
     // static auto last_timestamp = timestamp;
     // static auto last_message = entry["message"];
 
-    if (type == "MESSAGE")
+    // call register rpc to send the register request
+    SendMessageInfo request;
+
+    request.set_index(index);
+    request.set_authentication_token(authentication_token);
+    // TODO: encrypt message here, pad it to the right length
+    pir_value_t padded_msg;
+    padded_msg.fill(0);
+    std::copy(message.begin(), message.end(), padded_msg.begin());
+    string padded_msg_str = "";
+    for (auto &c : padded_msg)
     {
-      cout << "timestamp: " << timestamp << endl;
-      cout << "last_ui_timestamp: " << last_ui_timestamp << endl;
-      if (timestamp > last_ui_timestamp)
-      {
-        // call register rpc to send the register request
-        SendMessageInfo request;
+      padded_msg_str += c;
+    }
+    request.set_message(padded_msg_str);
 
-        request.set_index(index);
-        request.set_authentication_token(authentication_token);
-        request.set_message(msg);
-        // TODO: encrypt message here
+    SendMessageResponse reply;
 
-        SendMessageResponse reply;
+    ClientContext context;
 
-        ClientContext context;
+    Status status = stub->SendMessage(&context, request, &reply);
 
-        Status status = stub->SendMessage(&context, request, &reply);
-
-        if (status.ok())
-        {
-          auto db_rows = reply.db_rows();
-          cout << "db_rows: " << db_rows << endl;
-          RegistrationInfo.db_rows = db_rows;
-          std::cout << "Message sent to server: " << request.message()
-                    << std::endl;
-        }
-        else
-        {
-          std::cerr << status.error_code() << ": " << status.error_message()
-                    << " details:" << status.error_details() << std::endl;
-        }
-      }
+    if (status.ok())
+    {
+      auto db_rows = reply.db_rows();
+      cout << "db_rows: " << db_rows << endl;
+      RegistrationInfo.db_rows = db_rows;
+      std::cout << "Message sent to server: " << request.message()
+                << std::endl;
     }
     else
     {
-      std::cerr
-          << "Unknown type of message. Ensure that messages are correctly "
-             "written to file. "
-          << type << std::endl;
-      exit(1);
+      std::cerr << status.error_code() << ": " << status.error_message()
+                << " details:" << status.error_details() << std::endl;
     }
   }
 }
