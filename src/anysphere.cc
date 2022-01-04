@@ -53,7 +53,7 @@ int main(int argc, char **argv)
   {
     // check for new ui write:
 
-    process_ui_urgent_file(ui_urgent_file_address, last_ui_urgent_timestamp,
+    process_ui_urgent_file(ui_urgent_file_address, config_file_address, last_ui_urgent_timestamp,
                            stub);
 
     last_ui_urgent_timestamp = absl::Now();

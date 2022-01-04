@@ -19,6 +19,7 @@
 #include "schema/messenger.grpc.pb.h"
 #include "anysphere/pir_common.h"
 #include "server/src/pir/fastpir/fastpir_client.h"
+#include "base64.h"
 
 using std::cout;
 using std::endl;
@@ -258,6 +259,24 @@ struct RegisterationInfo
   string pir_galois_keys;
   // make this a ptr because we want it to possibly be null
   std::unique_ptr<FastPIRClient> pir_client = nullptr;
+
+  // store the config in config_file_address
+  auto store(const string &config_file_address) -> void
+  {
+    json reg_json = {{"name", name},
+                     {"public_key", public_key},
+                     {"private_key", private_key},
+                     {"authentication_token", authentication_token},
+                     {"allocation", allocation},
+                     {"db_rows", db_rows},
+                     {"pir_secret_key", Base64::Encode(pir_secret_key)},
+                     {"pir_galois_keys", Base64::Encode(pir_galois_keys)}};
+    json config_json = json::parse(std::ifstream(config_file_address));
+    config_json["registration_info"] = reg_json;
+    config_json["has_registered"] = true;
+    std::ofstream out(config_file_address);
+    out << std::setw(4) << config_json.dump(4) << std::endl;
+  }
 };
 
 static auto RegistrationInfo = RegisterationInfo();
@@ -300,8 +319,8 @@ auto read_config(const string &config_file_address) -> void
     RegistrationInfo.authentication_token = config_json["registration_info"]["authentication_token"].get<string>();
     RegistrationInfo.allocation = config_json["registration_info"]["allocation"].get<vector<int>>();
     RegistrationInfo.db_rows = config_json["registration_info"]["db_rows"].get<int>();
-    RegistrationInfo.pir_secret_key = config_json["registration_info"]["pir_secret_key"].get<string>();
-    RegistrationInfo.pir_galois_keys = config_json["registration_info"]["pir_galois_keys"].get<string>();
+    Base64::Decode(config_json["registration_info"]["pir_secret_key"].get<string>(), RegistrationInfo.pir_secret_key);
+    Base64::Decode(config_json["registration_info"]["pir_galois_keys"].get<string>(), RegistrationInfo.pir_galois_keys);
   }
 
   for (auto &friend_json : config_json["friends"])

@@ -4,6 +4,7 @@ cc_binary(
     name = "anysphere",
     srcs = [
         "anysphere.cc",
+        "base64.h",
         "common.h",
         "nlohmann_json.h",
         "ui_msg.h",
