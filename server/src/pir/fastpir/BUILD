@@ -8,7 +8,7 @@ cc_library(
         "fastpir_config.h",
     ],
     visibility = [
-        "//client/src:__pkg__",
+        "//client/daemon:__pkg__",
         "//server/src:__pkg__",
         "//server/test:__pkg__",
     ],
