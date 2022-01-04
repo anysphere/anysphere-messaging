@@ -9,22 +9,50 @@
 using std::array;
 using std::bitset;
 
+struct Galois_string
+{
+    Galois_string(const string & s) : galois_string(s) {}
+
+    string galois_string;
+    auto save(std::ostream &os) const -> void
+    {
+        os << galois_string;
+    }
+};
+
+auto generate_keys() -> std::pair<std::string, std::string>
+{
+    seal::SEALContext sc(create_context_params());
+    seal::KeyGenerator keygen(sc);
+    auto secret_key = keygen.secret_key();
+    auto galois_keys = keygen.create_galois_keys();
+
+    std::stringstream s_stream;
+    secret_key.save(s_stream);
+
+    std::stringstream g_stream;
+    galois_keys.save(g_stream);
+
+    return {s_stream.str(), g_stream.str()};
+}
+
 auto gen_secret_key(seal::KeyGenerator keygen) -> seal::SecretKey
 {
     auto secret_key = keygen.secret_key();
     return secret_key;
 }
 
-auto gen_galois_keys(seal::KeyGenerator keygen) -> seal::Serializable<seal::GaloisKeys>
+auto gen_galois_keys(seal::Serializable<seal::GaloisKeys> gk) -> string
 {
-    auto galois_keys = keygen.create_galois_keys();
-    return galois_keys;
+    std::stringstream g_stream;
+    gk.save(g_stream);
+    return g_stream.str();
 }
 
 class FastPIRClient
 {
 public:
-    using pir_query_t = FastPIRQuery<seal::Serializable<seal::Ciphertext>, seal::Serializable<seal::GaloisKeys>>;
+    using pir_query_t = FastPIRQuery<seal::Serializable<seal::Ciphertext>, Galois_string>;
     using pir_answer_t = FastPIRAnswer;
 
     // TODO: fix this absolute mess of initializers???
@@ -33,11 +61,15 @@ public:
 
     FastPIRClient(seal::SEALContext sc) : FastPIRClient(sc, seal::KeyGenerator(sc)) {}
 
-    FastPIRClient(seal::SEALContext sc, seal::KeyGenerator keygen) : FastPIRClient(sc, keygen.secret_key(), keygen.create_galois_keys()) {}
+    FastPIRClient(seal::SEALContext sc, seal::KeyGenerator keygen) : FastPIRClient(sc, keygen.secret_key(), gen_galois_keys(keygen.create_galois_keys())) {}
 
-    FastPIRClient(seal::SecretKey secret_key, seal::Serializable<seal::GaloisKeys> galois_keys) : FastPIRClient(seal::SEALContext(create_context_params()), secret_key, galois_keys) {}
+    FastPIRClient(string secret_key, string galois_keys) : FastPIRClient(seal::SEALContext(create_context_params()), secret_key, galois_keys) {}
 
-    FastPIRClient(seal::SEALContext sc, seal::SecretKey secret_key, seal::Serializable<seal::GaloisKeys> galois_keys) : sc(sc), batch_encoder(sc), seal_slot_count(batch_encoder.slot_count()), secret_key(secret_key), galois_keys(galois_keys), encryptor(sc, secret_key), decryptor(sc, secret_key), evaluator(sc) {}
+    FastPIRClient(seal::SEALContext sc, string secret_key, string galois_keys) : FastPIRClient(sc, deserialize_secret_key(sc, secret_key), galois_keys) {}
+
+    FastPIRClient(seal::SecretKey secret_key, string galois_keys) : FastPIRClient(seal::SEALContext(create_context_params()), secret_key, galois_keys) {}
+
+    FastPIRClient(seal::SEALContext sc, seal::SecretKey secret_key, string galois_keys) : sc(sc), batch_encoder(sc), seal_slot_count(batch_encoder.slot_count()), secret_key(secret_key), galois_keys(galois_keys), encryptor(sc, secret_key), decryptor(sc, secret_key), evaluator(sc) {}
 
     auto query(pir_index_t index, size_t db_rows) -> pir_query_t
     {
@@ -135,8 +167,16 @@ private:
     // number of slots in the plaintext
     size_t seal_slot_count;
     seal::SecretKey secret_key;
-    seal::Serializable<seal::GaloisKeys> galois_keys;
+    Galois_string galois_keys;
     seal::Encryptor encryptor;
     seal::Decryptor decryptor;
     seal::Evaluator evaluator;
+
+    auto deserialize_secret_key(seal::SEALContext sc, string secret_key) -> seal::SecretKey
+    {
+        auto s_stream = std::stringstream(secret_key);
+        seal::SecretKey sk;
+        sk.load(sc, s_stream);
+        return sk;
+    }
 };
