@@ -2,9 +2,9 @@
 #include <grpcpp/grpcpp.h>
 
 #include "asphr/asphr.h"
+#include "asphr/pir/fast_pir/fast_pir_client.h"
 #include "client/client_lib/client_lib.h"
 #include "schema/messenger.grpc.pb.h"
-#include "server/pir/fast_pir/fast_pir_client.h"
 
 using grpc::Channel;
 using grpc::ClientContext;

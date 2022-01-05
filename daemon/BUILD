@@ -10,9 +10,9 @@ cc_binary(
     ],
     deps = [
         "//asphr:asphr_lib",
+        "//asphr/pir/fast_pir:fast_pir_lib",
         "//client/client_lib",
         "//schema:messenger_cc_grpc",
-        "//server/pir/fast_pir:server_fast_pir_lib",
         "@com_github_grpc_grpc//:grpc++",
     ],
 )
