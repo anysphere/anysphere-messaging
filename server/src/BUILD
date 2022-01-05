@@ -41,7 +41,7 @@ config_setting(
 )
 
 cc_test(
-    name = "as_server_test",
+    name = "test",
     srcs = glob(["**/*_test.cc"]),
     deps = [
         ":as_server_lib",

@@ -95,10 +95,11 @@ class AccountManagerPostgres {
 
   auto valid_index_access(const string& token, pir_index_t index) -> bool {
     pqxx::work W{conn};
-    auto result = W.exec1(
-        "SELECT pir_index FROM accounts WHERE authentication_token = '" +
-        token + "'");
-    return result.size() == 1 && result[0].as<pir_index_t>() == index;
+    auto result =
+        W.exec("SELECT pir_index FROM accounts WHERE authentication_token = '" +
+               token + "'");
+    W.commit();
+    return result.size() == 1 && result[0][0].as<pir_index_t>() == index;
   }
 
  private:
