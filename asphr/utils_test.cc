@@ -1,10 +1,9 @@
-#include <gtest/gtest.h>
-
 #include "utils.h"
 
+#include <gtest/gtest.h>
+
 // Demonstrate some basic assertions.
-TEST(SubmatrixExtraction, ExtractSingleRow)
-{
+TEST(SubmatrixExtraction, ExtractSingleRow) {
   const size_t db_row_length_in_bits = 64;
   const size_t number_of_rows = 8;
 
@@ -20,14 +19,10 @@ TEST(SubmatrixExtraction, ExtractSingleRow)
   const auto all_1s_byte = byte(0xff);
 
   // db is a vector with alternating 0 and 1 bytes
-  for (size_t i = 0; i < db.size(); i++)
-  {
-    if (i % 2 == 0)
-    {
+  for (size_t i = 0; i < db.size(); i++) {
+    if (i % 2 == 0) {
       db[i] = all_0s_byte;
-    }
-    else
-    {
+    } else {
       db[i] = all_1s_byte;
     }
   }
@@ -42,8 +37,7 @@ TEST(SubmatrixExtraction, ExtractSingleRow)
   EXPECT_EQ(subm.size(), subm_rows);
 
   // check that each row is 0x3FC0
-  for (size_t i = 0; i < subm.size(); i++)
-  {
+  for (size_t i = 0; i < subm.size(); i++) {
     EXPECT_EQ(subm[i], 0x3FC0);
   }
 }
@@ -108,8 +102,7 @@ TEST(SubmatrixExtraction, ExtractSingleRow2) {
   }
 }
 
-TEST(SubmatrixExtraction, ExtractSmallMatrix)
-{
+TEST(SubmatrixExtraction, ExtractSmallMatrix) {
   const size_t db_row_length_in_bits = 64;
   const size_t number_of_rows = 8;
 
@@ -125,21 +118,16 @@ TEST(SubmatrixExtraction, ExtractSmallMatrix)
   const auto all_1s_byte = byte(0xff);
 
   // db is a vector with alternating 0 and 1 bytes
-  for (size_t i = 0; i < db.size(); i++)
-  {
-    if (i % 2 == 0)
-    {
+  for (size_t i = 0; i < db.size(); i++) {
+    if (i % 2 == 0) {
       db[i] = all_0s_byte;
-    }
-    else
-    {
+    } else {
       db[i] = all_1s_byte;
     }
   }
 
   // extract the submatrix for different number of rows.
-  for (size_t subm_rows = 2; subm_rows < 7; subm_rows++)
-  {
+  for (size_t subm_rows = 2; subm_rows < 7; subm_rows++) {
     // extract the submatrix
     const auto subm = get_submatrix_as_uint64s(
         db, db_row_length_in_bits, subm_top_left_corner_in_bits,
@@ -149,15 +137,13 @@ TEST(SubmatrixExtraction, ExtractSmallMatrix)
     EXPECT_EQ(subm.size(), subm_rows);
 
     // check that each row is 0x3FC0
-    for (size_t i = 0; i < subm.size(); i++)
-    {
+    for (size_t i = 0; i < subm.size(); i++) {
       EXPECT_EQ(subm[i], 0x3FC0);
     }
   }
 }
 
-TEST(SubmatrixExtraction, ExcessRows)
-{
+TEST(SubmatrixExtraction, ExcessRows) {
   const size_t db_row_length_in_bits = 64;
   const size_t number_of_rows = 8;
 
@@ -173,21 +159,16 @@ TEST(SubmatrixExtraction, ExcessRows)
   const auto all_1s_byte = byte(0xff);
 
   // db is a vector with alternating 0 and 1 bytes
-  for (size_t i = 0; i < db.size(); i++)
-  {
-    if (i % 2 == 0)
-    {
+  for (size_t i = 0; i < db.size(); i++) {
+    if (i % 2 == 0) {
       db[i] = all_0s_byte;
-    }
-    else
-    {
+    } else {
       db[i] = all_1s_byte;
     }
   }
 
   // extract the submatrix for different number of rows.
-  for (size_t subm_rows = 2; subm_rows < 7; subm_rows++)
-  {
+  for (size_t subm_rows = 2; subm_rows < 7; subm_rows++) {
     // extract the submatrix
     const auto subm = get_submatrix_as_uint64s(
         db, db_row_length_in_bits, subm_top_left_corner_in_bits,
@@ -197,14 +178,12 @@ TEST(SubmatrixExtraction, ExcessRows)
     EXPECT_EQ(subm.size(), subm_rows);
 
     // check that each row is 0x3FC0
-    for (size_t i = 0; i < subm.size(); i++)
-    {
+    for (size_t i = 0; i < subm.size(); i++) {
       EXPECT_EQ(subm[i], 0x3FC0);
     }
   }
 
-  for (size_t subm_rows = 9; subm_rows < 100; subm_rows++)
-  {
+  for (size_t subm_rows = 9; subm_rows < 100; subm_rows++) {
     // extract the submatrix
     const auto subm = get_submatrix_as_uint64s(
         db, db_row_length_in_bits, subm_top_left_corner_in_bits,
@@ -214,47 +193,40 @@ TEST(SubmatrixExtraction, ExcessRows)
     EXPECT_EQ(subm.size(), subm_rows);
 
     // check that each row is 0x3FC0
-    for (size_t i = 0; i < 8; i++)
-    {
+    for (size_t i = 0; i < 8; i++) {
       EXPECT_EQ(subm[i], 0x3FC0);
     }
 
-    for (size_t i = 8; i < subm.size(); i++)
-    {
+    for (size_t i = 8; i < subm.size(); i++) {
       EXPECT_EQ(subm[i], 0);
     }
   }
 }
 
-TEST(ConcatNlsbBits, Test1)
-{
+TEST(ConcatNlsbBits, Test1) {
   vector<uint64_t> in = {0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8};
   auto out = concat_N_lsb_bits<1>(in);
   vector<byte> expected = {0b10101010};
-  for (size_t i = 0; i < out.size(); i++)
-  {
+  for (size_t i = 0; i < out.size(); i++) {
     EXPECT_EQ(out[i], expected[i]);
   }
 }
 
-TEST(ConcatNlsbBits, Test2)
-{
+TEST(ConcatNlsbBits, Test2) {
   vector<uint64_t> in = {0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8};
   auto out = concat_N_lsb_bits<2>(in);
   vector<byte> expected = {0b01101100, 0b01101100};
-  for (size_t i = 0; i < out.size(); i++)
-  {
+  for (size_t i = 0; i < out.size(); i++) {
     EXPECT_EQ(out[i], expected[i]);
   }
 }
 
-TEST(ConcatNlsbBits, Test3)
-{
+TEST(ConcatNlsbBits, Test3) {
   vector<uint64_t> in = {0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8};
   auto out = concat_N_lsb_bits<3>(in);
   vector<byte> expected = {0b00101001, 0b11001011, 0b10111000};
-  for (size_t i = 0; i < out.size(); i++)
-  {
-    EXPECT_EQ(static_cast<bitset<8>>(out[i]), static_cast<bitset<8>>(expected[i]));
+  for (size_t i = 0; i < out.size(); i++) {
+    EXPECT_EQ(static_cast<bitset<8>>(out[i]),
+              static_cast<bitset<8>>(expected[i]));
   }
 }

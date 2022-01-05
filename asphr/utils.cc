@@ -9,18 +9,16 @@ using std::cout;
 using std::endl;
 using std::min;
 
-auto get_submatrix_as_uint64s(vector<byte> &db, size_t db_row_length_in_bits,
+auto get_submatrix_as_uint64s(vector<byte>& db, size_t db_row_length_in_bits,
                               size_t subm_top_left_corner_in_bits,
                               const size_t subm_row_length_in_bits,
-                              size_t subm_rows) -> vector<uint64_t>
-{
+                              size_t subm_rows) -> vector<uint64_t> {
   vector<uint64_t> subm;
   subm.reserve(subm_rows);
   assert(subm_row_length_in_bits == 18 && "unsupported submatrix size");
 
   // add 4 padding bytes to the db
-  for (size_t i = 0; i < 4; i++)
-  {
+  for (size_t i = 0; i < 4; i++) {
     db.push_back(byte(0));
   }
 
@@ -32,8 +30,7 @@ auto get_submatrix_as_uint64s(vector<byte> &db, size_t db_row_length_in_bits,
   const auto iterable_db_rows = min(db_rows, subm_end_row) - subm_start_row;
   const auto paddinging_rows = subm_rows - iterable_db_rows;
 
-  for (size_t i = 0; i < iterable_db_rows; i++)
-  {
+  for (size_t i = 0; i < iterable_db_rows; i++) {
     const size_t db_row_index =
         subm_top_left_corner_in_bits / 8 + i * db_row_length_in_bits / 8;
     const int db_row_offset_in_bits = subm_top_left_corner_in_bits % 8;
@@ -47,8 +44,7 @@ auto get_submatrix_as_uint64s(vector<byte> &db, size_t db_row_length_in_bits,
     first_row >>= db_row_offset_in_bits;
 
     subm_row |= bitset<64>(first_row.to_ullong());
-    for (size_t j = 1; j < subm_row_length_in_bytes; j++)
-    {
+    for (size_t j = 1; j < subm_row_length_in_bytes; j++) {
       const auto db_byte_as_int = bitset<64>(db_row[j]);
       subm_row <<= 8;
       subm_row |= db_byte_as_int;
@@ -63,14 +59,12 @@ auto get_submatrix_as_uint64s(vector<byte> &db, size_t db_row_length_in_bits,
     subm.push_back(subm_row.to_ullong());
   }
 
-  for (size_t i = 0; i < paddinging_rows; i++)
-  {
+  for (size_t i = 0; i < paddinging_rows; i++) {
     subm.push_back(0);
   }
 
   // remove the padding byte
-  for (size_t i = 0; i < 4; i++)
-  {
+  for (size_t i = 0; i < 4; i++) {
     db.pop_back();
   }
 
