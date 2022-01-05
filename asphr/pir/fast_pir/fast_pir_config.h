@@ -50,7 +50,7 @@ auto create_context_params() -> seal::EncryptionParameters {
   seal::EncryptionParameters params(seal::scheme_type::bfv);
   params.set_poly_modulus_degree(POLY_MODULUS_DEGREE);
   vector<seal::Modulus> coeff_modulus;
-  for (auto &prime : COEFF_MODULUS_FACTORIZATION) {
+  for (auto& prime : COEFF_MODULUS_FACTORIZATION) {
     coeff_modulus.push_back(seal::Modulus(prime));
   }
   params.set_coeff_modulus(coeff_modulus);

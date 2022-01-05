@@ -20,14 +20,14 @@ struct FastPIRQuery {
   auto serialize_to_string() noexcept(false) -> string {
     std::stringstream s_stream;
     galois_keys.save(s_stream);
-    for (const auto &c : query) {
+    for (const auto& c : query) {
       c.save(s_stream);
     }
     return s_stream.str();
   }
 
   // throws if deserialization fails
-  auto deserialize_from_string(const string &s,
+  auto deserialize_from_string(const string& s,
                                seal::SEALContext sc) noexcept(false) -> void {
     auto s_stream = std::stringstream(s);
     size_t position = 0;
@@ -50,7 +50,7 @@ struct FastPIRAnswer {
     return s_stream.str();
   }
   // throws if deserialization fails
-  auto deserialize_from_string(const string &s,
+  auto deserialize_from_string(const string& s,
                                seal::SEALContext sc) noexcept(false) -> void {
     auto s_stream = std::stringstream(s);
     answer.load(sc, s_stream);

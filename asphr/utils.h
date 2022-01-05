@@ -30,13 +30,13 @@ using byte = unsigned char;
 using std::bitset;
 using std::vector;
 
-auto get_submatrix_as_uint64s(vector<byte> &db, size_t db_row_length_in_bits,
+auto get_submatrix_as_uint64s(vector<byte>& db, size_t db_row_length_in_bits,
                               size_t subm_top_left_corner_in_bits,
                               size_t subm_row_length_in_bits, size_t subm_rows)
     -> vector<uint64_t>;
 
 template <int N>
-auto concat_N_lsb_bits(const vector<uint64_t> &v) -> vector<byte> {
+auto concat_N_lsb_bits(const vector<uint64_t>& v) -> vector<byte> {
   bitset<8 * N> bits;
   vector<byte> result;
 
@@ -53,7 +53,7 @@ auto concat_N_lsb_bits(const vector<uint64_t> &v) -> vector<byte> {
     vector<byte> semi_result;
     for (size_t j = 0; j < N; j++) {
       // get 8 bits from the j-th bit to the j+3-th bit
-      bitset<8 *N> mask = 0;
+      bitset<8 * N> mask = 0;
       mask = (1 << 8) - 1;
       mask <<= (j * 8);
       auto extract_bits = (bits & mask) >> (j * 8);

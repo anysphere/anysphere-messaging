@@ -3,7 +3,7 @@ cc_library(
     srcs = [
         "asphr.h",
         "base64.h",
-        "nlohmann_json.h",
+        "json/nlohmann_json.h",
     ],
     visibility = ["//visibility:public"],
     deps = [
