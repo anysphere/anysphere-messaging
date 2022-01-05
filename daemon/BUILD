@@ -16,3 +16,10 @@ cc_binary(
         "@com_github_grpc_grpc//:grpc++",
     ],
 )
+
+cc_test(
+    name = "anysphere_test",
+    size = "small",
+    srcs = ["anysphere_test.cc"],
+    deps = ["@com_google_googletest//:gtest_main"],
+)

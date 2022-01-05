@@ -12,3 +12,10 @@ cc_library(
         "@com_google_absl//absl/time",
     ],
 )
+
+cc_test(
+    name = "client_lib_test",
+    size = "small",
+    srcs = ["client_lib_test.cc"],
+    deps = ["@com_google_googletest//:gtest_main"],
+)

@@ -13,3 +13,10 @@ cc_binary(
         "@com_github_daniele77_cli//:cli_header_lib",
     ],
 )
+
+cc_test(
+    name = "as_cli_test",
+    size = "small",
+    srcs = ["as_cli_test.cc"],
+    deps = ["@com_google_googletest//:gtest_main"],
+)
