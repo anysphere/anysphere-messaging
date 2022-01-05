@@ -13,7 +13,7 @@ cc_library(
         "//server/test:__pkg__",
     ],
     deps = [
-        "//anysphere:utils",
+        "//asphr:asphr_lib",
         "@seal",
     ],
 )

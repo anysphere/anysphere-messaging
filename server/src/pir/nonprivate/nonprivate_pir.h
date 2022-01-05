@@ -1,48 +1,40 @@
 #pragma once
 
-#include <vector>
-#include <string>
 #include <array>
+#include <string>
+#include <vector>
 
-#include "anysphere/pir_common.h"
+#include "asphr/asphr.h"
 
 using std::array;
 using std::string;
 using std::vector;
 
-struct NonPrivatePIRQuery
-{
+struct NonPrivatePIRQuery {
   pir_index_t index;
 
-  auto serialize_to_string() noexcept -> string
-  {
+  auto serialize_to_string() noexcept -> string {
     return reinterpret_cast<const char *>(index);
   }
   // throws if deserialization was successful
-  auto deserialize_from_string(const string &s) noexcept(false) -> void
-  {
-    if (s.size() != sizeof(pir_index_t))
-    {
+  auto deserialize_from_string(const string &s) noexcept(false) -> void {
+    if (s.size() != sizeof(pir_index_t)) {
       throw std::invalid_argument("invalid size");
     }
     index = *reinterpret_cast<const pir_index_t *>(s.data());
   }
 };
 
-struct NonPrivatePIRAnswer
-{
+struct NonPrivatePIRAnswer {
   pir_value_t value;
 
-  auto serialize_to_string() noexcept -> string
-  {
+  auto serialize_to_string() noexcept -> string {
     string s(value.begin(), value.end());
     return s;
   }
   // throws if deserialization was successful
-  auto deserialize_from_string(const string &s) noexcept(false) -> bool
-  {
-    if (s.size() != MESSAGE_SIZE)
-    {
+  auto deserialize_from_string(const string &s) noexcept(false) -> bool {
+    if (s.size() != MESSAGE_SIZE) {
       throw std::invalid_argument("invalid size");
     }
     std::copy(s.begin(), s.end(), value.begin());
@@ -52,9 +44,8 @@ struct NonPrivatePIRAnswer
 };
 
 // TODO: add thread safety argument
-class NonPrivatePIR
-{
-public:
+class NonPrivatePIR {
+ public:
   using pir_query_t = NonPrivatePIRQuery;
   using pir_answer_t = NonPrivatePIRAnswer;
 
@@ -67,6 +58,6 @@ public:
   // may throw if deserialization fails
   auto query_from_string(const string &s) noexcept(false) -> pir_query_t;
 
-private:
+ private:
   vector<pir_value_t> db;
 };

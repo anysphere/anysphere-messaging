@@ -21,7 +21,7 @@ cc_library(
         "//server/test:__pkg__",
     ],
     deps = [
-        "//anysphere:utils",
+        "//asphr:asphr_lib",
         "//schema:messenger_cc_grpc",
         "//server/src/pir/fastpir:fastpir_lib",
         "@com_github_grpc_grpc//:grpc++",

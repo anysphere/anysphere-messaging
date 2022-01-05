@@ -11,8 +11,8 @@
 #include "schema/messenger.grpc.pb.h"
 #endif
 
-#include "anysphere/pir_common.h"
 #include "account_manager.h"
+#include "asphr/asphr.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -26,8 +26,7 @@ using std::endl;
 using std::string;
 
 template <typename PIR, typename AccountManager>
-class MessengerImpl final : public Messenger::Service
-{
+class MessengerImpl final : public Messenger::Service {
   using pir_query_t = typename PIR::pir_query_t;
   using pir_answer_t = typename PIR::pir_answer_t;
   // TODO: add a thread safety argument (because the methods may be called from
@@ -35,24 +34,20 @@ class MessengerImpl final : public Messenger::Service
   // TODO: add representation invariant
   Status Register(ServerContext *context,
                   const messenger::RegisterInfo *registerInfo,
-                  messenger::RegisterResponse *registerResponse) override
-  {
+                  messenger::RegisterResponse *registerResponse) override {
     cout << "Register() called" << endl;
-    try
-    {
+    try {
       // TODO: allocate in a loop
       auto allocation = pir.allocate();
-      auto [auth_token, allocation_vec] = account_manager.generate_account(registerInfo->public_key(), allocation);
+      auto [auth_token, allocation_vec] = account_manager.generate_account(
+          registerInfo->public_key(), allocation);
 
-      for (auto &alloc : allocation_vec)
-      {
+      for (auto &alloc : allocation_vec) {
         registerResponse->add_allocation(alloc);
       }
       registerResponse->set_public_key(registerInfo->public_key());
       registerResponse->set_authentication_token(auth_token);
-    }
-    catch (const AccountManagerException &e)
-    {
+    } catch (const AccountManagerException &e) {
       std::cerr << "AccountManagerException: " << e.what() << std::endl;
       return Status(grpc::StatusCode::UNAVAILABLE, e.what());
     }
@@ -62,23 +57,20 @@ class MessengerImpl final : public Messenger::Service
 
   Status SendMessage(
       ServerContext *context, const messenger::SendMessageInfo *sendMessageInfo,
-      messenger::SendMessageResponse *sendMessageResponse) override
-  {
+      messenger::SendMessageResponse *sendMessageResponse) override {
     // TODO: make this into actual logs using actual structured logging
     cout << "SendMessage() called" << endl;
     auto index = sendMessageInfo->index();
     cout << "index: " << index << endl;
     pir_index_t pir_index = index;
-    try
-    {
-      if (!account_manager.valid_index_access(sendMessageInfo->authentication_token(), pir_index))
-      {
+    try {
+      if (!account_manager.valid_index_access(
+              sendMessageInfo->authentication_token(), pir_index)) {
         std::cerr << "incorrect authentication token" << std::endl;
-        return Status(grpc::StatusCode::UNAUTHENTICATED, "incorrect authentication token");
+        return Status(grpc::StatusCode::UNAUTHENTICATED,
+                      "incorrect authentication token");
       }
-    }
-    catch (const AccountManagerException &e)
-    {
+    } catch (const AccountManagerException &e) {
       std::cerr << "AccountManagerException: " << e.what() << std::endl;
       return Status(grpc::StatusCode::UNAVAILABLE, e.what());
     }
@@ -87,10 +79,10 @@ class MessengerImpl final : public Messenger::Service
 
     auto message = sendMessageInfo->message();
     // size MUST be exactly the same for everyone always for privacy!!!
-    if (message.size() != sizeof(pir_value_t))
-    {
+    if (message.size() != sizeof(pir_value_t)) {
       std::cerr << "incorrect message size" << std::endl;
-      return Status(grpc::StatusCode::INVALID_ARGUMENT, "incorrect message size");
+      return Status(grpc::StatusCode::INVALID_ARGUMENT,
+                    "incorrect message size");
     }
     pir_value_t pir_value;
     std::copy(message.begin(), message.end(), pir_value.begin());
@@ -106,61 +98,43 @@ class MessengerImpl final : public Messenger::Service
   Status ReceiveMessage(
       ServerContext *context,
       const messenger::ReceiveMessageInfo *receiveMessageInfo,
-      messenger::ReceiveMessageResponse *receiveMessageResponse) override
-  {
+      messenger::ReceiveMessageResponse *receiveMessageResponse) override {
     cout << "ReceiveMessage() called" << endl;
     auto input_query = receiveMessageInfo->pir_query();
     // TODO: check that input_query is not too long
 
     pir_query_t query;
-    try
-    {
+    try {
       query = pir.query_from_string(input_query);
-    }
-    catch (const std::runtime_error &e)
-    {
+    } catch (const std::runtime_error &e) {
       std::cerr << "runtime_error: " << e.what() << std::endl;
       return Status(grpc::StatusCode::INTERNAL, e.what());
-    }
-    catch (const std::invalid_argument &e)
-    {
+    } catch (const std::invalid_argument &e) {
       std::cerr << "invalid_argument: " << e.what() << std::endl;
       return Status(grpc::StatusCode::INVALID_ARGUMENT, e.what());
-    }
-    catch (const std::logic_error &e)
-    {
+    } catch (const std::logic_error &e) {
       std::cerr << "logic_error: " << e.what() << std::endl;
       return Status(grpc::StatusCode::INVALID_ARGUMENT, e.what());
     }
 
     pir_answer_t answer;
-    try
-    {
+    try {
       answer = pir.get_value_privately(query);
-    }
-    catch (const std::invalid_argument &e)
-    {
+    } catch (const std::invalid_argument &e) {
       std::cerr << "invalid_argument: " << e.what() << std::endl;
       return Status(grpc::StatusCode::INVALID_ARGUMENT, e.what());
     }
 
     string answer_string;
-    try
-    {
+    try {
       answer_string = answer.serialize_to_string();
-    }
-    catch (const std::runtime_error &e)
-    {
+    } catch (const std::runtime_error &e) {
       std::cerr << "runtime_error: " << e.what() << std::endl;
       return Status(grpc::StatusCode::INTERNAL, e.what());
-    }
-    catch (const std::invalid_argument &e)
-    {
+    } catch (const std::invalid_argument &e) {
       std::cerr << "invalid_argument: " << e.what() << std::endl;
       return Status(grpc::StatusCode::INVALID_ARGUMENT, e.what());
-    }
-    catch (const std::logic_error &e)
-    {
+    } catch (const std::logic_error &e) {
       std::cerr << "logic_error: " << e.what() << std::endl;
       return Status(grpc::StatusCode::INVALID_ARGUMENT, e.what());
     }
@@ -170,10 +144,11 @@ class MessengerImpl final : public Messenger::Service
     return Status::OK;
   }
 
-public:
-  MessengerImpl(PIR &pir, AccountManager &account_manager) : pir(pir), account_manager(account_manager) {}
+ public:
+  MessengerImpl(PIR &pir, AccountManager &account_manager)
+      : pir(pir), account_manager(account_manager) {}
 
-private:
+ private:
   PIR &pir;
   AccountManager &account_manager;
 };
