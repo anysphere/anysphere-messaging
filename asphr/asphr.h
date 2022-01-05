@@ -1,3 +1,7 @@
+#pragma once
+
+#include <stdlib.h>
+
 #include <ctime>
 #include <filesystem>
 #include <fstream>
