@@ -39,3 +39,12 @@ config_setting(
     name = "in_memory_db",
     values = {"define": "memdb=true"},
 )
+
+cc_test(
+    name = "as_server_test",
+    srcs = glob(["**/*_test.cc"]),
+    deps = [
+        ":as_server_lib",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

@@ -3,7 +3,6 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 cc_library(
     name = "server_fast_pir_lib",
     hdrs = [
-        "fast_pir_client.h",
         "fastpir.h",
     ],
     visibility = [
@@ -15,5 +14,17 @@ cc_library(
         "//asphr:asphr_lib",
         "//asphr/pir/fast_pir:fast_pir_lib",
         "@seal",
+    ],
+)
+
+cc_test(
+    name = "server_fast_pir_test",
+    srcs = [
+        "fastpir_test.cc",
+    ],
+    deps = [
+        ":server_fast_pir_lib",
+        "//asphr/pir/fast_pir:fast_pir_lib",
+        "@com_google_googletest//:gtest_main",
     ],
 )
