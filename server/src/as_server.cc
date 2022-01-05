@@ -1,10 +1,8 @@
 
-#include "messenger_impl.h"
-
-#include "pir/nonprivate/nonprivate_pir.h"
-#include "pir/sealpir/sealpir.h"
-#include "pir/fastpir/fastpir.h"
 #include "account_manager.h"
+#include "messenger_impl.h"
+#include "server/pir/fastpir/fastpir.h"
+#include "server/pir/nonprivate/nonprivate_pir.h"
 
 // TODO(sualeh): turn on clang-tidy with bazel
 
@@ -22,8 +20,7 @@
 
 // TODO: look into AsyncService; might be useful for performance
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   std::string server_address("0.0.0.0:50051");
   std::string db_address("127.0.0.1");
 
@@ -31,21 +28,19 @@ int main(int argc, char **argv)
   string infname, outfname;
 
   // Loop over command-line args
-  for (auto i = args.begin(); i != args.end(); ++i)
-  {
-    if (*i == "-h" || *i == "--help")
-    {
-      std::cout << "Syntax: as_server -a <server_address> -d <db_address> -m <in_memory_db>" << std::endl;
-      std::cout << "  -a <server_address>  Address to listen on (default: " << server_address << ")" << std::endl;
-      std::cout << "  -d <db_address>      Address of database (default: " << db_address << ")" << std::endl;
+  for (auto i = args.begin(); i != args.end(); ++i) {
+    if (*i == "-h" || *i == "--help") {
+      std::cout << "Syntax: as_server -a <server_address> -d <db_address> -m "
+                   "<in_memory_db>"
+                << std::endl;
+      std::cout << "  -a <server_address>  Address to listen on (default: "
+                << server_address << ")" << std::endl;
+      std::cout << "  -d <db_address>      Address of database (default: "
+                << db_address << ")" << std::endl;
       return 0;
-    }
-    else if (*i == "-a")
-    {
+    } else if (*i == "-a") {
       server_address = *++i;
-    }
-    else if (*i == "-d")
-    {
+    } else if (*i == "-d") {
       db_address = *++i;
     }
   }
@@ -60,9 +55,11 @@ int main(int argc, char **argv)
 #endif
   AccountManager account_manager;
 
-  // MessengerImpl<NonPrivatePIR, AccountManager> messenger_service(pir, account_manager);
-  // MessengerImpl<SealPIR, AccountManager> messenger_service(pir, account_manager);
-  MessengerImpl<FastPIR, AccountManager> messenger_service(pir, account_manager);
+  // MessengerImpl<NonPrivatePIR, AccountManager> messenger_service(pir,
+  // account_manager); MessengerImpl<SealPIR, AccountManager>
+  // messenger_service(pir, account_manager);
+  MessengerImpl<FastPIR, AccountManager> messenger_service(pir,
+                                                           account_manager);
 
   ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());

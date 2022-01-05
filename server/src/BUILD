@@ -2,14 +2,9 @@ load("@rules_cc//cc:defs.bzl", "cc_binary")
 
 cc_library(
     name = "as_server_lib",
-    srcs = [
-        "pir/nonprivate/nonprivate_pir.cc",
-    ],
     hdrs = [
         "account_manager.h",
         "messenger_impl.h",
-        "pir/nonprivate/nonprivate_pir.h",
-        "pir/sealpir/sealpir.h",
     ],
     defines = select({
         "//conditions:default": ["USE_POSTGRES_DB"],
@@ -23,7 +18,8 @@ cc_library(
     deps = [
         "//asphr:asphr_lib",
         "//schema:messenger_cc_grpc",
-        "//server/src/pir/fastpir:fastpir_lib",
+        "//server/pir/fastpir:fastpir_lib",
+        "//server/pir/nonprivate:nonprivate_pir_lib",
         "@com_github_grpc_grpc//:grpc++",
         "@libpqxx",
     ],

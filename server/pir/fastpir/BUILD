@@ -5,7 +5,6 @@ cc_library(
     hdrs = [
         "fastpir.h",
         "fastpir_client.h",
-        "fastpir_config.h",
     ],
     visibility = [
         "//client/daemon:__pkg__",
@@ -14,6 +13,7 @@ cc_library(
     ],
     deps = [
         "//asphr:asphr_lib",
+        "//asphr/pir/fast_pir:fast_pir_lib",
         "@seal",
     ],
 )

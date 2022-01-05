@@ -5,7 +5,6 @@
 
 #include "asphr/asphr.h"
 #include "fastpir.h"
-#include "fastpir_config.h"
 
 using std::array;
 using std::bitset;
