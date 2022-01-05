@@ -15,13 +15,13 @@ using std::vector;
 constexpr int AUTHENTICATION_TOKEN_SIZE = 32;
 
 struct AccountManagerException : public std::exception {
-  const char *what() const throw() { return "Account Manager Exception"; }
+  const char* what() const throw() { return "Account Manager Exception"; }
 };
 
 // TODO: use postgres
 class AccountManagerInMemory {
  public:
-  auto generate_account(const string &public_key, pir_index_t allocation)
+  auto generate_account(const string& public_key, pir_index_t allocation)
       -> pair<string, vector<pir_index_t>> {
     // TODO: store galois keys for rotation things!
     // TODO: use cryptographic randomness here (not critical for privacy)
@@ -42,7 +42,7 @@ class AccountManagerInMemory {
     return std::make_pair(authentication_token, indices);
   }
 
-  auto valid_index_access(const string &token, pir_index_t index) -> bool {
+  auto valid_index_access(const string& token, pir_index_t index) -> bool {
     if (!token_to_index_map.contains(token)) return false;
     auto indices = token_to_index_map.at(token);
     for (auto i : indices) {
@@ -64,7 +64,7 @@ class AccountManagerPostgres {
     std::cout << "Connected to " << conn.dbname() << '\n';
   }
 
-  auto generate_account(const string &public_key, pir_index_t allocation)
+  auto generate_account(const string& public_key, pir_index_t allocation)
       -> pair<string, vector<pir_index_t>> {
     pqxx::work W{conn};
     // TODO: use cryptographic randomness here (not critical for privacy)
@@ -93,7 +93,7 @@ class AccountManagerPostgres {
     return std::make_pair(authentication_token, indices);
   }
 
-  auto valid_index_access(const string &token, pir_index_t index) -> bool {
+  auto valid_index_access(const string& token, pir_index_t index) -> bool {
     pqxx::work W{conn};
     auto result = W.exec1(
         "SELECT pir_index FROM accounts WHERE authentication_token = '" +

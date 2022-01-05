@@ -99,7 +99,7 @@ class FastPIR {
   }
 
   // throws if deserialization fails
-  auto query_from_string(const string &s) const noexcept(false) -> pir_query_t {
+  auto query_from_string(const string& s) const noexcept(false) -> pir_query_t {
     pir_query_t query;
     query.deserialize_from_string(s, sc);
     return query;

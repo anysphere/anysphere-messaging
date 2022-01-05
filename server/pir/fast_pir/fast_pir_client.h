@@ -10,10 +10,10 @@ using std::array;
 using std::bitset;
 
 struct Galois_string {
-  Galois_string(const string &s) : galois_string(s) {}
+  Galois_string(const string& s) : galois_string(s) {}
 
   string galois_string;
-  auto save(std::ostream &os) const -> void { os << galois_string; }
+  auto save(std::ostream& os) const -> void { os << galois_string; }
 };
 
 auto generate_keys() -> std::pair<std::string, std::string> {
@@ -161,7 +161,7 @@ class FastPIRClient {
   }
 
   // throws if deserialization fails
-  auto answer_from_string(const string &s) const noexcept(false)
+  auto answer_from_string(const string& s) const noexcept(false)
       -> pir_answer_t {
     pir_answer_t answer;
     answer.deserialize_from_string(s, sc);
