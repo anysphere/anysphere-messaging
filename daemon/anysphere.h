@@ -1,11 +1,10 @@
 #pragma once
-
 #include <grpcpp/grpcpp.h>
 
 #include "asphr/asphr.h"
 #include "client/client_lib/client_lib.h"
 #include "schema/messenger.grpc.pb.h"
-#include "server/src/pir/fastpir/fastpir_client.h"
+#include "server/pir/fast_pir/fast_pir_client.h"
 
 using grpc::Channel;
 using grpc::ClientContext;

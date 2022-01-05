@@ -20,11 +20,18 @@ absl::BitGen gen_;
 
 absl::TimeZone utc = absl::UTCTimeZone();
 
-const auto WORKSPACE_DIR = string("/workspace/anysphere/client/logs/");
-const auto UI_FILE = WORKSPACE_DIR + string("ui.ndjson");
-const auto UI_URGENT_FILE = WORKSPACE_DIR + string("ui_urgent.ndjson");
-const auto CLIENT_FILE = WORKSPACE_DIR + string("client.ndjson");
-const auto CONFIG_FILE = WORKSPACE_DIR + string("config.json");
+// TODO(sualeh): make this work
+//  const auto WORKSPACE_DIR = string("/workspace/anysphere/client/logs/");
+//  const auto UI_FILE = WORKSPACE_DIR + string("ui.ndjson");
+//  const auto UI_URGENT_FILE = WORKSPACE_DIR + string("ui_urgent.ndjson");
+//  const auto CLIENT_FILE = WORKSPACE_DIR + string("client.ndjson");
+//  const auto CONFIG_FILE = WORKSPACE_DIR + string("config.json");
+
+constexpr auto UI_FILE = "/workspace/anysphere/client/logs/ui.ndjson";
+constexpr auto UI_URGENT_FILE =
+    "/workspace/anysphere/client/logs/ui_urgent.ndjson";
+constexpr auto CLIENT_FILE = "/workspace/anysphere/client/logs/client.ndjson";
+constexpr auto CONFIG_FILE = "/workspace/anysphere/client/logs/config.ndjson";
 
 /**
  * @brief This function gets the last line of a file

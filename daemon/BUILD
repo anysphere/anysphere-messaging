@@ -12,7 +12,7 @@ cc_binary(
         "//asphr:asphr_lib",
         "//client/client_lib",
         "//schema:messenger_cc_grpc",
-        "//server/src/pir/fastpir:fastpir_lib",
+        "//server/pir/fast_pir:server_fast_pir_lib",
         "@com_github_grpc_grpc//:grpc++",
     ],
 )
