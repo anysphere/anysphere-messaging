@@ -1,12 +1,12 @@
 
+#include "anysphere.h"
+
 #include "ui_msg.h"
 #include "ui_urgent.h"
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   std::string server_address("0.0.0.0:50051");
-  if (argc > 1)
-  {
+  if (argc > 1) {
     server_address = argv[1];
   }
 
@@ -15,8 +15,7 @@ int main(int argc, char **argv)
   auto ui_urgent_file_address(UI_URGENT_FILE);
   auto client_write_file_address(CLIENT_FILE);
   auto config_file_address(CONFIG_FILE);
-  if (argc > 5)
-  {
+  if (argc > 5) {
     ui_write_file_address = argv[2];
     ui_urgent_file_address = argv[3];
     client_write_file_address = argv[4];
@@ -49,12 +48,11 @@ int main(int argc, char **argv)
                            absl::Uniform(gen_, 100, 1000000000), " dollars"),
                     "MESSAGE", "sualeh");
 
-  while (true)
-  {
+  while (true) {
     // check for new ui write:
 
-    process_ui_urgent_file(ui_urgent_file_address, config_file_address, last_ui_urgent_timestamp,
-                           stub);
+    process_ui_urgent_file(ui_urgent_file_address, config_file_address,
+                           last_ui_urgent_timestamp, stub);
 
     last_ui_urgent_timestamp = absl::Now();
     last_config_timestamp = absl::Now();
@@ -64,11 +62,10 @@ int main(int argc, char **argv)
     auto time_since_last_round = now - start_t;
 
     // if 1s has passed, then do a round
-    if (time_since_last_round > round_duration)
-    {
+    if (time_since_last_round > round_duration) {
       // do a round
       std::cout << "Client round" << std::endl;
-      start_t = absl::Now(); // reset the start time
+      start_t = absl::Now();  // reset the start time
 
       cout << "UI file address: " << ui_write_file_address << endl;
       process_ui_file(ui_write_file_address, last_ui_timestamp, stub);
