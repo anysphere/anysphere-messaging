@@ -33,7 +33,7 @@ cc_library(
 cc_test(
     name = "utils_test",
     size = "small",
-    srcs = ["test_utils.cc"],
+    srcs = ["utils_test.cc"],
     deps = [
         ":utils",
         "@com_google_googletest//:gtest_main",
