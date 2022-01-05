@@ -20,10 +20,11 @@ absl::BitGen gen_;
 
 absl::TimeZone utc = absl::UTCTimeZone();
 
-constexpr auto UI_FILE = "/workspace/anysphere/logs/ui.ndjson";
-constexpr auto UI_URGENT_FILE = "/workspace/anysphere/logs/ui_urgent.ndjson";
-constexpr auto CLIENT_FILE = "/workspace/anysphere/logs/client.ndjson";
-constexpr auto CONFIG_FILE = "/workspace/anysphere/logs/config.ndjson";
+const auto WORKSPACE_DIR = string("/workspace/anysphere/client/logs/");
+const auto UI_FILE = WORKSPACE_DIR + string("ui.ndjson");
+const auto UI_URGENT_FILE = WORKSPACE_DIR + string("ui_urgent.ndjson");
+const auto CLIENT_FILE = WORKSPACE_DIR + string("client.ndjson");
+const auto CONFIG_FILE = WORKSPACE_DIR + string("config.json");
 
 /**
  * @brief This function gets the last line of a file
@@ -226,7 +227,7 @@ auto write_friend_to_file(string file_address, const Name friend_name,
 
 auto register_profile_to_file(Name name, PublicKey key, PrivateKey private_key,
                               Time time) -> void {
-  constexpr static auto file_address = UI_URGENT_FILE;
+  const auto file_address = UI_URGENT_FILE;
   auto file = std::ofstream(file_address, std::ios_base::app);
 
   auto send_time = absl::FormatTime(time, utc);
@@ -244,7 +245,7 @@ auto register_profile_to_file(Name name, PublicKey key, PrivateKey private_key,
 
 auto read_friend_messages_from_file(Name friend_name, size_t number)
     -> vector<json> {
-  constexpr auto file_address = CLIENT_FILE;
+  const auto file_address = CLIENT_FILE;
   auto file = std::ifstream(file_address);
   vector<json> messages;
   string line;
@@ -266,7 +267,7 @@ auto read_friend_messages_from_file(Name friend_name, size_t number)
 }
 
 auto read_friends_from_file() -> vector<json> {
-  constexpr auto file_address = CONFIG_FILE;
+  const auto file_address = CONFIG_FILE;
   auto file = std::ifstream(file_address);
   vector<json> friends;
   string line;
