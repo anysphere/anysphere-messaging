@@ -50,7 +50,7 @@ struct RegisterationInfo {
   std::unique_ptr<FastPIRClient> pir_client = nullptr;
 
   // store the config in config_file_address
-  auto store(const string &config_file_address) -> void {
+  auto store(const string& config_file_address) -> void {
     json reg_json = {{"name", name},
                      {"public_key", public_key},
                      {"private_key", private_key},
@@ -70,10 +70,10 @@ struct RegisterationInfo {
 static auto RegistrationInfo = RegisterationInfo();
 static auto FriendTable = std::unordered_map<string, Friend>();
 
-auto store_friend_table(const string &config_file_address) -> void {
+auto store_friend_table(const string& config_file_address) -> void {
   json config_json = json::parse(std::ifstream(config_file_address));
   json friend_table_json = json::array();
-  for (auto &friend_pair : FriendTable) {
+  for (auto& friend_pair : FriendTable) {
     json friend_json = {{"name", friend_pair.second.name},
                         {"write_index", friend_pair.second.write_index},
                         {"read_index", friend_pair.second.read_index},
@@ -85,7 +85,7 @@ auto store_friend_table(const string &config_file_address) -> void {
   out << std::setw(4) << config_json.dump(4) << std::endl;
 }
 
-auto read_config(const string &config_file_address) -> void {
+auto read_config(const string& config_file_address) -> void {
   if (!std::filesystem::exists(config_file_address) ||
       std::filesystem::file_size(config_file_address) == 0) {
     cout << "creating new config json!" << endl;
@@ -130,7 +130,7 @@ auto read_config(const string &config_file_address) -> void {
         RegistrationInfo.pir_galois_keys);
   }
 
-  for (auto &friend_json : config_json["friends"]) {
+  for (auto& friend_json : config_json["friends"]) {
     FriendTable[friend_json["name"].get<string>()] =
         Friend(friend_json["name"].get<string>(),
                friend_json["write_index"].get<int>(),

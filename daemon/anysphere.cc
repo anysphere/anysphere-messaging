@@ -4,7 +4,7 @@
 #include "ui_msg.h"
 #include "ui_urgent.h"
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   std::string server_address("0.0.0.0:50051");
   if (argc > 1) {
     server_address = argv[1];

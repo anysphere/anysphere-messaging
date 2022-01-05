@@ -16,7 +16,7 @@ using std::make_unique;
 struct Message {
  public:
   Message() = default;
-  Message(const string &msg, const string &friend_name)
+  Message(const string& msg, const string& friend_name)
       : msg_(msg), friend_(friend_name) {}
   Msg msg_;
   Name friend_;
@@ -47,8 +47,8 @@ struct Message {
 struct Friend {
  public:
   Friend() = default;
-  Friend(const string &name, const int &write_index, const int &read_index,
-         const string &shared_key)
+  Friend(const string& name, const int& write_index, const int& read_index,
+         const string& shared_key)
       : name_(name),
         write_index_(write_index),
         read_index_(read_index),
@@ -86,8 +86,8 @@ struct Friend {
 
 struct Profile {
  public:
-  Profile(const string &name, const string &public_key,
-          const string &private_key)
+  Profile(const string& name, const string& public_key,
+          const string& private_key)
       : name_(name), public_key_(public_key), private_key_(private_key) {}
   Name name_;
   PublicKey public_key_;

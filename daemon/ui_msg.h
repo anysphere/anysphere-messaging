@@ -5,8 +5,8 @@ using messenger::ReceiveMessageResponse;
 using messenger::SendMessageInfo;
 using messenger::SendMessageResponse;
 
-void retrieve_messages(const string &output_file_address,
-                       std::unique_ptr<Messenger::Stub> &stub) {
+void retrieve_messages(const string& output_file_address,
+                       std::unique_ptr<Messenger::Stub>& stub) {
   if (!RegistrationInfo.has_registered) {
     cout << "hasn't registered yet, so cannot retrieve messages" << endl;
     return;
@@ -16,8 +16,8 @@ void retrieve_messages(const string &output_file_address,
         RegistrationInfo.pir_secret_key, RegistrationInfo.pir_galois_keys);
   }
 
-  auto &client = *RegistrationInfo.pir_client;
-  for (auto &[friend_name, friend_info] : FriendTable) {
+  auto& client = *RegistrationInfo.pir_client;
+  for (auto& [friend_name, friend_info] : FriendTable) {
     ReceiveMessageInfo request;
 
     auto query = client.query(friend_info.read_index, RegistrationInfo.db_rows);
@@ -43,7 +43,7 @@ void retrieve_messages(const string &output_file_address,
       }
 
       string decoded_string = "";
-      for (auto &c : decoded_value) {
+      for (auto& c : decoded_value) {
         if (c == 0) break;
         decoded_string += c;
       }
@@ -69,9 +69,9 @@ void retrieve_messages(const string &output_file_address,
   }
 }
 
-void process_ui_file(const string &ui_file_address,
-                     const Time &last_ui_timestamp,
-                     std::unique_ptr<Messenger::Stub> &stub) {
+void process_ui_file(const string& ui_file_address,
+                     const Time& last_ui_timestamp,
+                     std::unique_ptr<Messenger::Stub>& stub) {
   if (!RegistrationInfo.has_registered) {
     cout << "hasn't registered yet, so don't send a message" << endl;
     return;
@@ -83,7 +83,7 @@ void process_ui_file(const string &ui_file_address,
 
   std::unordered_map<string, string> friend_to_message;
 
-  for (auto &entry : new_entries) {
+  for (auto& entry : new_entries) {
     auto to = entry["to"].get<string>();
     if (!FriendTable.contains(to)) {
       std::cerr << "FriendHashTable does not contain " << to
@@ -93,7 +93,7 @@ void process_ui_file(const string &ui_file_address,
     friend_to_message.insert({to, entry["message"].get<string>()});
   }
 
-  for (auto &[friend_name, friend_info] : FriendTable) {
+  for (auto& [friend_name, friend_info] : FriendTable) {
     pir_value_t padded_msg;
     padded_msg.fill(0);
     if (friend_to_message.count(friend_name) != 0) {
@@ -119,7 +119,7 @@ void process_ui_file(const string &ui_file_address,
     request.set_authentication_token(authentication_token);
     // TODO: encrypt message here, pad it to the right length
     string padded_msg_str = "";
-    for (auto &c : padded_msg) {
+    for (auto& c : padded_msg) {
       padded_msg_str += c;
     }
     request.set_message(padded_msg_str);

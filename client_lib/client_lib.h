@@ -120,7 +120,7 @@ auto get_last_lines(string filename, int n) {
       lines_found++;
     }
 
-    for (auto &line : lines) {
+    for (auto& line : lines) {
       cout << line << endl;
     }
 
@@ -129,7 +129,7 @@ auto get_last_lines(string filename, int n) {
   return lines;
 }
 
-auto get_new_entries(const string &file_address, const Time &last_timestamp)
+auto get_new_entries(const string& file_address, const Time& last_timestamp)
     -> vector<json> {
   auto test = json::array();
   auto new_entries = vector<json>();
@@ -158,7 +158,7 @@ auto get_new_entries(const string &file_address, const Time &last_timestamp)
   return new_entries;
 }
 
-auto get_entries(const string &file_address) -> vector<json> {
+auto get_entries(const string& file_address) -> vector<json> {
   auto test = json::array();
   auto entries = vector<json>();
 
@@ -217,8 +217,8 @@ auto write_msg_to_file(string type, string file_address, Msg msg,
 }
 
 auto write_friend_to_file(string file_address, const Name friend_name,
-                          const int &write_index, const int &read_index,
-                          const string &shared_key, Time time) -> void {
+                          const int& write_index, const int& read_index,
+                          const string& shared_key, Time time) -> void {
   auto file = std::ofstream(file_address, std::ios_base::app);
 
   auto send_time = absl::FormatTime(time, utc);

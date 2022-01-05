@@ -1,9 +1,9 @@
 #include "anysphere.h"
 
-void process_ui_urgent_file(const string &ui_urgent_file_address,
-                            const string &config_file_address,
-                            const Time &last_ui_urgent_timestamp,
-                            std::unique_ptr<Messenger::Stub> &stub) {
+void process_ui_urgent_file(const string& ui_urgent_file_address,
+                            const string& config_file_address,
+                            const Time& last_ui_urgent_timestamp,
+                            std::unique_ptr<Messenger::Stub>& stub) {
   auto new_entries =
       get_new_entries(ui_urgent_file_address, last_ui_urgent_timestamp);
 
@@ -12,7 +12,7 @@ void process_ui_urgent_file(const string &ui_urgent_file_address,
          << "last_ui_urgent_timestamp: " << last_ui_urgent_timestamp << endl;
     return;
   }
-  for (auto &entry : new_entries) {
+  for (auto& entry : new_entries) {
     auto type = entry["type"].get<string>();
     auto timestamp = entry["timestamp"].get<string>();
     if (type == "REGISTER") {

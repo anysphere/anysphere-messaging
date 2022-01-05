@@ -43,18 +43,18 @@ int main() {
   auto rootMenu = make_unique<Menu>("anysphere");
 
   rootMenu->Insert(
-      "menu", [](std::ostream &out) { out << "Hello, world\n"; },
+      "menu", [](std::ostream& out) { out << "Hello, world\n"; },
       "The Anysphere menu");
   rootMenu->Insert(
       "color",
-      [](std::ostream &out) {
+      [](std::ostream& out) {
         out << "Colors ON\n";
         SetColor();
       },
       "Enable colors in the cli");
   rootMenu->Insert(
       "nocolor",
-      [](std::ostream &out) {
+      [](std::ostream& out) {
         out << "Colors OFF\n";
         SetNoColor();
       },
@@ -66,7 +66,7 @@ int main() {
   */
   rootMenu->Insert(
       "message",
-      [&](std::ostream &out, string friend_name, string message) {
+      [&](std::ostream& out, string friend_name, string message) {
         Message msg(message, friend_name);
         msg.send();
 
@@ -80,7 +80,7 @@ int main() {
   auto messageMenu = make_unique<Menu>("message");
   messageMenu->Insert(
       "friend",
-      [&](std::ostream &out, string friend_name) {
+      [&](std::ostream& out, string friend_name) {
         out << "Send a message to friend: " << friend_name << " :)\n";
 
         message_to_send.friend_ = friend_name;
@@ -96,7 +96,7 @@ int main() {
       "Open a text menu to message a friend.");
   messageMenu->Insert(
       "write",
-      [&](std::ostream &out, string message) {
+      [&](std::ostream& out, string message) {
         out << "Send a message to friend: " << message << " :\n";
 
         message_to_send.msg_ = message;
@@ -115,7 +115,7 @@ int main() {
    */
   rootMenu->Insert(
       "register",
-      [&](std::ostream &out, string name, string public_key,
+      [&](std::ostream& out, string name, string public_key,
           string private_key) {
         Profile profile(name, public_key, private_key);
         profile.add();
@@ -129,13 +129,13 @@ int main() {
   auto inboxMenu = make_unique<Menu>("inbox");
   inboxMenu->Insert(
       "friend",
-      [](std::ostream &out, string friend_name) {
+      [](std::ostream& out, string friend_name) {
         out << StrCat("Showing (the last 15) messages from your friend ",
                       friend_name, "\n");
 
         out << "--------------------------------\n";
         auto messages = read_friend_messages_from_file(friend_name, 15);
-        for (const auto &message : messages) {
+        for (const auto& message : messages) {
           out << StrCat(message["from"].get<string>(), ": \n",
                         "time: ", message["timestamp"].get<string>(), "\n",
                         message["message"].get<string>(), "\n\n",
@@ -147,10 +147,10 @@ int main() {
       "Show the messages from a friend");
   inboxMenu->Insert(
       "names",
-      [](std::ostream &out) {
+      [](std::ostream& out) {
         out << "Showing all your friends:\n\n";
         auto friends = read_friends_from_file();
-        for (const auto &friend_ : friends) {
+        for (const auto& friend_ : friends) {
           out << friend_["name"].get<string>() << "\n";
         }
         if (friends.empty()) {
@@ -175,7 +175,7 @@ int main() {
   auto friendsMenu = make_unique<Menu>("friends");
   rootMenu->Insert(
       "add-friend",
-      [&](std::ostream &out, string friend_name, int write_index,
+      [&](std::ostream& out, string friend_name, int write_index,
           int read_index, string shared_key) {
         Friend friend_(friend_name, write_index, read_index, shared_key);
         friend_.add();
@@ -239,13 +239,13 @@ int main() {
   SetColor();
 
   // global exit action
-  cli.ExitAction([](auto &out) {
+  cli.ExitAction([](auto& out) {
     out << "Goodbye! We hope you are enjoying anysphere!\n";
   });
 
   MainScheduler scheduler;
   CliLocalTerminalSession localSession(cli, scheduler, std::cout, 200);
-  localSession.ExitAction([&scheduler](auto &out) {
+  localSession.ExitAction([&scheduler](auto& out) {
     out << "Closing App...\n";
     scheduler.Stop();
   });
