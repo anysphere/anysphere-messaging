@@ -1,22 +1,8 @@
 
 #include "account_manager.h"
 #include "messenger_impl.h"
-#include "server/pir/fastpir/fastpir.h"
+#include "server/pir/fast_pir/fastpir.h"
 #include "server/pir/nonprivate/nonprivate_pir.h"
-
-// TODO(sualeh): turn on clang-tidy with bazel
-
-// draft of structure:
-//    - there are two kinds of databases. one contains all the messages and only
-//    the messages, and is the one
-//      we do PIR on. the other contains auxiliary non-private information, like
-//      (authentication_token -> allocation) map, and possibly other things. we
-//      care a lot about the latter database to be persistent, whereas the
-//      former need not be persistent. so probably what we want is a postgres
-//      instance for storing all non-private info, and an in-memory / custom
-//      solution to performing the PIR (when memory usage becomes a problem,
-//      split the PIR into multiple shards, and perform the queries on each
-//      shard)
 
 // TODO: look into AsyncService; might be useful for performance
 

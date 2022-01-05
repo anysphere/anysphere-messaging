@@ -18,7 +18,7 @@ cc_library(
     deps = [
         "//asphr:asphr_lib",
         "//schema:messenger_cc_grpc",
-        "//server/pir/fastpir:fastpir_lib",
+        "//server/pir/fast_pir:server_fast_pir_lib",
         "//server/pir/nonprivate:nonprivate_pir_lib",
         "@com_github_grpc_grpc//:grpc++",
         "@libpqxx",

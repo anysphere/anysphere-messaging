@@ -1,10 +1,10 @@
-#include "server/pir/fastpir/fastpir.h"
+#include "server/pir/fast_pir/fastpir.h"
 
 #include <gtest/gtest.h>
 
 #include <string>
 
-#include "server/pir/fastpir/fastpir_client.h"
+#include "server/pir/fast_pir/fast_pir_client.h"
 
 using std::cout;
 using std::endl;

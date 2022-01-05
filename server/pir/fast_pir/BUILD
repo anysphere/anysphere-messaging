@@ -1,10 +1,10 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
-    name = "fastpir_lib",
+    name = "server_fast_pir_lib",
     hdrs = [
+        "fast_pir_client.h",
         "fastpir.h",
-        "fastpir_client.h",
     ],
     visibility = [
         "//client/daemon:__pkg__",
