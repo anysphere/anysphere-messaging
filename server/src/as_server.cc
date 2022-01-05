@@ -6,7 +6,7 @@
 
 // TODO: look into AsyncService; might be useful for performance
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   std::string server_address("0.0.0.0:50051");
   std::string db_address("127.0.0.1");
 
