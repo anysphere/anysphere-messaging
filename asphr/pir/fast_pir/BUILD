@@ -4,6 +4,7 @@ cc_library(
     name = "fast_pir_lib",
     hdrs = [
         "fast_pir.h",
+        "fast_pir_client.h",
         "fast_pir_config.h",
     ],
     visibility = ["//visibility:public"],
