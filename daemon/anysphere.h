@@ -2,7 +2,6 @@
 
 #include <grpcpp/grpcpp.h>
 
-#include "anysphere/pir_common.h"
 #include "asphr/asphr.h"
 #include "client/client_lib/client_lib.h"
 #include "schema/messenger.grpc.pb.h"
