@@ -11,7 +11,7 @@ class Crypto {
     }
   }
 
-  // TODO: the message should be a protobuf?
+  // TODO: the message should be a protobuf? yes definitely.
   auto encrypt(const std::string& message, const std::string& key)
       -> pir_value_t {
     // if (key.size() != crypto_secretbox_KEYBYTES) {
