@@ -22,9 +22,9 @@ http_archive(
 )
 
 git_repository(
-       name = "bazel_clang_tidy",
-       commit = "69aa13e6d7cf102df70921c66be15d4592251e56",
-       remote = "https://github.com/erenon/bazel_clang_tidy.git",
+    name = "bazel_clang_tidy",
+    commit = "69aa13e6d7cf102df70921c66be15d4592251e56",
+    remote = "https://github.com/erenon/bazel_clang_tidy.git",
 )
 
 # libpqxx for postgres
@@ -51,11 +51,20 @@ new_git_repository(
 new_git_repository(
     name = "seal",
     build_file = "//:seal.BUILD",
+    remote = "https://github.com/anysphere/SEAL",
     # commit = "79234726053c45eede688400aa219fdec0810bd8", # version: 3.7.2
     tag = "v3.7.2-bazel",
-    remote = "https://github.com/anysphere/SEAL",
 )
 
+# libsodium
+
+http_archive(
+    name = "libsodium",
+    build_file = "//:libsodium.BUILD",
+    sha256 = "ac87ce227a42405601d4b03e43c3fa61c5ddbf481842af8f0d04fc3d3ff4c968",  # generated using shasum -a 256 <file>.tar.gz
+    strip_prefix = "libsodium-7d67f1909bfa6e1225469dbcdb0229c5a9bbf8e2",  # stable branch as of 2022-01-06
+    urls = ["https://github.com/jedisct1/libsodium/archive/7d67f1909bfa6e1225469dbcdb0229c5a9bbf8e2.tar.gz"],
+)
 
 # grpc and rules_proto
 
@@ -72,6 +81,7 @@ http_archive(
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
 
 rules_proto_dependencies()
+
 rules_proto_toolchains()
 
 # swap proto later with
@@ -101,8 +111,7 @@ grpc_extra_deps()
 
 new_git_repository(
     name = "com_github_daniele77_cli",
-    tag = "v2.0.0",
     build_file = "//:cli_header_lib.BUILD",
     remote = "https://github.com/daniele77/cli.git",
+    tag = "v2.0.0",
 )
-
