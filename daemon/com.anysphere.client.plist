@@ -9,8 +9,8 @@
 		<key>RunAtLoad</key>
 		<true/>
         <key>StandardOutPath</key>
-        <string>/Users/sualeh/code/anysphere/logs/as.log</string>
+        <string>/Users/sualeh/code/anysphere/client/logs/as.log</string>
         <key>StandardErrorPath</key>
-        <string>/Users/sualeh/code/anysphere/logs/as.err</string>
+        <string>/Users/sualeh/code/anysphere/client/logs/as.err</string>
 	</dict>
 </plist>
