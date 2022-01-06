@@ -1,7 +1,7 @@
 {
     "editor.formatOnSave": true,
     "bazel-cpp-tools.compileCommands.targets": [
-        "//client/cli:anysphere-cli",
+        "//...",
     ],
     "python.formatting.provider": "black",
     "[javascript]": {
@@ -117,4 +117,5 @@
         "gsl_byte": "cpp",
         "*.inc": "cpp"
     },
+    "C_Cpp.codeAnalysis.clangTidy.enabled": true,
 }
