@@ -33,6 +33,14 @@ constexpr auto UI_URGENT_FILE =
 constexpr auto CLIENT_FILE = "/workspace/anysphere/client/logs/client.ndjson";
 constexpr auto CONFIG_FILE = "/workspace/anysphere/client/logs/config.ndjson";
 
+// if the message is this size or shorter, it is guaranteed to be sent in a
+// single round. 1+5 is for the uint32 ID, 1+MESSAGE_SIZE is for the header of
+// the string, and 1 + 1 + 5 is for the repeated acks containing at least one
+// element.
+constexpr auto GUARANTEED_SINGLE_MESSAGE_SIZE =
+    MESSAGE_SIZE - (1 + 5) - (1 + CEIL_DIV(std::bit_width(MESSAGE_SIZE), 8)) -
+    (1 + 1 + 5) - crypto_secretbox_MACBYTES;
+
 /**
  * @brief This function gets the last line of a file
  * @property: Nonconsuming: It does not consume the charachters, it only scans
