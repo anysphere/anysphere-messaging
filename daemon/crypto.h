@@ -3,6 +3,9 @@
 #include <stdexcept>
 #include <string>
 
+/* Crypto implements an IND-CCA2 secure scheme.
+
+*/
 class Crypto {
  public:
   Crypto() {
@@ -12,7 +15,7 @@ class Crypto {
   }
 
   // TODO: the message should be a protobuf? yes definitely.
-  auto encrypt(const std::string& message, const std::string& key)
+  auto encrypt_send(const std::string& message, const Friend& friend_info)
       -> pir_value_t {
     // if (key.size() != crypto_secretbox_KEYBYTES) {
     //   throw std::runtime_error("key size is not 32 bytes");
@@ -33,7 +36,7 @@ class Crypto {
     return plaintext;
   }
 
-  auto decrypt(const pir_value_t& ciphertext, const std::string& key)
+  auto decrypt_receive(const pir_value_t& ciphertext, const Friend& friend_info)
       -> std::string {
     // if (key.size() != crypto_secretbox_KEYBYTES) {
     //   throw std::runtime_error("key size is not 32 bytes");

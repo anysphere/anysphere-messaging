@@ -16,16 +16,19 @@ using messenger::RegisterResponse;
 
 struct Friend {
   Friend() = default;
-  Friend(string name, int write_index, int read_index, string shared_key)
+  Friend(string name, int write_index, int read_index, string write_key,
+         string read_key)
       : name(name),
         write_index(write_index),
         read_index(read_index),
-        shared_key(shared_key){};
+        write_key(write_key),
+        read_key(read_key){};
 
   string name;
   int write_index;
   int read_index;
-  string shared_key;
+  string write_key;
+  string read_key;
 };
 
 struct RegisterationInfo {
