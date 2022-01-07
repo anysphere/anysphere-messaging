@@ -25,6 +25,7 @@ class AnysphereScheduler : public cli::Scheduler {
   void Stop();
   bool ExecOne();
   void Post(const std::function<void()>& f) override;
+  void DisplayMessage();
 
   void Run() {
     while (ExecOne()) {

@@ -244,7 +244,7 @@ int main() {
   });
 
   MainScheduler scheduler;
-  CliLocalTerminalSession localSession(cli, scheduler, std::cout, 200);
+  auto localSession = CliLocalTerminalSession(cli, scheduler, std::cout, 200);
   localSession.ExitAction([&scheduler](auto& out) {
     out << "Closing App...\n";
     scheduler.Stop();
