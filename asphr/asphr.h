@@ -34,6 +34,8 @@ using absl::Time;
 
 using std::array;
 
+#define CEIL_DIV(a, b) (((a) + (b)-1) / (b))
+
 // MESSAGE_SIZE is the size of the message in bytes
 constexpr size_t MESSAGE_SIZE = 1024;
 constexpr size_t MESSAGE_SIZE_BITS = MESSAGE_SIZE * 8;
