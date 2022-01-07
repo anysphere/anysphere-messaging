@@ -1,4 +1,11 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+
+cc_library(
+    name = "scheduler_lib",
+    srcs = ["as_scheduler.cc"],
+    hdrs = ["as_scheduler.hpp"],
+    deps = ["@com_github_daniele77_cli//:cli_header_lib"],
+)
 
 cc_binary(
     name = "anysphere-cli",
@@ -11,6 +18,7 @@ cc_binary(
         "//asphr:asphr_lib",
         "//client/client_lib",
         "@com_github_daniele77_cli//:cli_header_lib",
+        ":scheduler_lib",
     ],
 )
 

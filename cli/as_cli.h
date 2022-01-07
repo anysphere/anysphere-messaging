@@ -1,13 +1,13 @@
 #pragma once
 
+#include "as_scheduler.hpp"
 #include "asphr/asphr.h"
 #include "cli/cli.h"
 #include "cli/clifilesession.h"
 #include "cli/clilocalsession.h"
-#include "cli/loopscheduler.h"
 #include "client/client_lib/client_lib.h"
 
-using MainScheduler = cli::LoopScheduler;
+using MainScheduler = as_cli::AnysphereScheduler;
 
 using std::cin;
 using std::make_unique;
