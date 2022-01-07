@@ -98,7 +98,7 @@ rules_proto_toolchains()
 
 http_archive(
     name = "com_github_grpc_grpc",
-    sha256 = "977f09ad233b8f6674ba3bf366254f18db01d4b95c636386db19019e614fbe1b",
+    sha256 = "bc3485b5829f64e33390456b046aab16097421415973b60658a735bbe5a83061",
     strip_prefix = "grpc-master",
     urls = ["https://github.com/grpc/grpc/archive/master.tar.gz"],
 )
