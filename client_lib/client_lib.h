@@ -40,12 +40,13 @@ constexpr auto CONFIG_FILE = "/workspace/anysphere/client/logs/config.ndjson";
 // if the message is this size or shorter, it is guaranteed to be sent in a
 // single round. 1+5 is for the uint32 ID, 1+MESSAGE_SIZE is for the header of
 // the string, and 1 + 1 + 5 is for the repeated acks containing at least one
-// element.
+// element. -1 at the end is for the padding which reserves one byte.
 constexpr auto GUARANTEED_SINGLE_MESSAGE_SIZE =
     MESSAGE_SIZE - (1 + 5) -
     (1 +
      CEIL_DIV((sizeof MESSAGE_SIZE) * 8 - std::countl_zero(MESSAGE_SIZE), 8)) -
-    (1 + 1 + 5) - crypto_aead_xchacha20poly1305_ietf_ABYTES;
+    (1 + 1 + 5) - crypto_aead_xchacha20poly1305_ietf_ABYTES - 1 -
+    crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
 
 /**
  * @brief This function gets the last line of a file

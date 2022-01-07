@@ -115,24 +115,23 @@ class Crypto {
     if (!message.SerializeToString(&plaintext)) {
       return std::make_pair(pir_value_t{}, -1);
     }
-    assert(plaintext.size() <=
-           MESSAGE_SIZE - crypto_aead_xchacha20poly1305_ietf_ABYTES);
+    auto unpadded_plaintext_len = plaintext.size();
+    auto plaintext_max_len = MESSAGE_SIZE -
+                             crypto_aead_xchacha20poly1305_ietf_ABYTES -
+                             crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
+    assert(unpadded_plaintext_len < plaintext_max_len);
 
-    plaintext.resize(MESSAGE_SIZE - crypto_aead_xchacha20poly1305_ietf_ABYTES);
+    plaintext.resize(plaintext_max_len);
 
     size_t padded_plaintext_len;
     if (sodium_pad(&padded_plaintext_len,
                    reinterpret_cast<unsigned char*>(plaintext.data()),
-                   plaintext.size(),
-                   MESSAGE_SIZE - crypto_aead_xchacha20poly1305_ietf_ABYTES,
-                   MESSAGE_SIZE - crypto_aead_xchacha20poly1305_ietf_ABYTES) !=
-        0) {
-      std::cerr << "sodium_pad failed" << std::endl;
+                   unpadded_plaintext_len, plaintext_max_len,
+                   plaintext_max_len) != 0) {
       return std::make_pair(pir_value_t{}, -1);
     }
 
-    assert(padded_plaintext_len ==
-           MESSAGE_SIZE - crypto_aead_xchacha20poly1305_ietf_ABYTES);
+    assert(padded_plaintext_len == plaintext_max_len);
     assert(padded_plaintext_len == plaintext.size());
 
     // TODO: send acks.
@@ -152,20 +151,33 @@ class Crypto {
       return std::make_pair(pir_value_t{}, -1);
     }
 
-    assert(ciphertext_len == MESSAGE_SIZE);
+    assert(ciphertext_len ==
+           MESSAGE_SIZE - crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
 
     pir_value_t pir_ciphertext;
     std::copy(ciphertext.begin(), ciphertext.end(), pir_ciphertext.begin());
+    for (size_t i = 0; i < crypto_aead_xchacha20poly1305_ietf_NPUBBYTES; i++) {
+      pir_ciphertext[i + ciphertext_len] = nonce[i];
+    }
 
     return std::make_pair(pir_ciphertext, 0);
   }
 
   auto decrypt_receive(const pir_value_t& ciphertext, const Friend& friend_info)
       -> std::pair<Message, int> {
+    auto ciphertext_len =
+        MESSAGE_SIZE - crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
     string ciphertext_str = "";
-    for (auto c : ciphertext) {
-      ciphertext_str += c;
+    for (size_t i = 0; i < ciphertext_len; i++) {
+      ciphertext_str += ciphertext[i];
     }
+    unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+    for (size_t i = 0; i < crypto_aead_xchacha20poly1305_ietf_NPUBBYTES; i++) {
+      nonce[i] = ciphertext[i + ciphertext_len];
+    }
+    auto plaintext_max_len = MESSAGE_SIZE -
+                             crypto_aead_xchacha20poly1305_ietf_ABYTES -
+                             crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
 
     if (friend_info.read_key.size() !=
         crypto_aead_xchacha20poly1305_ietf_KEYBYTES) {
@@ -173,9 +185,8 @@ class Crypto {
     }
 
     std::string plaintext;
-    plaintext.resize(MESSAGE_SIZE - crypto_aead_xchacha20poly1305_ietf_ABYTES);
+    plaintext.resize(plaintext_max_len);
     unsigned long long plaintext_len;
-    unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
     if (crypto_aead_xchacha20poly1305_ietf_decrypt(
             reinterpret_cast<unsigned char*>(plaintext.data()), &plaintext_len,
             nullptr,
@@ -186,14 +197,11 @@ class Crypto {
       return std::make_pair(Message(), -1);
     }
 
-    assert(plaintext_len ==
-           MESSAGE_SIZE - crypto_aead_xchacha20poly1305_ietf_ABYTES);
+    assert(plaintext_len == plaintext_max_len);
     size_t unpadded_plaintext_len;
-    if (sodium_unpad(
-            &unpadded_plaintext_len,
-            reinterpret_cast<const unsigned char*>(plaintext.data()),
-            plaintext.size(),
-            MESSAGE_SIZE - crypto_aead_xchacha20poly1305_ietf_ABYTES) != 0) {
+    if (sodium_unpad(&unpadded_plaintext_len,
+                     reinterpret_cast<const unsigned char*>(plaintext.data()),
+                     plaintext.size(), plaintext_max_len) != 0) {
       return std::make_pair(Message(), -1);
     }
 
