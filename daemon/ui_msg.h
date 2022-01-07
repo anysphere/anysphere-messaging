@@ -102,7 +102,6 @@ void process_ui_file(const string& ui_file_address,
     }
 
     auto index = friend_info.write_index;
-    auto key = friend_info.shared_key;
 
     cout << "Sending message to server: " << endl;
     cout << "index: " << index << endl;

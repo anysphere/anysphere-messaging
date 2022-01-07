@@ -80,7 +80,8 @@ auto store_friend_table(const string& config_file_address) -> void {
     json friend_json = {{"name", friend_pair.second.name},
                         {"write_index", friend_pair.second.write_index},
                         {"read_index", friend_pair.second.read_index},
-                        {"shared_key", friend_pair.second.shared_key}};
+                        {"write_key", friend_pair.second.write_key},
+                        {"read_key", friend_pair.second.read_key}};
     friend_table_json.push_back(friend_json);
   }
   config_json["friends"] = friend_table_json;
@@ -138,6 +139,7 @@ auto read_config(const string& config_file_address) -> void {
         Friend(friend_json["name"].get<string>(),
                friend_json["write_index"].get<int>(),
                friend_json["read_index"].get<int>(),
-               friend_json["shared_key"].get<string>());
+               friend_json["write_key"].get<string>(),
+               friend_json["read_key"].get<string>());
   }
 }

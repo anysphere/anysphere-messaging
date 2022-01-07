@@ -1,3 +1,7 @@
+namespace sodium {
+#include <sodium.h>
+}
+
 #include "asphr/asphr.h"
 
 using Msg = string;
@@ -38,8 +42,10 @@ constexpr auto CONFIG_FILE = "/workspace/anysphere/client/logs/config.ndjson";
 // the string, and 1 + 1 + 5 is for the repeated acks containing at least one
 // element.
 constexpr auto GUARANTEED_SINGLE_MESSAGE_SIZE =
-    MESSAGE_SIZE - (1 + 5) - (1 + CEIL_DIV(std::bit_width(MESSAGE_SIZE), 8)) -
-    (1 + 1 + 5) - crypto_secretbox_MACBYTES;
+    MESSAGE_SIZE - (1 + 5) -
+    (1 +
+     CEIL_DIV((sizeof MESSAGE_SIZE) * 8 - std::countl_zero(MESSAGE_SIZE), 8)) -
+    (1 + 1 + 5) - crypto_aead_xchacha20poly1305_ietf_ABYTES;
 
 /**
  * @brief This function gets the last line of a file

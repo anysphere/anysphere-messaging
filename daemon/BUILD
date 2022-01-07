@@ -12,6 +12,7 @@ cc_library(
         "//asphr:asphr_lib",
         "//asphr/pir/fast_pir:fast_pir_lib",
         "//client/client_lib",
+        "//schema:message_proto_cc",
         "//schema:messenger_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@libsodium",

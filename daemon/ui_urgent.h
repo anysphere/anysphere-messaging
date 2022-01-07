@@ -67,9 +67,10 @@ void process_ui_urgent_file(const string& ui_urgent_file_address,
       if (!FriendTable.contains(name)) {
         auto write_index = entry["write_index"].get<int>();
         auto read_index = entry["read_index"].get<int>();
-        auto shared_key = entry["shared_key"].get<string>();
+        auto write_key = entry["write_key"].get<string>();
+        auto read_key = entry["read_key"].get<string>();
 
-        Friend friend_(name, write_index, read_index, shared_key);
+        Friend friend_(name, write_index, read_index, write_key, read_key);
         FriendTable.insert({name, friend_});
         cout << "added friend " << name << endl;
         store_friend_table(config_file_address);
