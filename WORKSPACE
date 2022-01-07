@@ -51,9 +51,9 @@ new_git_repository(
 new_git_repository(
     name = "seal",
     build_file = "//:seal.BUILD",
+    commit = "c4b5680cc1ed8191ca10583757c94d2187de67f5",  # branch: 3.7.2-anysphere
     remote = "https://github.com/anysphere/SEAL",
-    # commit = "79234726053c45eede688400aa219fdec0810bd8", # version: 3.7.2
-    tag = "v3.7.2-bazel",
+    # tag = "v3.7.2-bazel",
 )
 
 # libsodium
