@@ -18,3 +18,4 @@ vscode:
     - bazelbuild.vscode-bazel
     - ms-vscode.cpptools-extension-pack
     - hashicorp.terraform
+    - Guyutongxue.cpp-reference
