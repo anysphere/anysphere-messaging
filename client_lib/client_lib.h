@@ -35,7 +35,7 @@ constexpr auto UI_FILE = "/workspace/anysphere/client/logs/ui.ndjson";
 constexpr auto UI_URGENT_FILE =
     "/workspace/anysphere/client/logs/ui_urgent.ndjson";
 constexpr auto CLIENT_FILE = "/workspace/anysphere/client/logs/client.ndjson";
-constexpr auto CONFIG_FILE = "/workspace/anysphere/client/logs/config.ndjson";
+constexpr auto CONFIG_FILE = "/workspace/anysphere/client/logs/config.json";
 
 // if the message is this size or shorter, it is guaranteed to be sent in a
 // single round. 1+5 is for the uint32 ID, 1+MESSAGE_SIZE is for the header of

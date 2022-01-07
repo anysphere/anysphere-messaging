@@ -1,6 +1,7 @@
 
 #include "anysphere.h"
 
+#include "crypto.h"
 #include "ui_msg.h"
 #include "ui_urgent.h"
 
@@ -23,6 +24,8 @@ int main(int argc, char** argv) {
   }
 
   read_config(config_file_address);
+
+  Crypto crypto;
 
   // connect to the anysphere servers
   std::cout << "Client querying server address: " << server_address
@@ -68,10 +71,10 @@ int main(int argc, char** argv) {
       start_t = absl::Now();  // reset the start time
 
       cout << "UI file address: " << ui_write_file_address << endl;
-      process_ui_file(ui_write_file_address, last_ui_timestamp, stub);
+      process_ui_file(ui_write_file_address, last_ui_timestamp, stub, crypto);
       last_ui_timestamp = absl::Now();
       // first send, then retrieve, so we have an updated db_rows
-      retrieve_messages(client_write_file_address, stub);
+      retrieve_messages(client_write_file_address, stub, crypto);
     }
 
     // sleep for 100ms

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <sodium.h>
 
 #include <stdexcept>
@@ -9,6 +11,12 @@
 using client::Message;
 
 using std::string;
+
+// TODO: for some weird reason, in normal builds, all sodium functions are in
+// the sodium namespace (GREAT), but in tests, they are not... hence why we use
+// this to be able to do both. ideally we want tests to have the namespace
+// though...
+using namespace sodium;
 
 /* Crypto implements an IND-CCA2 secure scheme.
 

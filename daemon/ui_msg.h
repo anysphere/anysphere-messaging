@@ -1,12 +1,16 @@
 #include "anysphere.h"
+#include "crypto.h"
+#include "schema/message.pb.h"
 
 using messenger::ReceiveMessageInfo;
 using messenger::ReceiveMessageResponse;
 using messenger::SendMessageInfo;
 using messenger::SendMessageResponse;
 
+using client::Message;
+
 void retrieve_messages(const string& output_file_address,
-                       std::unique_ptr<Messenger::Stub>& stub) {
+                       std::unique_ptr<Messenger::Stub>& stub, Crypto crypto) {
   if (!RegistrationInfo.has_registered) {
     cout << "hasn't registered yet, so cannot retrieve messages" << endl;
     return;
@@ -37,25 +41,27 @@ void retrieve_messages(const string& output_file_address,
       auto answer_obj = client.answer_from_string(answer);
       auto decoded_value = client.decode(answer_obj, friend_info.read_index);
 
-      if (decoded_value[0] == 0) {
+      auto [message, valid] =
+          crypto.decrypt_receive(decoded_value, friend_info);
+
+      if (valid != 0) {
+        cout << "message is invalid" << endl;
+        continue;
+      }
+
+      if (message.id() == 0) {
         cout << "empty message for security" << endl;
         continue;
       }
 
-      string decoded_string = "";
-      for (auto& c : decoded_value) {
-        if (c == 0) break;
-        decoded_string += c;
-      }
-
-      cout << "actual message: " << decoded_string << endl;
+      cout << "actual message: " << message.msg() << endl;
       {
         auto file = std::ofstream(output_file_address, std::ios_base::app);
 
         auto time = absl::FormatTime(absl::Now(), utc);
         json jmsg = {{"from", friend_name},
                      {"timestamp", time},
-                     {"message", decoded_string},
+                     {"message", message.msg()},
                      {"type", "MESSAGE_RECEIVED"}};
         if (file.is_open()) {
           file << std::setw(4) << jmsg.dump() << std::endl;
@@ -71,7 +77,7 @@ void retrieve_messages(const string& output_file_address,
 
 void process_ui_file(const string& ui_file_address,
                      const Time& last_ui_timestamp,
-                     std::unique_ptr<Messenger::Stub>& stub) {
+                     std::unique_ptr<Messenger::Stub>& stub, Crypto crypto) {
   if (!RegistrationInfo.has_registered) {
     cout << "hasn't registered yet, so don't send a message" << endl;
     return;
@@ -94,14 +100,22 @@ void process_ui_file(const string& ui_file_address,
   }
 
   for (auto& [friend_name, friend_info] : FriendTable) {
-    pir_value_t padded_msg;
-    padded_msg.fill(0);
+    Message message;
+    message.set_id(0);
     if (friend_to_message.count(friend_name) != 0) {
-      auto message = friend_to_message.at(friend_name);
-      std::copy(message.begin(), message.end(), padded_msg.begin());
+      auto message_s = friend_to_message.at(friend_name);
+      message.set_id(1);  // TODO: actually store a counter for every friend
+                          // with the ID of last sent thing
+      message.set_msg(message_s);
     }
 
     auto index = friend_info.write_index;
+
+    auto [pir_value_message, valid] = crypto.encrypt_send(message, friend_info);
+    if (valid != 0) {
+      cout << "encryption failed; not doing anything with message" << endl;
+      continue;
+    }
 
     cout << "Sending message to server: " << endl;
     cout << "index: " << index << endl;
@@ -118,7 +132,7 @@ void process_ui_file(const string& ui_file_address,
     request.set_authentication_token(authentication_token);
     // TODO: encrypt message here, pad it to the right length
     string padded_msg_str = "";
-    for (auto& c : padded_msg) {
+    for (auto& c : pir_value_message) {
       padded_msg_str += c;
     }
     request.set_message(padded_msg_str);
