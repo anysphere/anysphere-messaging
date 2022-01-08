@@ -13,6 +13,7 @@
 
 #include "absl/hash/hash.h"
 #include "absl/random/random.h"
+#include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
@@ -20,19 +21,22 @@
 #include "json/nlohmann_json.h"
 #include "utils.h"
 
+using std::array;
 using std::cout;
 using std::endl;
 using std::string;
 using std::to_string;
-
 using std::vector;
 
+namespace asphr {
 using json = nlohmann::json;
 
+using absl::Status;
+using absl::StatusOr;
 using absl::StrCat;
 using absl::Time;
-
-using std::array;
+using absl::InvalidArgumentError;
+}  // namespace asphr
 
 #define CEIL_DIV(a, b) (((a) + (b)-1) / (b))
 
