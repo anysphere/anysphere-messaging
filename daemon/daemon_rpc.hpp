@@ -136,6 +136,57 @@ class DaemonImpl final : public Daemon::Service {
     return Status::OK;
   }
 
+  Status RemoveFriend(
+      ServerContext* context,
+      const Daemon::RemoveFriendRequest* removeFriendRequest,
+      Daemon::RemoveFriendResponse* removeFriendResponse) override {
+    cout << "RemoveFriend() called" << endl;
+
+    if (!config.friendTable.contains(removeFriendRequest->name())) {
+      cout << "friend not found" << endl;
+      removeFriendResponse->set_success(false);
+      return Status(grpc::StatusCode::INVALID_ARGUMENT, "friend not found");
+    }
+
+    // remove friend from friend table
+    config.friendTable.erase(removeFriendRequest->name());
+
+    removeFriendResponse->set_success(true);
+    return Status::OK;
+  }
+
+  Status SendMessage(
+      ServerContext* context,
+      const Daemon::SendMessageRequest* sendMessageRequest,
+      Daemon::SendMessageResponse* sendMessageResponse) override {
+    cout << "SendMessage() called" << endl;
+
+    if (!config.friendTable.contains(sendMessageRequest->name())) {
+      cout << "friend not found" << endl;
+      sendMessageResponse->set_success(false);
+      return Status(grpc::StatusCode::INVALID_ARGUMENT, "friend not found");
+    }
+
+    auto& friend_info = config.friendTable[sendMessageRequest->name()];
+
+    if (friend_info.disabled) {
+      cout << "friend disabled" << endl;
+      sendMessageResponse->set_success(false);
+      return Status(grpc::StatusCode::INVALID_ARGUMENT, "friend disabled");
+    }
+
+    auto message = sendMessageRequest->message();
+    auto encrypted_message = crypto.encrypt_send(message, friend_info);
+
+    auto& [read_index, ciphertext] = encrypted_message;
+
+    auto& friend_info = config.friendTable[sendMessageRequest->name()];
+    friend_info.read_index = read_index;
+
+    sendMessageResponse->set_success(true);
+    return Status::OK;
+  }
+
  private:
   Crypto& crypto;
   Config& config;

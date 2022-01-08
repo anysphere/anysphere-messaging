@@ -25,17 +25,17 @@ TEST(CryptoTest, EncryptDecrypt) {
   Message message;
   message.set_msg(plaintext);
 
-  auto [ciphertext, valid1] =
+  auto ciphertext =
       crypto.encrypt_send(message, friend2_from_perspective_of_friend1);
-  EXPECT_EQ(valid1, 0);
+  EXPECT_TRUE(ciphertext.ok());
 
-  auto [decrypted, valid2] =
+  auto decrypted =
       crypto.decrypt_receive(ciphertext, friend1_from_perspective_of_friend2);
-  EXPECT_EQ(valid2, 0);
+  EXPECT_TRUE(decrypted.ok());
 
-  EXPECT_EQ(decrypted.msg(), message.msg());
-  EXPECT_EQ(decrypted.id(), message.id());
-  EXPECT_EQ(decrypted.acks_size(), message.acks_size());
+  EXPECT_EQ(decrypted->msg(), message.msg());
+  EXPECT_EQ(decrypted->id(), message.id());
+  EXPECT_EQ(decrypted->acks_size(), message.acks_size());
 }
 
 TEST(CryptoTest, EncryptDecryptMaxSize) {
@@ -64,17 +64,17 @@ TEST(CryptoTest, EncryptDecryptMaxSize) {
   Message message;
   message.set_msg(plaintext);
 
-  auto [ciphertext, valid1] =
+  auto ciphertext =
       crypto.encrypt_send(message, friend2_from_perspective_of_friend1);
-  EXPECT_EQ(valid1, 0);
+  EXPECT_TRUE(ciphertext.ok());
 
-  auto [decrypted, valid2] =
+  auto decrypted =
       crypto.decrypt_receive(ciphertext, friend1_from_perspective_of_friend2);
-  EXPECT_EQ(valid2, 0);
+  EXPECT_TRUE(decrypted.ok());
 
-  EXPECT_EQ(decrypted.msg(), message.msg());
-  EXPECT_EQ(decrypted.id(), message.id());
-  EXPECT_EQ(decrypted.acks_size(), message.acks_size());
+  EXPECT_EQ(decrypted->msg(), message.msg());
+  EXPECT_EQ(decrypted->id(), message.id());
+  EXPECT_EQ(decrypted->acks_size(), message.acks_size());
 }
 
 TEST(CryptoTest, EncryptDecryptBiggerThanMaxSize) {
@@ -103,14 +103,14 @@ TEST(CryptoTest, EncryptDecryptBiggerThanMaxSize) {
   Message message;
   message.set_msg(plaintext);
 
-  auto [ciphertext, valid1] =
+  auto ciphertext =
       crypto.encrypt_send(message, friend2_from_perspective_of_friend1);
-  EXPECT_EQ(valid1, 0);
+  EXPECT_TRUE(ciphertext.ok());
 
-  auto [decrypted, valid2] =
+  auto decrypted =
       crypto.decrypt_receive(ciphertext, friend1_from_perspective_of_friend2);
-  EXPECT_EQ(valid2, 0);
+  EXPECT_TRUE(decrypted.ok());
 
   // the decrypted message should be a truncated version of the real message
-  EXPECT_NE(decrypted.msg(), message.msg());
+  EXPECT_NE(decrypted->msg(), message.msg());
 }

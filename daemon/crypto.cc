@@ -93,11 +93,12 @@ auto Crypto::derive_read_write_keys(string my_public_key, string my_private_key,
 }
 
 auto Crypto::encrypt_send(const Message& message_in, const Friend& friend_info)
-    -> std::pair<pir_value_t, int> {
+    -> asphr::StatusOr<pir_value_t> {
   auto message = message_in;
   if (friend_info.write_key.size() !=
       crypto_aead_xchacha20poly1305_ietf_KEYBYTES) {
-    return std::make_pair(pir_value_t{}, -1);
+    return asphr::InvalidArgumentError(
+        "friend_info.write_key is not the correct size");
   }
 
   std::string ciphertext;
@@ -112,7 +113,7 @@ auto Crypto::encrypt_send(const Message& message_in, const Friend& friend_info)
 
   std::string plaintext;
   if (!message.SerializeToString(&plaintext)) {
-    return std::make_pair(pir_value_t{}, -1);
+    return absl::UnknownError("failed to serialize message");
   }
   auto unpadded_plaintext_len = plaintext.size();
   auto plaintext_max_len = MESSAGE_SIZE -
@@ -127,7 +128,7 @@ auto Crypto::encrypt_send(const Message& message_in, const Friend& friend_info)
                  reinterpret_cast<unsigned char*>(plaintext.data()),
                  unpadded_plaintext_len, plaintext_max_len,
                  plaintext_max_len) != 0) {
-    return std::make_pair(pir_value_t{}, -1);
+    return absl::UnknownError("failed to pad plaintext");
   }
 
   assert(padded_plaintext_len == plaintext_max_len);
@@ -146,7 +147,7 @@ auto Crypto::encrypt_send(const Message& message_in, const Friend& friend_info)
           plaintext.size(), nullptr, 0, nullptr, nonce,
           reinterpret_cast<const unsigned char*>(
               friend_info.write_key.data())) != 0) {
-    return std::make_pair(pir_value_t{}, -1);
+    return absl::UnknownError("failed to encrypt message");
   }
 
   assert(ciphertext_len ==
@@ -158,12 +159,12 @@ auto Crypto::encrypt_send(const Message& message_in, const Friend& friend_info)
     pir_ciphertext[i + ciphertext_len] = nonce[i];
   }
 
-  return std::make_pair(pir_ciphertext, 0);
+  return pir_ciphertext;
 }
 
 auto Crypto::decrypt_receive(const pir_value_t& ciphertext,
                              const Friend& friend_info)
-    -> std::pair<Message, int> {
+    -> asphr::StatusOr<Message> {
   auto ciphertext_len =
       MESSAGE_SIZE - crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
   string ciphertext_str = "";
@@ -180,7 +181,8 @@ auto Crypto::decrypt_receive(const pir_value_t& ciphertext,
 
   if (friend_info.read_key.size() !=
       crypto_aead_xchacha20poly1305_ietf_KEYBYTES) {
-    return std::make_pair(Message(), -1);
+    return asphr::InvalidArgumentError(
+        "friend_info.read_key is not the correct size");
   }
 
   std::string plaintext;
@@ -193,7 +195,7 @@ auto Crypto::decrypt_receive(const pir_value_t& ciphertext,
           ciphertext_str.size(), nullptr, 0, nonce,
           reinterpret_cast<const unsigned char*>(
               friend_info.read_key.data())) != 0) {
-    return std::make_pair(Message(), -1);
+    return absl::UnknownError("failed to decrypt message");
   }
 
   assert(plaintext_len == plaintext_max_len);
@@ -201,7 +203,7 @@ auto Crypto::decrypt_receive(const pir_value_t& ciphertext,
   if (sodium_unpad(&unpadded_plaintext_len,
                    reinterpret_cast<const unsigned char*>(plaintext.data()),
                    plaintext.size(), plaintext_max_len) != 0) {
-    return std::make_pair(Message(), -1);
+    return absl::UnknownError("failed to unpad plaintext");
   }
 
   assert(unpadded_plaintext_len <= plaintext_len);
@@ -210,8 +212,8 @@ auto Crypto::decrypt_receive(const pir_value_t& ciphertext,
 
   Message message;
   if (!message.ParseFromString(plaintext)) {
-    return std::make_pair(Message(), -1);
+    return absl::UnknownError("failed to parse message");
   }
 
-  return std::make_pair(message, 0);
+  return message;
 }

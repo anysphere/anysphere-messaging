@@ -56,9 +56,9 @@ class Crypto {
   // mind because it is a somewhat nonstandard requirement.
   auto Crypto::encrypt_send(const Message& message_in,
                             const Friend& friend_info)
-      -> std::pair<pir_value_t, int>;
+      -> asphr::StatusOr<pir_value_t>;
 
   auto Crypto::decrypt_receive(const pir_value_t& ciphertext,
                                const Friend& friend_info)
-      -> std::pair<Message, int>;
+      -> asphr::StatusOr<Message>;
 };
