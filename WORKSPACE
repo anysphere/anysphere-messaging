@@ -98,9 +98,9 @@ rules_proto_toolchains()
 
 http_archive(
     name = "com_github_grpc_grpc",
-    sha256 = "bc3485b5829f64e33390456b046aab16097421415973b60658a735bbe5a83061",
-    strip_prefix = "grpc-master",
-    urls = ["https://github.com/grpc/grpc/archive/master.tar.gz"],
+    sha256 = "9647220c699cea4dafa92ec0917c25c7812be51a18143af047e20f3fb05adddc",
+    strip_prefix = "grpc-1.43.0",
+    urls = ["https://github.com/grpc/grpc/archive/refs/tags/v1.43.0.tar.gz"],
 )
 
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
@@ -116,4 +116,10 @@ new_git_repository(
     build_file = "//:cli_header_lib.BUILD",
     remote = "https://github.com/daniele77/cli.git",
     tag = "v2.0.0",
+)
+
+http_archive(
+    name = "com_google_absl",
+    strip_prefix = "abseil-cpp-master",
+    urls = ["https://github.com/abseil/abseil-cpp/archive/master.tar.gz"],
 )

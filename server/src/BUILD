@@ -4,7 +4,8 @@ cc_library(
     name = "as_server_lib",
     hdrs = [
         "account_manager.h",
-        "messenger_impl.h",
+        "server_rpc.cc",
+        "server_rpc.hpp",
     ],
     defines = select({
         "//conditions:default": ["USE_POSTGRES_DB"],
@@ -17,7 +18,7 @@ cc_library(
     ],
     deps = [
         "//asphr:asphr_lib",
-        "//schema:messenger_cc_grpc",
+        "//schema:server_cc_grpc",
         "//server/pir/fast_pir:server_fast_pir_lib",
         "//server/pir/nonprivate:nonprivate_pir_lib",
         "@com_github_grpc_grpc//:grpc++",

@@ -1,8 +1,8 @@
 
 #include "account_manager.h"
-#include "messenger_impl.h"
 #include "server/pir/fast_pir/fastpir.h"
 #include "server/pir/nonprivate/nonprivate_pir.h"
+#include "server_rpc.hpp"
 
 // TODO: look into AsyncService; might be useful for performance
 
@@ -44,15 +44,14 @@ int main(int argc, char** argv) {
   // MessengerImpl<NonPrivatePIR, AccountManager> messenger_service(pir,
   // account_manager); MessengerImpl<SealPIR, AccountManager>
   // messenger_service(pir, account_manager);
-  MessengerImpl<FastPIR, AccountManager> messenger_service(pir,
-                                                           account_manager);
+  auto server_rpc = ServerRpc<FastPIR, AccountManager>(pir, account_manager);
 
-  ServerBuilder builder;
+  grpc::ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-  builder.RegisterService(&messenger_service);
-  std::unique_ptr<Server> server(builder.BuildAndStart());
+  builder.RegisterService(&server_rpc);
+  auto server = unique_ptr<grpc::Server>(builder.BuildAndStart());
 
-  std::cout << "Server listening on " << server_address << std::endl;
+  cout << "Server listening on " << server_address << endl;
 
   // Wait for the server to shutdown. Note that some other thread must be
   // responsible for shutting down the server for this call to ever return.
