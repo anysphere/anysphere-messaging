@@ -6,7 +6,8 @@ auto Friend::to_json() -> json {
               {"write_index", write_index},
               {"read_index", read_index},
               {"write_key", write_key},
-              {"read_key", read_key}};
+              {"read_key", read_key},
+              {"disabled", disabled}};
 }
 
 auto Friend::from_json(const json& j) -> Friend {
@@ -16,6 +17,7 @@ auto Friend::from_json(const json& j) -> Friend {
   f.read_index = j.at("read_index").get<int>();
   f.write_key = j.at("write_key").get<string>();
   f.read_key = j.at("read_key").get<string>();
+  f.disabled = j.at("disabled").get<bool>();
   return f;
 }
 

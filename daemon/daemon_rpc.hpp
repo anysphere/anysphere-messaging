@@ -93,8 +93,47 @@ class DaemonImpl final : public Daemon::Service {
     auto friend_key =
         crypto.generate_friend_key(config.registrationInfo.public_key, index);
 
+    auto friend_info =
+        Friend{generateFriendKeyRequest->name(), index, -1, "", "", false};
+    config.friendTable[friend_info.name] = friend_info;
+
     generateFriendKeyResponse->set_friend_key(friend_key);
     generateFriendKeyResponse->set_success(true);
+  }
+
+  Status AddFriend(ServerContext* context,
+                   const Daemon::AddFriendRequest* addFriendRequest,
+                   Daemon::AddFriendResponse* addFriendResponse) override {
+    cout << "AddFriend() called" << endl;
+
+    if (!config.has_space_for_friends()) {
+      cout << "no more allocation" << endl;
+      addFriendResponse->set_success(false);
+      return Status(grpc::StatusCode::INVALID_ARGUMENT, "no more allocation");
+    }
+
+    if (!config.friendTable.contains(addFriendRequest->name())) {
+      cout << "friend not found" << endl;
+      addFriendResponse->set_success(false);
+      return Status(grpc::StatusCode::INVALID_ARGUMENT, "friend not found");
+    }
+
+    auto decoded_friend_key = crypto.decode_friend_key(addFriendRequest->key());
+    if (!decoded_friend_key.ok()) {
+      cout << "invalid friend key" << endl;
+      addFriendResponse->set_success(false);
+      return Status(grpc::StatusCode::INVALID_ARGUMENT, "invalid friend key");
+    }
+
+    auto& [read_index, friend_public_key] = decoded_friend_key.value();
+
+    auto& friend_info = config.friendTable[addFriendRequest->name()];
+    friend_info.public_key = friend_public_key;
+    friend_info.read_index = read_index;
+    friend_info.disabled = true;
+
+    addFriendResponse->set_success(true);
+    return Status::OK;
   }
 
  private:

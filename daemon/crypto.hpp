@@ -35,6 +35,7 @@ class Crypto {
   auto gen_keypair() -> std::pair<string, string>;
 
   auto generate_friend_key(const string& my_public_key, int index) -> string;
+  auto decode_friend_key(const string& friend_key) -> std::pair<int, string>;
 
   auto derive_read_write_keys(string my_public_key, string my_private_key,
                               string friend_public_key)

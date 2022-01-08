@@ -20,7 +20,29 @@ auto Crypto::generate_friend_key(const string& my_public_key, int index)
       my_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING);
 
   // TODO: figure out a better way to encode both index and public key
-  return index + "a" + public_key_b64;
+  return asphr::StrCat(index, "a", public_key_b64);
+}
+
+auto Crypto::decode_friend_key(const string& friend_key)
+    -> asphr::StatusOr<std::pair<int, string>> {
+  auto components = absl::StrSplit(friend_key, 'a');
+  if (components.size() != 2) {
+    return asphr::InvalidArgumentError("friend key must have two components");
+  }
+  auto index = absl::Atoi(components[0]);
+
+  auto public_key_b64 = components[1];
+  string public_key;
+  public_key.resize(public_key_b64.size());
+  size_t public_key_len;
+  const char* b64_end;
+  sodium_base642bin(reinterpret_cast<unsigned char*>(public_key.data()),
+                    public_key.size(), public_key_b64.data(),
+                    public_key_b64.size(), "", &public_key_len, &b64_end,
+                    sodium_base64_VARIANT_URLSAFE_NO_PADDING);
+  public_key.resize(public_key_len);
+
+  return {index, public_key};
 }
 
 auto Crypto::derive_read_write_keys(string my_public_key, string my_private_key,

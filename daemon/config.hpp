@@ -9,6 +9,7 @@ struct Friend {
   int read_index;
   string write_key;
   string read_key;
+  bool disabled;
 
   auto to_json() -> json;
   static auto from_json(const json& j) -> Friend;
