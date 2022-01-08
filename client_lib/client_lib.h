@@ -182,18 +182,6 @@ auto get_entries(const string& file_address) -> vector<json> {
   return entries;
 }
 
-auto write_msg_to_file(string file_address, string msg, string type) -> void {
-  auto file = std::ofstream(file_address, std::ios_base::app);
-
-  auto time = absl::FormatTime(absl::Now(), utc);
-  json jmsg = {{"timestamp", time}, {"type", type}, {"message", msg}};
-  if (file.is_open()) {
-    file << std::setw(4) << jmsg.dump() << std::endl;
-    cout << jmsg.dump() << endl;
-    file.close();
-  }
-}
-
 auto write_msg_to_file(string file_address, string msg, string type, string to)
     -> void {
   auto file = std::ofstream(file_address, std::ios_base::app);
@@ -204,23 +192,6 @@ auto write_msg_to_file(string file_address, string msg, string type, string to)
   if (file.is_open()) {
     file << std::setw(4) << jmsg.dump() << std::endl;
     cout << "write msg to file: " << jmsg.dump() << endl;
-    file.close();
-  }
-}
-
-auto write_msg_to_file(string type, string file_address, Msg msg,
-                       Name friend_name, Time time) -> void {
-  auto file = std::ofstream(file_address, std::ios_base::app);
-
-  auto send_time = absl::FormatTime(time, utc);
-
-  json jmsg = {{"timestamp", send_time},
-               {"type", type},
-               {"message", msg},
-               {"to", friend_name}};
-  if (file.is_open()) {
-    file << std::setw(4) << jmsg.dump() << std::endl;
-    cout << jmsg.dump() << endl;
     file.close();
   }
 }

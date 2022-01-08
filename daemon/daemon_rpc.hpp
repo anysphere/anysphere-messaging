@@ -176,12 +176,13 @@ class DaemonImpl final : public Daemon::Service {
     }
 
     auto message = sendMessageRequest->message();
-    auto encrypted_message = crypto.encrypt_send(message, friend_info);
 
-    auto& [read_index, ciphertext] = encrypted_message;
-
-    auto& friend_info = config.friendTable[sendMessageRequest->name()];
-    friend_info.read_index = read_index;
+    auto ok = write_msg_to_file(SEND_FILE, message, "MESSAGE", friend_info.name);
+    if (!ok) {
+      cout << "write message to file failed" << endl;
+      sendMessageResponse->set_success(false);
+      return Status(grpc::StatusCode::UNKNOWN, "write message failed");
+    }
 
     sendMessageResponse->set_success(true);
     return Status::OK;
