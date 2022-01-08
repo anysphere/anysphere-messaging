@@ -177,7 +177,8 @@ class DaemonImpl final : public Daemon::Service {
 
     auto message = sendMessageRequest->message();
 
-    auto ok = write_msg_to_file(SEND_FILE, message, "MESSAGE", friend_info.name);
+    auto ok =
+        write_msg_to_file(SEND_FILE, message, "MESSAGE", friend_info.name);
     if (!ok) {
       cout << "write message to file failed" << endl;
       sendMessageResponse->set_success(false);
@@ -185,6 +186,25 @@ class DaemonImpl final : public Daemon::Service {
     }
 
     sendMessageResponse->set_success(true);
+    return Status::OK;
+  }
+
+  Status GetAllMessages(
+      ServerContext* context,
+      const Daemon::GetAllMessagesRequest* getAllMessagesRequest,
+      Daemon::GetAllMessagesResponse* getAllMessagesResponse) override {
+    cout << "GetAllMessages() called" << endl;
+
+    auto messages = get_entries(RECEIVE_FILE);
+
+    for (auto& message_json : messages) {
+      auto message_info = getAllMessagesResponse->add_messages();
+      message_info->set_sender(message_info.at("from").get<string>());
+      message_info->set_message(message_info.at("message").get<string>());
+      message_info->set_timestamp(message_info.at("timestamp").get<string>());
+    }
+
+    getAllMessagesResponse->set_success(true);
     return Status::OK;
   }
 

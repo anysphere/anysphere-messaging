@@ -33,3 +33,18 @@ auto write_msg_to_file(string file_address, string msg, string type, string to)
     return absl::UnknownError("file is not open");
   }
 }
+
+auto get_entries(const string& file_address) -> vector<json> {
+  auto test = json::array();
+  auto entries = vector<json>();
+
+  auto file = std::ifstream(file_address);
+  string line;
+  while (std::getline(file, line)) {
+    auto j = json::parse(line);
+    entries.push_back(j);
+  }
+  file.close();
+
+  return entries;
+}
