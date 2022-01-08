@@ -99,3 +99,7 @@ auto Config::save(const string& config_file_address) -> void {
   std::ofstream o(config_file_address);
   o << std::setw(4) << config_json.dump(4) << std::endl;
 }
+
+auto Config::has_space_for_friends(const vector<int>& allocation) -> bool {
+  return allocation.size() > friendTable.size();
+}

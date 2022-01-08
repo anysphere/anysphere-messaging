@@ -1,4 +1,5 @@
 
+#include "config.hpp"
 #include "schema/daemon.grpc.pb.h"
 
 class DaemonImpl final : public Daemon::Service {
@@ -68,7 +69,7 @@ class DaemonImpl final : public Daemon::Service {
       Daemon::GetFriendListResponse* getFriendListResponse) override {
     cout << "GetFriendList() called" << endl;
 
-    for (auto& s : FriendTable.keys()) {
+    for (auto& s : config.friendTable.keys()) {
       getFriendListResponse->add_friend_list(s);
     }
 
@@ -81,12 +82,22 @@ class DaemonImpl final : public Daemon::Service {
       Daemon::GenerateFriendKeyResponse* generateFriendKeyResponse) override {
     cout << "GenerateFriendKey() called" << endl;
 
-    if (RegisterationInfo.allocation.size() <= FriendTable.size()) {
+    if (!config.has_space_for_friends()) {
       cout << "no more allocation" << endl;
+      generateFriendKeyResponse->set_success(false);
       return Status(grpc::StatusCode::INVALID_ARGUMENT, "no more allocation");
     }
+
+    auto index = config.registrationInfo.allocation[config.friendTable.size()];
+
+    auto friend_key =
+        crypto.generate_friend_key(config.registrationInfo.public_key, index);
+
+    generateFriendKeyResponse->set_friend_key(friend_key);
+    generateFriendKeyResponse->set_success(true);
   }
 
  private:
   Crypto& crypto;
+  Config& config;
 };

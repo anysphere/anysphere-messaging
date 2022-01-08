@@ -33,7 +33,8 @@ class Config {
 
   auto save(const string& config_file_address) -> void;
 
- private:
+  auto has_space_for_friends() -> bool;
+
   bool has_registered;
   RegistrationInfo registrationInfo;
   std::unordered_map<string, Friend> friendTable;
