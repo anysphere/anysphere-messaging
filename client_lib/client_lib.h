@@ -31,12 +31,6 @@ absl::TimeZone utc = absl::UTCTimeZone();
 //  const auto CLIENT_FILE = WORKSPACE_DIR + string("client.ndjson");
 //  const auto CONFIG_FILE = WORKSPACE_DIR + string("config.json");
 
-constexpr auto UI_FILE = "/workspace/anysphere/client/logs/ui.ndjson";
-constexpr auto UI_URGENT_FILE =
-    "/workspace/anysphere/client/logs/ui_urgent.ndjson";
-constexpr auto CLIENT_FILE = "/workspace/anysphere/client/logs/client.ndjson";
-constexpr auto CONFIG_FILE = "/workspace/anysphere/client/logs/config.json";
-
 // if the message is this size or shorter, it is guaranteed to be sent in a
 // single round. 1+5 is for the uint32 ID, 1+MESSAGE_SIZE is for the header of
 // the string, and 1 + 1 + 5 is for the repeated acks containing at least one
@@ -247,58 +241,25 @@ auto write_friend_to_file(string file_address, const Name friend_name,
   }
 }
 
-auto register_profile_to_file(Name name, PublicKey key, PrivateKey private_key,
-                              Time time) -> void {
-  const auto file_address = UI_URGENT_FILE;
-  auto file = std::ofstream(file_address, std::ios_base::app);
+// auto read_friend_messages_from_file(Name friend_name, size_t number)
+//     -> vector<json> {
+//   const auto file_address = CLIENT_FILE;
+//   auto file = std::ifstream(file_address);
+//   vector<json> messages;
+//   string line;
+//   while (std::getline(file, line)) {
+//     auto j = json::parse(line);
+//     if (j["type"].get<string>() == "MESSAGE_RECEIVED" &&
+//         j["from"].get<string>() == friend_name) {
+//       messages.push_back(j);
+//     }
+//   }
+//   file.close();
 
-  auto send_time = absl::FormatTime(time, utc);
-  json jmsg = {{"timestamp", send_time},
-               {"type", "REGISTER"},
-               {"name", name},
-               {"public_key", key},
-               {"private_key", private_key}};
-  if (file.is_open()) {
-    file << std::setw(4) << jmsg.dump() << std::endl;
-    cout << jmsg.dump() << endl;
-    file.close();
-  }
-}
-
-auto read_friend_messages_from_file(Name friend_name, size_t number)
-    -> vector<json> {
-  const auto file_address = CLIENT_FILE;
-  auto file = std::ifstream(file_address);
-  vector<json> messages;
-  string line;
-  while (std::getline(file, line)) {
-    auto j = json::parse(line);
-    if (j["type"].get<string>() == "MESSAGE_RECEIVED" &&
-        j["from"].get<string>() == friend_name) {
-      messages.push_back(j);
-    }
-  }
-  file.close();
-
-  // cut off the last n messages
-  if (messages.size() > number) {
-    messages.erase(messages.begin(),
-                   messages.begin() + messages.size() - number);
-  }
-  return messages;
-}
-
-auto read_friends_from_file() -> vector<json> {
-  const auto file_address = CONFIG_FILE;
-  auto file = std::ifstream(file_address);
-  vector<json> friends;
-  string line;
-  while (std::getline(file, line)) {
-    auto j = json::parse(line);
-    if (j["type"].get<string>() == "FRIEND") {
-      friends.push_back(j);
-    }
-  }
-  file.close();
-  return friends;
-}
+//   // cut off the last n messages
+//   if (messages.size() > number) {
+//     messages.erase(messages.begin(),
+//                    messages.begin() + messages.size() - number);
+//   }
+//   return messages;
+// }

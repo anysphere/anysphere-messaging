@@ -14,6 +14,10 @@ using messenger::Messenger;
 using messenger::RegisterInfo;
 using messenger::RegisterResponse;
 
+constexpr auto SEND_FILE = "/workspace/anysphere/client/logs/send.ndjson";
+constexpr auto RECEIVE_FILE = "/workspace/anysphere/client/logs/receive.ndjson";
+constexpr auto CONFIG_FILE = "/workspace/anysphere/client/logs/config.json";
+
 struct Friend {
   Friend() = default;
   Friend(string name, int write_index, int read_index, string write_key,
@@ -142,4 +146,19 @@ auto read_config(const string& config_file_address) -> void {
                friend_json["write_key"].get<string>(),
                friend_json["read_key"].get<string>());
   }
+}
+
+auto read_friends_from_file() -> vector<json> {
+  const auto file_address = CONFIG_FILE;
+  auto file = std::ifstream(file_address);
+  vector<json> friends;
+  string line;
+  while (std::getline(file, line)) {
+    auto j = json::parse(line);
+    if (j["type"].get<string>() == "FRIEND") {
+      friends.push_back(j);
+    }
+  }
+  file.close();
+  return friends;
 }
