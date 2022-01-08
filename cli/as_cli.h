@@ -21,14 +21,13 @@ struct Message {
   Msg msg_;
   Name friend_;
   absl::Time time_;
-  constexpr static auto file_address_ = UI_FILE;
 
   bool complete() const { return !message_is_empty() && !friend_is_empty(); }
   void set_time() { time_ = absl::Now(); }
 
   void send() {
     set_time();
-    write_msg_to_file("MESSAGE", file_address_, msg_, friend_, time_);
+    // write_msg_to_file("MESSAGE", file_address_, msg_, friend_, time_);
     clear();
   }
 
@@ -60,8 +59,6 @@ struct Friend {
   int read_index_ = -1;
   string shared_key_;
 
-  constexpr static auto file_address_ = UI_URGENT_FILE;
-
   bool complete() const {
     return !name_is_empty() && !shared_key_is_empty() && write_index_ != -1 &&
            read_index_ != -1;
@@ -70,8 +67,8 @@ struct Friend {
 
   void add() {
     set_time();
-    write_friend_to_file(file_address_, name_, write_index_, read_index_,
-                         shared_key_, time_);
+    // write_friend_to_file(file_address_, name_, write_index_, read_index_,
+    //  shared_key_, time_);
     clear();
   }
 
@@ -102,7 +99,7 @@ struct Profile {
 
   void add() {
     set_time();
-    register_profile_to_file(name_, public_key_, private_key_, time_);
+    // register_profile_to_file(name_, public_key_, private_key_, time_);
     clear();
   }
 

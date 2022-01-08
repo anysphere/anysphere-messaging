@@ -1,6 +1,6 @@
 #include "crypto.hpp"
 
-auto Crypto::gen_keypair() -> std::pair<string, string> {
+auto Crypto::generate_keypair() const -> std::pair<string, string> {
   unsigned char public_key[crypto_kx_PUBLICKEYBYTES];
   unsigned char secret_key[crypto_kx_SECRETKEYBYTES];
   crypto_kx_keypair(public_key, secret_key);
@@ -9,7 +9,7 @@ auto Crypto::gen_keypair() -> std::pair<string, string> {
       string(reinterpret_cast<char*>(secret_key), crypto_kx_SECRETKEYBYTES)};
 }
 
-auto Crypto::generate_friend_key(const string& my_public_key, int index)
+auto Crypto::generate_friend_key(const string& my_public_key, int index) const
     -> string {
   string public_key_b64;
   public_key_b64.resize(sodium_base64_ENCODED_LEN(
@@ -23,13 +23,17 @@ auto Crypto::generate_friend_key(const string& my_public_key, int index)
   return asphr::StrCat(index, "a", public_key_b64);
 }
 
-auto Crypto::decode_friend_key(const string& friend_key)
+auto Crypto::decode_friend_key(const string& friend_key) const
     -> asphr::StatusOr<std::pair<int, string>> {
-  auto components = absl::StrSplit(friend_key, 'a');
+  vector<string> components = absl::StrSplit(friend_key, 'a');
   if (components.size() != 2) {
     return asphr::InvalidArgumentError("friend key must have two components");
   }
-  auto index = absl::Atoi(components[0]);
+  int index;
+  auto success = absl::SimpleAtoi(components[0], &index);
+  if (!success) {
+    return asphr::InvalidArgumentError("friend key index must be an integer");
+  }
 
   auto public_key_b64 = components[1];
   string public_key;
@@ -42,11 +46,11 @@ auto Crypto::decode_friend_key(const string& friend_key)
                     sodium_base64_VARIANT_URLSAFE_NO_PADDING);
   public_key.resize(public_key_len);
 
-  return {index, public_key};
+  return make_pair(index, public_key);
 }
 
 auto Crypto::derive_read_write_keys(string my_public_key, string my_private_key,
-                                    string friend_public_key)
+                                    string friend_public_key) const
     -> std::pair<string, string> {
   if (my_public_key.size() != crypto_kx_PUBLICKEYBYTES) {
     throw std::runtime_error("my_public_key is not the correct size");
@@ -92,7 +96,8 @@ auto Crypto::derive_read_write_keys(string my_public_key, string my_private_key,
   return std::make_pair(read_key, write_key);
 }
 
-auto Crypto::encrypt_send(const Message& message_in, const Friend& friend_info)
+auto Crypto::encrypt_send(const Message& message_in,
+                          const Friend& friend_info) const
     -> asphr::StatusOr<pir_value_t> {
   auto message = message_in;
   if (friend_info.write_key.size() !=
@@ -163,7 +168,7 @@ auto Crypto::encrypt_send(const Message& message_in, const Friend& friend_info)
 }
 
 auto Crypto::decrypt_receive(const pir_value_t& ciphertext,
-                             const Friend& friend_info)
+                             const Friend& friend_info) const
     -> asphr::StatusOr<Message> {
   auto ciphertext_len =
       MESSAGE_SIZE - crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;

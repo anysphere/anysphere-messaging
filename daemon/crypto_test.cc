@@ -1,12 +1,14 @@
-#include "crypto.h"
+#include "crypto.hpp"
 
 #include <gtest/gtest.h>
+
+#include "client/client_lib/client_lib.h"
 
 TEST(CryptoTest, EncryptDecrypt) {
   Crypto crypto;
 
-  auto [pk1, sk1] = crypto.gen_keypair();
-  auto [pk2, sk2] = crypto.gen_keypair();
+  auto [pk1, sk1] = crypto.generate_keypair();
+  auto [pk2, sk2] = crypto.generate_keypair();
 
   auto [r1, w1] = crypto.derive_read_write_keys(pk1, sk1, pk2);
   auto [r2, w2] = crypto.derive_read_write_keys(pk2, sk2, pk1);
@@ -29,8 +31,8 @@ TEST(CryptoTest, EncryptDecrypt) {
       crypto.encrypt_send(message, friend2_from_perspective_of_friend1);
   EXPECT_TRUE(ciphertext.ok());
 
-  auto decrypted =
-      crypto.decrypt_receive(ciphertext, friend1_from_perspective_of_friend2);
+  auto decrypted = crypto.decrypt_receive(ciphertext.value(),
+                                          friend1_from_perspective_of_friend2);
   EXPECT_TRUE(decrypted.ok());
 
   EXPECT_EQ(decrypted->msg(), message.msg());
@@ -41,8 +43,8 @@ TEST(CryptoTest, EncryptDecrypt) {
 TEST(CryptoTest, EncryptDecryptMaxSize) {
   Crypto crypto;
 
-  auto [pk1, sk1] = crypto.gen_keypair();
-  auto [pk2, sk2] = crypto.gen_keypair();
+  auto [pk1, sk1] = crypto.generate_keypair();
+  auto [pk2, sk2] = crypto.generate_keypair();
 
   auto [r1, w1] = crypto.derive_read_write_keys(pk1, sk1, pk2);
   auto [r2, w2] = crypto.derive_read_write_keys(pk2, sk2, pk1);
@@ -68,8 +70,8 @@ TEST(CryptoTest, EncryptDecryptMaxSize) {
       crypto.encrypt_send(message, friend2_from_perspective_of_friend1);
   EXPECT_TRUE(ciphertext.ok());
 
-  auto decrypted =
-      crypto.decrypt_receive(ciphertext, friend1_from_perspective_of_friend2);
+  auto decrypted = crypto.decrypt_receive(ciphertext.value(),
+                                          friend1_from_perspective_of_friend2);
   EXPECT_TRUE(decrypted.ok());
 
   EXPECT_EQ(decrypted->msg(), message.msg());
@@ -80,8 +82,8 @@ TEST(CryptoTest, EncryptDecryptMaxSize) {
 TEST(CryptoTest, EncryptDecryptBiggerThanMaxSize) {
   Crypto crypto;
 
-  auto [pk1, sk1] = crypto.gen_keypair();
-  auto [pk2, sk2] = crypto.gen_keypair();
+  auto [pk1, sk1] = crypto.generate_keypair();
+  auto [pk2, sk2] = crypto.generate_keypair();
 
   auto [r1, w1] = crypto.derive_read_write_keys(pk1, sk1, pk2);
   auto [r2, w2] = crypto.derive_read_write_keys(pk2, sk2, pk1);
@@ -107,8 +109,8 @@ TEST(CryptoTest, EncryptDecryptBiggerThanMaxSize) {
       crypto.encrypt_send(message, friend2_from_perspective_of_friend1);
   EXPECT_TRUE(ciphertext.ok());
 
-  auto decrypted =
-      crypto.decrypt_receive(ciphertext, friend1_from_perspective_of_friend2);
+  auto decrypted = crypto.decrypt_receive(ciphertext.value(),
+                                          friend1_from_perspective_of_friend2);
   EXPECT_TRUE(decrypted.ok());
 
   // the decrypted message should be a truncated version of the real message

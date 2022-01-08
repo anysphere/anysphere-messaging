@@ -1,6 +1,9 @@
 cc_library(
     name = "client_lib",
     srcs = [
+        "client_lib_crypto.cc",
+    ],
+    hdrs = [
         "client_lib.h",
     ],
     visibility = ["//visibility:public"],

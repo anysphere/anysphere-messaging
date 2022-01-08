@@ -134,13 +134,13 @@ int main() {
                       friend_name, "\n");
 
         out << "--------------------------------\n";
-        auto messages = read_friend_messages_from_file(friend_name, 15);
-        for (const auto& message : messages) {
-          out << StrCat(message["from"].get<string>(), ": \n",
-                        "time: ", message["timestamp"].get<string>(), "\n",
-                        message["message"].get<string>(), "\n\n",
-                        "--------------------------------\n");
-        }
+        // auto messages = read_friend_messages_from_file(friend_name, 15);
+        // for (const auto& message : messages) {
+        //   out << StrCat(message["from"].get<string>(), ": \n",
+        //                 "time: ", message["timestamp"].get<string>(), "\n",
+        //                 message["message"].get<string>(), "\n\n",
+        //                 "--------------------------------\n");
+        // }
         out << "Type 'anysphere' to go to your main inbox.\n ";
         // go to the main inbox.
       },
@@ -149,19 +149,19 @@ int main() {
       "names",
       [](std::ostream& out) {
         out << "Showing all your friends:\n\n";
-        auto friends = read_friends_from_file();
-        for (const auto& friend_ : friends) {
-          out << friend_["name"].get<string>() << "\n";
-        }
-        if (friends.empty()) {
-          out << "You have no friends :(\n";
-        }
-        if (friends.size() == 1) {
-          out << "YOU have 1 friend :)\n";
-        } else {
-          out << StrCat("THERE YOUR ARE! YOU HAVE ", friends.size(),
-                        " FRIENDS\n");
-        }
+        // auto friends = read_friends_from_file();
+        // for (const auto& friend_ : friends) {
+        //   out << friend_["name"].get<string>() << "\n";
+        // }
+        // if (friends.empty()) {
+        //   out << "You have no friends :(\n";
+        // }
+        // if (friends.size() == 1) {
+        //   out << "YOU have 1 friend :)\n";
+        // } else {
+        //   out << StrCat("THERE YOUR ARE! YOU HAVE ", friends.size(),
+        //                 " FRIENDS\n");
+        // }
 
         out << "Type 'anysphere' to go to your main inbox.\n ";
       },

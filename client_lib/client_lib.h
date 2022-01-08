@@ -1,6 +1,4 @@
-namespace sodium {
-#include <sodium.h>
-}
+#pragma once
 
 #include "asphr/asphr.h"
 
@@ -35,12 +33,13 @@ absl::TimeZone utc = absl::UTCTimeZone();
 // single round. 1+5 is for the uint32 ID, 1+MESSAGE_SIZE is for the header of
 // the string, and 1 + 1 + 5 is for the repeated acks containing at least one
 // element. -1 at the end is for the padding which reserves one byte.
-constexpr auto GUARANTEED_SINGLE_MESSAGE_SIZE =
+extern const size_t CRYPTO_ABYTES;
+extern const size_t CRYPTO_NPUBBYTES;
+const auto GUARANTEED_SINGLE_MESSAGE_SIZE =
     MESSAGE_SIZE - (1 + 5) -
     (1 +
      CEIL_DIV((sizeof MESSAGE_SIZE) * 8 - std::countl_zero(MESSAGE_SIZE), 8)) -
-    (1 + 1 + 5) - crypto_aead_xchacha20poly1305_ietf_ABYTES - 1 -
-    crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
+    (1 + 1 + 5) - CRYPTO_ABYTES - 1 - CRYPTO_NPUBBYTES;
 
 /**
  * @brief This function gets the last line of a file
@@ -165,35 +164,6 @@ auto get_new_entries(const string& file_address, const Time& last_timestamp)
   file.close();
 
   return new_entries;
-}
-
-auto get_entries(const string& file_address) -> vector<json> {
-  auto test = json::array();
-  auto entries = vector<json>();
-
-  auto file = std::ifstream(file_address);
-  string line;
-  while (std::getline(file, line)) {
-    auto j = json::parse(line);
-    entries.push_back(j);
-  }
-  file.close();
-
-  return entries;
-}
-
-auto write_msg_to_file(string file_address, string msg, string type, string to)
-    -> void {
-  auto file = std::ofstream(file_address, std::ios_base::app);
-
-  auto time = absl::FormatTime(absl::Now(), utc);
-  json jmsg = {
-      {"timestamp", time}, {"type", type}, {"message", msg}, {"to", to}};
-  if (file.is_open()) {
-    file << std::setw(4) << jmsg.dump() << std::endl;
-    cout << "write msg to file: " << jmsg.dump() << endl;
-    file.close();
-  }
 }
 
 auto write_friend_to_file(string file_address, const Name friend_name,

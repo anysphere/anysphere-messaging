@@ -9,10 +9,10 @@ struct Friend {
   int read_index;
   string write_key;
   string read_key;
-  bool disabled;
+  bool enabled;
 
-  auto to_json() -> json;
-  static auto from_json(const json& j) -> Friend;
+  auto to_json() -> asphr::json;
+  static auto from_json(const asphr::json& j) -> Friend;
 };
 
 struct RegistrationInfo {
@@ -23,14 +23,14 @@ struct RegistrationInfo {
   vector<int> allocation;
   // the client needs to know roughly how many rows are in the database.
   // here we cache the latest number of db_rows we received
-  auto to_json() -> json;
-  static auto from_json(const json& j) -> RegistrationInfo;
+  auto to_json() -> asphr::json;
+  static auto from_json(const asphr::json& j) -> RegistrationInfo;
 };
 
 class Config {
  public:
   Config(const string& config_file_address);
-  Config(const json& config_json);
+  Config(const asphr::json& config_json);
 
   auto save(const string& config_file_address) -> void;
 
@@ -46,4 +46,10 @@ class Config {
   string pir_galois_keys;
   // make this a ptr because we want it to possibly be null
   std::unique_ptr<FastPIRClient> pir_client = nullptr;
-}
+};
+
+struct EphemeralConfig {
+  string config_file_address;
+  string send_messages_file_address;
+  string received_messages_file_address;
+};

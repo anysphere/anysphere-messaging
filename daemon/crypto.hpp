@@ -5,18 +5,14 @@
 #include <stdexcept>
 #include <string>
 
-#include "anysphere.h"
+#include "asphr/asphr.h"
+#include "client/client_lib/client_lib.h"
+#include "config.hpp"
 #include "schema/message.pb.h"
 
 using client::Message;
 
 using std::string;
-
-// TODO: for some weird reason, in normal builds, all sodium functions are in
-// the sodium namespace (GREAT), but in tests, they are not... hence why we use
-// this to be able to do both. ideally we want tests to have the namespace
-// though...
-using namespace sodium;
 
 /* Crypto implements an IND-CCA2 secure scheme.
 
@@ -32,13 +28,15 @@ class Crypto {
     }
   }
 
-  auto gen_keypair() -> std::pair<string, string>;
+  auto generate_keypair() const -> std::pair<string, string>;
 
-  auto generate_friend_key(const string& my_public_key, int index) -> string;
-  auto decode_friend_key(const string& friend_key) -> std::pair<int, string>;
+  auto generate_friend_key(const string& my_public_key, int index) const
+      -> string;
+  auto decode_friend_key(const string& friend_key) const
+      -> asphr::StatusOr<std::pair<int, string>>;
 
   auto derive_read_write_keys(string my_public_key, string my_private_key,
-                              string friend_public_key)
+                              string friend_public_key) const
       -> std::pair<string, string>;
 
   // note: it is CRUCIAL that we use a new random nonce EVERY SINGLE TIME.
@@ -54,11 +52,10 @@ class Crypto {
   // we need key privacy. Block-cipher based symmetric-key encryption
   // schemes do support this out of the box, but it is important to keep in
   // mind because it is a somewhat nonstandard requirement.
-  auto Crypto::encrypt_send(const Message& message_in,
-                            const Friend& friend_info)
+  auto encrypt_send(const Message& message_in, const Friend& friend_info) const
       -> asphr::StatusOr<pir_value_t>;
 
-  auto Crypto::decrypt_receive(const pir_value_t& ciphertext,
-                               const Friend& friend_info)
+  auto decrypt_receive(const pir_value_t& ciphertext,
+                       const Friend& friend_info) const
       -> asphr::StatusOr<Message>;
 };

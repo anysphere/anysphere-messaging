@@ -1,39 +1,32 @@
-#include "anysphere.h"
-#include "crypto.h"
-#include "schema/message.pb.h"
+#pragma once
 
-using messenger::ReceiveMessageInfo;
-using messenger::ReceiveMessageResponse;
-using messenger::SendMessageInfo;
-using messenger::SendMessageResponse;
+#include "crypto.hpp"
+#include "schema/message.pb.h"
 
 using client::Message;
 
 void retrieve_messages(const string& output_file_address,
-                       std::unique_ptr<Messenger::Stub>& stub, Crypto crypto) {
-  if (!RegistrationInfo.has_registered) {
+                       unique_ptr<asphrserver::Server::Stub>& stub,
+                       const Crypto& crypto, const Config& config) {
+  if (!config.has_registered) {
     cout << "hasn't registered yet, so cannot retrieve messages" << endl;
     return;
   }
-  if (RegistrationInfo.pir_client == nullptr) {
-    RegistrationInfo.pir_client = std::make_unique<FastPIRClient>(
-        RegistrationInfo.pir_secret_key, RegistrationInfo.pir_galois_keys);
-  }
 
-  auto& client = *RegistrationInfo.pir_client;
-  for (auto& [friend_name, friend_info] : FriendTable) {
-    ReceiveMessageInfo request;
+  auto& client = *config.pir_client;
+  for (auto& [friend_name, friend_info] : config.friendTable) {
+    asphrserver::ReceiveMessageInfo request;
 
-    auto query = client.query(friend_info.read_index, RegistrationInfo.db_rows);
+    auto query = client.query(friend_info.read_index, config.db_rows);
 
     auto serialized_query = query.serialize_to_string();
 
     request.set_pir_query(serialized_query);
 
-    ReceiveMessageResponse reply;
-    ClientContext context;
+    asphrserver::ReceiveMessageResponse reply;
+    grpc::ClientContext context;
 
-    Status status = stub->ReceiveMessage(&context, request, &reply);
+    grpc::Status status = stub->ReceiveMessage(&context, request, &reply);
 
     if (status.ok()) {
       cout << "received message!!!" << endl;
@@ -41,13 +34,12 @@ void retrieve_messages(const string& output_file_address,
       auto answer_obj = client.answer_from_string(answer);
       auto decoded_value = client.decode(answer_obj, friend_info.read_index);
 
-      auto [message, valid] =
-          crypto.decrypt_receive(decoded_value, friend_info);
-
-      if (valid != 0) {
-        cout << "message is invalid" << endl;
+      auto decrypted = crypto.decrypt_receive(decoded_value, friend_info);
+      if (!decrypted.ok()) {
+        cout << "decryption failed: " << decrypted.status() << endl;
         continue;
       }
+      auto& message = decrypted.value();
 
       if (message.id() == 0) {
         cout << "empty message for security" << endl;
@@ -77,21 +69,22 @@ void retrieve_messages(const string& output_file_address,
 
 void process_ui_file(const string& ui_file_address,
                      const Time& last_ui_timestamp,
-                     std::unique_ptr<Messenger::Stub>& stub, Crypto crypto) {
-  if (!RegistrationInfo.has_registered) {
+                     unique_ptr<asphrserver::Server::Stub>& stub,
+                     Crypto& crypto, Config& config) {
+  if (!config.has_registered) {
     cout << "hasn't registered yet, so don't send a message" << endl;
     return;
   }
 
   auto new_entries = get_new_entries(ui_file_address, last_ui_timestamp);
 
-  auto authentication_token = RegistrationInfo.authentication_token;
+  auto authentication_token = config.registrationInfo.authentication_token;
 
   std::unordered_map<string, string> friend_to_message;
 
   for (auto& entry : new_entries) {
     auto to = entry["to"].get<string>();
-    if (!FriendTable.contains(to)) {
+    if (!config.friendTable.contains(to)) {
       std::cerr << "FriendHashTable does not contain " << to
                 << "; ignoring message" << endl;
       continue;
@@ -99,7 +92,7 @@ void process_ui_file(const string& ui_file_address,
     friend_to_message.insert({to, entry["message"].get<string>()});
   }
 
-  for (auto& [friend_name, friend_info] : FriendTable) {
+  for (auto& [friend_name, friend_info] : config.friendTable) {
     Message message;
     message.set_id(0);
     if (friend_to_message.count(friend_name) != 0) {
@@ -111,11 +104,13 @@ void process_ui_file(const string& ui_file_address,
 
     auto index = friend_info.write_index;
 
-    auto [pir_value_message, valid] = crypto.encrypt_send(message, friend_info);
-    if (valid != 0) {
-      cout << "encryption failed; not doing anything with message" << endl;
+    auto pir_value_message_status = crypto.encrypt_send(message, friend_info);
+    if (!pir_value_message_status.ok()) {
+      cout << "encryption failed; not doing anything with message"
+           << pir_value_message_status.status() << endl;
       continue;
     }
+    auto pir_value_message = pir_value_message_status.value();
 
     cout << "Sending message to server: " << endl;
     cout << "index: " << index << endl;
@@ -126,7 +121,7 @@ void process_ui_file(const string& ui_file_address,
     // static auto last_message = entry["message"];
 
     // call register rpc to send the register request
-    SendMessageInfo request;
+    asphrserver::SendMessageInfo request;
 
     request.set_index(index);
     request.set_authentication_token(authentication_token);
@@ -137,16 +132,16 @@ void process_ui_file(const string& ui_file_address,
     }
     request.set_message(padded_msg_str);
 
-    SendMessageResponse reply;
+    asphrserver::SendMessageResponse reply;
 
-    ClientContext context;
+    grpc::ClientContext context;
 
-    Status status = stub->SendMessage(&context, request, &reply);
+    grpc::Status status = stub->SendMessage(&context, request, &reply);
 
     if (status.ok()) {
       auto db_rows = reply.db_rows();
       cout << "db_rows: " << db_rows << endl;
-      RegistrationInfo.db_rows = db_rows;
+      config.db_rows = db_rows;
       std::cout << "Message sent to server: " << request.message() << std::endl;
     } else {
       std::cerr << status.error_code() << ": " << status.error_message()
