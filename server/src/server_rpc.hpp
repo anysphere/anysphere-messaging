@@ -39,12 +39,14 @@ class ServerRpc final : public asphrserver::Server::Service {
       const asphrserver::ReceiveMessageInfo* receiveMessageInfo,
       asphrserver::ReceiveMessageResponse* receiveMessageResponse) override;
 
-  ServerRpc(PIR& pir, AccountManager& account_manager)
-      : pir(pir), account_manager(account_manager) {}
+  ServerRpc(PIR&& pir, AccountManager&& account_manager)
+      : pir(std::move(pir)), account_manager(std::move(account_manager)) {}
+
+  auto get_seal_slot_count() const { return pir.get_seal_slot_count(); }
 
  private:
-  PIR& pir;
-  AccountManager& account_manager;
+  PIR pir;
+  AccountManager account_manager;
 };
 
 #include "server_rpc.cc"

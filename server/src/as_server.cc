@@ -44,7 +44,8 @@ int main(int argc, char** argv) {
   // MessengerImpl<NonPrivatePIR, AccountManager> messenger_service(pir,
   // account_manager); MessengerImpl<SealPIR, AccountManager>
   // messenger_service(pir, account_manager);
-  auto server_rpc = ServerRpc<FastPIR, AccountManager>(pir, account_manager);
+  auto server_rpc = ServerRpc<FastPIR, AccountManager>(
+      std::move(pir), std::move(account_manager));
 
   grpc::ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());

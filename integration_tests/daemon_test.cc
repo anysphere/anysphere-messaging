@@ -33,7 +33,7 @@ auto gen_ephemeral_config() -> EphemeralConfig {
 auto gen_server_rpc() {
   FastPIR pir;
   AccountManagerInMemory account_manager;
-  return ServerRpc(pir, account_manager);
+  return ServerRpc(std::move(pir), std::move(account_manager));
 }
 
 namespace asphr::testing {
@@ -71,6 +71,7 @@ class DaemonRpcTest : public ::testing::Test {
 };
 
 TEST_F(DaemonRpcTest, Register) {
+  ResetStub();
   RegisterUserRequest request;
   request.set_name("test");
 
@@ -81,7 +82,7 @@ TEST_F(DaemonRpcTest, Register) {
   auto ephConfig = gen_ephemeral_config();
 
   DaemonRpc rpc(crypto, config, stub_, ephConfig);
-
+  cout << "response.success() = " << response.success() << endl;
   rpc.RegisterUser(nullptr, &request, &response);
 
   EXPECT_TRUE(response.success());

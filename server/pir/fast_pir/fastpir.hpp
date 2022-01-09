@@ -19,9 +19,7 @@ class FastPIR {
 
   FastPIR()
       : sc(create_context_params()),
-        batch_encoder(sc),
-        evaluator(sc),
-        seal_slot_count(batch_encoder.slot_count()) {
+        seal_slot_count(seal::BatchEncoder(sc).slot_count()) {
     check_rep();
   }
 
@@ -33,6 +31,9 @@ class FastPIR {
 
   auto get_value_privately(pir_query_t pir_query) noexcept(false)
       -> pir_answer_t {
+    auto batch_encoder = seal::BatchEncoder(sc);
+    auto evaluator = seal::Evaluator(sc);
+
     for (size_t i = 0; i < SEAL_DB_COLUMNS; i++) {
       vector<uint64_t> query_vec;
       batch_encoder.decode(seal_db[i], query_vec);
@@ -114,8 +115,6 @@ class FastPIR {
   size_t db_rows = 0;
   // seal context contains the parameters for the homomorphic encryption scheme
   seal::SEALContext sc;
-  seal::BatchEncoder batch_encoder;
-  seal::Evaluator evaluator;
   // number of slots in the plaintext
   size_t seal_slot_count;
   // this will be basically ceil(db_rows / seal_slot_count)
@@ -141,6 +140,8 @@ class FastPIR {
 
     auto seal_db_index = index / seal_slot_count;
     auto db_start_block_index = db_index(seal_db_index * seal_slot_count);
+
+    auto batch_encoder = seal::BatchEncoder(sc);
 
     for (size_t j = 0; j < SEAL_DB_COLUMNS; j++) {
       auto plain_text_coeffs = get_submatrix_as_uint64s(

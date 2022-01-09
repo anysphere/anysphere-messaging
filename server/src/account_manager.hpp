@@ -58,15 +58,18 @@ class AccountManagerInMemory {
 class AccountManagerPostgres {
  public:
   AccountManagerPostgres()
-      : conn(
+      : conn(make_unique<pqxx::connection>(
             "dbname=postgres user=postgres password=postgres "
-            "hostaddr=127.0.0.1 port=5432") {
-    std::cout << "Connected to " << conn.dbname() << '\n';
+            "hostaddr=127.0.0.1 port=5432")) {
+    std::cout << "Connected to " << conn->dbname() << '\n';
   }
+
+  AccountManagerPostgres(AccountManagerPostgres&& account_manager)
+      : conn(std::move(account_manager.conn)) {}
 
   auto generate_account(const string& public_key, pir_index_t allocation)
       -> pair<string, vector<pir_index_t>> {
-    pqxx::work W{conn};
+    pqxx::work W{*conn};
     // TODO: use cryptographic randomness here (not critical for privacy)
     string possible_characters =
         "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -94,7 +97,7 @@ class AccountManagerPostgres {
   }
 
   auto valid_index_access(const string& token, pir_index_t index) -> bool {
-    pqxx::work W{conn};
+    pqxx::work W{*conn};
     auto result =
         W.exec("SELECT pir_index FROM accounts WHERE authentication_token = '" +
                token + "'");
@@ -104,5 +107,5 @@ class AccountManagerPostgres {
 
  private:
   unordered_map<string, vector<pir_index_t>> token_to_index_map;
-  pqxx::connection conn;
+  unique_ptr<pqxx::connection> conn;
 };

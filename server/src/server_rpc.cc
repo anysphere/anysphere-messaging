@@ -15,7 +15,6 @@ Status ServerRpc<PIR, AccountManager>::Register(
     auto allocation = pir.allocate();
     auto [auth_token, allocation_vec] = account_manager.generate_account(
         registerInfo->public_key(), allocation);
-
     for (auto& alloc : allocation_vec) {
       registerResponse->add_allocation(alloc);
     }
