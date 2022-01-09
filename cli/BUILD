@@ -11,14 +11,14 @@ cc_binary(
     name = "anysphere-cli",
     srcs = [
         "as_cli.cc",
-        "as_cli.h",
+        "as_cli.hpp",
     ],
     linkopts = ["-lpthread"],
     deps = [
+        ":scheduler_lib",
         "//asphr:asphr_lib",
         "//client/client_lib",
         "@com_github_daniele77_cli//:cli_header_lib",
-        ":scheduler_lib",
     ],
 )
 

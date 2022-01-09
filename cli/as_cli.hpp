@@ -1,7 +1,7 @@
 #pragma once
 
 #include "as_scheduler.hpp"
-#include "asphr/asphr.h"
+#include "asphr/asphr.hpp"
 #include "cli/cli.h"
 #include "cli/clifilesession.h"
 #include "cli/clilocalsession.h"

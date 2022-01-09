@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "asphr/asphr.h"
+#include "asphr/asphr.hpp"
 #include "client/client_lib/client_lib.hpp"
 #include "config.hpp"
 #include "schema/message.pb.h"

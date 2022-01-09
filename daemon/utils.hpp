@@ -1,6 +1,6 @@
 #pragma once
 
-#include "asphr/asphr.h"
+#include "asphr/asphr.hpp"
 
 auto write_msg_to_file(string file_address, string msg, string type, string to)
     -> asphr::Status {

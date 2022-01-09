@@ -1,6 +1,6 @@
 #pragma once
 
-#include "asphr/asphr.h"
+#include "asphr/asphr.hpp"
 
 using Msg = string;
 using PublicKey = string;
