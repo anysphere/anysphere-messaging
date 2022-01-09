@@ -1,4 +1,4 @@
-#include "server/pir/fast_pir/fastpir.h"
+#include "server/pir/fast_pir/fastpir.hpp"
 
 #include <gtest/gtest.h>
 

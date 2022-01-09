@@ -3,7 +3,7 @@
 #include <pqxx/pqxx>
 #include <random>
 
-#include "asphr/asphr.h"
+#include "asphr/asphr.hpp"
 
 using std::cout;
 using std::endl;

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 using testing::Types;
 
-#include "server/src/account_manager.h"
+#include "server/src/account_manager.hpp"
 
 template <typename T>
 struct AccountManagerTest : public testing::Test {};

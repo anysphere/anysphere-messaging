@@ -1,7 +1,7 @@
 
-#include "account_manager.h"
-#include "server/pir/fast_pir/fastpir.h"
-#include "server/pir/nonprivate/nonprivate_pir.h"
+#include "account_manager.hpp"
+#include "server/pir/fast_pir/fastpir.hpp"
+#include "server/pir/nonprivate/nonprivate_pir.hpp"
 #include "server_rpc.hpp"
 
 // TODO: look into AsyncService; might be useful for performance

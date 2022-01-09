@@ -13,8 +13,8 @@
 #include "schema/server.grpc.pb.h"
 #endif
 
-#include "account_manager.h"
-#include "asphr/asphr.h"
+#include "account_manager.hpp"
+#include "asphr/asphr.hpp"
 
 template <typename PIR, typename AccountManager>
 class ServerRpc final : public asphrserver::Server::Service {

@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "asphr/asphr.h"
+#include "asphr/asphr.hpp"
 
 using std::array;
 using std::string;

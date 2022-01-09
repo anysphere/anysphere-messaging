@@ -1,4 +1,4 @@
-#include "nonprivate_pir.h"
+#include "nonprivate_pir.hpp"
 
 NonPrivatePIR::NonPrivatePIR() {}
 

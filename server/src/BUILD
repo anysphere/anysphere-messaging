@@ -3,7 +3,7 @@ load("@rules_cc//cc:defs.bzl", "cc_binary")
 cc_library(
     name = "as_server_lib",
     hdrs = [
-        "account_manager.h",
+        "account_manager.hpp",
         "server_rpc.cc",
         "server_rpc.hpp",
     ],
