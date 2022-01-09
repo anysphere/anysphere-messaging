@@ -1,5 +1,9 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 
+package(
+    default_visibility = ["//integration_tests:__pkg__"],
+)
+
 cc_library(
     name = "config_lib",
     srcs = ["config.cc"],
