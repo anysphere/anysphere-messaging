@@ -3,8 +3,8 @@
 #include <array>
 #include <bitset>
 
-#include "asphr/asphr.h"
-#include "fast_pir.h"
+#include "asphr/asphr.hpp"
+#include "fast_pir.hpp"
 
 using std::array;
 using std::bitset;

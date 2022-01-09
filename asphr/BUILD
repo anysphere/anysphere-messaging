@@ -1,8 +1,8 @@
 cc_library(
     name = "asphr_lib",
     srcs = [
-        "asphr.h",
-        "base64.h",
+        "asphr.hpp",
+        "base64.hpp",
         "json/nlohmann_json.h",
     ],
     visibility = ["//visibility:public"],
@@ -23,7 +23,7 @@ cc_library(
         "utils.cc",
     ],
     hdrs = [
-        "utils.h",
+        "utils.hpp",
     ],
     visibility = [
         "//client:__subpackages__",

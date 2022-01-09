@@ -20,9 +20,9 @@
 #include "absl/strings/str_split.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "base64.h"
+#include "base64.hpp"
 #include "json/nlohmann_json.h"
-#include "utils.h"
+#include "utils.hpp"
 
 using std::array;
 using std::cerr;

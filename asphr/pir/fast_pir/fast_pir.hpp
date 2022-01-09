@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "asphr/asphr.h"
+#include "asphr/asphr.hpp"
 #include "fast_pir_config.hpp"
 
 template <typename Ciphertext_t, typename GaloisKeys_t>

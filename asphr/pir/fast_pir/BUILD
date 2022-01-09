@@ -4,7 +4,7 @@ cc_library(
     name = "fast_pir_lib",
     srcs = ["fast_pir_client.cc"],
     hdrs = [
-        "fast_pir.h",
+        "fast_pir.hpp",
         "fast_pir_client.hpp",
         "fast_pir_config.hpp",
     ],
