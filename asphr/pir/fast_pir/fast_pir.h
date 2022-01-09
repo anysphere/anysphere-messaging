@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "asphr/asphr.h"
-#include "fast_pir_config.h"
+#include "fast_pir_config.hpp"
 
 template <typename Ciphertext_t, typename GaloisKeys_t>
 struct FastPIRQuery {

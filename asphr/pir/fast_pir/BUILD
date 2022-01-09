@@ -2,10 +2,11 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
     name = "fast_pir_lib",
+    srcs = ["fast_pir_client.cc"],
     hdrs = [
         "fast_pir.h",
-        "fast_pir_client.h",
-        "fast_pir_config.h",
+        "fast_pir_client.hpp",
+        "fast_pir_config.hpp",
     ],
     visibility = ["//visibility:public"],
     deps = [

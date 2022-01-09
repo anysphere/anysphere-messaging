@@ -46,7 +46,7 @@ static_assert(
 // static_assert(is_prime(PLAIN_MODULUS), "PLAIN_MODULUS must be prime"); //
 // seems unnecessary to code this up just to check this. VERIFY MANUALLY.
 
-auto create_context_params() -> seal::EncryptionParameters {
+static auto create_context_params() -> seal::EncryptionParameters {
   seal::EncryptionParameters params(seal::scheme_type::bfv);
   params.set_poly_modulus_degree(POLY_MODULUS_DEGREE);
   vector<seal::Modulus> coeff_modulus;
