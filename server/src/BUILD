@@ -1,5 +1,9 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 
+package(
+    default_visibility = ["//integration_tests:__pkg__"],
+)
+
 cc_library(
     name = "as_server_lib",
     hdrs = [
@@ -12,10 +16,6 @@ cc_library(
         ":in_memory_db": ["USE_MEMORY_DB"],
     }),
     linkopts = ["-lpq"],
-    visibility = [
-        "//server/src:__pkg__",
-        "//server/test:__pkg__",
-    ],
     deps = [
         "//asphr:asphr_lib",
         "//schema:server_cc_grpc",

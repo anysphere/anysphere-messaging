@@ -23,6 +23,7 @@ class ServerRpc final : public asphrserver::Server::Service {
   // TODO: add a thread safety argument (because the methods may be called from
   // different threads)
   // TODO: add representation invariant
+ public:
   grpc::Status Register(
       grpc::ServerContext* context,
       const asphrserver::RegisterInfo* registerInfo,
@@ -38,7 +39,6 @@ class ServerRpc final : public asphrserver::Server::Service {
       const asphrserver::ReceiveMessageInfo* receiveMessageInfo,
       asphrserver::ReceiveMessageResponse* receiveMessageResponse) override;
 
- public:
   ServerRpc(PIR& pir, AccountManager& account_manager)
       : pir(pir), account_manager(account_manager) {}
 

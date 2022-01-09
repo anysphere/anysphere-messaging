@@ -1,14 +1,17 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
+package(
+    default_visibility = ["//integration_tests:__pkg__"],
+)
+
 cc_library(
     name = "server_fast_pir_lib",
     hdrs = [
         "fastpir.hpp",
     ],
     visibility = [
-        "//client/daemon:__pkg__",
+        "//integration_tests:__pkg__",
         "//server/src:__pkg__",
-        "//server/test:__pkg__",
     ],
     deps = [
         "//asphr:asphr_lib",
