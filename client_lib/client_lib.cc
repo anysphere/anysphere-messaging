@@ -1,41 +1,12 @@
-#pragma once
+#include "client_lib.hpp"
 
-#include "asphr/asphr.h"
+#include <sodium.h>
 
-using Msg = string;
-using PublicKey = string;
-using PrivateKey = string;
-using Name = string;
-
-using std::cout;
-using std::endl;
-using std::string;
-using std::to_string;
-
-using std::vector;
-
-using json = nlohmann::json;
-
-using absl::StrCat;
-using absl::Time;
-absl::BitGen gen_;
-
-absl::TimeZone utc = absl::UTCTimeZone();
-
-// TODO(sualeh): make this work
-//  const auto WORKSPACE_DIR = string("/workspace/anysphere/client/logs/");
-//  const auto UI_FILE = WORKSPACE_DIR + string("ui.ndjson");
-//  const auto UI_URGENT_FILE = WORKSPACE_DIR + string("ui_urgent.ndjson");
-//  const auto CLIENT_FILE = WORKSPACE_DIR + string("client.ndjson");
-//  const auto CONFIG_FILE = WORKSPACE_DIR + string("config.json");
-
-// if the message is this size or shorter, it is guaranteed to be sent in a
-// single round. 1+5 is for the uint32 ID, 1+MESSAGE_SIZE is for the header of
-// the string, and 1 + 1 + 5 is for the repeated acks containing at least one
-// element. -1 at the end is for the padding which reserves one byte.
-extern const size_t CRYPTO_ABYTES;
-extern const size_t CRYPTO_NPUBBYTES;
-const auto GUARANTEED_SINGLE_MESSAGE_SIZE =
+extern constexpr size_t CRYPTO_ABYTES =
+    crypto_aead_xchacha20poly1305_ietf_ABYTES;
+extern constexpr size_t CRYPTO_NPUBBYTES =
+    crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
+extern constexpr size_t GUARANTEED_SINGLE_MESSAGE_SIZE =
     MESSAGE_SIZE - (1 + 5) -
     (1 +
      CEIL_DIV((sizeof MESSAGE_SIZE) * 8 - std::countl_zero(MESSAGE_SIZE), 8)) -
@@ -165,42 +136,3 @@ auto get_new_entries(const string& file_address, const Time& last_timestamp)
 
   return new_entries;
 }
-
-auto write_friend_to_file(string file_address, const Name friend_name,
-                          const int& write_index, const int& read_index,
-                          const string& shared_key, Time time) -> void {
-  auto file = std::ofstream(file_address, std::ios_base::app);
-
-  auto send_time = absl::FormatTime(time, utc);
-  json jmsg = {{"timestamp", send_time},   {"type", "FRIEND"},
-               {"name", friend_name},      {"write_index", write_index},
-               {"read_index", read_index}, {"shared_key", shared_key}};
-  if (file.is_open()) {
-    file << std::setw(4) << jmsg.dump() << std::endl;
-    cout << jmsg.dump() << endl;
-    file.close();
-  }
-}
-
-// auto read_friend_messages_from_file(Name friend_name, size_t number)
-//     -> vector<json> {
-//   const auto file_address = CLIENT_FILE;
-//   auto file = std::ifstream(file_address);
-//   vector<json> messages;
-//   string line;
-//   while (std::getline(file, line)) {
-//     auto j = json::parse(line);
-//     if (j["type"].get<string>() == "MESSAGE_RECEIVED" &&
-//         j["from"].get<string>() == friend_name) {
-//       messages.push_back(j);
-//     }
-//   }
-//   file.close();
-
-//   // cut off the last n messages
-//   if (messages.size() > number) {
-//     messages.erase(messages.begin(),
-//                    messages.begin() + messages.size() - number);
-//   }
-//   return messages;
-// }

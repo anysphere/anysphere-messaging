@@ -56,6 +56,7 @@ cc_binary(
     ],
     deps = [
         ":daemon_lib",
+        "//client/client_lib",
     ],
 )
 

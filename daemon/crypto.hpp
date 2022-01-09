@@ -6,7 +6,7 @@
 #include <string>
 
 #include "asphr/asphr.h"
-#include "client/client_lib/client_lib.h"
+#include "client/client_lib/client_lib.hpp"
 #include "config.hpp"
 #include "schema/message.pb.h"
 

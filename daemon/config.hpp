@@ -1,7 +1,7 @@
 #pragma once
 
 #include "asphr/asphr.h"
-#include "asphr/pir/fast_pir/fast_pir_client.h"
+#include "asphr/pir/fast_pir/fast_pir_client.hpp"
 
 struct Friend {
   string name;

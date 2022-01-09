@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include "client/client_lib/client_lib.h"
+#include "client/client_lib/client_lib.hpp"
 
 TEST(CryptoTest, EncryptDecrypt) {
   Crypto crypto;

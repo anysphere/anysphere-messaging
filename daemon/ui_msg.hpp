@@ -50,7 +50,7 @@ void retrieve_messages(const string& output_file_address,
       {
         auto file = std::ofstream(output_file_address, std::ios_base::app);
 
-        auto time = absl::FormatTime(absl::Now(), utc);
+        auto time = absl::FormatTime(absl::Now(), absl::UTCTimeZone());
         json jmsg = {{"from", friend_name},
                      {"timestamp", time},
                      {"message", message.msg()},

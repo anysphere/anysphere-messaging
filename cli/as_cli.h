@@ -5,7 +5,7 @@
 #include "cli/cli.h"
 #include "cli/clifilesession.h"
 #include "cli/clilocalsession.h"
-#include "client/client_lib/client_lib.h"
+#include "client/client_lib/client_lib.hpp"
 
 using MainScheduler = as_cli::AnysphereScheduler;
 

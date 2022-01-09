@@ -6,7 +6,7 @@ auto write_msg_to_file(string file_address, string msg, string type, string to)
     -> asphr::Status {
   auto file = std::ofstream(file_address, std::ios_base::app);
 
-  auto time = absl::FormatTime(absl::Now(), utc);
+  auto time = absl::FormatTime(absl::Now(), absl::UTCTimeZone());
   json jmsg = {
       {"timestamp", time}, {"type", type}, {"message", msg}, {"to", to}};
   if (file.is_open()) {

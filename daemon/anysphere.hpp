@@ -2,7 +2,7 @@
 #include <grpcpp/grpcpp.h>
 
 #include "asphr/asphr.h"
-#include "client/client_lib/client_lib.h"
+#include "client/client_lib/client_lib.hpp"
 #include "crypto.hpp"
 #include "schema/server.grpc.pb.h"
 
