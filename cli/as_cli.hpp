@@ -27,28 +27,7 @@ struct Message {
 
   bool complete() const { return !message_is_empty() && !friend_is_empty(); }
   void set_time() { time_ = absl::Now(); }
-
-  void send(unique_ptr<asphrdaemon::Daemon::Stub>& stub) {
-    set_time();
-
-    grpc::ClientContext context;
-    asphrdaemon::SendMessageRequest request;
-    asphrdaemon::SendMessageResponse reply;
-
-    request.set_message(msg_);
-    request.set_name(friend_);
-
-    grpc::Status status = stub->SendMessage(&context, request, &reply);
-
-    // TODO(sualeh): do you need to check the status?
-    if (!status.ok() || !reply.success()) {
-      cout << "send message failed: " << status.error_message() << endl;
-    } else {
-      cout << "message sent" << endl;
-    }
-
-    clear();
-  }
+  void send(unique_ptr<asphrdaemon::Daemon::Stub>& stub);
 
   void clear() {
     msg_.clear();
@@ -78,20 +57,10 @@ struct Friend {
   int read_index_ = -1;
   string shared_key_;
 
-  bool complete() const {
-    return !name_is_empty() && !shared_key_is_empty() && write_index_ != -1 &&
-           read_index_ != -1;
-  }
   void set_time() { time_ = absl::Now(); }
-
-  void add() {
-    set_time();
-    // write_friend_to_file(file_address_, name_, write_index_, read_index_,
-    //  shared_key_, time_);
-    clear();
-  }
-
+  void add();
   void clear() { name_.clear(); }
+  bool complete() const;
 
  private:
   bool name_is_empty() const { return name_.empty(); }
@@ -110,36 +79,17 @@ struct Profile {
   PrivateKey private_key_;
   absl::Time time_;
 
-  bool complete() const {
-    return !name_is_empty() && !public_key_is_empty() &&
-           !private_key_is_empty();
-  }
+  void add(unique_ptr<asphrdaemon::Daemon::Stub>& stub);
+
   void set_time() { time_ = absl::Now(); }
-
-  void add(unique_ptr<asphrdaemon::Daemon::Stub>& stub) {
-    set_time();
-
-    grpc::ClientContext context;
-    asphrdaemon::RegisterUserRequest request;
-    asphrdaemon::RegisterUserResponse reply;
-
-    request.set_name(name_);
-
-    grpc::Status status = stub->RegisterUser(&context, request, &reply);
-
-    if (!status.ok() || !reply.success()) {
-      cout << "register user failed: " << status.error_message() << endl;
-    } else {
-      cout << "user registered" << endl;
-    }
-
-    clear();
-  }
-
   void clear() {
     name_.clear();
     public_key_.clear();
     private_key_.clear();
+  }
+  bool complete() const {
+    return !name_is_empty() && !public_key_is_empty() &&
+           !private_key_is_empty();
   }
 
  private:

@@ -12,7 +12,10 @@ cc_binary(
     srcs = [
         "as_cli.cc",
         "as_cli.hpp",
-        "root_menu.hpp"
+        "root_menu.hpp",
+        "friend_struct.cc",
+        "message_struct.cc",
+        "profile_struct.cc",
     ],
     linkopts = ["-lpthread"],
     deps = [
