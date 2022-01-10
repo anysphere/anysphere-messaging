@@ -1,11 +1,14 @@
 #pragma once
 
+#include <grpcpp/grpcpp.h>
+
 #include "as_scheduler.hpp"
 #include "asphr/asphr.hpp"
 #include "cli/cli.h"
 #include "cli/clifilesession.h"
 #include "cli/clilocalsession.h"
 #include "client/client_lib/client_lib.hpp"
+#include "schema/daemon.grpc.pb.h"
 
 using MainScheduler = as_cli::AnysphereScheduler;
 
@@ -25,9 +28,25 @@ struct Message {
   bool complete() const { return !message_is_empty() && !friend_is_empty(); }
   void set_time() { time_ = absl::Now(); }
 
-  void send() {
+  void send(unique_ptr<asphrdaemon::Daemon::Stub>& stub) {
     set_time();
-    // write_msg_to_file("MESSAGE", file_address_, msg_, friend_, time_);
+
+    grpc::ClientContext context;
+    asphrdaemon::SendMessageRequest request;
+    asphrdaemon::SendMessageResponse reply;
+
+    request.set_message(msg_);
+    request.set_name(friend_);
+
+    grpc::Status status = stub->SendMessage(&context, request, &reply);
+
+    // TODO(sualeh): do you need to check the status?
+    if (!status.ok() || !reply.success()) {
+      cout << "send message failed: " << status.error_message() << endl;
+    } else {
+      cout << "message sent" << endl;
+    }
+
     clear();
   }
 
@@ -97,9 +116,23 @@ struct Profile {
   }
   void set_time() { time_ = absl::Now(); }
 
-  void add() {
+  void add(unique_ptr<asphrdaemon::Daemon::Stub>& stub) {
     set_time();
-    // register_profile_to_file(name_, public_key_, private_key_, time_);
+
+    grpc::ClientContext context;
+    asphrdaemon::RegisterUserRequest request;
+    asphrdaemon::RegisterUserResponse reply;
+
+    request.set_name(name_);
+
+    grpc::Status status = stub->RegisterUser(&context, request, &reply);
+
+    if (!status.ok() || !reply.success()) {
+      cout << "register user failed: " << status.error_message() << endl;
+    } else {
+      cout << "user registered" << endl;
+    }
+
     clear();
   }
 

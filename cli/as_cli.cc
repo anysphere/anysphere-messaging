@@ -29,10 +29,11 @@
 
 #include "as_cli.hpp"
 
+#include "root_menu.hpp"
+
 using namespace cli;
 
-// TODO (sualeh): extract the menu out.
-// auto make_anysphere_menu() -> Menu
+using asphrdaemon::Daemon;
 
 int main() {
   // setup cli
@@ -40,35 +41,22 @@ int main() {
   Message message_to_send;
   Friend friend_to_add;
 
-  auto rootMenu = make_unique<Menu>("anysphere");
+  // set up the unix socket
+  auto socket_address = string("unix:///ver/run/anysphere.sock");
 
-  rootMenu->Insert(
-      "menu", [](std::ostream& out) { out << "Hello, world\n"; },
-      "The Anysphere menu");
-  rootMenu->Insert(
-      "color",
-      [](std::ostream& out) {
-        out << "Colors ON\n";
-        SetColor();
-      },
-      "Enable colors in the cli");
-  rootMenu->Insert(
-      "nocolor",
-      [](std::ostream& out) {
-        out << "Colors OFF\n";
-        SetNoColor();
-      },
-      "Disable colors in the cli");
+  // connect to the anysphere daemon
+  cout << "Client connecting to socket: " << socket_address << endl;
+  auto channel =
+      grpc::CreateChannel(socket_address, grpc::InsecureChannelCredentials());
+  auto stub = Daemon::NewStub(channel);
 
-  /* Messaging interface
+  auto rootMenu = make_anysphere_menu();
 
-  Use the two different options to send a message to a friend.
-  */
   rootMenu->Insert(
       "message",
       [&](std::ostream& out, string friend_name, string message) {
         Message msg(message, friend_name);
-        msg.send();
+        msg.send(stub);
 
         out << "Message sent to " << friend_name << ": " << message << "\n";
       },
@@ -87,7 +75,7 @@ int main() {
         if (message_to_send.complete()) {
           out << "Message sent to " << friend_name << ": "
               << message_to_send.msg_ << "\n";
-          message_to_send.send();
+          message_to_send.send(stub);
         } else {
           out << "Now type `write` with your message.\n";
           out << "Press Esv or type 'anysphere' to return to the menu.\n";
@@ -103,7 +91,7 @@ int main() {
         if (message_to_send.complete()) {
           out << "Message sent to " << message_to_send.friend_ << ": "
               << message_to_send.msg_ << "\n";
-          message_to_send.send();
+          message_to_send.send(stub);
           out << "Type 'anysphere' to go to your main inbox.\n";
         } else {
           out << "Now type `friend:` with your friend name.\n";
@@ -118,7 +106,7 @@ int main() {
       [&](std::ostream& out, string name, string public_key,
           string private_key) {
         Profile profile(name, public_key, private_key);
-        profile.add();
+        profile.add(stub);
 
         out << "Profile registered: " << name << " :\n";
       },
@@ -186,49 +174,6 @@ int main() {
       },
       "Add a friend to your friends list! Params: friend_name, write_index, "
       "read_index, shared_key");
-  // friendsMenu->Insert(
-  //     "add-friend",
-  //     [](std::ostream& out, string friend_name, string friend_public_key) {
-  //       out << StrCat("Adding friend: ", friend_name,
-  //                     " with public key: ", friend_public_key, "\n");
-  //       out << "Type 'anysphere' to go to your main inbox.\n ";
-  //       // go to the main inbox.
-  //     },
-  //     "Add a friend to your friends list");
-  // friendsMenu->Insert(
-  //     "name",
-  //     [&](std::ostream& out, string friend_name) {
-  //       friend_to_add.name_ = friend_name;
-  //       if (friend_to_add.complete()) {
-  //         out << StrCat("Adding friend: ", friend_name,
-  //                       " with public key: ", friend_to_add.public_key_,
-  //                       "\n");
-  //         friend_to_add.add();
-  //         out << "Type 'anysphere' to go to your main inbox.\n ";
-  //         // go to the main inbox.
-  //       } else {
-  //         out << "Now type `public-key` with your friend's public key.\n";
-  //         out << "Press Esv or type 'anysphere' to return to the menu.\n";
-  //       }
-  //     },
-  //     "Set the name of your friend");
-  // friendsMenu->Insert(
-  //     "public-key",
-  //     [&](std::ostream& out, string friend_public_key) {
-  //       friend_to_add.public_key_ = friend_public_key;
-  //       if (friend_to_add.complete()) {
-  //         out << StrCat("Adding friend: ", friend_to_add.name_,
-  //                       " with public key: ", friend_to_add.public_key_,
-  //                       "\n");
-  //         friend_to_add.add();
-  //         out << "Type 'anysphere' to go to your main inbox.\n ";
-  //         // go to the main inbox.
-  //       } else {
-  //         out << "Now type `name` with your friend's name.\n";
-  //         out << "Press Esv or type 'anysphere' to return to the menu.\n";
-  //       }
-  //     },
-  //     "Set the public key of your friend");
 
   // Just add all the submenus to the root menu
   rootMenu->Insert(std::move(messageMenu));

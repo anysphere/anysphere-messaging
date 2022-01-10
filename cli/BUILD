@@ -12,12 +12,15 @@ cc_binary(
     srcs = [
         "as_cli.cc",
         "as_cli.hpp",
+        "root_menu.hpp"
     ],
     linkopts = ["-lpthread"],
     deps = [
         ":scheduler_lib",
         "//asphr:asphr_lib",
         "//client/client_lib",
+        "//schema:daemon_cc_grpc",
+        "@com_github_grpc_grpc//:grpc++",
         "@com_github_daniele77_cli//:cli_header_lib",
     ],
 )

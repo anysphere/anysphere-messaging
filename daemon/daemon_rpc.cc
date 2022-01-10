@@ -211,6 +211,7 @@ Status DaemonRpc::GetAllMessages(
     message_info->set_sender(message_json.at("from").get<string>());
     message_info->set_message(message_json.at("message").get<string>());
     auto timestamp_str = message_json.at("timestamp").get<string>();
+
     // convert timestamp using TimeUtil::FromString
     auto timestamp = message_info->mutable_timestamp();
     auto success = TimeUtil::FromString(timestamp_str, timestamp);
