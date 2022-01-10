@@ -24,8 +24,8 @@ auto Friend::from_json(const asphr::json& j) -> Friend {
 // store the config in config_file_address
 auto RegistrationInfo::to_json() -> asphr::json {
   asphr::json reg_json = {{"name", name},
-                          {"public_key", public_key},
-                          {"private_key", private_key},
+                          {"public_key", Base64::Encode(public_key)},
+                          {"private_key", Base64::Encode(private_key)},
                           {"authentication_token", authentication_token},
                           {"allocation", allocation}};
   return reg_json;
@@ -34,8 +34,8 @@ auto RegistrationInfo::to_json() -> asphr::json {
 auto RegistrationInfo::from_json(const asphr::json& j) -> RegistrationInfo {
   RegistrationInfo reg_info;
   reg_info.name = j.at("name").get<string>();
-  reg_info.public_key = j.at("public_key").get<string>();
-  reg_info.private_key = j.at("private_key").get<string>();
+  Base64::Decode(j.at("public_key").get<string>(), reg_info.public_key);
+  Base64::Decode(j.at("private_key").get<string>(), reg_info.private_key);
   reg_info.authentication_token = j.at("authentication_token").get<string>();
   reg_info.allocation = j.at("allocation").get<vector<int>>();
   return reg_info;
