@@ -25,17 +25,21 @@ auto Crypto::generate_friend_key(const string& my_public_key, int index) const
 
 auto Crypto::decode_friend_key(const string& friend_key) const
     -> asphr::StatusOr<std::pair<int, string>> {
-  vector<string> components = absl::StrSplit(friend_key, 'a');
-  if (components.size() != 2) {
-    return asphr::InvalidArgumentError("friend key must have two components");
+  string index_str;
+  string public_key_b64;
+  for (size_t i = 0; i < friend_key.size(); ++i) {
+    if (friend_key[i] == 'a') {
+      public_key_b64 = friend_key.substr(i + 1);
+      break;
+    }
+    index_str += friend_key[i];
   }
   int index;
-  auto success = absl::SimpleAtoi(components[0], &index);
+  auto success = absl::SimpleAtoi(index_str, &index);
   if (!success) {
     return asphr::InvalidArgumentError("friend key index must be an integer");
   }
 
-  auto public_key_b64 = components[1];
   string public_key;
   public_key.resize(public_key_b64.size());
   size_t public_key_len;

@@ -82,6 +82,8 @@ Status DaemonRpc::GetFriendList(
     getFriendListResponse->add_friend_list(s);
   }
 
+  getFriendListResponse->set_success(true);
+
   return Status::OK;
 }
 
@@ -116,16 +118,11 @@ Status DaemonRpc::AddFriend(ServerContext* context,
                             AddFriendResponse* addFriendResponse) {
   cout << "AddFriend() called" << endl;
 
-  if (!config.has_space_for_friends()) {
-    cout << "no more allocation" << endl;
-    addFriendResponse->set_success(false);
-    return Status(grpc::StatusCode::INVALID_ARGUMENT, "no more allocation");
-  }
-
   if (!config.friendTable.contains(addFriendRequest->name())) {
-    cout << "friend not found" << endl;
+    cout << "friend not found; call generatefriendkey first!" << endl;
     addFriendResponse->set_success(false);
-    return Status(grpc::StatusCode::INVALID_ARGUMENT, "friend not found");
+    return Status(grpc::StatusCode::INVALID_ARGUMENT,
+                  "friend not found; call generatefriendkey first!");
   }
 
   auto decoded_friend_key = crypto.decode_friend_key(addFriendRequest->key());
