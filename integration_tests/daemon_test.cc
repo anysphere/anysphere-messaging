@@ -21,9 +21,10 @@ auto gen_config() -> Config {
   return config;
 }
 
-auto gen_ephemeral_config() -> EphemeralConfig {
+auto gen_ephemeral_config(const string& config_file_address)
+    -> EphemeralConfig {
   auto config = EphemeralConfig{
-      .config_file_address = "config_file_address",
+      .config_file_address = config_file_address,
       .send_messages_file_address = "send_messages_file_address",
       .received_messages_file_address = "received_messages_file_address",
   };
@@ -54,9 +55,23 @@ class DaemonRpcTest : public ::testing::Test {
                              grpc::InsecureServerCredentials());
     builder.RegisterService(&service_);
     server_ = builder.BuildAndStart();
+
+    // create a config file for testing.
+    char cwd[1024];
+    getcwd(cwd, sizeof(cwd));
+    config_file_address_ = string(cwd) + "/TMPTMPTMP_config.json";
+    cout << "config_file_address_: " << config_file_address_ << endl;
   }
 
-  void TearDown() override { server_->Shutdown(); }
+  void TearDown() override {
+    server_->Shutdown();
+
+    if (remove(config_file_address_.c_str()) != 0) {
+      cerr << "Error deleting file";
+    } else {
+      cout << "File successfully deleted\n";
+    }
+  }
 
   void ResetStub() {
     std::shared_ptr<grpc::Channel> channel = grpc::CreateChannel(
@@ -68,6 +83,7 @@ class DaemonRpcTest : public ::testing::Test {
   std::unique_ptr<grpc::Server> server_;
   std::ostringstream server_address_;
   ServerRpc service_;
+  string config_file_address_;
 };
 
 TEST_F(DaemonRpcTest, Register) {
@@ -79,7 +95,7 @@ TEST_F(DaemonRpcTest, Register) {
 
   auto crypto = gen_crypto();
   auto config = gen_config();
-  auto ephConfig = gen_ephemeral_config();
+  auto ephConfig = gen_ephemeral_config(config_file_address_);
 
   DaemonRpc rpc(crypto, config, stub_, ephConfig);
   cout << "response.success() = " << response.success() << endl;

@@ -3,7 +3,7 @@ image:
 tasks:
   - name: Prepare Bazel
     before: "./gitpod-init.sh"
-    init: bazel build //...
+    init: bazel build //... && bazel build //... -c dbg
 ports:
   - port: 5900
     onOpen: ignore
