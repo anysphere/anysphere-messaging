@@ -19,24 +19,31 @@ using std::make_unique;
 struct Message {
  public:
   Message() = default;
-  Message(const string& msg, const string& friend_name)
-      : msg_(msg), friend_(friend_name) {}
+  Message(const string& msg, const string& to, const string& from)
+      : msg_(msg), to_(to), from_(from) {}
+
   Msg msg_;
-  Name friend_;
+  Name to_;
+  Name from_;
+
   absl::Time time_;
 
-  bool complete() const { return !message_is_empty() && !friend_is_empty(); }
+  bool complete() const {
+    return !message_is_empty() && !to_is_empty() && !from_is_empty();
+  }
   void set_time() { time_ = absl::Now(); }
   void send(unique_ptr<asphrdaemon::Daemon::Stub>& stub);
 
   void clear() {
     msg_.clear();
-    friend_.clear();
+    to_.clear();
+    from_.clear();
   }
 
  private:
   bool message_is_empty() const { return msg_.empty(); }
-  bool friend_is_empty() const { return friend_.empty(); }
+  bool to_is_empty() const { return to_.empty(); }
+  bool from_is_empty() const { return from_.empty(); }
 };
 
 // The friend struct to store the name and public key of a friend.
@@ -44,29 +51,19 @@ struct Message {
 struct Friend {
  public:
   Friend() = default;
-  Friend(const string& name, const int& write_index, const int& read_index,
-         const string& shared_key)
-      : name_(name),
-        write_index_(write_index),
-        read_index_(read_index),
-        shared_key_(shared_key) {}
+  Friend(const string& name) : name_(name) {}
   Name name_;
   absl::Time time_;
-  Name name;
-  int write_index_ = -1;
-  int read_index_ = -1;
-  string shared_key_;
 
-  void set_time() { time_ = absl::Now(); }
-  void add();
+  auto generate_key(unique_ptr<asphrdaemon::Daemon::Stub>& stub)
+      -> asphr::StatusOr<string>;
+  void add(unique_ptr<asphrdaemon::Daemon::Stub>& stub, const string& key);
+
   void clear() { name_.clear(); }
   bool complete() const;
 
  private:
   bool name_is_empty() const { return name_.empty(); }
-  bool write_index_is_empty() const { return write_index_ == -1; }
-  bool read_index_is_empty() const { return read_index_ == -1; }
-  bool shared_key_is_empty() const { return shared_key_.empty(); }
 };
 
 struct Profile {

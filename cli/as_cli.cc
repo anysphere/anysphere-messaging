@@ -40,6 +40,7 @@ int main() {
 
   Message message_to_send;
   Friend friend_to_add;
+  static Profile kProfile_;
 
   // set up the unix socket
   auto socket_address = string("unix:///ver/run/anysphere.sock");
@@ -56,7 +57,7 @@ int main() {
       "message",
       [&](std::ostream& out, string friend_name, string message) {
         Message msg(message, friend_name);
-        msg.send(stub);
+        msg.send();
 
         out << "Message sent to " << friend_name << ": " << message << "\n";
       },
@@ -71,7 +72,8 @@ int main() {
       [&](std::ostream& out, string friend_name) {
         out << "Send a message to friend: " << friend_name << " :)\n";
 
-        message_to_send.friend_ = friend_name;
+        message_to_send.to_ = friend_name;
+        message_to_send.from_ = "me";
         if (message_to_send.complete()) {
           out << "Message sent to " << friend_name << ": "
               << message_to_send.msg_ << "\n";
@@ -103,9 +105,9 @@ int main() {
    */
   rootMenu->Insert(
       "register",
-      [&](std::ostream& out, string name, string public_key,
-          string private_key) {
-        Profile profile(name, public_key, private_key);
+      [&](std::ostream& out, string name) {
+        Profile profile(name);
+        kProfile_ = profile;
         profile.add(stub);
 
         out << "Profile registered: " << name << " :\n";

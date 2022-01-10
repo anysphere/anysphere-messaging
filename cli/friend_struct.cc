@@ -1,13 +1,40 @@
 #include "as_cli.hpp"
 
-void Friend::add() {
-  set_time();
-  // write_friend_to_file(file_address_, name_, write_index_, read_index_,
-  //  shared_key_, time_);
-  clear();
+auto Friend::generate_key(unique_ptr<asphrdaemon::Daemon::Stub>& stub)
+    -> asphr::StatusOr<string> {
+  grpc::ClientContext context;
+  asphrdaemon::GenerateFriendKeyRequest request;
+  asphrdaemon::GenerateFriendKeyResponse response;
+
+  request.set_name(name_);
+
+  grpc::Status status = stub->GenerateFriendKey(&context, request, &response);
+
+  if (!status.ok() || !response.success()) {
+    cout << "generate friend key failed: " << status.error_message() << endl;
+    return absl::UnknownError("generate friend key failed");
+  } else {
+    cout << "friend key generated" << endl;
+    return response.key();
+  }
 }
 
-bool Friend::complete() const {
-  return !name_is_empty() && !shared_key_is_empty() && write_index_ != -1 &&
-         read_index_ != -1;
+void Friend::add(unique_ptr<asphrdaemon::Daemon::Stub>& stub,
+                 const string& key) {
+  grpc::ClientContext context;
+  asphrdaemon::AddFriendRequest request;
+  asphrdaemon::AddFriendResponse response;
+
+  request.set_name(name_);
+  request.set_key(key);
+
+  grpc::Status status = stub->AddFriend(&context, request, &response);
+
+  if (!status.ok() || !response.success()) {
+    cout << "add friend failed: " << status.error_message() << endl;
+  } else {
+    cout << "friend added" << endl;
+  }
 }
+
+bool Friend::complete() const { return !name_is_empty(); }
