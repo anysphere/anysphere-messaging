@@ -118,5 +118,6 @@
         "*.inc": "cpp"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
-    "C_Cpp.codeAnalysis.runAutomatically": false
+    "C_Cpp.codeAnalysis.runAutomatically": false,
+    "C_Cpp.errorSquiggles": "Enabled"
 }
