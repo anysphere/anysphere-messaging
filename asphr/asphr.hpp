@@ -6,8 +6,10 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <utility>
 #include <string>
 #include <thread>
+#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -28,11 +30,15 @@ using std::array;
 using std::cerr;
 using std::cout;
 using std::endl;
+using std::make_pair;
 using std::make_shared;
+using std::make_tuple;
 using std::make_unique;
+using std::pair;
 using std::shared_ptr;
 using std::string;
 using std::to_string;
+using std::tuple;
 using std::unique_ptr;
 using std::vector;
 
