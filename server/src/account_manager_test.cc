@@ -3,6 +3,8 @@ using testing::Types;
 
 #include "server/src/account_manager.hpp"
 
+using std::string;
+
 template <typename T>
 struct AccountManagerTest : public testing::Test {};
 
@@ -12,7 +14,8 @@ TYPED_TEST_SUITE(AccountManagerTest, Implementations);
 
 // this should pass iff postgres is running! (hence disabled)
 TYPED_TEST(AccountManagerTest, DISABLED_Basic) {
-  TypeParam account_manager;
+  string db_address = "127.0.0.1";
+  TypeParam account_manager(db_address);
 
   auto index = 1;
   auto public_key = "public_key";

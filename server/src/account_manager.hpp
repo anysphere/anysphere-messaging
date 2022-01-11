@@ -21,6 +21,8 @@ struct AccountManagerException : public std::exception {
 // TODO: use postgres
 class AccountManagerInMemory {
  public:
+  AccountManagerInMemory(string db_address) {}
+
   auto generate_account(const string& public_key, pir_index_t allocation)
       -> pair<string, vector<pir_index_t>> {
     // TODO: store galois keys for rotation things!
@@ -57,11 +59,13 @@ class AccountManagerInMemory {
 
 class AccountManagerPostgres {
  public:
-  AccountManagerPostgres()
+  AccountManagerPostgres(string db_address)
       : conn(make_unique<pqxx::connection>(
-            "dbname=postgres user=postgres password=postgres "
-            "hostaddr=127.0.0.1 port=5432")) {
-    std::cout << "Connected to " << conn->dbname() << '\n';
+            "dbname=postgres user=postgres "
+            "password=3b125115d91aeef4724a0c81bed8fce6782f8360b3b8c36611 "
+            "hostaddr=" +
+            db_address + " port=5432")) {
+    std::cout << "Connected to " << conn.dbname() << '\n';
   }
 
   AccountManagerPostgres(AccountManagerPostgres&& account_manager)

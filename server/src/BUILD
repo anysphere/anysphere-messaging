@@ -1,4 +1,9 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@io_bazel_rules_docker//cc:image.bzl", "cc_image")
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_image",
+)
 
 package(
     default_visibility = ["//integration_tests:__pkg__"],
@@ -49,3 +54,22 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+# container_image(
+#     name = "cc_libpq_image",
+#     base = "@cc_image_base//image",
+# )
+
+# cc_image(
+#     name = "as_server_image",
+#     binary = ":as_server",
+# )
+
+# container_image(
+#     name = "as_server_image_prod",
+#     base = ":as_server_image",
+#     cmd = [
+#         "-d",
+#         "127.0.0.1",
+#     ],
+# )

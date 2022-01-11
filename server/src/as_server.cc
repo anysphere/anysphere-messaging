@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
 #else
   using AccountManager = AccountManagerPostgres;
 #endif
-  AccountManager account_manager;
+  AccountManager account_manager(db_address);
 
   // MessengerImpl<NonPrivatePIR, AccountManager> messenger_service(pir,
   // account_manager); MessengerImpl<SealPIR, AccountManager>
