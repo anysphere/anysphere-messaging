@@ -62,9 +62,6 @@ Status ServerRpc<PIR, AccountManager>::SendMessage(
 
   pir.set_value(pir_index, pir_value);
 
-  auto db_rows = pir.get_db_rows();
-  sendMessageResponse->set_db_rows(db_rows);
-
   return Status::OK;
 }
 

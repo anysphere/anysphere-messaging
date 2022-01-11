@@ -6,6 +6,9 @@ package(
 
 cc_library(
     name = "server_fast_pir_lib",
+    srcs = [
+        "fastpir.cc",
+    ],
     hdrs = [
         "fastpir.hpp",
     ],
