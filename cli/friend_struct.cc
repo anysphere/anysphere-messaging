@@ -19,8 +19,8 @@ auto Friend::generate_key(unique_ptr<asphrdaemon::Daemon::Stub>& stub)
   }
 }
 
-void Friend::add(unique_ptr<asphrdaemon::Daemon::Stub>& stub,
-                 const string& key) {
+auto Friend::add(unique_ptr<asphrdaemon::Daemon::Stub>& stub, const string& key)
+    -> asphr::Status {
   grpc::ClientContext context;
   asphrdaemon::AddFriendRequest request;
   asphrdaemon::AddFriendResponse response;
@@ -32,8 +32,10 @@ void Friend::add(unique_ptr<asphrdaemon::Daemon::Stub>& stub,
 
   if (!status.ok() || !response.success()) {
     cout << "add friend failed: " << status.error_message() << endl;
+    return absl::UnknownError("add friend failed");
   } else {
     cout << "friend added" << endl;
+    return absl::OkStatus();
   }
 }
 

@@ -24,8 +24,8 @@ void Inbox::update(unique_ptr<asphrdaemon::Daemon::Stub>& stub,
     cout << "get all messages failed: " << status.error_message() << endl;
   } else {
     for (auto& message : response.messages()) {
-      google::protobuf::Timestamp* mut_time = message.mutable_timestamp();
-      absl::Time time = absl::FromUnixSeconds(mut_time->seconds());
+      auto time_proto = message.timestamp();
+      absl::Time time = absl::FromUnixSeconds(time_proto.seconds());
 
       new_messages.emplace_back(
           time, Message{message.message(), me, message.sender()});

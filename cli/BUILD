@@ -16,6 +16,8 @@ cc_binary(
         "friend_struct.cc",
         "message_struct.cc",
         "profile_struct.cc",
+        "inbox.hpp",
+        "inbox.cc",
     ],
     linkopts = ["-lpthread"],
     deps = [

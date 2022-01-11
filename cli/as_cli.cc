@@ -29,6 +29,7 @@
 
 #include "as_cli.hpp"
 
+#include "inbox.hpp"
 #include "root_menu.hpp"
 
 using namespace cli;
@@ -39,11 +40,12 @@ int main() {
   // setup cli
 
   Message message_to_send;
-  Friend friend_to_add;
+  // Friend friend_to_add;
   static Profile kProfile_;
+  static Inbox kInbox_;
 
   // set up the unix socket
-  auto socket_address = string("unix:///ver/run/anysphere.sock");
+  auto socket_address = string("unix:///var/run/anysphere.sock");
 
   // connect to the anysphere daemon
   cout << "Client connecting to socket: " << socket_address << endl;
@@ -56,8 +58,8 @@ int main() {
   rootMenu->Insert(
       "message",
       [&](std::ostream& out, string friend_name, string message) {
-        Message msg(message, friend_name);
-        msg.send();
+        Message msg(message, friend_name, kProfile_.name_);
+        msg.send(stub);
 
         out << "Message sent to " << friend_name << ": " << message << "\n";
       },
@@ -91,7 +93,7 @@ int main() {
 
         message_to_send.msg_ = message;
         if (message_to_send.complete()) {
-          out << "Message sent to " << message_to_send.friend_ << ": "
+          out << "Message sent to " << message_to_send.to_ << ": "
               << message_to_send.msg_ << "\n";
           message_to_send.send(stub);
           out << "Type 'anysphere' to go to your main inbox.\n";
@@ -119,18 +121,23 @@ int main() {
   auto inboxMenu = make_unique<Menu>("inbox");
   inboxMenu->Insert(
       "friend",
-      [](std::ostream& out, string friend_name) {
+      [&](std::ostream& out, string friend_name) {
         out << StrCat("Showing (the last 15) messages from your friend ",
                       friend_name, "\n");
 
         out << "--------------------------------\n";
-        // auto messages = read_friend_messages_from_file(friend_name, 15);
-        // for (const auto& message : messages) {
-        //   out << StrCat(message["from"].get<string>(), ": \n",
-        //                 "time: ", message["timestamp"].get<string>(), "\n",
-        //                 message["message"].get<string>(), "\n\n",
-        //                 "--------------------------------\n");
-        // }
+        kInbox_.update(stub, kProfile_.name_);
+        auto messages = kInbox_.get_messages();
+
+        for (const auto& [time, msg] : messages) {
+          if (msg.from_ != friend_name) {
+            continue;
+          }
+          auto time_str = absl::FormatTime(time, absl::UTCTimeZone());
+
+          out << StrCat("(", time_str, ")", ": ", msg.from_, ": \n", msg.msg_,
+                        "--------------------------------", "\n");
+        }
         out << "Type 'anysphere' to go to your main inbox.\n ";
         // go to the main inbox.
       },
@@ -162,25 +169,56 @@ int main() {
     public key}"
     You can also open the add-friend menu with "friend"
   */
-  auto friendsMenu = make_unique<Menu>("friends");
-  rootMenu->Insert(
-      "add-friend",
-      [&](std::ostream& out, string friend_name, int write_index,
-          int read_index, string shared_key) {
-        Friend friend_(friend_name, write_index, read_index, shared_key);
-        friend_.add();
-        out << StrCat("Adding friend ", friend_name, " with read_index ",
-                      friend_.write_index_, " and write_index ",
-                      friend_.read_index_, "\n");
+  auto friendsMenu = make_unique<Menu>("add-friend");
+  friendsMenu->Insert(
+      "init",
+      [&](std::ostream& out, string friend_name) {
+        Friend friend_(friend_name);
+
+        auto status = friend_.generate_key(stub);
+
+        if (!status.ok()) {
+          // TODO(sualeh): mention soemthing about anysphere retrying auto later
+          out << "We had some issue with the key generation. Please try again "
+                 "in a little bit. ";
+          return;
+        }
+
+        auto key = status.value();
+
+        out << StrCat(
+            "We initiated the process of adding your friend ", friend_name,
+            ".\n\n Please give your friend the following key: \n", key, "\n\n",
+            "You can finish adding your friend by typing `add-friend {friend "
+            "name} {your friend's key}`\n");
+
         out << "Type 'anysphere' to go to your main inbox.\n ";
       },
-      "Add a friend to your friends list! Params: friend_name, write_index, "
-      "read_index, shared_key");
+      "Initiate the process of adding a friend to your friends list! Params: "
+      "friend_name");
+  friendsMenu->Insert(
+      "add",
+      [&](std::ostream& out, string friend_name, string key) {
+        Friend friend_(friend_name);
+
+        auto status = friend_.add(stub, key);
+
+        if (!status.ok()) {
+          out << "We had some issue with adding your friend. Please try again "
+                 "in a little bit. ";
+          return;
+        }
+
+        out << StrCat("We added your friend ", friend_name,
+                      " to your friends list.\n\n",
+                      "Type 'anysphere' to go to your main inbox.\n ");
+      },
+      "Add a friend to your friends list! Params: friend_name, friend_key");
 
   // Just add all the submenus to the root menu
   rootMenu->Insert(std::move(messageMenu));
   rootMenu->Insert(std::move(inboxMenu));
-  // rootMenu->Insert(std::move(friendsMenu));
+  rootMenu->Insert(std::move(friendsMenu));
 
   Cli cli(std::move(rootMenu));
   SetColor();

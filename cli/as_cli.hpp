@@ -57,7 +57,8 @@ struct Friend {
 
   auto generate_key(unique_ptr<asphrdaemon::Daemon::Stub>& stub)
       -> asphr::StatusOr<string>;
-  void add(unique_ptr<asphrdaemon::Daemon::Stub>& stub, const string& key);
+  auto add(unique_ptr<asphrdaemon::Daemon::Stub>& stub, const string& key)
+      -> asphr::Status;
 
   void clear() { name_.clear(); }
   bool complete() const;
@@ -68,29 +69,17 @@ struct Friend {
 
 struct Profile {
  public:
-  Profile(const string& name, const string& public_key,
-          const string& private_key)
-      : name_(name), public_key_(public_key), private_key_(private_key) {}
+  Profile() = default;
+  Profile(const string& name) : name_(name) {}
   Name name_;
-  PublicKey public_key_;
-  PrivateKey private_key_;
   absl::Time time_;
 
   void add(unique_ptr<asphrdaemon::Daemon::Stub>& stub);
 
   void set_time() { time_ = absl::Now(); }
-  void clear() {
-    name_.clear();
-    public_key_.clear();
-    private_key_.clear();
-  }
-  bool complete() const {
-    return !name_is_empty() && !public_key_is_empty() &&
-           !private_key_is_empty();
-  }
+  void clear() { name_.clear(); }
+  bool complete() const { return !name_is_empty(); }
 
  private:
   bool name_is_empty() const { return name_.empty(); }
-  bool public_key_is_empty() const { return public_key_.empty(); }
-  bool private_key_is_empty() const { return private_key_.empty(); }
 };
