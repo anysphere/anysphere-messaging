@@ -59,3 +59,11 @@ static auto create_context_params() -> seal::EncryptionParameters {
 }
 
 constexpr size_t SEAL_DB_COLUMNS = CEIL_DIV(MESSAGE_SIZE_BITS, PLAIN_BITS);
+
+// CLIENT_DB_ROWS is the number of rows that the client thinks is in the database.
+// this must be an upper bound on the actual database size.
+// note that it is crucial for security that the client doesn't query the server for the
+// actual database size and simply trusts that number — the server might lie! in particular,
+// the server could tell one pair of users the size is 1M, everyone else that the size is 2M,
+// and allocate indices in the first half only to that one pair. this would destroy security!
+constexpr size_t CLIENT_DB_ROWS = 1'000'000;
