@@ -139,9 +139,6 @@ void process_ui_file(const string& ui_file_address,
     grpc::Status status = stub->SendMessage(&context, request, &reply);
 
     if (status.ok()) {
-      auto db_rows = reply.db_rows();
-      cout << "db_rows: " << db_rows << endl;
-      config.db_rows = db_rows;
       std::cout << "Message sent to server: " << request.message() << std::endl;
     } else {
       std::cerr << status.error_code() << ": " << status.error_message()

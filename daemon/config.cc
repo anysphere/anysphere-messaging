@@ -60,7 +60,7 @@ auto read_json_file(const string& config_file_address) -> asphr::json {
 Config::Config(const string& config_file_address)
     : Config(read_json_file(config_file_address)) {}
 
-Config::Config(const asphr::json& config_json) {
+Config::Config(const asphr::json& config_json) : db_rows(CLIENT_DB_ROWS) {
   if (!config_json.contains("has_registered")) {
     cout << "config file does not contain has_registered" << endl;
     return;
@@ -75,7 +75,6 @@ Config::Config(const asphr::json& config_json) {
     has_registered = true;
     registrationInfo =
         RegistrationInfo::from_json(config_json["registration_info"]);
-    db_rows = config_json["db_rows"].get<int>();
     Base64::Decode(config_json["pir_secret_key"].get<string>(), pir_secret_key);
     Base64::Decode(config_json["pir_galois_keys"].get<string>(),
                    pir_galois_keys);
@@ -92,7 +91,6 @@ auto Config::save(const string& config_file_address) -> void {
   config_json["has_registered"] = has_registered;
   if (has_registered) {
     config_json["registration_info"] = registrationInfo.to_json();
-    config_json["db_rows"] = db_rows;
     config_json["pir_secret_key"] = Base64::Encode(pir_secret_key);
     config_json["pir_galois_keys"] = Base64::Encode(pir_galois_keys);
   }

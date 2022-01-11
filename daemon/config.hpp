@@ -21,8 +21,7 @@ struct RegistrationInfo {
   string private_key;
   string authentication_token;
   vector<int> allocation;
-  // the client needs to know roughly how many rows are in the database.
-  // here we cache the latest number of db_rows we received
+
   auto to_json() -> asphr::json;
   static auto from_json(const asphr::json& j) -> RegistrationInfo;
 };
@@ -39,8 +38,9 @@ class Config {
   bool has_registered;
   RegistrationInfo registrationInfo;
   std::unordered_map<string, Friend> friendTable;
-  // TODO: move this out of registrationinfo?
-  int db_rows;
+  // db_rows may possibly be overriden in the config, but should either way
+  // always be constant
+  const size_t db_rows;
   // store secret key and galois keys for pir
   string pir_secret_key;
   string pir_galois_keys;

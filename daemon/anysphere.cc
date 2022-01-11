@@ -81,7 +81,6 @@ int main(int argc, char** argv) {
     process_ui_file(ephemeralConfig.send_messages_file_address,
                     last_ui_timestamp, stub, crypto, config);
     last_ui_timestamp = absl::Now();
-    // first send, then retrieve, so we have an updated db_rows
     cout << "received messages file address: "
          << ephemeralConfig.received_messages_file_address << endl;
     retrieve_messages(ephemeralConfig.received_messages_file_address, stub,
