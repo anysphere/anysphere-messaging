@@ -65,7 +65,7 @@ class AccountManagerPostgres {
             "password=3b125115d91aeef4724a0c81bed8fce6782f8360b3b8c36611 "
             "hostaddr=" +
             db_address + " port=5432")) {
-    std::cout << "Connected to " << conn.dbname() << '\n';
+    std::cout << "Connected to " << conn->dbname() << '\n';
   }
 
   AccountManagerPostgres(AccountManagerPostgres&& account_manager)

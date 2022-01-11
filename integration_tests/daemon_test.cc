@@ -33,7 +33,7 @@ auto gen_ephemeral_config(const string& config_file_address)
 
 auto gen_server_rpc() {
   FastPIR pir;
-  AccountManagerInMemory account_manager;
+  AccountManagerInMemory account_manager("in_memory");
   return ServerRpc(std::move(pir), std::move(account_manager));
 }
 
