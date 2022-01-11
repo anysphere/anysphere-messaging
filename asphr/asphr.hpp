@@ -6,11 +6,12 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <utility>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <tuple>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "absl/hash/hash.h"
@@ -30,6 +31,7 @@ using std::array;
 using std::cerr;
 using std::cout;
 using std::endl;
+using std::lock_guard;
 using std::make_pair;
 using std::make_shared;
 using std::make_tuple;
