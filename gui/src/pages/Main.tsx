@@ -1,7 +1,8 @@
 import * as React from "react";
 
 import MessageList from "../components/MessageList";
-import ReadMessage from "../components/ReadMessage";
+import Read from "../components/Read";
+import Write from "../components/Write";
 import { Message } from "../types";
 
 interface Tab {
@@ -47,9 +48,30 @@ function Main() {
     [tabs]
   );
 
+  const editWrite = React.useCallback(
+    (content: string) => {
+      if (tabs[selectedTab].type !== TabType.Write) {
+        return;
+      }
+      tabs[selectedTab].data = content;
+    },
+    [tabs, selectedTab]
+  );
+
+  const writeMessage = React.useCallback(() => {
+    const writeTab: Tab = {
+      type: TabType.Write,
+      name: "New message",
+      id: tabs.length,
+      data: "draft...",
+    };
+    setTabs([...tabs, writeTab]);
+    setSelectedTab(writeTab.id);
+  }, [tabs]);
+
   let selectedComponent;
   switch (tabs[selectedTab].type) {
-    case "new":
+    case TabType.New:
       selectedComponent = (
         <MessageList
           readCallback={readMessage}
@@ -57,7 +79,7 @@ function Main() {
         />
       );
       break;
-    case "all":
+    case TabType.All:
       selectedComponent = (
         <MessageList
           readCallback={readMessage}
@@ -65,21 +87,29 @@ function Main() {
         />
       );
       break;
-    case "read":
-      selectedComponent = <ReadMessage message={tabs[selectedTab].data} />;
+    case TabType.Read:
+      selectedComponent = <Read message={tabs[selectedTab].data} />;
+      break;
+    case TabType.Write:
+      selectedComponent = (
+        <Write editCallback={editWrite} draft={tabs[selectedTab].data} />
+      );
       break;
     default:
       selectedComponent = <div>Unknown tab</div>;
   }
 
   return (
-    <div>
+    <div className="p-2">
       <div className="flex flex-row">
-        {tabs.map((tab) => (
-          <div onClick={() => setSelectedTab(tab.id)} key={tab.id}>
-            {tab.name}
-          </div>
-        ))}
+        <div className="flex flex-row flex-1">
+          {tabs.map((tab) => (
+            <div onClick={() => setSelectedTab(tab.id)} key={tab.id}>
+              {tab.name}
+            </div>
+          ))}
+        </div>
+        <button onClick={writeMessage}>+</button>
       </div>
       {selectedComponent}
     </div>

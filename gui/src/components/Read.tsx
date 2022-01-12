@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Message } from "../types";
 
-function ReadMessage(props: { message: Message }) {
+function Read(props: { message: Message }) {
   return (
     <>
       <h1>message!</h1>
@@ -12,4 +12,4 @@ function ReadMessage(props: { message: Message }) {
   );
 }
 
-export default ReadMessage;
+export default Read;
