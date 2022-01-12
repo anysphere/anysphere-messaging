@@ -7,10 +7,17 @@ function MessageList(props: {
 }) {
   return (
     <div>
-      <div className="grid grid-cols-1">
+      <div className="grid grid-cols-1 gap-2">
         {props.messages.map((message, index) => (
-          <div key={index} onClick={() => props.readCallback(message)}>
-            {message.from}: {message.message}
+          <div
+            className="bg-white px-4 py-2 rounded-sm hover:cursor-pointer"
+            key={index}
+            onClick={() => props.readCallback(message)}
+          >
+            <div className="flex flex-row gap-5">
+              <p>{message.from}</p>
+              <p>{message.timestamp}</p>
+            </div>
           </div>
         ))}
       </div>

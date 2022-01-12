@@ -4,19 +4,7 @@ import MessageList from "../components/MessageList";
 import Read from "../components/Read";
 import Write from "../components/Write";
 import { Message } from "../types";
-
-interface Tab {
-  type: TabType;
-  name: string;
-  data: any;
-}
-
-enum TabType {
-  New = "new",
-  All = "all",
-  Read = "read",
-  Write = "write",
-}
+import { Tab, TabType, TabContainer } from "../components/Tabs";
 
 const defaultTabs: Tab[] = [
   { type: TabType.New, name: "New", data: null },
@@ -130,13 +118,11 @@ function Main() {
   return (
     <div className="p-2">
       <div className="flex flex-row">
-        <div className="flex flex-row flex-1">
-          {tabs.map((tab, index) => (
-            <div onClick={() => setSelectedTab(index)} key={index}>
-              {tab.name}
-            </div>
-          ))}
-        </div>
+        <TabContainer
+          tabs={tabs}
+          selectTab={setSelectedTab}
+          selectedTab={selectedTab}
+        />
         <button onClick={writeMessage}>+</button>
       </div>
       {selectedComponent}
