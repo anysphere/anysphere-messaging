@@ -5,15 +5,22 @@ import ReadMessage from "../components/ReadMessage";
 import { Message } from "../types";
 
 interface Tab {
-  type: string;
+  type: TabType;
   name: string;
   id: number;
   data: any;
 }
 
+enum TabType {
+  New = "new",
+  All = "all",
+  Read = "read",
+  Write = "write",
+}
+
 const defaultTabs: Tab[] = [
-  { type: "new", name: "New", id: 0, data: null },
-  { type: "all", name: "All", id: 1, data: null },
+  { type: TabType.New, name: "New", id: 0, data: null },
+  { type: TabType.All, name: "All", id: 1, data: null },
 ];
 
 function Main() {
@@ -23,13 +30,13 @@ function Main() {
   const readMessage = React.useCallback(
     (message: Message) => {
       for (let tab of tabs) {
-        if (tab.type === "read" && tab.data.id === message.id) {
+        if (tab.type === TabType.Read && tab.data.id === message.id) {
           setSelectedTab(tab.id);
           return;
         }
       }
       const readTab = {
-        type: "read",
+        type: TabType.Read,
         name: `${message.from} — ${message.timestamp}`,
         id: tabs.length,
         data: message,
