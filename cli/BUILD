@@ -1,14 +1,7 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
-cc_library(
-    name = "scheduler_lib",
-    srcs = ["as_scheduler.cc"],
-    hdrs = ["as_scheduler.hpp"],
-    deps = ["@com_github_daniele77_cli//:cli_header_lib"],
-)
-
 cc_binary(
-    name = "anysphere-cli",
+    name = "asphr",
     srcs = [
         "as_cli.cc",
         "as_cli.hpp",
@@ -18,10 +11,10 @@ cc_binary(
         "profile_struct.cc",
         "inbox.hpp",
         "inbox.cc",
+        "parse_command_line.hpp"
     ],
     linkopts = ["-lpthread"],
     deps = [
-        ":scheduler_lib",
         "//asphr:asphr_lib",
         "//client/client_lib",
         "//schema:daemon_cc_grpc",

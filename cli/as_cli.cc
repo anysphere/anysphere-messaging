@@ -36,13 +36,15 @@ using namespace cli;
 
 using asphrdaemon::Daemon;
 
-int main() {
+int main(int argc, char** argv) {
   // setup cli
 
   Message message_to_send;
   // Friend friend_to_add;
   static Profile kProfile_;
   static Inbox kInbox_;
+
+  static std::map<string, Friend> kFriends_map_;
 
   // set up the unix socket
   auto socket_address = string("unix:///var/run/anysphere.sock");
@@ -53,189 +55,80 @@ int main() {
       grpc::CreateChannel(socket_address, grpc::InsecureChannelCredentials());
   auto stub = Daemon::NewStub(channel);
 
-  auto rootMenu = make_anysphere_menu();
+  auto help = StrCat("Usage: \n",
+                     // register
+                     "asphr register: {name}\n",
+                     // init-friend
+                     "asphr init-friend: {name}\n",
+                     // TODO: add-friend must have an init-friend before
+                     "asphr add-friend: {name} {key}\n",
+                     // TODO: explain the options better.
+                     "asphr (s | m | send | msg | message) {name}\n",
+                     // TODO: explain that -a is optional.
+                     "asphr (inbox | i) [-a | -all]\n");
 
-  rootMenu->Insert(
-      "message",
-      [&](std::ostream& out, string friend_name, string message) {
-        Message msg(message, friend_name, kProfile_.name_);
-        msg.send(stub);
+  CommandLine cmd_line{argc, argv, help};
 
-        out << "Message sent to " << friend_name << ": " << message << "\n";
-      },
-      StrCat("Open a text menu to message a friend.",
-             "You can also use the command line interface with `message` to "
-             "send messages.",
-             "Interface `message ${friend} ${message}`"));
+  if (!cmd_line.getArgument(0).ok()) {
+    cout << cmd_line.getArgument(0).status();
+  };
 
-  auto messageMenu = make_unique<Menu>("message");
-  messageMenu->Insert(
-      "friend",
-      [&](std::ostream& out, string friend_name) {
-        out << "Send a message to friend: " << friend_name << " :)\n";
+  auto command = cmd_line.getArgument(0).value();
 
-        message_to_send.to_ = friend_name;
-        message_to_send.from_ = "me";
-        if (message_to_send.complete()) {
-          out << "Message sent to " << friend_name << ": "
-              << message_to_send.msg_ << "\n";
-          message_to_send.send(stub);
-        } else {
-          out << "Now type `write` with your message.\n";
-          out << "Press Esv or type 'anysphere' to return to the menu.\n";
-        }
-      },
-      "Open a text menu to message a friend.");
-  messageMenu->Insert(
-      "write",
-      [&](std::ostream& out, string message) {
-        out << "Send a message to friend: " << message << " :\n";
+  if (command == "register") {
+    auto name = cmd_line.getArgument(1).value();
+    kProfile_.set_name(name);
 
-        message_to_send.msg_ = message;
-        if (message_to_send.complete()) {
-          out << "Message sent to " << message_to_send.to_ << ": "
-              << message_to_send.msg_ << "\n";
-          message_to_send.send(stub);
-          out << "Type 'anysphere' to go to your main inbox.\n";
-        } else {
-          out << "Now type `friend:` with your friend name.\n";
-        }
-      },
-      "Open a text menu to message a friend.");
+    kProfile_.add(stub);
+    cout << "Registered as " << kProfile_.name_ << endl;
+  } else if (command == "init-friend") {
+    auto name = cmd_line.getArgument(1).value();
+    Friend friend_to_add(name);
+    kFriends_map_[name] = friend_to_add;
 
-  /* Register interface
-   */
-  rootMenu->Insert(
-      "register",
-      [&](std::ostream& out, string name) {
-        Profile profile(name);
-        kProfile_ = profile;
-        profile.add(stub);
+    auto status = friend_to_add.generate_key(stub);
 
-        out << "Profile registered: " << name << " :\n";
-      },
-      "Register a profile! Parameters: name, public_key, private_key");
+    if (!status.ok()) {
+      return 0;
+    }
+    auto key = status.value();
+    cout << "Friend " << name << " key generated!" << endl;
+    cout << "Please give your friend the following key: " << key << endl;
+    cout << "When they give you back their shared key, you can then add them "
+            "with the command add-friend {their key}"
+         << endl;
+  } else if (command == "add-friend") {
+    auto name = cmd_line.getArgument(1).value();
+    auto key = cmd_line.getArgument(2).value();
 
-  /* Inbox interface
-   */
-  auto inboxMenu = make_unique<Menu>("inbox");
-  inboxMenu->Insert(
-      "friend",
-      [&](std::ostream& out, string friend_name) {
-        out << StrCat("Showing (the last 15) messages from your friend ",
-                      friend_name, "\n");
+    auto status = kFriends_map_[name].add(stub, key);
 
-        out << "--------------------------------\n";
-        kInbox_.update(stub, kProfile_.name_);
-        auto messages = kInbox_.get_messages();
+    if (!status.ok()) {
+      return 0;
+    }
 
-        for (const auto& [time, msg] : messages) {
-          if (msg.from_ != friend_name) {
-            continue;
-          }
-          auto time_str = absl::FormatTime(time, absl::UTCTimeZone());
+    cout << "Friend " << name << " added!" << endl;
+    cout << "Yipppeeee!" << endl;
+    cout << "You can now talk to them with the command 'message' {their name}"
+         << endl;
+  } else if (command == "s" || command == "m" || command == "send" ||
+             command == "msg" || command == "message") {
+    auto name = cmd_line.getArgument(1).value();
+    auto msg = cmd_line.getConcatArguments(2).value();
 
-          out << StrCat("(", time_str, ")", ": ", msg.from_, ": \n", msg.msg_,
-                        "--------------------------------", "\n");
-        }
-        out << "Type 'anysphere' to go to your main inbox.\n ";
-        // go to the main inbox.
-      },
-      "Show the messages from a friend");
-  inboxMenu->Insert(
-      "names",
-      [](std::ostream& out) {
-        out << "Showing all your friends:\n\n";
-        // auto friends = read_friends_from_file();
-        // for (const auto& friend_ : friends) {
-        //   out << friend_["name"].get<string>() << "\n";
-        // }
-        // if (friends.empty()) {
-        //   out << "You have no friends :(\n";
-        // }
-        // if (friends.size() == 1) {
-        //   out << "YOU have 1 friend :)\n";
-        // } else {
-        //   out << StrCat("THERE YOUR ARE! YOU HAVE ", friends.size(),
-        //                 " FRIENDS\n");
-        // }
-
-        out << "Type 'anysphere' to go to your main inbox.\n ";
-      },
-      "Show all your friends");
-
-  /* Friends interface
-    You can add friends with the command "add-friend ${friend_name} ${friend
-    public key}"
-    You can also open the add-friend menu with "friend"
-  */
-  auto friendsMenu = make_unique<Menu>("add-friend");
-  friendsMenu->Insert(
-      "init",
-      [&](std::ostream& out, string friend_name) {
-        Friend friend_(friend_name);
-
-        auto status = friend_.generate_key(stub);
-
-        if (!status.ok()) {
-          // TODO(sualeh): mention soemthing about anysphere retrying auto later
-          out << "We had some issue with the key generation. Please try again "
-                 "in a little bit. ";
-          return;
-        }
-
-        auto key = status.value();
-
-        out << StrCat(
-            "We initiated the process of adding your friend ", friend_name,
-            ".\n\n Please give your friend the following key: \n", key, "\n\n",
-            "You can finish adding your friend by typing `add-friend {friend "
-            "name} {your friend's key}`\n");
-
-        out << "Type 'anysphere' to go to your main inbox.\n ";
-      },
-      "Initiate the process of adding a friend to your friends list! Params: "
-      "friend_name");
-  friendsMenu->Insert(
-      "add",
-      [&](std::ostream& out, string friend_name, string key) {
-        Friend friend_(friend_name);
-
-        auto status = friend_.add(stub, key);
-
-        if (!status.ok()) {
-          out << "We had some issue with adding your friend. Please try again "
-                 "in a little bit. ";
-          return;
-        }
-
-        out << StrCat("We added your friend ", friend_name,
-                      " to your friends list.\n\n",
-                      "Type 'anysphere' to go to your main inbox.\n ");
-      },
-      "Add a friend to your friends list! Params: friend_name, friend_key");
-
-  // Just add all the submenus to the root menu
-  rootMenu->Insert(std::move(messageMenu));
-  rootMenu->Insert(std::move(inboxMenu));
-  rootMenu->Insert(std::move(friendsMenu));
-
-  Cli cli(std::move(rootMenu));
-  SetColor();
-
-  // global exit action
-  cli.ExitAction([](auto& out) {
-    out << "Goodbye! We hope you are enjoying anysphere!\n";
-  });
-
-  MainScheduler scheduler;
-  auto localSession = CliLocalTerminalSession(cli, scheduler, std::cout, 200);
-  localSession.ExitAction([&scheduler](auto& out) {
-    out << "Closing App...\n";
-    scheduler.Stop();
-  });
-
-  scheduler.Run();
+    Message m{msg, name, kProfile_.name_};
+    m.send(stub);
+    
+  } else if (command == "inbox" || command == "i") {
+    cout << "Inbox:" << endl;
+    for (auto& [time, message] : kInbox_.get_messages()) {
+      cout << absl::FormatTime(time, absl::UTCTimeZone()) << ": "
+           << message.msg_ << endl;
+    }
+  } else {
+    cout << "Unknown command: " << command << endl;
+    return 1;
+  }
 
   return 0;
 }

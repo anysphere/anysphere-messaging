@@ -2,15 +2,13 @@
 
 #include <grpcpp/grpcpp.h>
 
-#include "as_scheduler.hpp"
 #include "asphr/asphr.hpp"
 #include "cli/cli.h"
 #include "cli/clifilesession.h"
 #include "cli/clilocalsession.h"
 #include "client/client_lib/client_lib.hpp"
+#include "parse_command_line.hpp"
 #include "schema/daemon.grpc.pb.h"
-
-using MainScheduler = as_cli::AnysphereScheduler;
 
 using std::cin;
 using std::make_unique;
@@ -77,6 +75,7 @@ struct Profile {
   void add(unique_ptr<asphrdaemon::Daemon::Stub>& stub);
 
   void set_time() { time_ = absl::Now(); }
+  void set_name(const string& name) { name_ = name; }
   void clear() { name_.clear(); }
   bool complete() const { return !name_is_empty(); }
 
