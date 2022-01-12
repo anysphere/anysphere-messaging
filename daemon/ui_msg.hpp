@@ -15,6 +15,9 @@ void retrieve_messages(const string& output_file_address,
 
   auto& client = *config.pir_client;
   for (auto& [friend_name, friend_info] : config.friendTable) {
+    if (!friend_info.enabled) {
+      continue;
+    }
     asphrserver::ReceiveMessageInfo request;
 
     auto query = client.query(friend_info.read_index, config.db_rows);
@@ -93,6 +96,9 @@ void process_ui_file(const string& ui_file_address,
   }
 
   for (auto& [friend_name, friend_info] : config.friendTable) {
+    if (!friend_info.enabled) {
+      continue;
+    }
     Message message;
     message.set_id(0);
     if (friend_to_message.count(friend_name) != 0) {
