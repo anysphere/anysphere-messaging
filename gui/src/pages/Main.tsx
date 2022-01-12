@@ -75,7 +75,7 @@ function Main() {
   const writeMessage = React.useCallback(() => {
     const writeTab: Tab = {
       type: TabType.Write,
-      name: "New message",
+      name: "Write",
       data: {
         content: "",
         to: "",
@@ -116,16 +116,19 @@ function Main() {
   }
 
   return (
-    <div className="p-2">
-      <div className="flex flex-row">
-        <TabContainer
-          tabs={tabs}
-          selectTab={setSelectedTab}
-          selectedTab={selectedTab}
-        />
-        <button onClick={writeMessage}>+</button>
+    <div>
+      <div className="h-4 draggable" />
+      <div className="p-2">
+        <div className="flex flex-row">
+          <TabContainer
+            tabs={tabs}
+            selectTab={setSelectedTab}
+            selectedTab={selectedTab}
+          />
+          <button onClick={writeMessage}>+</button>
+        </div>
+        {selectedComponent}
       </div>
-      {selectedComponent}
     </div>
   );
 }

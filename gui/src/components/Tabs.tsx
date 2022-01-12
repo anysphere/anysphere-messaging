@@ -40,15 +40,18 @@ export function TabContainer(props: {
   selectedTab: number;
 }) {
   return (
-    <div className="flex flex-row flex-1">
-      {props.tabs.map((tab, index) => (
-        <TabElem
-          key={index}
-          selected={index === props.selectedTab}
-          onClick={() => props.selectTab(index)}
-          tab={tab}
-        />
-      ))}
+    <div className="flex-1 mb-1">
+      <div className="flex flex-row">
+        {props.tabs.map((tab, index) => (
+          <TabElem
+            key={index}
+            selected={index === props.selectedTab}
+            onClick={() => props.selectTab(index)}
+            tab={tab}
+          />
+        ))}
+      </div>
+      <hr />
     </div>
   );
 }
