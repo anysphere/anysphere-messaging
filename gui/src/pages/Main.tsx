@@ -8,7 +8,6 @@ import { Message } from "../types";
 interface Tab {
   type: TabType;
   name: string;
-  id: number;
   data: any;
 }
 
@@ -20,8 +19,8 @@ enum TabType {
 }
 
 const defaultTabs: Tab[] = [
-  { type: TabType.New, name: "New", id: 0, data: null },
-  { type: TabType.All, name: "All", id: 1, data: null },
+  { type: TabType.New, name: "New", data: null },
+  { type: TabType.All, name: "All", data: null },
 ];
 
 function Main() {
@@ -30,9 +29,9 @@ function Main() {
 
   const readMessage = React.useCallback(
     (message: Message) => {
-      for (let tab of tabs) {
-        if (tab.type === TabType.Read && tab.data.id === message.id) {
-          setSelectedTab(tab.id);
+      for (let i = 0; i < tabs.length; i++) {
+        if (tabs[i].type === TabType.Read && tabs[i].data.id === message.id) {
+          setSelectedTab(i);
           return;
         }
       }
@@ -49,11 +48,38 @@ function Main() {
   );
 
   const editWrite = React.useCallback(
-    (content: string) => {
+    (data: any) => {
       if (tabs[selectedTab].type !== TabType.Write) {
         return;
       }
-      tabs[selectedTab].data = content;
+      const newTab = tabs[selectedTab];
+      newTab.data = data;
+      let newTabs = [];
+      for (let i = 0; i < tabs.length; i++) {
+        if (i === selectedTab) {
+          newTabs.push(newTab);
+        } else {
+          newTabs.push(tabs[i]);
+        }
+      }
+      setTabs(newTabs);
+    },
+    [tabs, selectedTab]
+  );
+
+  const send = React.useCallback(
+    (content: string, to: string) => {
+      (window as any).send(content, to);
+      let newTabs = [];
+      for (let i = 0; i < tabs.length; i++) {
+        if (i === selectedTab) {
+          continue;
+        } else {
+          newTabs.push(tabs[i]);
+        }
+      }
+      setTabs(newTabs);
+      setSelectedTab(0);
     },
     [tabs, selectedTab]
   );
@@ -62,11 +88,13 @@ function Main() {
     const writeTab: Tab = {
       type: TabType.Write,
       name: "New message",
-      id: tabs.length,
-      data: "draft...",
+      data: {
+        content: "",
+        to: "",
+      },
     };
     setTabs([...tabs, writeTab]);
-    setSelectedTab(writeTab.id);
+    setSelectedTab(tabs.length);
   }, [tabs]);
 
   let selectedComponent;
@@ -92,7 +120,7 @@ function Main() {
       break;
     case TabType.Write:
       selectedComponent = (
-        <Write editCallback={editWrite} draft={tabs[selectedTab].data} />
+        <Write send={send} edit={editWrite} data={tabs[selectedTab].data} />
       );
       break;
     default:
@@ -103,8 +131,8 @@ function Main() {
     <div className="p-2">
       <div className="flex flex-row">
         <div className="flex flex-row flex-1">
-          {tabs.map((tab) => (
-            <div onClick={() => setSelectedTab(tab.id)} key={tab.id}>
+          {tabs.map((tab, index) => (
+            <div onClick={() => setSelectedTab(index)} key={index}>
               {tab.name}
             </div>
           ))}
