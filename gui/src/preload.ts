@@ -9,9 +9,11 @@ contextBridge.exposeInMainWorld("send", (to: string, message: string) => {
 contextBridge.exposeInMainWorld("getNewMessages", () => {
   return [
     {
+      id: "qowijefoiqwejf",
       from: "sualeh",
       to: "arvid",
       message: "hello",
+      timestamp: "today",
     },
   ];
 });
@@ -19,14 +21,18 @@ contextBridge.exposeInMainWorld("getNewMessages", () => {
 contextBridge.exposeInMainWorld("getAllMessages", () => {
   return [
     {
+      id: "qowijefoiqwejf",
       from: "sualeh",
       to: "arvid",
       message: "hello",
+      timestamp: "today",
     },
     {
+      id: "fweofijweiofjoiqwejf",
       from: "sualeh",
       to: "arvid",
       message: "my first hello",
+      timestamp: "yesterday",
     },
   ];
 });
