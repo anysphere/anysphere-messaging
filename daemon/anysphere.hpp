@@ -5,6 +5,7 @@
 #include "client/client_lib/client_lib.hpp"
 #include "crypto.hpp"
 #include "schema/server.grpc.pb.h"
+#include "daemon_rpc.hpp"
 
 constexpr auto SEND_FILE = "/workspace/anysphere/client/logs/send.ndjson";
 constexpr auto RECEIVE_FILE = "/workspace/anysphere/client/logs/receive.ndjson";

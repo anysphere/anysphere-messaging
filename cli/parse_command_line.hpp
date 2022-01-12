@@ -3,13 +3,19 @@
 struct CommandLine {
   int argc;
   char** argv;
+  // vector<string> argList;
   string comLine;
 
   CommandLine(int _c, char** _v, std::string _cl)
-      : argc(_c), argv(_v), comLine(std::move(_cl)) {}
+      : argc(_c), argv(_v), comLine(std::move(_cl)) {
+    // argList = vector<string>(argv, argv + argc);
+  }
 
   CommandLine(int _c, char** _v)
-      : argc(_c), argv(_v), comLine("bad arguments") {}
+      : argc(_c), argv(_v), comLine("bad arguments") {
+    // TODO(Sualeh): be nice and use a vector :)
+    // argList = vector<string>(argv, argv + argc);
+  }
 
   auto badArgument() const {
     auto err = comLine;
@@ -17,10 +23,10 @@ struct CommandLine {
   }
 
   // get an argument
-  // i is indexed from the last argument = 0, second to last indexed 1, ..
   auto getArgument(int i) -> asphr::StatusOr<string> {
-    if (argc < 2 + i) return badArgument();
-    return string(argv[argc - 1 - i]);
+    if (argc < i) return badArgument();
+
+    return (string)argv[i];
   }
 
   auto getOption(const std::string& option) -> bool {

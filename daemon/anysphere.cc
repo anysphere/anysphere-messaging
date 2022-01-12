@@ -5,7 +5,7 @@
 
 int main(int argc, char** argv) {
   std::string server_address("0.0.0.0:50051");
-  std::string socket_address("unix:///var/run/anysphere.sock");
+  std::string socket_address("unix:///workspace/anysphere/anysphere.sock");
 
   auto ephemeralConfig = EphemeralConfig{
       .config_file_address = string(CONFIG_FILE),
@@ -68,6 +68,15 @@ int main(int argc, char** argv) {
 
   // set the time to 0
   auto last_ui_timestamp = absl::Time();
+
+  // set up the daemon rpc server
+  auto daemon = DaemonRpc(crypto, config, stub, ephemeralConfig);
+  grpc::ServerBuilder builder;
+  builder.AddListeningPort(socket_address, grpc::InsecureServerCredentials());
+  builder.RegisterService(&daemon);
+
+  // start the daemon rpc server
+  auto daemon_server = unique_ptr<grpc::Server>(builder.BuildAndStart());
 
   while (true) {
     absl::SleepFor(duration);

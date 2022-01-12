@@ -2,8 +2,8 @@
 
 #include "asphr/asphr.hpp"
 
-auto write_msg_to_file(string file_address, string msg, string type, string to)
-    -> asphr::Status {
+static auto write_msg_to_file(string file_address, string msg, string type,
+                              string to) -> asphr::Status {
   auto file = std::ofstream(file_address, std::ios_base::app);
 
   auto time = absl::FormatTime(absl::Now(), absl::UTCTimeZone());
@@ -19,7 +19,7 @@ auto write_msg_to_file(string file_address, string msg, string type, string to)
   }
 }
 
-auto get_entries(const string& file_address) -> vector<json> {
+static auto get_entries(const string& file_address) -> vector<json> {
   auto test = json::array();
   auto entries = vector<json>();
 

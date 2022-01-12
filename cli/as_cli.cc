@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
   static std::map<string, Friend> kFriends_map_;
 
   // set up the unix socket
-  auto socket_address = string("unix:///var/run/anysphere.sock");
+  auto socket_address = string("unix:///workspace/anysphere/anysphere.sock");
 
   // connect to the anysphere daemon
   cout << "Client connecting to socket: " << socket_address << endl;
@@ -69,20 +69,21 @@ int main(int argc, char** argv) {
 
   CommandLine cmd_line{argc, argv, help};
 
-  if (!cmd_line.getArgument(0).ok()) {
-    cout << cmd_line.getArgument(0).status();
+  auto command_status = cmd_line.getArgument(1);
+
+  if (!command_status.ok()) {
+    cout << command_status.status();
   };
 
-  auto command = cmd_line.getArgument(0).value();
+  auto command = command_status.value();
 
   if (command == "register") {
-    auto name = cmd_line.getArgument(1).value();
+    auto name = cmd_line.getArgument(2).value();
     kProfile_.set_name(name);
 
     kProfile_.add(stub);
-    cout << "Registered as " << kProfile_.name_ << endl;
   } else if (command == "init-friend") {
-    auto name = cmd_line.getArgument(1).value();
+    auto name = cmd_line.getArgument(2).value();
     Friend friend_to_add(name);
     kFriends_map_[name] = friend_to_add;
 
@@ -98,8 +99,8 @@ int main(int argc, char** argv) {
             "with the command add-friend {their key}"
          << endl;
   } else if (command == "add-friend") {
-    auto name = cmd_line.getArgument(1).value();
-    auto key = cmd_line.getArgument(2).value();
+    auto name = cmd_line.getArgument(2).value();
+    auto key = cmd_line.getArgument(3).value();
 
     auto status = kFriends_map_[name].add(stub, key);
 
@@ -113,14 +114,15 @@ int main(int argc, char** argv) {
          << endl;
   } else if (command == "s" || command == "m" || command == "send" ||
              command == "msg" || command == "message") {
-    auto name = cmd_line.getArgument(1).value();
-    auto msg = cmd_line.getConcatArguments(2).value();
+    auto name = cmd_line.getArgument(2).value();
+    auto msg = cmd_line.getConcatArguments(3).value();
 
     Message m{msg, name, kProfile_.name_};
     m.send(stub);
     
   } else if (command == "inbox" || command == "i") {
     cout << "Inbox:" << endl;
+    kInbox_.update(stub, kProfile_.name_);
     for (auto& [time, message] : kInbox_.get_messages()) {
       cout << absl::FormatTime(time, absl::UTCTimeZone()) << ": "
            << message.msg_ << endl;

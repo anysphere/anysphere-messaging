@@ -11,11 +11,11 @@ void Profile::add(unique_ptr<asphrdaemon::Daemon::Stub>& stub) {
 
   grpc::Status status = stub->RegisterUser(&context, request, &reply);
 
-  if (!status.ok() || !reply.success()) {
+  if (!status.ok()) {
     cout << "register user failed: " << status.error_message() << endl;
+  } else if (!reply.success()) {
+    cout << "register user failed from the daemon." << endl;
   } else {
-    cout << "user registered" << endl;
+    cout << "Registered as " << name_ << endl;
   }
-
-  clear();
 }
