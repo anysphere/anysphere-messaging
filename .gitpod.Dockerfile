@@ -1,4 +1,4 @@
-FROM gitpod/workspace-full
+FROM gitpod/workspace-full-vnc
 
 RUN sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
 RUN sudo apt-get update && sudo apt-get install -y build-essential cmake valgrind doxygen graphviz ccache cppcheck libpq-dev clang-tidy clang-format libgtkextra-dev libgconf2-dev libnss3 libasound2 libxtst-dev libatk-bridge2.0-0 libdrm2 libgtk-3-0 libgbm-dev dpkg fakeroot rpm
