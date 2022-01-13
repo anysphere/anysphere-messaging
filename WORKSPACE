@@ -85,7 +85,7 @@ new_git_repository(
 new_git_repository(
     name = "seal",
     build_file = "//:seal.BUILD",
-    commit = "51904b30006894f44f1f35b487d4eb6fcf7e3e91",  # branch: 3.7.2-anysphere
+    commit = "4ee204b3a2d472160045109ac8fffd25e81004ba",  # branch: 3.7.2-anysphere
     remote = "https://github.com/anysphere/SEAL",
     # tag = "v3.7.2-bazel",
 )
