@@ -68,8 +68,8 @@ constexpr size_t SEAL_DB_COLUMNS = CEIL_DIV(MESSAGE_SIZE_BITS, PLAIN_BITS);
 // else that the size is 2M, and allocate indices in the first half only to that
 // one pair. this would destroy security!
 //
-// We set it to 400K for now, limiting # edges in the social graph to 400K. This
+// We set it to 360K for now, limiting # edges in the social graph to 360K. This
 // is to be under the GRPC message size limit of 4 MB — to increase this, use
 // GRPC streaming instead. See
 // https://jbrandhorst.com/post/grpc-binary-blob-stream/.
-constexpr size_t CLIENT_DB_ROWS = 400'000;
+constexpr size_t CLIENT_DB_ROWS = 360'000;
