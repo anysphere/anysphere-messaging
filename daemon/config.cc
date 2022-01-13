@@ -90,6 +90,11 @@ Config::Config(const asphr::json& config_json) : db_rows(CLIENT_DB_ROWS) {
 }
 
 auto Config::save(const string& config_file_address) -> void {
+  saved_file_address = config_file_address;
+  save();
+}
+
+auto Config::save() -> void {
   asphr::json config_json;
   config_json["has_registered"] = has_registered;
   if (has_registered) {
@@ -100,10 +105,25 @@ auto Config::save(const string& config_file_address) -> void {
   for (auto& friend_pair : friendTable) {
     config_json["friends"].push_back(friend_pair.second.to_json());
   }
-  std::ofstream o(config_file_address);
+  std::ofstream o(saved_file_address);
   o << std::setw(4) << config_json.dump(4) << std::endl;
 }
 
 auto Config::has_space_for_friends() -> bool {
   return registrationInfo.allocation.size() > friendTable.size();
+}
+
+auto Config::add_friend(const Friend& f) -> void {
+  friendTable[f.name] = f;
+  Config::save();
+}
+
+auto Config::remove_friend(const string& name) -> absl::Status {
+  if (!friendTable.contains(name)) {
+    return absl::Status(absl::StatusCode::kInvalidArgument,
+                        "friend does not exist");
+  }
+  friendTable.erase(name);
+  Config::save();
+  return absl::OkStatus();
 }

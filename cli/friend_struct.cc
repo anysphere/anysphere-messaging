@@ -25,6 +25,8 @@ auto Friend::add(unique_ptr<asphrdaemon::Daemon::Stub>& stub, const string& key)
   asphrdaemon::AddFriendResponse response;
 
   request.set_name(name_);
+  // REMOVE
+  cout << "name: " << name_ << endl;
   request.set_key(key);
 
   grpc::Status status = stub->AddFriend(&context, request, &response);

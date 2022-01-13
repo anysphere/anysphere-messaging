@@ -44,28 +44,21 @@ int main(int argc, char** argv) {
   static Profile kProfile_;
   static Inbox kInbox_;
 
-  static std::map<string, Friend> kFriends_map_;
+  static Friend::FriendMap kFriends_map_;
 
-  // set up the unix socket
-  auto socket_address = string("unix:///workspace/anysphere/anysphere.sock");
-
-  // connect to the anysphere daemon
-  cout << "Client connecting to socket: " << socket_address << endl;
-  auto channel =
-      grpc::CreateChannel(socket_address, grpc::InsecureChannelCredentials());
-  auto stub = Daemon::NewStub(channel);
-
-  auto help = StrCat("Usage: \n",
-                     // register
-                     "asphr register: {name}\n",
-                     // init-friend
-                     "asphr init-friend: {name}\n",
-                     // TODO: add-friend must have an init-friend before
-                     "asphr add-friend: {name} {key}\n",
-                     // TODO: explain the options better.
-                     "asphr (s | m | send | msg | message) {name}\n",
-                     // TODO: explain that -a is optional.
-                     "asphr (inbox | i) [-a | -all]\n");
+  auto help =
+      StrCat("Usage: \n",
+             // register
+             "asphr register: {name}\n",
+             // init-friend
+             "asphr init-friend: {name}\n",
+             // TODO: add-friend must have an init-friend before
+             "asphr add-friend: {name} {key}\n",
+             // TODO: explain the options better.
+             "asphr (s | m | send | msg | message) {name}\n",
+             "asphr (get-friends | friends)\n",
+             // TODO: explain that -a is optional.
+             "asphr (inbox | i) [-a | -all]\n", "asphr socket {address}\n");
 
   CommandLine cmd_line{argc, argv, help};
 
@@ -76,6 +69,21 @@ int main(int argc, char** argv) {
   };
 
   auto command = command_status.value();
+
+  // set up the unix socket
+  auto socket_address = string("unix:///workspace/anysphere/anysphere.sock");
+
+  if (cmd_line.getOption("socket")) {
+    socket_address = cmd_line.getOptionValue("socket", socket_address).value();
+  }
+
+  // connect to the anysphere daemon
+  cout << "Client connecting to socket: " << socket_address << endl;
+  auto channel =
+      grpc::CreateChannel(socket_address, grpc::InsecureChannelCredentials());
+  auto stub = Daemon::NewStub(channel);
+
+  // parse the commands
 
   if (command == "register") {
     auto name = cmd_line.getArgument(2).value();
@@ -101,8 +109,10 @@ int main(int argc, char** argv) {
   } else if (command == "add-friend") {
     auto name = cmd_line.getArgument(2).value();
     auto key = cmd_line.getArgument(3).value();
+    Friend friend_to_add(name);
 
-    auto status = kFriends_map_[name].add(stub, key);
+    kFriends_map_[name] = friend_to_add;
+    auto status = friend_to_add.add(stub, key);
 
     if (!status.ok()) {
       return 0;
@@ -127,6 +137,19 @@ int main(int argc, char** argv) {
       cout << absl::FormatTime(time, absl::UTCTimeZone()) << ": "
            << message.msg_ << endl;
     }
+  } else if (command == "get-friends" || command == "friends") {
+    cout << "Friends:" << endl;
+
+    auto status = kProfile_.get_friends(stub);
+
+    if (!status.ok()) {
+      return 0;
+    }
+    kFriends_map_ = status.value();
+    for (auto& [name, friend_] : kFriends_map_) {
+      cout << name << endl;
+    }
+
   } else {
     cout << "Unknown command: " << command << endl;
     return 1;

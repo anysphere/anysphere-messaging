@@ -32,20 +32,29 @@ class Config {
   Config(const asphr::json& config_json);
 
   auto save(const string& config_file_address) -> void;
+  auto save() -> void;
+  auto add_friend(const Friend& friend_info) -> void;
+  auto remove_friend(const string& name) -> absl::Status;
 
   auto has_space_for_friends() -> bool;
 
   bool has_registered;
   RegistrationInfo registrationInfo;
-  std::unordered_map<string, Friend> friendTable;
+
   // db_rows may possibly be overriden in the config, but should either way
   // always be constant
   const size_t db_rows;
   // store secret key and galois keys for pir
   string pir_secret_key;
+  // TODO(sualeh, urgent): make this private
+  std::unordered_map<string, Friend> friendTable;
   string pir_galois_keys;
   // make this a ptr because we want it to possibly be null
   std::unique_ptr<FastPIRClient> pir_client = nullptr;
+
+ private:
+  // it stores its own file address
+  string saved_file_address;
 };
 
 struct EphemeralConfig {

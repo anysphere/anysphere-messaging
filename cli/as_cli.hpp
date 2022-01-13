@@ -47,6 +47,8 @@ struct Message {
 // The friend struct to store the name and public key of a friend.
 // When a friend is complete we can add it to the config
 struct Friend {
+  using FriendMap = std::map<string, Friend>;
+
  public:
   Friend() = default;
   Friend(const string& name) : name_(name) {}
@@ -73,6 +75,8 @@ struct Profile {
   absl::Time time_;
 
   void add(unique_ptr<asphrdaemon::Daemon::Stub>& stub);
+  auto get_friends(unique_ptr<asphrdaemon::Daemon::Stub>& stub)
+      -> asphr::StatusOr<Friend::FriendMap>;
 
   void set_time() { time_ = absl::Now(); }
   void set_name(const string& name) { name_ = name; }

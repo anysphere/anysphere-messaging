@@ -106,7 +106,8 @@ Status DaemonRpc::GenerateFriendKey(
 
   auto friend_info =
       Friend{generateFriendKeyRequest->name(), index, -1, "", "", false};
-  config.friendTable[friend_info.name] = friend_info;
+
+  config.add_friend(friend_info);
 
   generateFriendKeyResponse->set_key(friend_key);
   generateFriendKeyResponse->set_success(true);
@@ -117,6 +118,11 @@ Status DaemonRpc::AddFriend(ServerContext* context,
                             const AddFriendRequest* addFriendRequest,
                             AddFriendResponse* addFriendResponse) {
   cout << "AddFriend() called" << endl;
+  cout << "name: " << addFriendRequest->name() << endl;
+
+  for (auto& [s, _] : config.friendTable) {
+    cout << "friend: " << s << endl;
+  }
 
   if (!config.friendTable.contains(addFriendRequest->name())) {
     cout << "friend not found; call generatefriendkey first!" << endl;
@@ -159,7 +165,13 @@ Status DaemonRpc::RemoveFriend(ServerContext* context,
   }
 
   // remove friend from friend table
-  config.friendTable.erase(removeFriendRequest->name());
+  auto status = config.remove_friend(removeFriendRequest->name());
+
+  if (!status.ok()) {
+    cout << "remove friend failed" << endl;
+    removeFriendResponse->set_success(false);
+    return Status(grpc::StatusCode::INVALID_ARGUMENT, "remove friend failed");
+  }
 
   removeFriendResponse->set_success(true);
   return Status::OK;
