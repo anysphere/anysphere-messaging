@@ -7,7 +7,7 @@ import { Message } from "./types";
 const daemonM = require("./daemon/schema/daemon_pb");
 const daemonS = require("./daemon/schema/daemon_grpc_pb");
 const daemonClient = new daemonS.DaemonClient(
-  "unix:///var/run/asphr.sock",
+  "unix:///workspace/anysphere/anysphere.sock",
   grpc.credentials.createInsecure()
 );
 

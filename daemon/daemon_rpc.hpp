@@ -52,6 +52,11 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
       const asphrdaemon::GetAllMessagesRequest* getAllMessagesRequest,
       asphrdaemon::GetAllMessagesResponse* getAllMessagesResponse) override;
 
+  grpc::Status GetNewMessages(
+      grpc::ServerContext* context,
+      const asphrdaemon::GetNewMessagesRequest* getNewMessagesRequest,
+      asphrdaemon::GetNewMessagesResponse* getNewMessagesResponse) override;
+
  private:
   const Crypto& crypto;
   Config& config;

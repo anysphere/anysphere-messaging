@@ -225,3 +225,31 @@ Status DaemonRpc::GetAllMessages(
   getAllMessagesResponse->set_success(true);
   return Status::OK;
 }
+
+Status DaemonRpc::GetNewMessages(
+    ServerContext* context, const GetNewMessagesRequest* getNewMessagesRequest,
+    GetNewMessagesResponse* getNewMessagesResponse) {
+  using TimeUtil = google::protobuf::util::TimeUtil;
+  cout << "GetNewMessages() called" << endl;
+
+  auto messages = get_entries(ephemeralConfig.received_messages_file_address);
+
+  for (auto& message_json : messages) {
+    auto message_info = getNewMessagesResponse->add_messages();
+    message_info->set_sender(message_json.at("from").get<string>());
+    message_info->set_message(message_json.at("message").get<string>());
+    auto timestamp_str = message_json.at("timestamp").get<string>();
+
+    // convert timestamp using TimeUtil::FromString
+    auto timestamp = message_info->mutable_timestamp();
+    auto success = TimeUtil::FromString(timestamp_str, timestamp);
+    if (!success) {
+      cout << "invalid timestamp" << endl;
+      getNewMessagesResponse->set_success(false);
+      return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+    }
+  }
+
+  getNewMessagesResponse->set_success(true);
+  return Status::OK;
+}
