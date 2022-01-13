@@ -12,6 +12,10 @@ extern constexpr size_t GUARANTEED_SINGLE_MESSAGE_SIZE =
      CEIL_DIV((sizeof MESSAGE_SIZE) * 8 - std::countl_zero(MESSAGE_SIZE), 8)) -
     (1 + 1 + 5) - CRYPTO_ABYTES - 1 - CRYPTO_NPUBBYTES;
 
+const auto cwd = string("/Users/arvid/code/anysphere/");
+extern const string DEFAULT_SOCKET_ADDRESS =
+    StrCat("unix://", cwd, "anysphere.sock");
+
 /**
  * @brief This function gets the last line of a file
  * @property: Nonconsuming: It does not consume the charachters, it only scans

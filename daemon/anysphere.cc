@@ -5,8 +5,8 @@
 
 int main(int argc, char** argv) {
   std::string server_address("0.0.0.0:50051");
-  
-  std::string socket_address = StrCat("unix://", cwd, "anysphere.sock");
+
+  std::string socket_address = DEFAULT_SOCKET_ADDRESS;
 
   auto ephemeralConfig = EphemeralConfig{
       .config_file_address = string(CONFIG_FILE),

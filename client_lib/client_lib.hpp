@@ -33,3 +33,5 @@ auto get_last_lines(string filename, int n);
 
 auto get_new_entries(const string& file_address, const Time& last_timestamp)
     -> vector<json>;
+
+extern const string DEFAULT_SOCKET_ADDRESS;

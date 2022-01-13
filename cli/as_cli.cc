@@ -30,9 +30,6 @@
 #include "as_cli.hpp"
 
 #include "inbox.hpp"
-#include "root_menu.hpp"
-
-using namespace cli;
 
 using asphrdaemon::Daemon;
 
@@ -71,7 +68,7 @@ int main(int argc, char** argv) {
   auto command = command_status.value();
 
   // set up the unix socket
-  auto socket_address = string("unix:///workspace/anysphere/anysphere.sock");
+  auto socket_address = DEFAULT_SOCKET_ADDRESS;
 
   if (cmd_line.getOption("socket")) {
     socket_address = cmd_line.getOptionValue("socket", socket_address).value();
@@ -129,7 +126,7 @@ int main(int argc, char** argv) {
 
     Message m{msg, name, kProfile_.name_};
     m.send(stub);
-    
+
   } else if (command == "inbox" || command == "i") {
     cout << "Inbox:" << endl;
     kInbox_.update(stub, kProfile_.name_);
