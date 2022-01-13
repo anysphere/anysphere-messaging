@@ -2,6 +2,7 @@
 
 #include "asphr/asphr.hpp"
 #include "client/daemon/daemon_rpc.hpp"
+#include "client/daemon/ui_msg.hpp"
 #include "server/pir/fast_pir/fastpir.hpp"
 #include "server/src/server_rpc.hpp"
 
@@ -21,13 +22,14 @@ auto gen_config() -> Config {
   return config;
 }
 
-auto gen_ephemeral_config(const string& config_file_address)
+auto gen_ephemeral_config(const string& config_file_address,
+                          const string& send_messages_file_address,
+                          const string& received_messages_file_address)
     -> EphemeralConfig {
   auto config = EphemeralConfig{
       .config_file_address = config_file_address,
-      .send_messages_file_address = "send_messages_file_address",
-      .received_messages_file_address = "received_messages_file_address",
-  };
+      .send_messages_file_address = send_messages_file_address,
+      .received_messages_file_address = received_messages_file_address};
   return config;
 }
 
@@ -46,7 +48,7 @@ class DaemonRpcTest : public ::testing::Test {
  protected:
   DaemonRpcTest() : service_(gen_server_rpc()) {}
 
-  auto generateConfigFile() -> string {
+  auto generateTempFile() -> string {
     auto config_file_address = "TMPTMPTMP_config" +
                                std::to_string(config_file_addresses_.size()) +
                                ".json";
@@ -97,7 +99,8 @@ TEST_F(DaemonRpcTest, Register) {
   ResetStub();
   auto crypto = gen_crypto();
   auto config = gen_config();
-  auto ephConfig = gen_ephemeral_config(generateConfigFile());
+  auto ephConfig = gen_ephemeral_config(generateTempFile(), generateTempFile(),
+                                        generateTempFile());
   DaemonRpc rpc(crypto, config, stub_, ephConfig);
 
   {
@@ -113,7 +116,8 @@ TEST_F(DaemonRpcTest, GetFriendList) {
   ResetStub();
   auto crypto = gen_crypto();
   auto config = gen_config();
-  auto ephConfig = gen_ephemeral_config(generateConfigFile());
+  auto ephConfig = gen_ephemeral_config(generateTempFile(), generateTempFile(),
+                                        generateTempFile());
   DaemonRpc rpc(crypto, config, stub_, ephConfig);
 
   {
@@ -136,7 +140,8 @@ TEST_F(DaemonRpcTest, GenerateFriendKey) {
   ResetStub();
   auto crypto = gen_crypto();
   auto config = gen_config();
-  auto ephConfig = gen_ephemeral_config(generateConfigFile());
+  auto ephConfig = gen_ephemeral_config(generateTempFile(), generateTempFile(),
+                                        generateTempFile());
   DaemonRpc rpc(crypto, config, stub_, ephConfig);
 
   {
@@ -161,11 +166,13 @@ TEST_F(DaemonRpcTest, AddFriend) {
 
   auto crypto1 = gen_crypto();
   auto config1 = gen_config();
-  auto ephConfig1 = gen_ephemeral_config(generateConfigFile());
+  auto ephConfig1 = gen_ephemeral_config(generateTempFile(), generateTempFile(),
+                                         generateTempFile());
   DaemonRpc rpc1(crypto1, config1, stub_, ephConfig1);
   auto crypto2 = gen_crypto();
   auto config2 = gen_config();
-  auto ephConfig2 = gen_ephemeral_config(generateConfigFile());
+  auto ephConfig2 = gen_ephemeral_config(generateTempFile(), generateTempFile(),
+                                         generateTempFile());
   DaemonRpc rpc2(crypto2, config2, stub_, ephConfig2);
 
   {
@@ -223,6 +230,130 @@ TEST_F(DaemonRpcTest, AddFriend) {
     AddFriendResponse response;
     rpc2.AddFriend(nullptr, &request, &response);
     EXPECT_TRUE(response.success());
+  }
+};
+
+TEST_F(DaemonRpcTest, SendMessage) {
+  ResetStub();
+
+  auto crypto1 = gen_crypto();
+  auto config1 = gen_config();
+  auto ephConfig1 = gen_ephemeral_config(generateTempFile(), generateTempFile(),
+                                         generateTempFile());
+  DaemonRpc rpc1(crypto1, config1, stub_, ephConfig1);
+  auto crypto2 = gen_crypto();
+  auto config2 = gen_config();
+  auto ephConfig2 = gen_ephemeral_config(generateTempFile(), generateTempFile(),
+                                         generateTempFile());
+  DaemonRpc rpc2(crypto2, config2, stub_, ephConfig2);
+
+  {
+    RegisterUserRequest request;
+    request.set_name("user1local");
+    RegisterUserResponse response;
+    rpc1.RegisterUser(nullptr, &request, &response);
+  }
+  {
+    RegisterUserRequest request;
+    request.set_name("user2local");
+    RegisterUserResponse response;
+    rpc2.RegisterUser(nullptr, &request, &response);
+  }
+
+  string user1_key;
+  string user2_key;
+
+  {
+    GenerateFriendKeyRequest request;
+    request.set_name("user2");
+    GenerateFriendKeyResponse response;
+    rpc1.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_GT(response.key().size(), 0);
+    user1_key = response.key();
+  }
+
+  {
+    GenerateFriendKeyRequest request;
+    request.set_name("user1");
+    GenerateFriendKeyResponse response;
+    rpc2.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_GT(response.key().size(), 0);
+    user2_key = response.key();
+  }
+
+  cout << "user1_key: " << user1_key << endl;
+  cout << "user2_key: " << user2_key << endl;
+
+  {
+    AddFriendRequest request;
+    request.set_name("user2");
+    request.set_key(user2_key);
+    AddFriendResponse response;
+    rpc1.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+  }
+
+  {
+    AddFriendRequest request;
+    request.set_name("user1");
+    request.set_key(user1_key);
+    AddFriendResponse response;
+    rpc2.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+  }
+
+  {
+    SendMessageRequest request;
+    request.set_name("user2");
+    request.set_message("hello from 1 to 2");
+    asphrdaemon::SendMessageResponse response;
+    rpc1.SendMessage(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+  }
+
+  {
+    SendMessageRequest request;
+    request.set_name("user1");
+    request.set_message("hello from 2 to 1");
+    asphrdaemon::SendMessageResponse response;
+    rpc2.SendMessage(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+  }
+
+  {
+    process_ui_file(ephConfig1.send_messages_file_address, absl::Time(), stub_,
+                    crypto1, config1);
+    retrieve_messages(ephConfig1.received_messages_file_address, stub_, crypto1,
+                      config1);
+  }
+
+  {
+    process_ui_file(ephConfig2.send_messages_file_address, absl::Time(), stub_,
+                    crypto2, config2);
+    retrieve_messages(ephConfig2.received_messages_file_address, stub_, crypto2,
+                      config2);
+  }
+
+  {
+    GetAllMessagesRequest request;
+    GetAllMessagesResponse response;
+    rpc1.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_EQ(response.messages_size(), 1);
+    EXPECT_EQ(response.messages(0).sender(), "user2");
+    EXPECT_EQ(response.messages(0).message(), "hello from 2 to 1");
+  }
+
+  {
+    GetAllMessagesRequest request;
+    GetAllMessagesResponse response;
+    rpc2.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_EQ(response.messages_size(), 1);
+    EXPECT_EQ(response.messages(0).sender(), "user1");
+    EXPECT_EQ(response.messages(0).message(), "hello from 1 to 2");
   }
 };
 
