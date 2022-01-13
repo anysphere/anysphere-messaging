@@ -16,43 +16,36 @@ contextBridge.exposeInMainWorld("send", async (to: string, message: string) => {
   const sendMessage = promisify(daemonClient.sendMessage).bind(daemonClient);
   try {
     const response = await sendMessage(request);
-    if (!response.getSuccess()) {
-      console.log(`unsuccessful send`);
-      return;
-    }
   } catch (e) {
     console.log(`error in send: ${e}`);
     return e;
   }
 });
 
-contextBridge.exposeInMainWorld("getNewMessages", () => {
-  return [
-    {
-      id: "qowijefoiqwejf",
-      from: "sualeh",
-      to: "arvid",
-      message: "hello",
-      timestamp: "today",
-    },
-  ];
+contextBridge.exposeInMainWorld("getNewMessages", async () => {
+  const request = new daemonM.GetNewMessagesRequest();
+  const getNewMessages = promisify(daemonClient.getNewMessages).bind(
+    daemonClient
+  );
+  try {
+    const response = await getNewMessages(request);
+    return response.getMessagesList();
+  } catch (e) {
+    console.log(`error in getNewMessages: ${e}`);
+    return e;
+  }
 });
 
-contextBridge.exposeInMainWorld("getAllMessages", () => {
-  return [
-    {
-      id: "qowijefoiqwejf",
-      from: "sualeh",
-      to: "arvid",
-      message: "hello",
-      timestamp: "today",
-    },
-    {
-      id: "fweofijweiofjoiqwejf",
-      from: "sualeh",
-      to: "arvid",
-      message: "my first hello",
-      timestamp: "yesterday",
-    },
-  ];
+contextBridge.exposeInMainWorld("getAllMessages", async () => {
+  const request = new daemonM.GetAllMessagesRequest();
+  const getAllMessages = promisify(daemonClient.getAllMessages).bind(
+    daemonClient
+  );
+  try {
+    const response = await getAllMessages(request);
+    return response.getMessagesList();
+  } catch (e) {
+    console.log(`error in getAllMessages: ${e}`);
+    return e;
+  }
 });
