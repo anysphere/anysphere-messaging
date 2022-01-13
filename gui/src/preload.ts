@@ -1,7 +1,7 @@
 console.log("preload!");
 
-const daemonMessages = require("./daemon/daemon_pb");
-const daemonService = require("./daemon/daemon_grpc_pb");
+const daemonMessages = require("./daemon/schema/daemon_pb");
+const daemonService = require("./daemon/schema/daemon_grpc_pb");
 
 const registerUserRequest = new daemonMessages.RegisterUserRequest();
 registerUserRequest.setName("test");
