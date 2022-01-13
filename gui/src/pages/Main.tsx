@@ -89,18 +89,12 @@ function Main() {
   switch (tabs[selectedTab].type) {
     case TabType.New:
       selectedComponent = (
-        <MessageList
-          readCallback={readMessage}
-          messages={(window as any).getNewMessages()}
-        />
+        <MessageList readCallback={readMessage} messages="new" />
       );
       break;
     case TabType.All:
       selectedComponent = (
-        <MessageList
-          readCallback={readMessage}
-          messages={(window as any).getAllMessages()}
-        />
+        <MessageList readCallback={readMessage} messages="all" />
       );
       break;
     case TabType.Read:

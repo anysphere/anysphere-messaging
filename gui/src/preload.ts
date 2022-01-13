@@ -2,6 +2,8 @@ const { contextBridge } = require("electron");
 const { promisify } = require("util");
 var grpc = require("@grpc/grpc-js");
 
+import { Message } from "./types";
+
 const daemonM = require("./daemon/schema/daemon_pb");
 const daemonS = require("./daemon/schema/daemon_grpc_pb");
 const daemonClient = new daemonS.DaemonClient(
@@ -16,9 +18,10 @@ contextBridge.exposeInMainWorld("send", async (to: string, message: string) => {
   const sendMessage = promisify(daemonClient.sendMessage).bind(daemonClient);
   try {
     const response = await sendMessage(request);
+    return true;
   } catch (e) {
     console.log(`error in send: ${e}`);
-    return e;
+    return false;
   }
 });
 
@@ -29,10 +32,21 @@ contextBridge.exposeInMainWorld("getNewMessages", async () => {
   );
   try {
     const response = await getNewMessages(request);
-    return response.getMessagesList();
+    const lm = response.getMessagesList();
+    const l = lm.map((m: any) => {
+      return {
+        id: m.getId(),
+        from: m.getFrom(),
+        to: m.getTo(),
+        message: m.getMessage(),
+        timestamp: m.getTimestamp(),
+      };
+    });
+    return l;
   } catch (e) {
     console.log(`error in getNewMessages: ${e}`);
-    return e;
+    const l: Message[] = [];
+    return l;
   }
 });
 
@@ -43,9 +57,20 @@ contextBridge.exposeInMainWorld("getAllMessages", async () => {
   );
   try {
     const response = await getAllMessages(request);
-    return response.getMessagesList();
+    const lm = response.getMessagesList();
+    const l = lm.map((m: any) => {
+      return {
+        id: m.getId(),
+        from: m.getFrom(),
+        to: m.getTo(),
+        message: m.getMessage(),
+        timestamp: m.getTimestamp(),
+      };
+    });
+    return l;
   } catch (e) {
     console.log(`error in getAllMessages: ${e}`);
-    return e;
+    const l: Message[] = [];
+    return l;
   }
 });

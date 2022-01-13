@@ -2,13 +2,27 @@ import * as React from "react";
 import { Message } from "../types";
 
 function MessageList(props: {
-  messages: Message[];
+  messages: string;
   readCallback: (message: Message) => void;
 }) {
+  const [messages, setMessages] = React.useState<Message[]>([]);
+
+  React.useEffect(() => {
+    if (props.messages === "new") {
+      (window as any).getNewMessages().then((messages: Message[]) => {
+        setMessages(messages);
+      });
+    } else {
+      (window as any).getAllMessages().then((messages: Message[]) => {
+        setMessages(messages);
+      });
+    }
+  }, [props.messages]);
+
   return (
     <div>
       <div className="grid grid-cols-1 gap-2">
-        {props.messages.map((message, index) => (
+        {messages.map((message, index) => (
           <div
             className="bg-white px-4 py-2 rounded-sm hover:cursor-pointer"
             key={index}
