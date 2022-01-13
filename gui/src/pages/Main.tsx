@@ -5,6 +5,8 @@ import Read from "../components/Read";
 import Write from "../components/Write";
 import { Message } from "../types";
 import { Tab, TabType, TabContainer } from "../components/Tabs";
+import { useHotkeys } from "react-hotkeys-hook";
+import { write } from "original-fs";
 
 const defaultTabs: Tab[] = [
   { type: TabType.New, name: "New", data: null },
@@ -108,6 +110,22 @@ function Main() {
     default:
       selectedComponent = <div>Unknown tab</div>;
   }
+
+  const closeTab = React.useCallback(() => {
+    let newTabs = [];
+    for (let i = 0; i < tabs.length; i++) {
+      if (i === selectedTab) {
+        continue;
+      } else {
+        newTabs.push(tabs[i]);
+      }
+    }
+    setTabs(newTabs);
+    setSelectedTab(0);
+  }, [tabs, selectedTab]);
+
+  useHotkeys("ctrl+n, cmd+n", () => writeMessage(), null, [writeMessage]);
+  useHotkeys("ctrl+w, cmd+w", () => closeTab(), null, [closeTab]);
 
   return (
     <div>

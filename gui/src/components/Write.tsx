@@ -14,9 +14,9 @@ function Write(props: {
   const to = props.data.to;
   return (
     <div>
-      <div className="place-self-center">
+      <div className="place-self-center flex flex-col">
         <textarea
-          className="whitespace-pre-wrap resize-none w-full"
+          className="whitespace-pre-wrap resize-none w-full focus:outline-none h-full grow bg-[#F9F7F1] h-96"
           value={content}
           onChange={(e) =>
             props.edit({
@@ -24,11 +24,14 @@ function Write(props: {
               content: e.target.value,
             })
           }
+          autoFocus
         />
         <div className="flex flex-row">
           <div className="flex-1"></div>
+          <label>To: </label>
           <input
             type="text"
+            className="bg-[#F9F7F1] focus:outline-none pl-2"
             onChange={(e) =>
               props.edit({
                 ...props.data,
@@ -37,7 +40,12 @@ function Write(props: {
             }
             value={to}
           ></input>
-          <button onClick={() => props.send(content, to)}>Send</button>
+          <button
+            className="rounded-lg bg-[#e3e0d8] text-[#7a776d] px-3 py-1"
+            onClick={() => props.send(content, to)}
+          >
+            Send
+          </button>
         </div>
       </div>
     </div>
