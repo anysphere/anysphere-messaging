@@ -44,7 +44,6 @@ http_archive(
     ],
 )
 
-
 # js grpc
 
 http_archive(
@@ -53,8 +52,6 @@ http_archive(
     strip_prefix = "rules_proto_grpc-4.1.1",
     urls = ["https://github.com/rules-proto-grpc/rules_proto_grpc/archive/4.1.1.tar.gz"],
 )
-
-
 
 # clang tidy
 
@@ -88,7 +85,7 @@ new_git_repository(
 new_git_repository(
     name = "seal",
     build_file = "//:seal.BUILD",
-    commit = "4ee204b3a2d472160045109ac8fffd25e81004ba",  # branch: 3.7.2-anysphere
+    commit = "51904b30006894f44f1f35b487d4eb6fcf7e3e91",  # branch: 3.7.2-anysphere
     remote = "https://github.com/anysphere/SEAL",
     # tag = "v3.7.2-bazel",
 )
@@ -148,6 +145,7 @@ load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
 grpc_extra_deps()
 
 load("@rules_proto_grpc//:repositories.bzl", "rules_proto_grpc_toolchains")
+
 rules_proto_grpc_toolchains()
 
 load("@rules_proto_grpc//js:repositories.bzl", rules_proto_grpc_js_repos = "js_repos")

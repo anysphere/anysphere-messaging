@@ -115,7 +115,8 @@
         "gsl_assert": "cpp",
         "span": "cpp",
         "gsl_byte": "cpp",
-        "*.inc": "cpp"
+        "*.inc": "cpp",
+        "filesystem": "cpp"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "C_Cpp.codeAnalysis.runAutomatically": false,
