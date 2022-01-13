@@ -5,6 +5,10 @@
   "description": "My Electron application description",
   "main": ".webpack/main",
   "scripts": {
+    "prestart": "bazel build //schema:daemon_js_grpc && rm -rf src/daemon && cp -r ../../bazel-bin/schema/daemon_js_grpc_pb/schema src/daemon",
+    "prepackage": "bazel build //schema:daemon_js_grpc && rm -rf src/daemon && cp -r ../../bazel-bin/schema/daemon_js_grpc_pb/schema src/daemon",
+    "premake": "bazel build //schema:daemon_js_grpc && rm -rf src/daemon && cp -r ../../bazel-bin/schema/daemon_js_grpc_pb/schema src/daemon",
+    "prepublish": "bazel build //schema:daemon_js_grpc && rm -rf src/daemon && cp -r ../../bazel-bin/schema/daemon_js_grpc_pb/schema src/daemon",
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
