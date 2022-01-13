@@ -330,3 +330,45 @@ export namespace MessageInfo {
   }
 }
 
+export class GetNewMessagesRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetNewMessagesRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetNewMessagesRequest): GetNewMessagesRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetNewMessagesRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetNewMessagesRequest;
+  static deserializeBinaryFromReader(message: GetNewMessagesRequest, reader: jspb.BinaryReader): GetNewMessagesRequest;
+}
+
+export namespace GetNewMessagesRequest {
+  export type AsObject = {
+  }
+}
+
+export class GetNewMessagesResponse extends jspb.Message {
+  getSuccess(): boolean;
+  setSuccess(value: boolean): void;
+
+  clearMessagesList(): void;
+  getMessagesList(): Array<MessageInfo>;
+  setMessagesList(value: Array<MessageInfo>): void;
+  addMessages(value?: MessageInfo, index?: number): MessageInfo;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetNewMessagesResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetNewMessagesResponse): GetNewMessagesResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetNewMessagesResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetNewMessagesResponse;
+  static deserializeBinaryFromReader(message: GetNewMessagesResponse, reader: jspb.BinaryReader): GetNewMessagesResponse;
+}
+
+export namespace GetNewMessagesResponse {
+  export type AsObject = {
+    success: boolean,
+    messagesList: Array<MessageInfo.AsObject>,
+  }
+}
+
