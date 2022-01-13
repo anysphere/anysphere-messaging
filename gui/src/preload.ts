@@ -1,5 +1,12 @@
 console.log("preload!");
 
+const daemonMessages = require("./daemon/daemon_pb");
+const daemonService = require("./daemon/daemon_grpc_pb");
+
+const registerUserRequest = new daemonMessages.RegisterUserRequest();
+registerUserRequest.setName("test");
+console.log(registerUserRequest);
+
 const { contextBridge } = require("electron");
 
 contextBridge.exposeInMainWorld("send", (to: string, message: string) => {
