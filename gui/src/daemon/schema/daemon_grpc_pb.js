@@ -93,6 +93,28 @@ function deserialize_asphrdaemon_GetFriendListResponse(buffer_arg) {
   return schema_daemon_pb.GetFriendListResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_asphrdaemon_GetNewMessagesRequest(arg) {
+  if (!(arg instanceof schema_daemon_pb.GetNewMessagesRequest)) {
+    throw new Error('Expected argument of type asphrdaemon.GetNewMessagesRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_GetNewMessagesRequest(buffer_arg) {
+  return schema_daemon_pb.GetNewMessagesRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_asphrdaemon_GetNewMessagesResponse(arg) {
+  if (!(arg instanceof schema_daemon_pb.GetNewMessagesResponse)) {
+    throw new Error('Expected argument of type asphrdaemon.GetNewMessagesResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_GetNewMessagesResponse(buffer_arg) {
+  return schema_daemon_pb.GetNewMessagesResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_asphrdaemon_RegisterUserRequest(arg) {
   if (!(arg instanceof schema_daemon_pb.RegisterUserRequest)) {
     throw new Error('Expected argument of type asphrdaemon.RegisterUserRequest');
@@ -237,6 +259,17 @@ var DaemonService = exports.DaemonService = {
     requestDeserialize: deserialize_asphrdaemon_GetAllMessagesRequest,
     responseSerialize: serialize_asphrdaemon_GetAllMessagesResponse,
     responseDeserialize: deserialize_asphrdaemon_GetAllMessagesResponse,
+  },
+  getNewMessages: {
+    path: '/asphrdaemon.Daemon/GetNewMessages',
+    requestStream: false,
+    responseStream: false,
+    requestType: schema_daemon_pb.GetNewMessagesRequest,
+    responseType: schema_daemon_pb.GetNewMessagesResponse,
+    requestSerialize: serialize_asphrdaemon_GetNewMessagesRequest,
+    requestDeserialize: deserialize_asphrdaemon_GetNewMessagesRequest,
+    responseSerialize: serialize_asphrdaemon_GetNewMessagesResponse,
+    responseDeserialize: deserialize_asphrdaemon_GetNewMessagesResponse,
   },
 };
 
