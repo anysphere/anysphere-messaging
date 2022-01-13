@@ -44,6 +44,9 @@ auto RegistrationInfo::from_json(const asphr::json& j) -> RegistrationInfo {
 auto read_json_file(const string& config_file_address) -> asphr::json {
   if (!std::filesystem::exists(config_file_address) ||
       std::filesystem::file_size(config_file_address) == 0) {
+    auto dir_path =
+        std::filesystem::path(config_file_address).parent_path().u8string();
+    std::filesystem::create_directory(dir_path);
     cout << "creating new config asphr::json!" << endl;
     asphr::json j = R"({
       "has_registered": false,
