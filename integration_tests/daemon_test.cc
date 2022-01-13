@@ -325,13 +325,13 @@ TEST_F(DaemonRpcTest, SendMessage) {
   {
     process_ui_file(ephConfig1.send_messages_file_address, absl::Time(), stub_,
                     crypto1, config1);
-    retrieve_messages(ephConfig1.received_messages_file_address, stub_, crypto1,
-                      config1);
+    process_ui_file(ephConfig2.send_messages_file_address, absl::Time(), stub_,
+                    crypto2, config2);
   }
 
   {
-    process_ui_file(ephConfig2.send_messages_file_address, absl::Time(), stub_,
-                    crypto2, config2);
+    retrieve_messages(ephConfig1.received_messages_file_address, stub_, crypto1,
+                      config1);
     retrieve_messages(ephConfig2.received_messages_file_address, stub_, crypto2,
                       config2);
   }
