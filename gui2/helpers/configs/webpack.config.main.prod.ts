@@ -5,7 +5,6 @@
 import path from "path";
 import webpack from "webpack";
 import { merge } from "webpack-merge";
-import { BundleAnalyzerPlugin } from "webpack-bundle-analyzer";
 import baseConfig from "./webpack.config.base";
 import webpackPaths from "./webpack.paths";
 import checkNodeEnv from "../scripts/check-node-env";
@@ -39,10 +38,6 @@ const configuration: webpack.Configuration = {
   },
 
   plugins: [
-    new BundleAnalyzerPlugin({
-      analyzerMode: process.env.ANALYZE === "true" ? "server" : "disabled",
-    }),
-
     /**
      * Create global constants which can be configured at compile time.
      *
