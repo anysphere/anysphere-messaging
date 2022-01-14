@@ -47,8 +47,6 @@ const configuration: webpack.Configuration = {
   entry: [
     `webpack-dev-server/client?http://localhost:${port}/dist`,
     'webpack/hot/only-dev-server',
-    'core-js',
-    'regenerator-runtime/runtime',
     path.join(webpackPaths.srcRendererPath, 'index.tsx'),
   ],
 
@@ -63,22 +61,6 @@ const configuration: webpack.Configuration = {
 
   module: {
     rules: [
-      {
-        test: /\.s?css$/,
-        use: [
-          'style-loader',
-          {
-            loader: 'css-loader',
-            options: {
-              modules: true,
-              sourceMap: true,
-              importLoaders: 1,
-            },
-          },
-          'postcss-loader',
-        ],
-        include: /\.module\.s?(c|a)ss$/,
-      },
       {
         test: /\.s?css$/,
         use: ['style-loader', 'css-loader', 'postcss-loader'],
