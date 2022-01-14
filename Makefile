@@ -1,4 +1,4 @@
-.PHONY: server clean push
+.PHONY: server minimal-server push-minimal clean push distribute build-client
 
 server: 
 	DOCKER_BUILDKIT=1 docker build -f server.Dockerfile -t server .
@@ -16,6 +16,18 @@ push: server
 push-minimal: minimal-server
 	docker tag minimal-server us-east1-docker.pkg.dev/veil-messenger/server/server
 	docker push us-east1-docker.pkg.dev/veil-messenger/server/server
+
+build-client:
+	bazel build //client/... 
+
+# TODO: add release arguments here to speed up things
+distribute: build-client
+	pushd client/gui2
+	npm run update
+	npm run packall
+	popd
+	cp -r client/gui2/release release
+	echo "Client successfully built!"
 
 clean:
 	docker rmi -f server
