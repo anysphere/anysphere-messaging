@@ -12,7 +12,7 @@ extern constexpr size_t GUARANTEED_SINGLE_MESSAGE_SIZE =
      CEIL_DIV((sizeof MESSAGE_SIZE) * 8 - std::countl_zero(MESSAGE_SIZE), 8)) -
     (1 + 1 + 5) - CRYPTO_ABYTES - 1 - CRYPTO_NPUBBYTES;
 
-const auto cwd = string("/Users/arvid/code/anysphere/");
+const auto cwd = string("/workspace/anysphere/");
 extern const string DEFAULT_SOCKET_ADDRESS =
     StrCat("unix://", cwd, "anysphere.sock");
 
