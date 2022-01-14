@@ -5,3 +5,5 @@
 .draggable {
   -webkit-app-region: drag;
 }
+
+.unselectable { -webkit-user-select: none; user-select: none; }

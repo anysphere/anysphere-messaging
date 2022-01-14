@@ -24,7 +24,7 @@ export function TabElem({
 }) {
   return (
     <div
-      className={`px-1 hover:cursor-pointer ${
+      className={`px-1 unselectable hover:cursor-pointer ${
         selected ? "text-black" : "text-gray-400"
       }`}
       onClick={onClick}
