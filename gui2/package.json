@@ -1,6 +1,7 @@
 {
   "name": "anysphere",
   "scripts": {
+    "update": "bazel build //schema:daemon_js_grpc && rm -rf src/daemon && cp -r ../../bazel-bin/schema/daemon_js_grpc_pb src/daemon",
     "build": "concurrently \"npm run build:main\" \"npm run build:renderer\"",
     "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.main.prod.ts",
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
