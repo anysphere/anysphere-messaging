@@ -18,7 +18,8 @@ push-minimal: minimal-server
 	docker push us-east1-docker.pkg.dev/veil-messenger/server/server
 
 build-client:
-	bazel build //client/... 
+	# bazel build //:asphr-release -c opt --platforms=//:macos-arm64 
+	bazel build //:asphr-release -c opt --platforms=//:linux-x86_64
 
 # TODO: add release arguments here to speed up things
 distribute: build-client
