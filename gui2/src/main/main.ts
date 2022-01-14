@@ -67,6 +67,8 @@ const createWindow = async () => {
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
 
+  // Don't allow ANY requests to any origin! This means that the app will
+  // only not be able to communicate with the internet at all, which is PERFECT.
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {
