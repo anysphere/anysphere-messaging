@@ -124,8 +124,8 @@ function Main() {
     setSelectedTab(0);
   }, [tabs, selectedTab]);
 
-  useHotkeys("ctrl+n, cmd+n", () => writeMessage(), null, [writeMessage]);
-  useHotkeys("ctrl+w, cmd+w", () => closeTab(), null, [closeTab]);
+  useHotkeys("CmdOrCtrl+n", () => writeMessage(), null, [writeMessage]);
+  useHotkeys("CmdOrCtrl+w", () => closeTab(), null, [closeTab]);
 
   return (
     <div>
