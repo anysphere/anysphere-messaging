@@ -1,5 +1,5 @@
-import * as React from "react";
-import { Message } from "../types";
+import * as React from 'react';
+import { Message } from '../types';
 
 function MessageList(props: {
   messages: string;
@@ -8,7 +8,7 @@ function MessageList(props: {
   const [messages, setMessages] = React.useState<Message[]>([]);
 
   React.useEffect(() => {
-    if (props.messages === "new") {
+    if (props.messages === 'new') {
       (window as any).getNewMessages().then((messages: Message[]) => {
         setMessages(messages);
       });
