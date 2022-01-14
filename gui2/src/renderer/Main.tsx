@@ -1,12 +1,10 @@
 import * as React from 'react';
 
-import MessageList from 'components/MessageList';
-import Read from 'components/Read';
-import Write from 'components/Write';
-import { Message } from 'types';
-import { Tab, TabType, TabContainer } from 'components/Tabs';
-import { useHotkeys } from 'react-hotkeys-hook';
-import { write } from 'original-fs';
+import MessageList from './components/MessageList';
+import Read from './components/Read';
+import Write from './components/Write';
+import { Message } from './types';
+import { Tab, TabType, TabContainer } from './components/Tabs';
 
 const defaultTabs: Tab[] = [
   { type: TabType.New, name: 'New', data: null },
@@ -123,9 +121,6 @@ function Main() {
     setTabs(newTabs);
     setSelectedTab(0);
   }, [tabs, selectedTab]);
-
-  useHotkeys('CmdOrCtrl+n', () => writeMessage(), null, [writeMessage]);
-  useHotkeys('CmdOrCtrl+w', () => closeTab(), null, [closeTab]);
 
   return (
     <div>

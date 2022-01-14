@@ -174,7 +174,6 @@
     "browserslist-config-erb": "^0.0.3",
     "chalk": "^4.1.2",
     "concurrently": "^6.5.1",
-    "core-js": "^3.20.1",
     "cross-env": "^7.0.3",
     "css-loader": "^6.5.1",
     "css-minimizer-webpack-plugin": "^3.3.1",
@@ -198,7 +197,6 @@
     "eslint-plugin-react-hooks": "^4.3.0",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.0",
-    "husky": "^7.0.4",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^27.4.5",
     "lint-staged": "^12.1.4",
@@ -217,6 +215,7 @@
     "ts-loader": "^9.2.6",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.4",
+    "tailwindcss": "^3.0.13",
     "url-loader": "^4.1.1",
     "webpack": "^5.65.0",
     "webpack-bundle-analyzer": "^4.5.0",
@@ -226,20 +225,16 @@
   },
   "dependencies": {
     "electron-debug": "^3.2.0",
-    "electron-log": "^4.4.4",
-    "electron-updater": "^4.6.4",
+    "@grpc/grpc-js": "^1.5.0",
+    "google-protobuf": "^3.19.3",
     "history": "^5.2.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-router-dom": "^6.2.1",
-    "regenerator-runtime": "^0.13.9"
+    "react-router-dom": "^6.2.1"
   },
   "devEngines": {
     "node": ">=14.x",
     "npm": ">=7.x"
-  },
-  "collective": {
-    "url": "https://opencollective.com/electron-react-boilerplate-594"
   },
   "browserslist": [],
   "prettier": {
