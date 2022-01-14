@@ -3,7 +3,7 @@ import * as React from 'react';
 import MessageList from './components/MessageList';
 import Read from './components/Read';
 import Write from './components/Write';
-import { Message } from './types';
+import { Message } from '../types';
 import { Tab, TabType, TabContainer } from './components/Tabs';
 
 const defaultTabs: Tab[] = [

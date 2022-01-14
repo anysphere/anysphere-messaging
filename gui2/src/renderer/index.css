@@ -1,0 +1,12 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+.draggable {
+  -webkit-app-region: drag;
+}
+
+.unselectable {
+  -webkit-user-select: none;
+  user-select: none;
+}
