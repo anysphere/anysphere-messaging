@@ -24,6 +24,10 @@ const configuration: webpack.Configuration = {
           },
         },
       },
+      {
+        test: /\.scss$/,
+        use: ['style-loader', 'css-loader', 'postcss-loader'],
+      },
     ],
   },
 
