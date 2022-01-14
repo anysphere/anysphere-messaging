@@ -1,8 +1,8 @@
 {
   "name": "Anysphere",
   "productName": "Anysphere",
-  "version": "1.0.0",
-  "description": "My Electron application description",
+  "version": "0.0.1",
+  "description": "The world's first completely private messenger.",
   "main": ".webpack/main",
   "scripts": {
     "update": "bazel build //schema:daemon_js_grpc && rm -rf src/daemon && cp -r ../../bazel-bin/schema/daemon_js_grpc_pb src/daemon",
