@@ -58,6 +58,7 @@ cc_binary(
         "anysphere.cc",
         "anysphere.hpp",
     ],
+    visibility = ["//:__pkg__"],
     deps = [
         ":daemon_lib",
         "//client/client_lib",

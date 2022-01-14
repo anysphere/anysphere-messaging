@@ -13,6 +13,7 @@ cc_binary(
         "profile_struct.cc",
     ],
     linkopts = ["-lpthread"],
+    visibility = ["//:__pkg__"],
     deps = [
         "//asphr:asphr_lib",
         "//client/client_lib",
