@@ -1,7 +1,7 @@
 /* eslint global-require: off, no-console: off, promise/always-return: off */
 
 import path from "path";
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, session } from "electron";
 import MenuBuilder from "./menu";
 import { resolveHtmlPath } from "./util";
 
@@ -12,10 +12,6 @@ if (process.env.NODE_ENV === "production") {
 
 const isDevelopment =
   process.env.NODE_ENV === "development" || process.env.DEBUG_PROD === "true";
-
-if (isDevelopment) {
-  require("electron-debug")();
-}
 
 const installExtensions = async () => {
   const installer = require("electron-devtools-installer");
@@ -70,6 +66,17 @@ const createWindow = async () => {
 
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
+
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        "Content-Security-Policy": [
+          "default-src 'self' style-src 'self' 'unsafe-inline'",
+        ],
+      },
+    });
+  });
 };
 
 /**
