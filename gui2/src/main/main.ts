@@ -1,26 +1,26 @@
 /* eslint global-require: off, no-console: off, promise/always-return: off */
 
-import path from 'path';
-import { app, BrowserWindow } from 'electron';
-import MenuBuilder from './menu';
-import { resolveHtmlPath } from './util';
+import path from "path";
+import { app, BrowserWindow } from "electron";
+import MenuBuilder from "./menu";
+import { resolveHtmlPath } from "./util";
 
-if (process.env.NODE_ENV === 'production') {
-  const sourceMapSupport = require('source-map-support');
+if (process.env.NODE_ENV === "production") {
+  const sourceMapSupport = require("source-map-support");
   sourceMapSupport.install();
 }
 
 const isDevelopment =
-  process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
+  process.env.NODE_ENV === "development" || process.env.DEBUG_PROD === "true";
 
 if (isDevelopment) {
-  require('electron-debug')();
+  require("electron-debug")();
 }
 
 const installExtensions = async () => {
-  const installer = require('electron-devtools-installer');
+  const installer = require("electron-devtools-installer");
   const forceDownload = !!process.env.UPGRADE_EXTENSIONS;
-  const extensions = ['REACT_DEVELOPER_TOOLS'];
+  const extensions = ["REACT_DEVELOPER_TOOLS"];
 
   return installer
     .default(
@@ -36,8 +36,8 @@ const createWindow = async () => {
   }
 
   const RESOURCES_PATH = app.isPackaged
-    ? path.join(process.resourcesPath, 'assets')
-    : path.join(__dirname, '../../assets');
+    ? path.join(process.resourcesPath, "assets")
+    : path.join(__dirname, "../../assets");
 
   const getAssetPath = (...paths: string[]): string => {
     return path.join(RESOURCES_PATH, ...paths);
@@ -47,16 +47,17 @@ const createWindow = async () => {
     show: false,
     width: 1024,
     height: 728,
-    icon: getAssetPath('icon.png'),
-    titleBarStyle: 'hidden',
+    backgroundColor: "#F9F7F1",
+    icon: getAssetPath("icon.png"),
+    titleBarStyle: "hidden",
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, "preload.js"),
     },
   });
 
-  mainWindow.loadURL(resolveHtmlPath('index.html'));
+  mainWindow.loadURL(resolveHtmlPath("index.html"));
 
-  mainWindow.on('ready-to-show', () => {
+  mainWindow.on("ready-to-show", () => {
     if (!mainWindow) {
       throw new Error('"mainWindow" is not defined');
     }
@@ -75,10 +76,10 @@ const createWindow = async () => {
  * Add event listeners...
  */
 
-app.on('window-all-closed', () => {
+app.on("window-all-closed", () => {
   // Respect the OSX convention of having the application in memory even
   // after all windows have been closed
-  if (process.platform !== 'darwin') {
+  if (process.platform !== "darwin") {
     app.quit();
   }
 });
@@ -87,7 +88,7 @@ app
   .whenReady()
   .then(() => {
     createWindow();
-    app.on('activate', () => {
+    app.on("activate", () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.
       if (BrowserWindow.getAllWindows().length === 0) {
