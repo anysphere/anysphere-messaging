@@ -41,7 +41,7 @@ function Write(props: {
             value={to}
           ></input>
           <button
-            className="rounded-lg bg-[#e3e0d8] text-[#7a776d] px-3 py-1"
+            className="rounded-lg unselectable bg-[#e3e0d8] text-[#7a776d] px-3 py-1"
             onClick={() => props.send(content, to)}
           >
             Send

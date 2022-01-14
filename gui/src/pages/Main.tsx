@@ -137,7 +137,12 @@ function Main() {
             selectTab={setSelectedTab}
             selectedTab={selectedTab}
           />
-          <button onClick={writeMessage}>+</button>
+          <button
+            className="unselectable px-2 rounded-md bg-[#e3e0d8] text-[#7a776d]"
+            onClick={writeMessage}
+          >
+            +
+          </button>
         </div>
         {selectedComponent}
       </div>
