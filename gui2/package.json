@@ -1,6 +1,5 @@
 {
-  "name": "electron-react-boilerplate",
-  "description": "Electron application boilerplate based on React, React Router, Webpack, React Fast Refresh for rapid application development",
+  "name": "Anysphere",
   "scripts": {
     "build": "concurrently \"npm run build:main\" \"npm run build:renderer\"",
     "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.main.prod.ts",
@@ -29,8 +28,8 @@
     ]
   },
   "build": {
-    "productName": "ElectronReact",
-    "appId": "org.erb.ElectronReact",
+    "productName": "Anysphere",
+    "appId": "net.anysphere.Anysphere",
     "asar": true,
     "asarUnpack": "**\\*.{node,dll}",
     "files": [
@@ -85,78 +84,9 @@
     },
     "extraResources": [
       "./assets/**"
-    ],
-    "publish": {
-      "provider": "github",
-      "owner": "electron-react-boilerplate",
-      "repo": "electron-react-boilerplate"
-    }
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/electron-react-boilerplate/electron-react-boilerplate.git"
-  },
-  "author": {
-    "name": "Electron React Boilerplate Maintainers",
-    "email": "electronreactboilerplate@gmail.com",
-    "url": "https://electron-react-boilerplate.js.org"
-  },
-  "contributors": [
-    {
-      "name": "Amila Welihinda",
-      "email": "amilajack@gmail.com",
-      "url": "https://github.com/amilajack"
-    },
-    {
-      "name": "John Tran",
-      "email": "jptran318@gmail.com",
-      "url": "https://github.com/jooohhn"
-    }
-  ],
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/electron-react-boilerplate/electron-react-boilerplate/issues"
-  },
-  "keywords": [
-    "electron",
-    "boilerplate",
-    "react",
-    "typescript",
-    "ts",
-    "sass",
-    "webpack",
-    "hot",
-    "reload"
-  ],
-  "homepage": "https://github.com/electron-react-boilerplate/electron-react-boilerplate#readme",
-  "jest": {
-    "testURL": "http://localhost/",
-    "testEnvironment": "jsdom",
-    "transform": {
-      "\\.(ts|tsx|js|jsx)$": "ts-jest"
-    },
-    "moduleNameMapper": {
-      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/.erb/mocks/fileMock.js",
-      "\\.(css|less|sass|scss)$": "identity-obj-proxy"
-    },
-    "moduleFileExtensions": [
-      "js",
-      "jsx",
-      "ts",
-      "tsx",
-      "json"
-    ],
-    "moduleDirectories": [
-      "node_modules",
-      "release/app/node_modules"
-    ],
-    "testPathIgnorePatterns": [
-      "release/app/dist"
-    ],
-    "setupFiles": [
-      "./.erb/scripts/check-build-exists.ts"
     ]
   },
+  "license": "MIT",
   "devDependencies": {
     "@pmmmwh/react-refresh-webpack-plugin": "0.5.4",
     "@teamsupercell/typings-for-css-modules-loader": "^2.5.1",
@@ -171,7 +101,6 @@
     "@types/webpack-env": "^1.16.3",
     "@typescript-eslint/eslint-plugin": "^5.8.1",
     "@typescript-eslint/parser": "^5.8.1",
-    "browserslist-config-erb": "^0.0.3",
     "chalk": "^4.1.2",
     "concurrently": "^6.5.1",
     "cross-env": "^7.0.3",
@@ -209,6 +138,7 @@
     "rimraf": "^3.0.2",
     "sass": "^1.45.1",
     "sass-loader": "^12.4.0",
+    "postcss-loader": "^6.2.1",
     "style-loader": "^3.3.1",
     "terser-webpack-plugin": "^5.3.0",
     "ts-jest": "^27.1.2",
@@ -236,7 +166,6 @@
     "node": ">=14.x",
     "npm": ">=7.x"
   },
-  "browserslist": [],
   "prettier": {
     "overrides": [
       {
