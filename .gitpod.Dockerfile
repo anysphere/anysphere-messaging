@@ -4,6 +4,8 @@ RUN sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
 RUN sudo apt-get update && sudo apt-get install -y build-essential cmake valgrind doxygen graphviz ccache cppcheck libpq-dev clang-tidy clang-format libgtkextra-dev libgconf2-dev libnss3 libasound2 libxtst-dev libatk-bridge2.0-0 libdrm2 libgtk-3-0 libgbm-dev dpkg fakeroot rpm
 
 RUN brew install bazel && brew install buildifier && brew install grpcurl && brew tap hashicorp/tap && brew install hashicorp/tap/terraform
+
+RUN wget https://julialang-s3.julialang.org/bin/linux/x64/1.6/julia-1.6.5-linux-x86_64.tar.gz && tar -xvzf julia-1.6.5-linux-x86_64.tar.gz && sudo cp -r julia-1.6.5 /opt/ && sudo ln -s /opt/julia-1.6.5/bin/julia /usr/local/bin/julia
  
 # RUN go install github.com/fullstorydev/grpcui/cmd/grpcui@latest
 
