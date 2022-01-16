@@ -62,11 +62,17 @@ git_repository(
 )
 
 # libpqxx for postgres
+# http_archive(
+#     name = "rules_foreign_cc",
+#     sha256 = "08b2d21ea7a52fbc2faf202dba8e260b503785975903f183c56e7118876fdf62",
+#     strip_prefix = "rules_foreign_cc-605a80355dae9e1855634b733b98a5d97a92f385",
+#     url = "https://github.com/bazelbuild/rules_foreign_cc/archive/605a80355dae9e1855634b733b98a5d97a92f385.tar.gz",  # v 0.7.0
+# )
 http_archive(
     name = "rules_foreign_cc",
-    sha256 = "5470b22db8974824a1994593f117b0ef8c2e5fb474fd30a7473fcfd77d8d1ed7",
-    strip_prefix = "rules_foreign_cc-f01fd353ee2adcd55aab899c12fa2733223228a1",
-    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/f01fd353ee2adcd55aab899c12fa2733223228a1.tar.gz",
+    sha256 = "62e364a05370059f07313ec46ae4205af23deb00e41f786f3233a98098c7e636",
+    strip_prefix = "rules_foreign_cc-ae4ff42901354e2da8285dac4be8329eea2ea96a",
+    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/ae4ff42901354e2da8285dac4be8329eea2ea96a.tar.gz",  # v 0.7.1
 )
 
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
@@ -158,13 +164,6 @@ yarn_install(
     name = "npm",
     package_json = "//schema:package.json",
     yarn_lock = "//schema:yarn.lock",
-)
-
-new_git_repository(
-    name = "com_github_daniele77_cli",
-    build_file = "//:cli_header_lib.BUILD",
-    remote = "https://github.com/daniele77/cli.git",
-    tag = "v2.0.0",
 )
 
 http_archive(
