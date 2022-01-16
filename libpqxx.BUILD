@@ -7,14 +7,13 @@ package(
 filegroup(
     name = "all_srcs",
     srcs = glob(["**"]),
+    visibility = ["//:__pkg__"],
 )
 
 cmake_variant(
     name = "libpqxx",
     build_args = [
         "--verbose",
-        "--",  # <- Pass remaining options to the native tool.
-        "-j 16",
     ],
     cache_entries = {
         "CMAKE_C_FLAGS": "-fPIC",
@@ -30,5 +29,4 @@ cmake_variant(
         "libpqxx.a",
     ],
     toolchain = "@rules_foreign_cc//toolchains:preinstalled_ninja_toolchain",
-    visibility = ["//visibility:public"],
 )

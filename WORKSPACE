@@ -77,7 +77,9 @@ http_archive(
 
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 
-rules_foreign_cc_dependencies()
+# we don't register built tools here because make_tool currently fails to build on Mac
+# see this issue: https://github.com/bazelbuild/rules_foreign_cc/issues/859
+rules_foreign_cc_dependencies(register_built_tools = False)
 
 new_git_repository(
     name = "libpqxx",
