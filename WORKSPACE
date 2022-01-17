@@ -93,24 +93,6 @@ new_local_repository(
     path = "third_party/SEAL",
 )
 
-http_archive(
-    name = "com_microsoft_gsl",
-    build_file = "//:mgsl.BUILD",
-    sha256 = "d3234d7f94cea4389e3ca70619b82e8fb4c2f33bb3a070799f1e18eef500a083",
-    strip_prefix = "GSL-3.1.0",
-    urls = ["https://github.com/microsoft/GSL/archive/refs/tags/v3.1.0.tar.gz"],
-)
-
-# zstandard
-
-http_archive(
-    name = "com_github_facebook_zstd",
-    build_file = "//:zstd.BUILD",
-    sha256 = "0d9ade222c64e912d6957b11c923e214e2e010a18f39bec102f572e693ba2867",
-    strip_prefix = "zstd-1.5.0",
-    urls = ["https://github.com/facebook/zstd/archive/v1.5.0.tar.gz"],
-)
-
 # libsodium
 
 http_archive(
