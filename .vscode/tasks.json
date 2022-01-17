@@ -9,6 +9,11 @@
             "command": "./debug-build.sh"
         },
         {
+            "label": "debugBuildMac",
+            "type": "shell",
+            "command": "./debug-build.sh mac"
+        },
+        {
             "label": "build",
             "type": "shell",
             "command": "./build.sh"
