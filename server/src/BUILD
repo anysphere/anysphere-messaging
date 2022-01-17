@@ -21,6 +21,7 @@ cc_library(
         ":in_memory_db": ["USE_MEMORY_DB"],
     }),
     linkopts = ["-lpq"],
+    linkstatic = True,
     deps = [
         "//asphr:asphr_lib",
         "//schema:server_cc_grpc",

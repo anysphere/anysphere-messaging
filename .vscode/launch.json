@@ -89,7 +89,6 @@
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "gdb",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -98,7 +97,7 @@
                 }
             ],
             "preLaunchTask": "debugBuildMac",
-            "miDebuggerPath": "/usr/bin/gdb"
+            "miDebuggerPath": "/Users/arvid/.vscode/extensions/ms-vscode.cpptools-1.8.0-insiders2/debugAdapters/lldb-mi/bin/lldb-mi"
         },
         {
             "name": "Debug client_lib test",

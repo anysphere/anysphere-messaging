@@ -12,6 +12,7 @@ cc_library(
     hdrs = [
         "fastpir.hpp",
     ],
+    linkstatic = True,
     visibility = [
         "//integration_tests:__pkg__",
         "//server/src:__pkg__",
@@ -28,6 +29,7 @@ cc_test(
     srcs = [
         "fastpir_test.cc",
     ],
+    linkstatic = True,
     deps = [
         ":server_fast_pir_lib",
         "//asphr/pir/fast_pir:fast_pir_lib",
