@@ -1,5 +1,7 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
+
+# load("@bazel_tools//tools/build_defs/repo:local.bzl", "local_repository")
 load("@bazel_tools//tools/cpp:cc_configure.bzl", "cc_configure")
 
 cc_configure()
@@ -85,12 +87,35 @@ new_git_repository(
 
 # SEAL
 
-new_git_repository(
+# new_git_repository(
+#     name = "seal",
+#     build_file = "//:seal.BUILD",
+#     commit = "4ee204b3a2d472160045109ac8fffd25e81004ba",  # branch: 3.7.2-anysphere
+#     remote = "https://github.com/anysphere/SEAL",
+#     # tag = "v3.7.2-bazel",
+# )
+new_local_repository(
     name = "seal",
     build_file = "//:seal.BUILD",
-    commit = "4ee204b3a2d472160045109ac8fffd25e81004ba",  # branch: 3.7.2-anysphere
-    remote = "https://github.com/anysphere/SEAL",
-    # tag = "v3.7.2-bazel",
+    path = "third_party/SEAL",
+)
+
+http_archive(
+    name = "com_microsoft_gsl",
+    build_file = "//:mgsl.BUILD",
+    sha256 = "d3234d7f94cea4389e3ca70619b82e8fb4c2f33bb3a070799f1e18eef500a083",
+    strip_prefix = "GSL-3.1.0",
+    urls = ["https://github.com/microsoft/GSL/archive/refs/tags/v3.1.0.tar.gz"],
+)
+
+# zstandard
+
+http_archive(
+    name = "com_github_facebook_zstd",
+    build_file = "//:zstd.BUILD",
+    sha256 = "0d9ade222c64e912d6957b11c923e214e2e010a18f39bec102f572e693ba2867",
+    strip_prefix = "zstd-1.5.0",
+    urls = ["https://github.com/facebook/zstd/archive/v1.5.0.tar.gz"],
 )
 
 # libsodium
