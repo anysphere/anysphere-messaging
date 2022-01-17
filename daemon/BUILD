@@ -10,6 +10,7 @@ cc_library(
     hdrs = [
         "config.hpp",
     ],
+    linkstatic = True,
     deps = [
         "//asphr:asphr_lib",
         "//asphr/pir/fast_pir:fast_pir_lib",
@@ -20,6 +21,7 @@ cc_library(
     name = "crypto_lib",
     srcs = ["crypto.cc"],
     hdrs = ["crypto.hpp"],
+    linkstatic = True,
     deps = [
         ":config_lib",
         "//asphr:asphr_lib",
@@ -40,6 +42,7 @@ cc_library(
         "ui_msg.hpp",
         "utils.hpp",
     ],
+    linkstatic = True,
     deps = [
         ":config_lib",
         ":crypto_lib",
@@ -58,6 +61,7 @@ cc_binary(
         "anysphere.cc",
         "anysphere.hpp",
     ],
+    linkstatic = True,
     visibility = ["//:__pkg__"],
     deps = [
         ":daemon_lib",
@@ -69,6 +73,7 @@ cc_test(
     name = "test",
     size = "small",
     srcs = glob(["**/*_test.cc"]),
+    linkstatic = True,
     deps = [
         ":daemon_lib",
         "@com_google_googletest//:gtest_main",

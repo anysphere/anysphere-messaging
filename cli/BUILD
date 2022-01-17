@@ -13,6 +13,7 @@ cc_binary(
         "profile_struct.cc",
     ],
     linkopts = ["-lpthread"],
+    linkstatic = True,
     visibility = ["//:__pkg__"],
     deps = [
         "//asphr:asphr_lib",
@@ -26,5 +27,6 @@ cc_test(
     name = "as_cli_test",
     size = "small",
     srcs = ["as_cli_test.cc"],
+    linkstatic = True,
     deps = ["@com_google_googletest//:gtest_main"],
 )

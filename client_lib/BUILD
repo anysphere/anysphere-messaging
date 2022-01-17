@@ -6,6 +6,7 @@ cc_library(
     hdrs = [
         "client_lib.hpp",
     ],
+    linkstatic = True,
     visibility = ["//visibility:public"],
     deps = [
         "//asphr:asphr_lib",
