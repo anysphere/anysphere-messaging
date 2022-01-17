@@ -63,7 +63,7 @@ Status DaemonRpc::RegisterUser(ServerContext* context,
     config.pir_client = std::make_unique<FastPIRClient>(config.pir_secret_key,
                                                         config.pir_galois_keys);
 
-    config.save(ephemeralConfig.config_file_address);
+    config.save();
   } else {
     cout << status.error_code() << ": " << status.error_message() << endl;
     registerUserResponse->set_success(false);
@@ -198,8 +198,8 @@ Status DaemonRpc::SendMessage(ServerContext* context,
 
   auto message = sendMessageRequest->message();
 
-  auto status = write_msg_to_file(ephemeralConfig.send_messages_file_address,
-                                  message, "MESSAGE", friend_info.name);
+  auto status = write_msg_to_file(config.send_file_address(), message,
+                                  "MESSAGE", friend_info.name);
   if (!status.ok()) {
     cout << "write message to file failed" << endl;
     sendMessageResponse->set_success(false);
@@ -216,7 +216,7 @@ Status DaemonRpc::GetAllMessages(
   using TimeUtil = google::protobuf::util::TimeUtil;
   cout << "GetAllMessages() called" << endl;
 
-  auto messages = get_entries(ephemeralConfig.received_messages_file_address);
+  auto messages = get_entries(config.receive_file_address());
 
   for (auto& message_json : messages) {
     auto message_info = getAllMessagesResponse->add_messages();
@@ -244,7 +244,7 @@ Status DaemonRpc::GetNewMessages(
   using TimeUtil = google::protobuf::util::TimeUtil;
   cout << "GetNewMessages() called" << endl;
 
-  auto messages = get_entries(ephemeralConfig.received_messages_file_address);
+  auto messages = get_entries(config.receive_file_address());
 
   for (auto& message_json : messages) {
     auto message_info = getNewMessagesResponse->add_messages();

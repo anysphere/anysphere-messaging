@@ -29,14 +29,18 @@ struct RegistrationInfo {
 class Config {
  public:
   Config(const string& config_file_address);
-  Config(const asphr::json& config_json);
+  Config(const asphr::json& config_json, const string& config_file_address);
 
-  auto save(const string& config_file_address) -> void;
   auto save() -> void;
   auto add_friend(const Friend& friend_info) -> void;
   auto remove_friend(const string& name) -> absl::Status;
 
   auto has_space_for_friends() -> bool;
+
+  // TODO: transition to .md files stored with metadata, rather than the giant
+  // .ndjson files.
+  auto receive_file_address() -> std::filesystem::path;
+  auto send_file_address() -> std::filesystem::path;
 
   bool has_registered;
   RegistrationInfo registrationInfo;
@@ -51,14 +55,10 @@ class Config {
   string pir_galois_keys;
   // make this a ptr because we want it to possibly be null
   std::unique_ptr<FastPIRClient> pir_client = nullptr;
+  // the data dir! user-configurable
+  std::filesystem::path data_dir;
 
  private:
   // it stores its own file address
   string saved_file_address;
-};
-
-struct EphemeralConfig {
-  string config_file_address;
-  string send_messages_file_address;
-  string received_messages_file_address;
 };

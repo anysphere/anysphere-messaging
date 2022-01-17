@@ -12,14 +12,113 @@ extern constexpr size_t GUARANTEED_SINGLE_MESSAGE_SIZE =
      CEIL_DIV((sizeof MESSAGE_SIZE) * 8 - std::countl_zero(MESSAGE_SIZE), 8)) -
     (1 + 1 + 5) - CRYPTO_ABYTES - 1 - CRYPTO_NPUBBYTES;
 
-const auto cwd = string("/workspace/anysphere/");
-extern const string DEFAULT_SOCKET_ADDRESS =
-    StrCat("unix://", cwd, "anysphere.sock");
+// base_config_dir is the base directory where config is stored. NEVER STORE
+// ANY FILES IN THIS DIRECTORY. ONLY USE ITS SUBDIRECTORIES.
+//
+// layout:
+//  base_config/
+//      daemon/
+//      cli/
+//      gui/
+//
+// there's also:
+//    run/ <- where the daemon socket is stored
+//    caches/ <- where ?? caches are stored
+//    data/ <- default data directory. SPECIFIED IN DAEMON CONFIG.
+//
+// on mac, these directories are all in .anysphere. on linux, we use
+// XDG_CONFIG..etc..
+auto get_base_config_dir() noexcept(false) {
+  // on Linux and on systems where XDG_CONFIG_HOME is defined, use it.
+  std::filesystem::path anysphere_home;
+  auto config_home_maybe = std::getenv("XDG_CONFIG_HOME");
+  if (!config_home_maybe) {
+    // if not defined, default to $HOME/.anysphere
+    auto home = std::getenv("HOME");
+    if (!home) {
+      // don't know what to do now.... there is literally nothing we can do
+      // without knowing the HOME directory. crash.
+      throw std::runtime_error(
+          "Neither $XDG_CONFIG_HOME nor $HOME is defined. Don't know where "
+          "config file is stored; giving up.");
+    }
+    anysphere_home = std::filesystem::path(home) / ".anysphere";
+  } else {
+    anysphere_home = std::filesystem::path(config_home_maybe) / "anysphere";
+  }
+
+  // create the directory if doesn't exist, including all parent directories
+  std::filesystem::create_directories(anysphere_home);
+
+  return anysphere_home;
+}
+
+// the runtime dir contains files that will be important for the application's
+// runtime, such as the socket and possibly other things (caches maybe?).
+// this directory should ideally be permission restricted to only the daemon,
+// cli and gui processes.
+auto get_runtime_dir() noexcept(false) {
+  std::filesystem::path runtime_home;
+  auto runtime_home_maybe = std::getenv("XDG_RUNTIME_DIR");
+  if (!runtime_home_maybe) {
+    // if not defined, there is no standard directory to put this in.
+    // we therefore use the base config dir / run.
+    runtime_home = get_base_config_dir() / "run";
+  } else {
+    runtime_home = std::filesystem::path(runtime_home_maybe) / "anysphere";
+  }
+
+  // create the directory if doesn't exist, including all parent directories
+  std::filesystem::create_directories(runtime_home);
+
+  return runtime_home;
+}
+
+// the default data dir has the following structure:
+//    drafts/
+//    all/ <- potentially encrypted! TODO(arvid): add encryption for this (it
+//    protects a little... but not much)
+//
+// each directory contains markdown files plus one json file that stores all the
+// metadata.
+//
+// the data dir is user-configurable and stored in the daemon config file. this
+// is only the default location.
+auto get_default_data_dir() noexcept(false) {
+  std::filesystem::path data_home;
+  auto data_home_maybe = std::getenv("XDG_DATA_HOME");
+  if (!data_home_maybe) {
+    // if not defined, we are using ~/.anysphere to store all data.
+    // we therefore use the base config dir / run.
+    data_home = get_base_config_dir() / "data";
+  } else {
+    data_home = std::filesystem::path(data_home_maybe) / "anysphere";
+  }
+
+  // create the directory if doesn't exist, including all parent directories
+  std::filesystem::create_directories(data_home);
+
+  return data_home;
+}
+
+// TODO(arvid): file permissions should be ONLY daemon
+extern const auto DAEMON_CONFIG_DIR = get_base_config_dir() / "daemon";
+// TODO(arvid): file permissions should be ONLY cli
+extern const auto CLI_CONFIG_DIR = get_base_config_dir() / "cli";
+// TODO(arvid): file permissions should be ONLY gui
+extern const auto GUI_CONFIG_DIR = get_base_config_dir() / "gui";
+// TODO(arvid): file permissions should be ONLY daemon, cli, gui (not any other
+// users)
+extern const auto RUNTIME_DIR = get_runtime_dir();
+// TODO(arvid): file permissions should be daemon, cli, gui, AND the user.
+extern const auto DEFAULT_DATA_DIR = get_default_data_dir();
+
+extern const auto SOCKET_PATH = DAEMON_CONFIG_DIR / "anysphere.sock";
 
 /**
  * @brief This function gets the last line of a file
- * @property: Nonconsuming: It does not consume the charachters, it only scans
- * them.
+ * @property: Nonconsuming: It does not consume the charachters, it only
+ * scans them.
  */
 auto get_last_line(string filename) {
   std::ifstream fin;

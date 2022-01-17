@@ -23,3 +23,9 @@ bazel build //client/... --host_javabase=@local_jdk//:jdk
 ```
 
 Note that the schema and the server do not really want to build on Mac M1. This is fine. We only need to build the client locally.
+
+# LOCAL RUN
+
+```
+bazel run //client/daemon --host_javabase=@local_jdk//:jdk --action_env="HOME=$HOME"
+```

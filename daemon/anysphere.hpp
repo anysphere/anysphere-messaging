@@ -7,7 +7,7 @@
 #include "daemon_rpc.hpp"
 #include "schema/server.grpc.pb.h"
 
-const auto cwd = string("/workspace/anysphere/");
-const auto SEND_FILE = StrCat(cwd, "client/logs/send.ndjson");
-const auto RECEIVE_FILE = StrCat(cwd, "client/logs/receive.ndjson");
-const auto CONFIG_FILE = StrCat(cwd, "client/logs/config.json");
+const auto CONFIG_FILE = DAEMON_CONFIG_DIR / "config.json";
+// TODO(arvid): update server address to use a domain name so that this can be
+// constant. maybe like server.anysphere.co or anything.
+const auto SERVER_ADDRESS = "0.0.0.0:50051";

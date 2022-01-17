@@ -14,6 +14,7 @@ cc_library(
     deps = [
         "//asphr:asphr_lib",
         "//asphr/pir/fast_pir:fast_pir_lib",
+        "//client/client_lib",
     ],
 )
 

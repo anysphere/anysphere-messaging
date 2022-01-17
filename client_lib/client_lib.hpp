@@ -34,4 +34,10 @@ auto get_last_lines(string filename, int n);
 auto get_new_entries(const string& file_address, const Time& last_timestamp)
     -> vector<json>;
 
-extern const string DEFAULT_SOCKET_ADDRESS;
+// Config directories.
+extern const std::filesystem::path DAEMON_CONFIG_DIR;
+extern const std::filesystem::path CLI_CONFIG_DIR;
+extern const std::filesystem::path GUI_CONFIG_DIR;
+extern const std::filesystem::path RUNTIME_DIR;
+extern const std::filesystem::path DEFAULT_DATA_DIR;
+extern const std::filesystem::path SOCKET_PATH;

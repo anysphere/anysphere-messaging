@@ -9,12 +9,8 @@
 class DaemonRpc final : public asphrdaemon::Daemon::Service {
  public:
   DaemonRpc(Crypto& crypto, Config& config,
-            unique_ptr<asphrserver::Server::Stub>& stub,
-            const EphemeralConfig& ephemeralConfig)
-      : crypto(crypto),
-        config(config),
-        stub(stub),
-        ephemeralConfig(ephemeralConfig) {}
+            unique_ptr<asphrserver::Server::Stub>& stub)
+      : crypto(crypto), config(config), stub(stub) {}
 
   grpc::Status RegisterUser(
       grpc::ServerContext* context,
@@ -61,5 +57,4 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
   const Crypto& crypto;
   Config& config;
   unique_ptr<asphrserver::Server::Stub>& stub;
-  const EphemeralConfig& ephemeralConfig;
 };

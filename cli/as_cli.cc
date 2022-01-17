@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
   auto command = command_status.value();
 
   // set up the unix socket
-  auto socket_address = DEFAULT_SOCKET_ADDRESS;
+  auto socket_address = StrCat("unix://", string(SOCKET_PATH));
 
   if (cmd_line.getOption("socket")) {
     socket_address = cmd_line.getOptionValue("socket", socket_address).value();

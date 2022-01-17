@@ -1,6 +1,8 @@
 
 #include "config.hpp"
 
+#include "client/client_lib/client_lib.hpp"
+
 auto Friend::to_json() -> asphr::json {
   return asphr::json{{"name", name},
                      {"write_index", write_index},
@@ -46,13 +48,11 @@ auto read_json_file(const string& config_file_address) -> asphr::json {
       std::filesystem::file_size(config_file_address) == 0) {
     auto dir_path =
         std::filesystem::path(config_file_address).parent_path().u8string();
-    std::filesystem::create_directory(dir_path);
+    std::filesystem::create_directories(dir_path);
     cout << "creating new config asphr::json!" << endl;
-    asphr::json j = R"({
-      "has_registered": false,
-      "friends": {}
-    }
-    )"_json;
+    asphr::json j = {{"has_registered", false},
+                     {"friends", {}},
+                     {"data_dir", DEFAULT_DATA_DIR}};
     std::ofstream o(config_file_address);
     o << std::setw(4) << j.dump(4) << std::endl;
   }
@@ -61,9 +61,11 @@ auto read_json_file(const string& config_file_address) -> asphr::json {
 }
 
 Config::Config(const string& config_file_address)
-    : Config(read_json_file(config_file_address)) {}
+    : Config(read_json_file(config_file_address), config_file_address) {}
 
-Config::Config(const asphr::json& config_json) : db_rows(CLIENT_DB_ROWS) {
+Config::Config(const asphr::json& config_json,
+               const string& config_file_address)
+    : db_rows(CLIENT_DB_ROWS), saved_file_address(config_file_address) {
   if (!config_json.contains("has_registered")) {
     cout << "config file does not contain has_registered" << endl;
     return;
@@ -87,11 +89,8 @@ Config::Config(const asphr::json& config_json) : db_rows(CLIENT_DB_ROWS) {
     Friend f = Friend::from_json(friend_json);
     friendTable[f.name] = f;
   }
-}
 
-auto Config::save(const string& config_file_address) -> void {
-  saved_file_address = config_file_address;
-  save();
+  data_dir = config_json["data_dir"].get<string>();
 }
 
 auto Config::save() -> void {
@@ -126,4 +125,11 @@ auto Config::remove_friend(const string& name) -> absl::Status {
   friendTable.erase(name);
   Config::save();
   return absl::OkStatus();
+}
+
+auto Config::receive_file_address() -> std::filesystem::path {
+  return data_dir / "receive.ndjson";
+}
+auto Config::send_file_address() -> std::filesystem::path {
+  return data_dir / "send.ndjson";
 }
