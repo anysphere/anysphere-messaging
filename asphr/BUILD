@@ -5,6 +5,7 @@ cc_library(
         "base64.hpp",
         "json/nlohmann_json.h",
     ],
+    linkstatic = True,
     visibility = ["//visibility:public"],
     deps = [
         ":utils",
@@ -25,6 +26,7 @@ cc_library(
     hdrs = [
         "utils.hpp",
     ],
+    linkstatic = True,
     visibility = [
         "//client:__subpackages__",
         "//server:__subpackages__",
@@ -36,6 +38,7 @@ cc_test(
     name = "utils_test",
     size = "small",
     srcs = ["utils_test.cc"],
+    linkstatic = True,
     deps = [
         ":utils",
         "@com_google_googletest//:gtest_main",

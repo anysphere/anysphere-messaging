@@ -8,6 +8,7 @@ cc_library(
         "fast_pir_client.hpp",
         "fast_pir_config.hpp",
     ],
+    linkstatic = True,
     visibility = ["//visibility:public"],
     deps = [
         "//asphr:asphr_lib",
