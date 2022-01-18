@@ -54,4 +54,4 @@ inline const auto RUNTIME_DIR = get_runtime_dir();
 // TODO(arvid): file permissions should be daemon, cli, gui, AND the user.
 inline const auto DEFAULT_DATA_DIR = get_default_data_dir();
 
-inline const auto SOCKET_PATH = DAEMON_CONFIG_DIR / "anysphere.sock";
+inline const auto SOCKET_PATH = RUNTIME_DIR / "anysphere.sock";
