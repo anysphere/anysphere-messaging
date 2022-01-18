@@ -39,8 +39,6 @@ http_archive(
     urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.0.1/rules_cc-0.0.1.tar.gz"],
 )
 
-# js grpc
-
 http_archive(
     name = "rules_proto_grpc",
     sha256 = "507e38c8d95c7efa4f3b1c0595a8e8f139c885cb41a76cab7e20e4e67ae87731",
@@ -48,21 +46,12 @@ http_archive(
     urls = ["https://github.com/rules-proto-grpc/rules_proto_grpc/archive/4.1.1.tar.gz"],
 )
 
-# clang tidy
-
 git_repository(
     name = "bazel_clang_tidy",
     commit = "69aa13e6d7cf102df70921c66be15d4592251e56",
     remote = "https://github.com/erenon/bazel_clang_tidy.git",
 )
 
-# libpqxx for postgres
-# http_archive(
-#     name = "rules_foreign_cc",
-#     sha256 = "08b2d21ea7a52fbc2faf202dba8e260b503785975903f183c56e7118876fdf62",
-#     strip_prefix = "rules_foreign_cc-605a80355dae9e1855634b733b98a5d97a92f385",
-#     url = "https://github.com/bazelbuild/rules_foreign_cc/archive/605a80355dae9e1855634b733b98a5d97a92f385.tar.gz",  # v 0.7.0
-# )
 http_archive(
     name = "rules_foreign_cc",
     sha256 = "62e364a05370059f07313ec46ae4205af23deb00e41f786f3233a98098c7e636",
@@ -83,15 +72,11 @@ new_git_repository(
     remote = "https://github.com/jtv/libpqxx",
 )
 
-# SEAL
-
 new_local_repository(
     name = "seal",
     build_file = "//:seal.BUILD",
     path = "third_party/SEAL",
 )
-
-# libsodium
 
 http_archive(
     name = "libsodium",
@@ -100,8 +85,6 @@ http_archive(
     strip_prefix = "libsodium-7d67f1909bfa6e1225469dbcdb0229c5a9bbf8e2",  # stable branch as of 2022-01-06
     urls = ["https://github.com/jedisct1/libsodium/archive/7d67f1909bfa6e1225469dbcdb0229c5a9bbf8e2.tar.gz"],
 )
-
-# grpc and rules_proto
 
 http_archive(
     name = "rules_proto",
@@ -118,17 +101,6 @@ load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_
 rules_proto_dependencies()
 
 rules_proto_toolchains()
-
-# swap proto later with
-
-# git_repository(
-#   name = "org_pubref_rules_protobuf",
-#   remote = "https://github.com/pubref/rules_protobuf",
-#   tag = "v0.8.2",
-#   #commit = "..." # alternatively, use latest commit on master
-# )
-# load("@org_pubref_rules_protobuf//cpp:rules.bzl", "cpp_proto_repositories")
-# cpp_proto_repositories()
 
 http_archive(
     name = "com_github_grpc_grpc",
