@@ -13,10 +13,10 @@ function Write(props: {
   const content = props.data.content;
   const to = props.data.to;
   return (
-    <div>
-      <div className="place-self-center flex flex-col">
+    <div className="flex place-content-center w-full">
+      <div className="place-self-center flex flex-col max-w-3xl bg-white">
         <textarea
-          className="whitespace-pre-wrap resize-none w-full focus:outline-none h-full grow bg-[#F9F7F1] h-96"
+          className="whitespace-pre-wrap resize-none w-full focus:outline-none h-full grow h-96"
           value={content}
           onChange={(e) =>
             props.edit({
@@ -31,7 +31,7 @@ function Write(props: {
           <label>To: </label>
           <input
             type="text"
-            className="bg-[#F9F7F1] focus:outline-none pl-2"
+            className="focus:outline-none pl-2"
             onChange={(e) =>
               props.edit({
                 ...props.data,
