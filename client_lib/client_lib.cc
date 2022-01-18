@@ -28,7 +28,7 @@ extern constexpr size_t GUARANTEED_SINGLE_MESSAGE_SIZE =
 //
 // on mac, these directories are all in .anysphere. on linux, we use
 // XDG_CONFIG..etc..
-auto get_base_config_dir() noexcept(false) {
+auto get_base_config_dir() noexcept(false) -> std::filesystem::path {
   // on Linux and on systems where XDG_CONFIG_HOME is defined, use it.
   std::filesystem::path anysphere_home;
   auto config_home_maybe = std::getenv("XDG_CONFIG_HOME");
@@ -53,17 +53,17 @@ auto get_base_config_dir() noexcept(false) {
   return anysphere_home;
 }
 
-auto get_daemon_config_dir() noexcept(false) {
+auto get_daemon_config_dir() noexcept(false) -> std::filesystem::path {
   auto dir = get_base_config_dir() / "daemon";
   std::filesystem::create_directories(dir);
   return dir;
 }
-auto get_cli_config_dir() noexcept(false) {
+auto get_cli_config_dir() noexcept(false) -> std::filesystem::path {
   auto dir = get_base_config_dir() / "cli";
   std::filesystem::create_directories(dir);
   return dir;
 }
-auto get_gui_config_dir() noexcept(false) {
+auto get_gui_config_dir() noexcept(false) -> std::filesystem::path {
   auto dir = get_base_config_dir() / "gui";
   std::filesystem::create_directories(dir);
   return dir;
@@ -73,7 +73,7 @@ auto get_gui_config_dir() noexcept(false) {
 // runtime, such as the socket and possibly other things (caches maybe?).
 // this directory should ideally be permission restricted to only the daemon,
 // cli and gui processes.
-auto get_runtime_dir() noexcept(false) {
+auto get_runtime_dir() noexcept(false) -> std::filesystem::path {
   std::filesystem::path runtime_home;
   auto runtime_home_maybe = std::getenv("XDG_RUNTIME_DIR");
   if (!runtime_home_maybe) {
@@ -100,7 +100,7 @@ auto get_runtime_dir() noexcept(false) {
 //
 // the data dir is user-configurable and stored in the daemon config file.
 // this is only the default location.
-auto get_default_data_dir() noexcept(false) {
+auto get_default_data_dir() noexcept(false) -> std::filesystem::path {
   std::filesystem::path data_home;
   auto data_home_maybe = std::getenv("XDG_DATA_HOME");
   if (!data_home_maybe) {
@@ -116,20 +116,6 @@ auto get_default_data_dir() noexcept(false) {
 
   return data_home;
 }
-
-// TODO(arvid): file permissions should be ONLY daemon
-extern const auto DAEMON_CONFIG_DIR = get_daemon_config_dir();
-// TODO(arvid): file permissions should be ONLY cli
-extern const auto CLI_CONFIG_DIR = get_cli_config_dir();
-// TODO(arvid): file permissions should be ONLY gui
-extern const auto GUI_CONFIG_DIR = get_gui_config_dir();
-// TODO(arvid): file permissions should be ONLY daemon, cli, gui (not any
-// other users)
-extern const auto RUNTIME_DIR = get_runtime_dir();
-// TODO(arvid): file permissions should be daemon, cli, gui, AND the user.
-extern const auto DEFAULT_DATA_DIR = get_default_data_dir();
-
-extern const auto SOCKET_PATH = DAEMON_CONFIG_DIR / "anysphere.sock";
 
 /**
  * @brief This function gets the last line of a file

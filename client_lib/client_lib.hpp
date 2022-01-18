@@ -34,10 +34,24 @@ auto get_last_lines(string filename, int n);
 auto get_new_entries(const string& file_address, const Time& last_timestamp)
     -> vector<json>;
 
+auto get_base_config_dir() noexcept(false) -> std::filesystem::path;
+auto get_daemon_config_dir() noexcept(false) -> std::filesystem::path;
+auto get_cli_config_dir() noexcept(false) -> std::filesystem::path;
+auto get_gui_config_dir() noexcept(false) -> std::filesystem::path;
+auto get_runtime_dir() noexcept(false) -> std::filesystem::path;
+auto get_default_data_dir() noexcept(false) -> std::filesystem::path;
+
 // Config directories.
-extern const std::filesystem::path DAEMON_CONFIG_DIR;
-extern const std::filesystem::path CLI_CONFIG_DIR;
-extern const std::filesystem::path GUI_CONFIG_DIR;
-extern const std::filesystem::path RUNTIME_DIR;
-extern const std::filesystem::path DEFAULT_DATA_DIR;
-extern const std::filesystem::path SOCKET_PATH;
+// TODO(arvid): file permissions should be ONLY daemon
+inline const auto DAEMON_CONFIG_DIR = get_daemon_config_dir();
+// TODO(arvid): file permissions should be ONLY cli
+inline const auto CLI_CONFIG_DIR = get_cli_config_dir();
+// TODO(arvid): file permissions should be ONLY gui
+inline const auto GUI_CONFIG_DIR = get_gui_config_dir();
+// TODO(arvid): file permissions should be ONLY daemon, cli, gui (not any
+// other users)
+inline const auto RUNTIME_DIR = get_runtime_dir();
+// TODO(arvid): file permissions should be daemon, cli, gui, AND the user.
+inline const auto DEFAULT_DATA_DIR = get_default_data_dir();
+
+inline const auto SOCKET_PATH = DAEMON_CONFIG_DIR / "anysphere.sock";
