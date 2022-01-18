@@ -53,6 +53,22 @@ auto get_base_config_dir() noexcept(false) {
   return anysphere_home;
 }
 
+auto get_daemon_config_dir() noexcept(false) {
+  auto dir = get_base_config_dir() / "daemon";
+  std::filesystem::create_directories(dir);
+  return dir;
+}
+auto get_cli_config_dir() noexcept(false) {
+  auto dir = get_base_config_dir() / "cli";
+  std::filesystem::create_directories(dir);
+  return dir;
+}
+auto get_gui_config_dir() noexcept(false) {
+  auto dir = get_base_config_dir() / "gui";
+  std::filesystem::create_directories(dir);
+  return dir;
+}
+
 // the runtime dir contains files that will be important for the application's
 // runtime, such as the socket and possibly other things (caches maybe?).
 // this directory should ideally be permission restricted to only the daemon,
@@ -79,11 +95,11 @@ auto get_runtime_dir() noexcept(false) {
 //    all/ <- potentially encrypted! TODO(arvid): add encryption for this (it
 //    protects a little... but not much)
 //
-// each directory contains markdown files plus one json file that stores all the
-// metadata.
+// each directory contains markdown files plus one json file that stores all
+// the metadata.
 //
-// the data dir is user-configurable and stored in the daemon config file. this
-// is only the default location.
+// the data dir is user-configurable and stored in the daemon config file.
+// this is only the default location.
 auto get_default_data_dir() noexcept(false) {
   std::filesystem::path data_home;
   auto data_home_maybe = std::getenv("XDG_DATA_HOME");
@@ -102,13 +118,13 @@ auto get_default_data_dir() noexcept(false) {
 }
 
 // TODO(arvid): file permissions should be ONLY daemon
-extern const auto DAEMON_CONFIG_DIR = get_base_config_dir() / "daemon";
+extern const auto DAEMON_CONFIG_DIR = get_daemon_config_dir();
 // TODO(arvid): file permissions should be ONLY cli
-extern const auto CLI_CONFIG_DIR = get_base_config_dir() / "cli";
+extern const auto CLI_CONFIG_DIR = get_cli_config_dir();
 // TODO(arvid): file permissions should be ONLY gui
-extern const auto GUI_CONFIG_DIR = get_base_config_dir() / "gui";
-// TODO(arvid): file permissions should be ONLY daemon, cli, gui (not any other
-// users)
+extern const auto GUI_CONFIG_DIR = get_gui_config_dir();
+// TODO(arvid): file permissions should be ONLY daemon, cli, gui (not any
+// other users)
 extern const auto RUNTIME_DIR = get_runtime_dir();
 // TODO(arvid): file permissions should be daemon, cli, gui, AND the user.
 extern const auto DEFAULT_DATA_DIR = get_default_data_dir();

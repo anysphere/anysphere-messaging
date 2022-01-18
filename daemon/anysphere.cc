@@ -7,7 +7,7 @@ int main(int argc, char** argv) {
   std::string server_address(SERVER_ADDRESS);
 
   auto socket_address = StrCat("unix://", string(SOCKET_PATH));
-  auto config_file_address = CONFIG_FILE;
+  auto config_file_address = string(CONFIG_FILE);
 
   vector<string> args(argv + 1, argv + argc);
   string infname, outfname;
