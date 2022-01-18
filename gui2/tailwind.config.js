@@ -4,6 +4,7 @@ module.exports = {
     extend: {
       colors: {
         asbrown: {
+          100: "#E4DFD2",
           200: "#ADA798",
           300: "#827D70",
           light: "#575245",

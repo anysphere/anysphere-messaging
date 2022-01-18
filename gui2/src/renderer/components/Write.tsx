@@ -13,22 +13,12 @@ function Write(props: {
   const content = props.data.content;
   const to = props.data.to;
   return (
-    <div className="flex place-content-center w-full">
-      <div className="place-self-center flex flex-col max-w-3xl bg-white">
-        <textarea
-          className="whitespace-pre-wrap resize-none w-full focus:outline-none h-full grow h-96"
-          value={content}
-          onChange={(e) =>
-            props.edit({
-              ...props.data,
-              content: e.target.value,
-            })
-          }
-          autoFocus
-        />
-        <div className="flex flex-row">
-          <div className="flex-1"></div>
-          <label>To: </label>
+    <div className="flex place-content-center w-full mt-8">
+      <div className="place-self-center flex flex-col w-full max-w-3xl bg-white p-2 px-4">
+        <div className="flex flex-row content-center py-2">
+          <div className="place-content-center grid">
+            <div className="align-bottom">To:</div>
+          </div>
           <input
             type="text"
             className="focus:outline-none pl-2"
@@ -40,8 +30,24 @@ function Write(props: {
             }
             value={to}
           ></input>
+          <div className="flex-1"></div>
+        </div>
+        <hr className="text" />
+        <textarea
+          className="whitespace-pre-wrap resize-none w-full focus:outline-none h-full grow h-96 pt-4"
+          value={content}
+          onChange={(e) =>
+            props.edit({
+              ...props.data,
+              content: e.target.value,
+            })
+          }
+          autoFocus
+        />
+        <div className="flex flex-row content-center py-2">
+          <div className="flex-1"></div>
           <button
-            className="rounded-lg unselectable bg-[#e3e0d8] text-[#7a776d] px-3 py-1"
+            className="rounded-lg unselectable bg-asbrown-100 text-asbrown-light px-3 py-1"
             onClick={() => props.send(content, to)}
           >
             Send
