@@ -74,14 +74,15 @@ Config::Config(const asphr::json& config_json,
     cout << "config file does not contain friends" << endl;
     return;
   }
-  if (!config_json["has_registered"].get<bool>()) {
+  if (!config_json.at("has_registered").get<bool>()) {
     has_registered = false;
   } else {
     has_registered = true;
     registrationInfo =
-        RegistrationInfo::from_json(config_json["registration_info"]);
-    Base64::Decode(config_json["pir_secret_key"].get<string>(), pir_secret_key);
-    Base64::Decode(config_json["pir_galois_keys"].get<string>(),
+        RegistrationInfo::from_json(config_json.at("registration_info"));
+    Base64::Decode(config_json.at("pir_secret_key").get<string>(),
+                   pir_secret_key);
+    Base64::Decode(config_json.at("pir_galois_keys").get<string>(),
                    pir_galois_keys);
   }
 
@@ -90,12 +91,13 @@ Config::Config(const asphr::json& config_json,
     friendTable[f.name] = f;
   }
 
-  data_dir = config_json["data_dir"].get<string>();
+  data_dir = config_json.at("data_dir").get<string>();
 }
 
 auto Config::save() -> void {
   asphr::json config_json;
   config_json["has_registered"] = has_registered;
+  config_json["data_dir"] = data_dir;
   if (has_registered) {
     config_json["registration_info"] = registrationInfo.to_json();
     config_json["pir_secret_key"] = Base64::Encode(pir_secret_key);
