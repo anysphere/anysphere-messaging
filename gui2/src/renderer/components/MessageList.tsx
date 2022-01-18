@@ -1,5 +1,30 @@
-import * as React from 'react';
-import { Message } from '../types';
+import * as React from "react";
+import { Message } from "../types";
+import { truncate, formatTime } from "../utils";
+
+function MessageBlurb({
+  message,
+  onClick,
+}: {
+  message: Message;
+  onClick: () => void;
+}) {
+  return (
+    <div
+      className="bg-white px-4 py-4 rounded-sm hover:cursor-pointer"
+      onClick={onClick}
+    >
+      <div className="flex flex-row gap-5">
+        <div>{message.from}</div>
+        <div>{truncate(message.message, 50)}</div>
+        <div className="flex-1"></div>
+        <div className="text-asbrown-200 text-sm">
+          {formatTime(message.timestamp)}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function MessageList(props: {
   messages: string;
@@ -8,7 +33,7 @@ function MessageList(props: {
   const [messages, setMessages] = React.useState<Message[]>([]);
 
   React.useEffect(() => {
-    if (props.messages === 'new') {
+    if (props.messages === "new") {
       (window as any).getNewMessages().then((messages: Message[]) => {
         setMessages(messages);
       });
@@ -20,20 +45,17 @@ function MessageList(props: {
   }, [props.messages]);
 
   return (
-    <div>
-      <div className="grid grid-cols-1 gap-2">
-        {messages.map((message, index) => (
-          <div
-            className="bg-white px-4 py-2 rounded-sm hover:cursor-pointer"
-            key={index}
-            onClick={() => props.readCallback(message)}
-          >
-            <div className="flex flex-row gap-5">
-              <p>{message.from}</p>
-              <p>{message.timestamp}</p>
-            </div>
-          </div>
-        ))}
+    <div className="flex place-content-center w-full mt-8">
+      <div className="place-self-center flex flex-col w-full max-w-3xl">
+        <div className="grid grid-cols-1 gap-2">
+          {messages.map((message, index) => (
+            <MessageBlurb
+              key={index}
+              message={message}
+              onClick={() => props.readCallback(message)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

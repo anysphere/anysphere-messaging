@@ -33,17 +33,17 @@ contextBridge.exposeInMainWorld("getNewMessages", async () => {
     return [
       {
         id: "1",
-        from: "alice",
+        from: "Alice",
         to: "me",
-        message: "hello",
-        timestamp: "2020-01-04T00:00:00.000Z",
+        message: "hello!\n\nthis is a test message\n\nbest,\nalice",
+        timestamp: new Date(),
       },
       {
         id: "2",
-        from: "bob",
+        from: "Bob",
         to: "me",
         message: "hi",
-        timestamp: "2020-01-03T00:00:00.000Z",
+        timestamp: new Date(),
       },
     ];
   }
@@ -75,31 +75,31 @@ contextBridge.exposeInMainWorld("getAllMessages", async () => {
     return [
       {
         id: "1",
-        from: "alice",
+        from: "Alice",
         to: "me",
         message: "hello",
-        timestamp: "2020-01-04T00:00:00.000Z",
+        timestamp: new Date(),
       },
       {
         id: "2",
-        from: "bob",
+        from: "Bob",
         to: "me",
         message: "hi",
-        timestamp: "2020-01-03T00:00:00.000Z",
+        timestamp: new Date(),
       },
       {
         id: "3",
-        from: "bob",
+        from: "Bob",
         to: "me",
         message: "hi this is my second message",
-        timestamp: "2020-01-02T00:00:00.000Z",
+        timestamp: new Date(),
       },
       {
         id: "4",
-        from: "bob",
+        from: "Bob",
         to: "me",
         message: "hi this is my first message",
-        timestamp: "2020-01-01T00:00:00.000Z",
+        timestamp: new Date(),
       },
     ];
   }

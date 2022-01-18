@@ -29,10 +29,11 @@ function Write(props: {
               })
             }
             value={to}
+            autoFocus
           ></input>
           <div className="flex-1"></div>
         </div>
-        <hr className="text" />
+        <hr className="border-asbrown-100" />
         <textarea
           className="whitespace-pre-wrap resize-none w-full focus:outline-none h-full grow h-96 pt-4"
           value={content}
@@ -42,7 +43,6 @@ function Write(props: {
               content: e.target.value,
             })
           }
-          autoFocus
         />
         <div className="flex flex-row content-center py-2">
           <div className="flex-1"></div>

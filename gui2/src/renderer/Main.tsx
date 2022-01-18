@@ -1,14 +1,15 @@
-import * as React from 'react';
+import * as React from "react";
 
-import MessageList from './components/MessageList';
-import Read from './components/Read';
-import Write from './components/Write';
-import { Message } from './types';
-import { Tab, TabType, TabContainer } from './components/Tabs';
+import MessageList from "./components/MessageList";
+import Read from "./components/Read";
+import Write from "./components/Write";
+import { Message } from "./types";
+import { Tab, TabType, TabContainer } from "./components/Tabs";
+import { truncate } from "./utils";
 
 const defaultTabs: Tab[] = [
-  { type: TabType.New, name: 'New', data: null },
-  { type: TabType.All, name: 'All', data: null },
+  { type: TabType.New, name: "New", data: null, unclosable: true },
+  { type: TabType.All, name: "All", data: null, unclosable: true },
 ];
 
 function Main() {
@@ -25,9 +26,10 @@ function Main() {
       }
       const readTab = {
         type: TabType.Read,
-        name: `${message.from} — ${message.timestamp}`,
+        name: `${truncate(message.message, 10)} - ${message.from}`,
         id: tabs.length,
         data: message,
+        unclosable: false,
       };
       setTabs([...tabs, readTab]);
       setSelectedTab(readTab.id);
@@ -75,11 +77,12 @@ function Main() {
   const writeMessage = React.useCallback(() => {
     const writeTab: Tab = {
       type: TabType.Write,
-      name: 'Write',
+      name: "Write",
       data: {
-        content: '',
-        to: '',
+        content: "",
+        to: "",
       },
+      unclosable: false,
     };
     setTabs([...tabs, writeTab]);
     setSelectedTab(tabs.length);
@@ -109,34 +112,43 @@ function Main() {
       selectedComponent = <div>Unknown tab</div>;
   }
 
-  const closeTab = React.useCallback(() => {
-    let newTabs = [];
-    for (let i = 0; i < tabs.length; i++) {
-      if (i === selectedTab) {
-        continue;
-      } else {
-        newTabs.push(tabs[i]);
+  const closeTab = React.useCallback(
+    (index: number) => {
+      let newTabs = [];
+      for (let i = 0; i < tabs.length; i++) {
+        if (i === index) {
+          continue;
+        } else {
+          newTabs.push(tabs[i]);
+        }
       }
-    }
-    setTabs(newTabs);
-    setSelectedTab(0);
-  }, [tabs, selectedTab]);
+      if (index === selectedTab) {
+        setSelectedTab(0);
+      }
+      if (index < selectedTab) {
+        setSelectedTab(selectedTab - 1);
+      }
+      setTabs(newTabs);
+    },
+    [tabs, selectedTab, setTabs, setSelectedTab]
+  );
 
   return (
     <div>
       <div className="h-4 draggable" />
       <div className="p-2">
-        <div className="flex flex-row">
+        <div className="flex flex-row gap-2">
           <TabContainer
             tabs={tabs}
             selectTab={setSelectedTab}
+            closeTab={closeTab}
             selectedTab={selectedTab}
           />
           <button
-            className="unselectable px-2 rounded-md bg-[#e3e0d8] text-[#7a776d]"
+            className="unselectable px-2 rounded-md bg-asbrown-100 text-asbrown-light "
             onClick={writeMessage}
           >
-            +
+            <div className="codicon codicon-edit"></div>
           </button>
         </div>
         {selectedComponent}

@@ -1,6 +1,6 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 .draggable {
   -webkit-app-region: drag;
@@ -10,3 +10,6 @@
   -webkit-user-select: none;
   user-select: none;
 }
+
+/* include codicons css */
+@import "../../node_modules/@vscode/codicons/dist/codicon.css";
