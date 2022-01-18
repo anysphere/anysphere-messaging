@@ -1,3 +1,6 @@
 [submodule "third_party/SEAL"]
 	path = third_party/SEAL
 	url = https://github.com/anysphere/SEAL
+[submodule "website/anysphere-pages"]
+	path = website/anysphere-pages
+	url = git@github.com:anysphere/anysphere-pages
