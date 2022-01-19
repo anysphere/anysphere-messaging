@@ -3,7 +3,7 @@ image:
 tasks:
   - name: Prepare Bazel
     before: "./gitpod-init.sh"
-    init: git submodule update --init --recursive && bazel build //... && bazel build //... -c dbg && bazel build //... -c opt
+    init: cd third_party && git submodule update --init --recursive && cd .. && bazel build //... && bazel build //... -c dbg && bazel build //... -c opt
 ports:
   - port: 5900
     onOpen: ignore
