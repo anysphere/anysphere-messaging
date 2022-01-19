@@ -90,6 +90,10 @@ auto get_runtime_dir() noexcept(false) -> std::filesystem::path {
   return runtime_home;
 }
 
+auto get_socket_path() noexcept(false) -> std::filesystem::path {
+  return get_runtime_dir() / "anysphere.sock";
+}
+
 // the default data dir has the following structure:
 //    drafts/
 //    all/ <- potentially encrypted! TODO(arvid): add encryption for this (it

@@ -6,8 +6,8 @@
 int main(int argc, char** argv) {
   std::string server_address(SERVER_ADDRESS);
 
-  auto socket_address = StrCat("unix://", string(SOCKET_PATH));
-  auto config_file_address = string(CONFIG_FILE);
+  auto socket_address = string("");
+  auto config_file_address = string("");
 
   vector<string> args(argv + 1, argv + argc);
   string infname, outfname;
@@ -33,6 +33,13 @@ int main(int argc, char** argv) {
     } else if (*i == "-c") {
       config_file_address = *++i;
     }
+  }
+
+  if (socket_address == "") {
+    socket_address = get_socket_path().string();
+  }
+  if (config_file_address == "") {
+    config_file_address = get_config_file_address().string();
   }
 
   Config config(config_file_address);

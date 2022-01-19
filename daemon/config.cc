@@ -52,7 +52,7 @@ auto read_json_file(const string& config_file_address) -> asphr::json {
     cout << "creating new config asphr::json!" << endl;
     asphr::json j = {{"has_registered", false},
                      {"friends", {}},
-                     {"data_dir", DEFAULT_DATA_DIR}};
+                     {"data_dir", get_default_data_dir()}};
     std::ofstream o(config_file_address);
     o << std::setw(4) << j.dump(4) << std::endl;
   }
