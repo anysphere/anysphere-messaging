@@ -13,23 +13,10 @@ auto gen_crypto() -> Crypto {
   return crypto;
 }
 
-auto gen_config() -> Config {
+auto gen_config(string tmp_dir, string tmp_file) -> Config {
   json config_json = {
-      {"has_registered", false},
-      {"friends", {}},
-  };
-  Config config(config_json);
-  return config;
-}
-
-auto gen_ephemeral_config(const string& config_file_address,
-                          const string& send_messages_file_address,
-                          const string& received_messages_file_address)
-    -> EphemeralConfig {
-  auto config = EphemeralConfig{
-      .config_file_address = config_file_address,
-      .send_messages_file_address = send_messages_file_address,
-      .received_messages_file_address = received_messages_file_address};
+      {"has_registered", false}, {"friends", {}}, {"data_dir", tmp_dir}};
+  Config config(config_json, tmp_file);
   return config;
 }
 
@@ -59,6 +46,16 @@ class DaemonRpcTest : public ::testing::Test {
     return address;
   }
 
+  auto generateTempDir() -> std::filesystem::path {
+    auto tmp_dir = "TMPTMPTMP_dirs" + std::to_string(temp_dirs_.size());
+    char cwd[1024];
+    getcwd(cwd, sizeof(cwd));
+    auto address = std::filesystem::path(cwd) / tmp_dir;
+    std::filesystem::create_directory(address);
+    temp_dirs_.push_back(address);
+    return address;
+  }
+
   void SetUp() override {
     int port = 86651;
     server_address_ << "localhost:" << port;
@@ -80,6 +77,13 @@ class DaemonRpcTest : public ::testing::Test {
         cout << "File successfully deleted\n";
       }
     }
+    for (auto f : temp_dirs_) {
+      if (std::filesystem::remove_all(f) != 0) {
+        cerr << "Error deleting file";
+      } else {
+        cout << "File successfully deleted\n";
+      }
+    }
   }
 
   void ResetStub() {
@@ -93,15 +97,14 @@ class DaemonRpcTest : public ::testing::Test {
   std::ostringstream server_address_;
   ServerRpc service_;
   vector<string> config_file_addresses_;
+  vector<std::filesystem::path> temp_dirs_;
 };
 
 TEST_F(DaemonRpcTest, Register) {
   ResetStub();
   auto crypto = gen_crypto();
-  auto config = gen_config();
-  auto ephConfig = gen_ephemeral_config(generateTempFile(), generateTempFile(),
-                                        generateTempFile());
-  DaemonRpc rpc(crypto, config, stub_, ephConfig);
+  auto config = gen_config(string(generateTempDir()), generateTempFile());
+  DaemonRpc rpc(crypto, config, stub_);
 
   {
     RegisterUserRequest request;
@@ -115,10 +118,8 @@ TEST_F(DaemonRpcTest, Register) {
 TEST_F(DaemonRpcTest, GetFriendList) {
   ResetStub();
   auto crypto = gen_crypto();
-  auto config = gen_config();
-  auto ephConfig = gen_ephemeral_config(generateTempFile(), generateTempFile(),
-                                        generateTempFile());
-  DaemonRpc rpc(crypto, config, stub_, ephConfig);
+  auto config = gen_config(string(generateTempDir()), generateTempFile());
+  DaemonRpc rpc(crypto, config, stub_);
 
   {
     RegisterUserRequest request;
@@ -139,10 +140,8 @@ TEST_F(DaemonRpcTest, GetFriendList) {
 TEST_F(DaemonRpcTest, GenerateFriendKey) {
   ResetStub();
   auto crypto = gen_crypto();
-  auto config = gen_config();
-  auto ephConfig = gen_ephemeral_config(generateTempFile(), generateTempFile(),
-                                        generateTempFile());
-  DaemonRpc rpc(crypto, config, stub_, ephConfig);
+  auto config = gen_config(string(generateTempDir()), generateTempFile());
+  DaemonRpc rpc(crypto, config, stub_);
 
   {
     RegisterUserRequest request;
@@ -165,15 +164,11 @@ TEST_F(DaemonRpcTest, AddFriend) {
   ResetStub();
 
   auto crypto1 = gen_crypto();
-  auto config1 = gen_config();
-  auto ephConfig1 = gen_ephemeral_config(generateTempFile(), generateTempFile(),
-                                         generateTempFile());
-  DaemonRpc rpc1(crypto1, config1, stub_, ephConfig1);
+  auto config1 = gen_config(string(generateTempDir()), generateTempFile());
+  DaemonRpc rpc1(crypto1, config1, stub_);
   auto crypto2 = gen_crypto();
-  auto config2 = gen_config();
-  auto ephConfig2 = gen_ephemeral_config(generateTempFile(), generateTempFile(),
-                                         generateTempFile());
-  DaemonRpc rpc2(crypto2, config2, stub_, ephConfig2);
+  auto config2 = gen_config(string(generateTempDir()), generateTempFile());
+  DaemonRpc rpc2(crypto2, config2, stub_);
 
   {
     RegisterUserRequest request;
@@ -237,15 +232,11 @@ TEST_F(DaemonRpcTest, SendMessage) {
   ResetStub();
 
   auto crypto1 = gen_crypto();
-  auto config1 = gen_config();
-  auto ephConfig1 = gen_ephemeral_config(generateTempFile(), generateTempFile(),
-                                         generateTempFile());
-  DaemonRpc rpc1(crypto1, config1, stub_, ephConfig1);
+  auto config1 = gen_config(string(generateTempDir()), generateTempFile());
+  DaemonRpc rpc1(crypto1, config1, stub_);
   auto crypto2 = gen_crypto();
-  auto config2 = gen_config();
-  auto ephConfig2 = gen_ephemeral_config(generateTempFile(), generateTempFile(),
-                                         generateTempFile());
-  DaemonRpc rpc2(crypto2, config2, stub_, ephConfig2);
+  auto config2 = gen_config(string(generateTempDir()), generateTempFile());
+  DaemonRpc rpc2(crypto2, config2, stub_);
 
   {
     RegisterUserRequest request;
@@ -323,17 +314,15 @@ TEST_F(DaemonRpcTest, SendMessage) {
   }
 
   {
-    process_ui_file(ephConfig1.send_messages_file_address, absl::Time(), stub_,
-                    crypto1, config1);
-    process_ui_file(ephConfig2.send_messages_file_address, absl::Time(), stub_,
-                    crypto2, config2);
+    process_ui_file(config1.send_file_address(), absl::Time(), stub_, crypto1,
+                    config1);
+    process_ui_file(config2.send_file_address(), absl::Time(), stub_, crypto2,
+                    config2);
   }
 
   {
-    retrieve_messages(ephConfig1.received_messages_file_address, stub_, crypto1,
-                      config1);
-    retrieve_messages(ephConfig2.received_messages_file_address, stub_, crypto2,
-                      config2);
+    retrieve_messages(config1.receive_file_address(), stub_, crypto1, config1);
+    retrieve_messages(config2.receive_file_address(), stub_, crypto2, config2);
   }
 
   {
