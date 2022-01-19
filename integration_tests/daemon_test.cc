@@ -22,8 +22,10 @@ auto gen_config(string tmp_dir, string tmp_file) -> Config {
 
 auto gen_server_rpc() {
   FastPIR pir;
+  FastPIR pir_acks;
   AccountManagerInMemory account_manager("in_memory");
-  return ServerRpc(std::move(pir), std::move(account_manager));
+  return ServerRpc(std::move(pir), std::move(pir_acks),
+                   std::move(account_manager));
 }
 
 namespace asphr::testing {

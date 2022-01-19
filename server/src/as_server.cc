@@ -34,6 +34,7 @@ int main(int argc, char** argv) {
   // NonPrivatePIR pir;
   // SealPIR pir;
   FastPIR pir;
+  FastPIR pir_acks;
 #ifdef USE_MEMORY_DB
   using AccountManager = AccountManagerInMemory;
 #else
@@ -45,7 +46,7 @@ int main(int argc, char** argv) {
   // account_manager); MessengerImpl<SealPIR, AccountManager>
   // messenger_service(pir, account_manager);
   auto server_rpc = ServerRpc<FastPIR, AccountManager>(
-      std::move(pir), std::move(account_manager));
+      std::move(pir), std::move(pir_acks), std::move(account_manager));
 
   grpc::ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());

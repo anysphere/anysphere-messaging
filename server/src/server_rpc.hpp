@@ -7,14 +7,9 @@
 #include <memory>
 #include <string>
 
-#ifdef BAZEL_BUILD
-#include "schema/server.grpc.pb.h"
-#else
-#include "schema/server.grpc.pb.h"
-#endif
-
 #include "account_manager.hpp"
 #include "asphr/asphr.hpp"
+#include "schema/server.grpc.pb.h"
 
 template <typename PIR, typename AccountManager>
 class ServerRpc final : public asphrserver::Server::Service {
@@ -39,13 +34,16 @@ class ServerRpc final : public asphrserver::Server::Service {
       const asphrserver::ReceiveMessageInfo* receiveMessageInfo,
       asphrserver::ReceiveMessageResponse* receiveMessageResponse) override;
 
-  ServerRpc(PIR&& pir, AccountManager&& account_manager)
-      : pir(std::move(pir)), account_manager(std::move(account_manager)) {}
+  ServerRpc(PIR&& pir, PIR&& pir_acks, AccountManager&& account_manager)
+      : pir(std::move(pir)),
+        pir_acks(std::move(pir_acks)),
+        account_manager(std::move(account_manager)) {}
 
   auto get_seal_slot_count() const { return pir.get_seal_slot_count(); }
 
  private:
-  PIR pir;
+  PIR pir;       // stores actual messages for every user
+  PIR pir_acks;  // stores ACKs for every user
   AccountManager account_manager;
 };
 
