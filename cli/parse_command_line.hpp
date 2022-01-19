@@ -24,7 +24,9 @@ struct CommandLine {
 
   // get an argument
   auto getArgument(int i) -> asphr::StatusOr<string> {
-    if (argc < i) return badArgument();
+    if (argc < i + 1) {
+      return absl::InvalidArgumentError("please see the help message :)");
+    }
 
     return (string)argv[i];
   }

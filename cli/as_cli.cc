@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
   }
 
   // connect to the anysphere daemon
-  cout << "Client connecting to socket: " << socket_address << endl;
+  dbg("Client connecting to socket: " + socket_address);
   auto channel =
       grpc::CreateChannel(socket_address, grpc::InsecureChannelCredentials());
   auto stub = Daemon::NewStub(channel);
@@ -83,12 +83,30 @@ int main(int argc, char** argv) {
   // parse the commands
 
   if (command == "register") {
-    auto name = cmd_line.getArgument(2).value();
+    auto status = cmd_line.getArgument(2);
+
+    if (!status.ok()) {
+      cout << status.status() << endl;
+      cout << "Usage: asphr register {name}" << endl;
+      cout << "Example: asphr register Elon\n\n" << endl;
+      cout << help << endl;
+      return 0;
+    }
+
+    auto name = status.value();
     kProfile_.set_name(name);
 
     kProfile_.add(stub);
   } else if (command == "init-friend") {
-    auto name = cmd_line.getArgument(2).value();
+    auto status = cmd_line.getArgument(2);
+    if (!status.ok()) {
+      cout << status.status() << endl;
+      cout << "Usage: asphr init-friend {name}" << endl;
+      cout << "Example: asphr init-friend Elon\n\n" << endl;
+      cout << help << endl;
+      return 0;
+    }
+    auto name = status.value();
     Friend friend_to_add(name);
     kFriends_map_[name] = friend_to_add;
 
@@ -104,8 +122,20 @@ int main(int argc, char** argv) {
             "with the command add-friend {their key}"
          << endl;
   } else if (command == "add-friend") {
-    auto name = cmd_line.getArgument(2).value();
-    auto key = cmd_line.getArgument(3).value();
+    auto status = cmd_line.getArgument(2);
+    auto key_status = cmd_line.getArgument(3);
+    if (!status.ok() || !key_status.ok()) {
+      cout << "Usage: asphr add-friend {name} {key}" << endl;
+      cout << "Example: asphr add-friend Elon 123456789" << endl;
+      cout << "You can find the key of your friend by asking them to add you "
+              "as a friend with the command init-friend {name}\n\n"
+           << endl;
+      cout << help << endl;
+      return 0;
+    }
+
+    auto name = status.value();
+    auto key = key_status.value();
     Friend friend_to_add(name);
 
     kFriends_map_[name] = friend_to_add;
@@ -121,7 +151,16 @@ int main(int argc, char** argv) {
          << endl;
   } else if (command == "s" || command == "m" || command == "send" ||
              command == "msg" || command == "message") {
-    auto name = cmd_line.getArgument(2).value();
+    auto status = cmd_line.getArgument(2);
+    auto message_status = cmd_line.getArgument(3);
+    if (!status.ok() || !message_status.ok()) {
+      cout << "Usage: asphr (s | m | send | msg | message) {name} {message}"
+           << endl;
+      cout << "Example: asphr message Elon Hello, how are you?\n\n" << endl;
+      cout << help << endl;
+      return 0;
+    }
+    auto name = status.value();
     auto msg = cmd_line.getConcatArguments(3).value();
 
     Message m{msg, name, kProfile_.name_};
@@ -149,7 +188,8 @@ int main(int argc, char** argv) {
 
   } else {
     cout << "Unknown command: " << command << endl;
-    return 1;
+    cout << help << endl;
+    return 0;
   }
 
   return 0;
