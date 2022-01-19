@@ -141,6 +141,9 @@ int main(int argc, char** argv) {
     auto friend_status = friend_to_add.add(stub, key);
 
     if (!friend_status.ok()) {
+      cout << friend_status.message() << endl;
+      cout << "We couldnt add your friend. Please try again." << endl;
+      cout << "You can report this error to us at help@anysphere.co!" << endl;
       return 0;
     }
 
