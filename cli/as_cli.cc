@@ -81,7 +81,6 @@ int main(int argc, char** argv) {
   auto stub = Daemon::NewStub(channel);
 
   // parse the commands
-
   if (command == "register") {
     auto status = cmd_line.getArgument(2);
 
@@ -110,12 +109,12 @@ int main(int argc, char** argv) {
     Friend friend_to_add(name);
     kFriends_map_[name] = friend_to_add;
 
-    auto status = friend_to_add.generate_key(stub);
+    auto friend_status = friend_to_add.generate_key(stub);
 
-    if (!status.ok()) {
+    if (!friend_status.ok()) {
       return 0;
     }
-    auto key = status.value();
+    auto key = friend_status.value();
     cout << "Friend " << name << " key generated!" << endl;
     cout << "Please give your friend the following key: " << key << endl;
     cout << "When they give you back their shared key, you can then add them "
@@ -139,9 +138,9 @@ int main(int argc, char** argv) {
     Friend friend_to_add(name);
 
     kFriends_map_[name] = friend_to_add;
-    auto status = friend_to_add.add(stub, key);
+    auto friend_status = friend_to_add.add(stub, key);
 
-    if (!status.ok()) {
+    if (!friend_status.ok()) {
       return 0;
     }
 
