@@ -239,7 +239,8 @@ auto Crypto::encrypt_ack(uint32_t ack_id, const Friend& friend_info) const
   ciphertext.resize(ENCRYPTED_ACKING_BYTES);
   unsigned long long ciphertext_len;
 
-  std::string plaintext = reinterpret_cast<char*>(&ack_id);
+  auto ack_id_str = reinterpret_cast<char*>(&ack_id);
+  std::string plaintext(ack_id_str, 4);
   auto plaintext_len = plaintext.size();
   assert(plaintext_len == ACKING_BYTES);
 
