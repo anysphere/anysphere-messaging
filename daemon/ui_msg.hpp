@@ -3,8 +3,6 @@
 #include "crypto.hpp"
 #include "schema/message.pb.h"
 
-using client::Message;
-
 void retrieve_messages(const string& output_file_address,
                        unique_ptr<asphrserver::Server::Stub>& stub,
                        const Crypto& crypto, const Config& config) {
@@ -99,7 +97,7 @@ void process_ui_file(const string& ui_file_address,
     if (!friend_info.enabled) {
       continue;
     }
-    Message message;
+    asphrclient::Message message;
     message.set_id(0);
     if (friend_to_message.count(friend_name) != 0) {
       auto message_s = friend_to_message.at(friend_name);

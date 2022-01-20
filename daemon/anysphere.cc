@@ -81,14 +81,15 @@ int main(int argc, char** argv) {
     // do a round
     std::cout << "Client round" << std::endl;
 
+    // receive and then send! it is important! 2x speedup
+    cout << "received messages file address: " << config.receive_file_address()
+         << endl;
+    retrieve_messages(config.receive_file_address(), stub, crypto, config);
     cout << "send messages file address: " << config.send_file_address()
          << endl;
     process_ui_file(config.send_file_address(), last_ui_timestamp, stub, crypto,
                     config);
     last_ui_timestamp = absl::Now();
-    cout << "received messages file address: " << config.receive_file_address()
-         << endl;
-    retrieve_messages(config.receive_file_address(), stub, crypto, config);
 
     // sleep for 100ms
   }

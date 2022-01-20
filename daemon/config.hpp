@@ -10,6 +10,15 @@ struct Friend {
   string write_key;
   string read_key;
   bool enabled;
+  // latest_ack is the latest ID that was ACKed by the friend
+  // any message with ID > latest_ack_id MUST be retried
+  int latest_ack_id;
+  // last_send_index is the ID of the last message that was added to the send
+  // queue for this friend. the messages in the queue have not yet been ACKed.
+  int last_send_id;
+  // last_receive_id is the value that should be ACKed. we acknowledge that we
+  // have received all IDs up to and including this value.
+  int last_receive_id;
 
   auto to_json() -> asphr::json;
   static auto from_json(const asphr::json& j) -> Friend;

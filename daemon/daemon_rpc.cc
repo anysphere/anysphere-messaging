@@ -105,7 +105,7 @@ Status DaemonRpc::GenerateFriendKey(
       crypto.generate_friend_key(config.registrationInfo.public_key, index);
 
   auto friend_info =
-      Friend{generateFriendKeyRequest->name(), index, -1, "", "", false};
+      Friend{generateFriendKeyRequest->name(), index, -1, "", "", false, 0};
 
   config.add_friend(friend_info);
 

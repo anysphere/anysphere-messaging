@@ -9,7 +9,8 @@ auto Friend::to_json() -> asphr::json {
                      {"read_index", read_index},
                      {"write_key", write_key},
                      {"read_key", read_key},
-                     {"enabled", enabled}};
+                     {"enabled", enabled},
+                     {"latest_ack", latest_ack}};
 }
 
 auto Friend::from_json(const asphr::json& j) -> Friend {
@@ -20,6 +21,7 @@ auto Friend::from_json(const asphr::json& j) -> Friend {
   f.write_key = j.at("write_key").get<string>();
   f.read_key = j.at("read_key").get<string>();
   f.enabled = j.at("enabled").get<bool>();
+  f.latest_ack = j.at("latest_ack").get<int>();
   return f;
 }
 
