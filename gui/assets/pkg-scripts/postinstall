@@ -10,6 +10,8 @@ exec 2>&1 > $LOG_DIR/postinstall.log
 
 echo "hello from anysphere postinstall script!"
 
+INSTALL_DIR=$2
+
 # TODO: DO NOT RUN THIS AS ROOT
 PLIST="$(cat << EOF
 <?xml version="1.0" encoding="UTF-8"?>

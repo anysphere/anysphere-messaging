@@ -12,16 +12,20 @@ import { notarize } from "electron-notarize";
 // - MAC_NOTARIZE_PASSWORD: apple ID app-specific password (NOT THE APPLE ID PASSWORD PLS) for notarization
 require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
 
-function assets(rel: string) {
-  return path.join(path.resolve(__dirname, "../../assets"), rel);
+function base_dir(rel: string) {
+  return path.join(path.resolve(__dirname, "../../"), rel);
+}
+
+function assets_dir(rel: string) {
+  return base_dir(path.join("assets", rel));
 }
 
 function release_dir(rel: string) {
-  return path.join(path.resolve(__dirname, "../../release"), rel);
+  return base_dir(path.join("release", rel));
 }
 
-function binaries(rel: string) {
-  return path.join(path.resolve(__dirname, "../../binaries"), rel);
+function binaries_dir(rel: string) {
+  return base_dir(path.join("binaries", rel));
 }
 
 function mac_arch() {
@@ -38,11 +42,10 @@ const config = {
   productName: "Anysphere",
   asar: true,
   asarUnpack: "**\\*.{node,dll}",
-  extraResources: [assets("entitlements.mac.plist")],
 
   directories: {
     app: release_dir("app"),
-    buildResources: assets("."),
+    buildResources: base_dir("assets"),
     output: release_dir("build"),
   },
 
@@ -67,16 +70,16 @@ const config = {
     },
     category: "public.app-category.productivity",
     hardenedRuntime: true,
-    icon: assets("icon.icns"),
-    entitlements: assets("entitlements.mac.plist"),
+    icon: assets_dir("icon.icns"),
+    entitlements: assets_dir("entitlements.mac.plist"),
     gatekeeperAssess: false,
     extraResources: [
       {
-        from: binaries("anysphered"), // the daemon
+        from: binaries_dir("anysphered"), // the daemon
         to: ".",
       },
       {
-        from: binaries("anysphere"), // the cli
+        from: binaries_dir("anysphere"), // the cli
         to: ".",
       },
       // TODO: add shell completions and an uninstall script here
@@ -85,6 +88,7 @@ const config = {
   },
 
   pkg: {
+    scripts: assets_dir("pkg-scripts"),
     allowAnywhere: false,
     allowCurrentUserHome: false,
     isRelocatable: false,
@@ -108,12 +112,8 @@ function package_mac() {
       afterAllArtifactBuild: async (buildResult: BuildResult) => {
         if (!process.env.MAC_DONT_NOTARIZE) {
           await notarize_mac(buildResult.artifactPaths[0]);
-        }
-
-        for (const dir of app_out_dirs) {
-          try {
-            await fs.promises.rm(dir, { recursive: true });
-          } catch {}
+        } else {
+          console.log("WARNING: Skipping notarization. Don't publish this!!");
         }
         return [];
       },
