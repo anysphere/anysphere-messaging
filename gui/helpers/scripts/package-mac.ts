@@ -1,25 +1,32 @@
-import { AfterPackContext } from "electron-builder";
+import { AfterPackContext, BuildResult } from "electron-builder";
+import { ArchType } from "builder-util";
+const builder = require("electron-builder");
 import path from "path";
 import fs from "fs";
+import { notarize } from "electron-notarize";
 
 // environment variable options:
 // - MAC_UNIVERSAL: true for universal, false for build for current architecture only
+// - MAC_DONT_NOTARIZE: true to skip notarization
+// - MAC_NOTARIZE_USERNAME: apple ID for notarization
+// - MAC_NOTARIZE_PASSWORD: apple ID app-specific password (NOT THE APPLE ID PASSWORD PLS) for notarization
+require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
 
 function assets(rel: string) {
-  return path.join(path.resolve(__dirname, "./assets"), rel);
+  return path.join(path.resolve(__dirname, "../../assets"), rel);
 }
 
 function release_dir(rel: string) {
-  return path.join(path.resolve(__dirname, "./release"), rel);
+  return path.join(path.resolve(__dirname, "../../release"), rel);
 }
 
 function binaries(rel: string) {
-  return path.join(path.resolve(__dirname, "./binaries"), rel);
+  return path.join(path.resolve(__dirname, "../../binaries"), rel);
 }
 
 function mac_arch() {
   if (process.env.MAC_UNIVERSAL) {
-    return "universal";
+    return "universal" as ArchType;
   } else {
     return undefined; // build for current architecture
   }
@@ -47,8 +54,8 @@ const config = {
     const resources =
       context.packager.platformSpecificBuildOptions.extraResources;
     for (const resource of resources) {
-      if (!fs.existsSync(resource)) {
-        throw new Error(`Can't find file: ${resource}`);
+      if (!fs.existsSync(resource.from)) {
+        throw new Error(`Can't find file: ${resource.from}`);
       }
     }
   },
@@ -73,8 +80,7 @@ const config = {
         to: ".",
       },
       // TODO: add shell completions and an uninstall script here
-      // TODO: binaries directory needs to contain plist???????
-      // TODO: maybe just put the binaries in the assets folder????? seems reasonable????
+      // TODO: assets directory needs to contain plist???????
     ],
   },
 
@@ -84,217 +90,64 @@ const config = {
     isRelocatable: false,
     isVersionChecked: false,
   },
-
-  nsis: {
-    guid: "2A356FD4-03B7-4F45-99B4-737BE580DC82",
-    oneClick: false,
-    perMachine: true,
-    allowElevation: true,
-    allowToChangeInstallationDirectory: false,
-    include: distAssets("windows/installer.nsh"),
-    installerSidebar: distAssets("windows/installersidebar.bmp"),
-  },
-
-  win: {
-    target: [
-      {
-        target: "nsis",
-        arch: ["x64"],
-      },
-    ],
-    artifactName: "MullvadVPN-${version}.${ext}",
-    publisherName: "Mullvad VPN AB",
-    signingHashAlgorithms: ["sha256"],
-    signDlls: true,
-    extraResources: [
-      { from: distAssets("mullvad.exe"), to: "." },
-      { from: distAssets("mullvad-problem-report.exe"), to: "." },
-      { from: distAssets("mullvad-daemon.exe"), to: "." },
-      { from: distAssets("talpid_openvpn_plugin.dll"), to: "." },
-      {
-        from: root(
-          path.join(
-            "windows",
-            "winfw",
-            "bin",
-            "x64-${env.CPP_BUILD_MODE}",
-            "winfw.dll"
-          )
-        ),
-        to: ".",
-      },
-      {
-        from: root(
-          path.join(
-            "windows",
-            "windns",
-            "bin",
-            "x64-${env.CPP_BUILD_MODE}",
-            "windns.dll"
-          )
-        ),
-        to: ".",
-      },
-      {
-        from: root(
-          path.join(
-            "windows",
-            "winnet",
-            "bin",
-            "x64-${env.CPP_BUILD_MODE}",
-            "winnet.dll"
-          )
-        ),
-        to: ".",
-      },
-      {
-        from: distAssets("binaries/x86_64-pc-windows-msvc/openvpn.exe"),
-        to: ".",
-      },
-      {
-        from: distAssets("binaries/x86_64-pc-windows-msvc/sslocal.exe"),
-        to: ".",
-      },
-      { from: root("build/lib/x86_64-pc-windows-msvc/libwg.dll"), to: "." },
-      {
-        from: distAssets("binaries/x86_64-pc-windows-msvc/wintun/wintun.dll"),
-        to: ".",
-      },
-      {
-        from: distAssets(
-          "binaries/x86_64-pc-windows-msvc/wireguard-nt/mullvad-wireguard.dll"
-        ),
-        to: ".",
-      },
-    ],
-  },
-
-  linux: {
-    target: ["deb", "rpm"],
-    artifactName: "MullvadVPN-${version}_${arch}.${ext}",
-    category: "Network",
-    icon: distAssets("icon.icns"),
-    extraFiles: [
-      { from: distAssets("linux/mullvad-gui-launcher.sh"), to: "." },
-    ],
-    extraResources: [
-      { from: distAssets("mullvad-problem-report"), to: "." },
-      { from: distAssets("mullvad-daemon"), to: "." },
-      { from: distAssets("mullvad-setup"), to: "." },
-      { from: distAssets("libtalpid_openvpn_plugin.so"), to: "." },
-      {
-        from: distAssets("binaries/x86_64-unknown-linux-gnu/openvpn"),
-        to: ".",
-      },
-      {
-        from: distAssets("binaries/x86_64-unknown-linux-gnu/sslocal"),
-        to: ".",
-      },
-      { from: distAssets("linux/mullvad-daemon.conf"), to: "." },
-      { from: distAssets("linux/mullvad-daemon.service"), to: "." },
-    ],
-  },
-
-  deb: {
-    fpm: [
-      "--no-depends",
-      "--version",
-      getDebVersion(),
-      "--before-install",
-      distAssets("linux/before-install.sh"),
-      "--before-remove",
-      distAssets("linux/before-remove.sh"),
-      "--config-files",
-      "/opt/Mullvad VPN/resources/mullvad-daemon.service",
-      "--config-files",
-      "/opt/Mullvad VPN/resources/mullvad-daemon.conf",
-      distAssets("mullvad") + "=/usr/bin/",
-      distAssets("mullvad-exclude") + "=/usr/bin/",
-      distAssets("linux/problem-report-link") +
-        "=/usr/bin/mullvad-problem-report",
-      distAssets("shell-completions/mullvad.bash") +
-        "=/usr/share/bash-completion/completions/mullvad",
-      distAssets("shell-completions/_mullvad") +
-        "=/usr/local/share/zsh/site-functions/_mullvad",
-      distAssets("shell-completions/mullvad.fish") +
-        "=/usr/share/fish/vendor_completions.d/mullvad.fish",
-    ],
-    afterInstall: distAssets("linux/after-install.sh"),
-    afterRemove: distAssets("linux/after-remove.sh"),
-  },
-
-  rpm: {
-    fpm: [
-      "--before-install",
-      distAssets("linux/before-install.sh"),
-      "--before-remove",
-      distAssets("linux/before-remove.sh"),
-      "--rpm-posttrans",
-      distAssets("linux/post-transaction.sh"),
-      "--config-files",
-      "/opt/Mullvad VPN/resources/mullvad-daemon.service",
-      "--config-files",
-      "/opt/Mullvad VPN/resources/mullvad-daemon.conf",
-      distAssets("mullvad") + "=/usr/bin/",
-      distAssets("mullvad-exclude") + "=/usr/bin/",
-      distAssets("linux/problem-report-link") +
-        "=/usr/bin/mullvad-problem-report",
-      distAssets("shell-completions/mullvad.bash") +
-        "=/usr/share/bash-completion/completions/mullvad",
-      distAssets("shell-completions/_mullvad") +
-        "=/usr/share/zsh/site-functions/_mullvad",
-      distAssets("shell-completions/mullvad.fish") +
-        "=/usr/share/fish/vendor_completions.d/mullvad.fish",
-    ],
-    afterInstall: distAssets("linux/after-install.sh"),
-    afterRemove: distAssets("linux/after-remove.sh"),
-    depends: ["libXScrnSaver", "libnotify", "libnsl", "dbus-libs"],
-  },
 };
 
-const config2 = {
-  productName: "Anysphere",
-  appId: "co.anysphere.Anysphere",
-  asar: true,
-  asarUnpack: "**\\*.{node,dll}",
-  files: ["dist", "node_modules", "package.json"],
-  afterSign: "helpers/scripts/notarize.js",
-  mac: {
-    target: {
-      target: "default",
-      arch: ["arm64", "x64"],
+function package_mac() {
+  const app_out_dirs: string[] = [];
+
+  return builder.build({
+    targets: builder.Platform.MAC.createTarget(),
+    config: {
+      ...config,
+      afterPack: (context: AfterPackContext) => {
+        config.afterPack?.(context);
+
+        app_out_dirs.push(context.appOutDir);
+        return Promise.resolve();
+      },
+      afterAllArtifactBuild: async (buildResult: BuildResult) => {
+        if (!process.env.MAC_DONT_NOTARIZE) {
+          await notarize_mac(buildResult.artifactPaths[0]);
+        }
+
+        for (const dir of app_out_dirs) {
+          try {
+            await fs.promises.rm(dir, { recursive: true });
+          } catch {}
+        }
+        return [];
+      },
+      afterSign: async (context: AfterPackContext) => {
+        const out_dir = context.appOutDir;
+        app_out_dirs.push(out_dir);
+
+        if (!process.env.MAC_DONT_NOTARIZE) {
+          const appName = context.packager.appInfo.productFilename;
+          await notarize_mac(path.join(out_dir, `${appName}.app`));
+        }
+      },
     },
-    type: "distribution",
-    hardenedRuntime: true,
-    entitlements: "assets/entitlements.mac.plist",
-    entitlementsInherit: "assets/entitlements.mac.plist",
-    gatekeeperAssess: false,
-  },
-  dmg: {
-    contents: [
-      {
-        x: 130,
-        y: 220,
-      },
-      {
-        x: 410,
-        y: 220,
-        type: "link",
-        path: "/Applications",
-      },
-    ],
-  },
-  win: {
-    target: ["nsis"],
-  },
-  linux: {
-    target: ["AppImage"],
-    category: "Development",
-  },
-  directories: {
-    app: "release/app",
-    buildResources: "assets",
-    output: "release/build",
-  },
-  extraResources: ["./assets/**"],
-};
+  });
+}
+
+function notarize_mac(app_path: string) {
+  if (
+    !process.env.MAC_NOTARIZE_USERNAME ||
+    !process.env.MAC_NOTARIZE_PASSWORD
+  ) {
+    console.error(
+      "ERROR: MAC_NOTARIZE_USERNAME and MAC_NOTARIZE_PASSWORD must be set"
+    );
+    return;
+  }
+  console.log("Notarizing " + app_path);
+  return notarize({
+    // tool: "notarytool",
+    appPath: app_path,
+    appBundleId: config.appId,
+    appleId: process.env.MAC_NOTARIZE_USERNAME,
+    appleIdPassword: process.env.MAC_NOTARIZE_PASSWORD,
+  });
+}
+
+package_mac();
