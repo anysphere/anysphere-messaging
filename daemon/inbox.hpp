@@ -36,5 +36,7 @@ class Inbox {
  private:
   const string saved_file_address;
   // maps (friend_name, id) to chunks!
-  std::unordered_map<pair<string, uint32_t>, vector<string>> inbox;
+  using K = std::pair<string, uint32_t>;
+  using K_hash = absl::Hash<K>;
+  std::unordered_map<K, vector<string>, K_hash> inbox;
 };

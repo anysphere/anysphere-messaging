@@ -5,27 +5,15 @@ package(
 )
 
 cc_library(
-    name = "config_lib",
-    srcs = ["config.cc"],
+    name = "base_lib",
+    srcs = ["config.cc", "crypto.cc"],
     hdrs = [
         "config.hpp",
         "constants.hpp",
+        "crypto.hpp"
     ],
     linkstatic = True,
     deps = [
-        "//asphr:asphr_lib",
-        "//asphr/pir/fast_pir:fast_pir_lib",
-        "//client/client_lib",
-    ],
-)
-
-cc_library(
-    name = "crypto_lib",
-    srcs = ["crypto.cc"],
-    hdrs = ["crypto.hpp"],
-    linkstatic = True,
-    deps = [
-        ":config_lib",
         "//asphr:asphr_lib",
         "//asphr/pir/fast_pir:fast_pir_lib",
         "//client/client_lib",
@@ -39,7 +27,7 @@ cc_test(
     size = "small",
     srcs = ["crypto_test.cc"],
     deps = [
-        ":crypto_lib",
+        ":base_lib",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -55,8 +43,7 @@ cc_library(
     ],
     linkstatic = True,
     deps = [
-        ":config_lib",
-        ":crypto_lib",
+        ":base_lib",
         "//asphr:asphr_lib",
         "//asphr/pir/fast_pir:fast_pir_lib",
         "//schema:daemon_cc_grpc",
@@ -80,8 +67,7 @@ cc_library(
     ],
     linkstatic = True,
     deps = [
-        ":config_lib",
-        ":crypto_lib",
+        ":base_lib",
         "//asphr:asphr_lib",
         "//asphr/pir/fast_pir:fast_pir_lib",
         "//schema:message_proto_cc",

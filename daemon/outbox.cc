@@ -31,7 +31,7 @@ auto read_outbox_json(const string& file_address) -> asphr::json {
         std::filesystem::path(file_address).parent_path().u8string();
     std::filesystem::create_directories(dir_path);
     cout << "creating new outbox asphr::json!" << endl;
-    asphr::json j = {"outbox", {}};
+    asphr::json j = {{"outbox", {}}};
     std::ofstream o(file_address);
     o << std::setw(4) << j.dump(4) << std::endl;
   }

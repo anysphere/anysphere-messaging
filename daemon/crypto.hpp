@@ -25,7 +25,7 @@ class Crypto {
       throw std::runtime_error("sodium_init failed");
     }
   }
-
+  // Generates a new keypair in the format <public_key, private_key>.
   auto generate_keypair() const -> std::pair<string, string>;
 
   auto generate_friend_key(const string& my_public_key, int index) const

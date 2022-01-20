@@ -2,6 +2,7 @@
 #include "config.hpp"
 
 #include "client/client_lib/client_lib.hpp"
+#include "crypto.hpp"
 
 auto Friend::to_json() -> asphr::json {
   return asphr::json{{"name", name},
@@ -20,6 +21,7 @@ auto Friend::from_json(const asphr::json& j) -> Friend {
   f.read_index = j.at("read_index").get<int>();
   f.write_key = j.at("write_key").get<string>();
   f.read_key = j.at("read_key").get<string>();
+  f.ack_index = j.at("ack_index").get<int>();
   f.enabled = j.at("enabled").get<bool>();
   f.latest_ack_id = j.at("latest_ack_id").get<uint32_t>();
   f.last_receive_id = j.at("last_receive_id").get<uint32_t>();
@@ -87,6 +89,16 @@ Config::Config(const asphr::json& config_json,
                    pir_secret_key);
     Base64::Decode(config_json.at("pir_galois_keys").get<string>(),
                    pir_galois_keys);
+
+    auto crypto = Crypto();
+
+    auto dummy_friend_keypair = crypto.generate_keypair();
+    auto dummy_read_write_keys = crypto.derive_read_write_keys(
+        registrationInfo.public_key, registrationInfo.private_key,
+        dummy_friend_keypair.first);
+
+    dummyMe = Friend("dummyMe", -1, dummy_read_write_keys.first,
+                     dummy_read_write_keys.second, -1, false, 0, 0);
   }
 
   for (auto& friend_json : config_json["friends"]) {
