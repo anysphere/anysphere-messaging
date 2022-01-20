@@ -62,7 +62,7 @@ class FastPIRClient {
         decryptor(sc, secret_key),
         evaluator(sc) {}
 
-  auto query(pir_index_t index, size_t db_rows) -> pir_query_t {
+  auto query(pir_index_t index, size_t db_rows) const -> pir_query_t {
     assert(index < db_rows);
     vector<seal::Serializable<seal::Ciphertext>> query;
     auto seal_db_rows = CEIL_DIV(db_rows, seal_slot_count);
@@ -152,7 +152,7 @@ class FastPIRClient {
   seal::SEALContext sc;
   seal::BatchEncoder batch_encoder;
   // number of slots in the plaintext
-  size_t seal_slot_count;
+  const size_t seal_slot_count;
   seal::SecretKey secret_key;
   Galois_string galois_keys;
   seal::Encryptor encryptor;
