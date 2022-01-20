@@ -19,7 +19,6 @@ push-minimal: minimal-server
 
 package-mac:
 	pushd client/gui
-	npm run update
 	npm run package-mac
 	popd
 	cp -r client/gui/release release
