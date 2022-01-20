@@ -348,5 +348,152 @@ TEST_F(DaemonRpcTest, SendMessage) {
   }
 };
 
+TEST_F(DaemonRpcTest, SendMultipleMessages) {
+  ResetStub();
+
+  auto crypto1 = gen_crypto();
+  auto config1 = gen_config(string(generateTempDir()), generateTempFile());
+  DaemonRpc rpc1(crypto1, config1, stub_);
+  auto crypto2 = gen_crypto();
+  auto config2 = gen_config(string(generateTempDir()), generateTempFile());
+  DaemonRpc rpc2(crypto2, config2, stub_);
+
+  {
+    RegisterUserRequest request;
+    request.set_name("user1local");
+    RegisterUserResponse response;
+    rpc1.RegisterUser(nullptr, &request, &response);
+  }
+  {
+    RegisterUserRequest request;
+    request.set_name("user2local");
+    RegisterUserResponse response;
+    rpc2.RegisterUser(nullptr, &request, &response);
+  }
+
+  string user1_key;
+  string user2_key;
+
+  {
+    GenerateFriendKeyRequest request;
+    request.set_name("user2");
+    GenerateFriendKeyResponse response;
+    rpc1.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_GT(response.key().size(), 0);
+    user1_key = response.key();
+  }
+
+  {
+    GenerateFriendKeyRequest request;
+    request.set_name("user1");
+    GenerateFriendKeyResponse response;
+    rpc2.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_GT(response.key().size(), 0);
+    user2_key = response.key();
+  }
+
+  cout << "user1_key: " << user1_key << endl;
+  cout << "user2_key: " << user2_key << endl;
+
+  {
+    AddFriendRequest request;
+    request.set_name("user2");
+    request.set_key(user2_key);
+    AddFriendResponse response;
+    rpc1.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+  }
+
+  {
+    AddFriendRequest request;
+    request.set_name("user1");
+    request.set_key(user1_key);
+    AddFriendResponse response;
+    rpc2.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+  }
+
+  {
+    SendMessageRequest request;
+    request.set_name("user2");
+    request.set_message("hello from 1 to 2");
+    asphrdaemon::SendMessageResponse response;
+    rpc1.SendMessage(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+  }
+
+  {
+    SendMessageRequest request;
+    request.set_name("user2");
+    request.set_message("hello from 1 to 2, again!!!! :0");
+    asphrdaemon::SendMessageResponse response;
+    rpc1.SendMessage(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+  }
+
+  {
+    process_ui_file(config1.send_file_address(), absl::Time(), stub_, crypto1,
+                    config1);
+    process_ui_file(config2.send_file_address(), absl::Time(), stub_, crypto2,
+                    config2);
+  }
+
+  {
+    retrieve_messages(config1.receive_file_address(), stub_, crypto1, config1);
+    retrieve_messages(config2.receive_file_address(), stub_, crypto2, config2);
+  }
+
+  {
+    GetAllMessagesRequest request;
+    GetAllMessagesResponse response;
+    rpc1.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_EQ(response.messages_size(), 0);
+  }
+
+  {
+    GetAllMessagesRequest request;
+    GetAllMessagesResponse response;
+    rpc2.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_EQ(response.messages_size(), 1);
+    EXPECT_EQ(response.messages(0).sender(), "user1");
+    EXPECT_EQ(response.messages(0).message(), "hello from 1 to 2");
+  }
+
+  {
+    process_ui_file(config1.send_file_address(), absl::Time(), stub_, crypto1,
+                    config1);
+    process_ui_file(config2.send_file_address(), absl::Time(), stub_, crypto2,
+                    config2);
+  }
+
+  {
+    retrieve_messages(config1.receive_file_address(), stub_, crypto1, config1);
+    retrieve_messages(config2.receive_file_address(), stub_, crypto2, config2);
+  }
+
+  {
+    GetAllMessagesRequest request;
+    GetAllMessagesResponse response;
+    rpc1.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_EQ(response.messages_size(), 0);
+  }
+
+  {
+    GetAllMessagesRequest request;
+    GetAllMessagesResponse response;
+    rpc2.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_EQ(response.messages_size(), 2);
+    EXPECT_EQ(response.messages(0).sender(), "user1");
+    EXPECT_EQ(response.messages(0).message(),
+              "hello from 1 to 2, again!!!! :0");
+  }
+};
+
 }  // namespace
 }  // namespace asphr::testing

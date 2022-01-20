@@ -13,6 +13,8 @@ Status ServerRpc<PIR, AccountManager>::Register(
   try {
     // TODO: allocate in a loop
     auto allocation = pir.allocate();
+    auto acks_allocation = pir_acks.allocate();
+    assert(allocation == acks_allocation);
     auto [auth_token, allocation_vec] = account_manager.generate_account(
         registerInfo->public_key(), allocation);
     for (auto& alloc : allocation_vec) {
@@ -62,6 +64,15 @@ Status ServerRpc<PIR, AccountManager>::SendMessage(
 
   pir.set_value(pir_index, pir_value);
 
+  auto acks = sendMessageInfo->acks();
+  if (acks.size() != sizeof(pir_value_t)) {
+    cerr << "incorrect acks size" << endl;
+    return Status(grpc::StatusCode::INVALID_ARGUMENT, "incorrect acks size");
+  }
+  pir_value_t pir_value_acks;
+  std::copy(acks.begin(), acks.end(), pir_value_acks.begin());
+  pir_acks.set_value(pir_index, pir_value_acks);
+
   return Status::OK;
 }
 
@@ -110,6 +121,30 @@ Status ServerRpc<PIR, AccountManager>::ReceiveMessage(
   }
 
   receiveMessageResponse->set_pir_answer(std::move(answer_string));
+
+  pir_answer_t answer_acks;
+  try {
+    answer_acks = pir_acks.get_value_privately(query);
+  } catch (const std::invalid_argument& e) {
+    std::cerr << "invalid_argument: " << e.what() << std::endl;
+    return Status(grpc::StatusCode::INVALID_ARGUMENT, e.what());
+  }
+
+  string answer_acks_string;
+  try {
+    answer_acks_string = answer_acks.serialize_to_string();
+  } catch (const std::runtime_error& e) {
+    std::cerr << "runtime_error: " << e.what() << std::endl;
+    return Status(grpc::StatusCode::INTERNAL, e.what());
+  } catch (const std::invalid_argument& e) {
+    std::cerr << "invalid_argument: " << e.what() << std::endl;
+    return Status(grpc::StatusCode::INVALID_ARGUMENT, e.what());
+  } catch (const std::logic_error& e) {
+    std::cerr << "logic_error: " << e.what() << std::endl;
+    return Status(grpc::StatusCode::INVALID_ARGUMENT, e.what());
+  }
+
+  receiveMessageResponse->set_pir_answer_acks(std::move(answer_acks_string));
 
   return Status::OK;
 }
