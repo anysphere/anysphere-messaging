@@ -17,17 +17,13 @@ push-minimal: minimal-server
 	docker tag minimal-server us-east1-docker.pkg.dev/veil-messenger/server/server
 	docker push us-east1-docker.pkg.dev/veil-messenger/server/server
 
-build-client:
-	bazel build //:asphr-release -c opt
-
-# TODO: add release arguments here to speed up things
-distribute: build-client
-	pushd client/gui2
+package-mac:
+	pushd client/gui
 	npm run update
-	npm run packall
+	npm run package-mac
 	popd
-	cp -r client/gui2/release release
-	echo "Client successfully built!"
+	cp -r client/gui/release release
+	echo "Client successfully built for mac!"
 
 clean:
 	docker rmi -f server
