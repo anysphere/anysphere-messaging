@@ -5,6 +5,7 @@
 # for example, we should stop the daemon if it is running.
 
 LOG_DIR=/var/log/anysphere
+mkdir -p $LOG_DIR
 exec 2>&1 > $LOG_DIR/preinstall.log
 
 echo "hello from anysphere preinstall script!"

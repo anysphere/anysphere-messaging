@@ -5,6 +5,7 @@
 # we also link the CLI to /usr/local/bin
 
 LOG_DIR=/var/log/anysphere
+mkdir -p $LOG_DIR
 exec 2>&1 > $LOG_DIR/postinstall.log
 
 echo "hello from anysphere postinstall script!"
