@@ -14,7 +14,7 @@
   },
   "build": {
     "productName": "Anysphere",
-    "appId": "net.anysphere.Anysphere",
+    "appId": "co.anysphere.Anysphere",
     "asar": true,
     "asarUnpack": "**\\*.{node,dll}",
     "files": [

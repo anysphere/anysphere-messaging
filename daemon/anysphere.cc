@@ -46,6 +46,12 @@ int main(int argc, char** argv) {
 
   Crypto crypto;
 
+  // remove the socket file first
+  remove(socket_address.c_str());
+
+  // make it a socket address!
+  socket_address = StrCat("unix://", socket_address);
+
   // connect to the anysphere servers
   cout << "Client querying server address: " << server_address << std::endl;
   shared_ptr<grpc::Channel> channel =
