@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# preinstall is run before the Mac .pkg installs.
+# here, we should check if a current version exists, and clean it up if it does.
+# for example, we should stop the daemon if it is running.
+
+LOG_DIR=/var/log/anysphere
+exec 2>&1 > $LOG_DIR/preinstall.log
+
+echo "hello from anysphere preinstall script!"

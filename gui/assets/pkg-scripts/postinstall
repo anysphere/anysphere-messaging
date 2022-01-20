@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+# postinstall is run in the Mac .pkg after the installation has gone through
+# here we set up the daemon!
+# we also link the CLI to /usr/local/bin
+
+LOG_DIR=/var/log/anysphere
+exec 2>&1 > $LOG_DIR/postinstall.log
+
+echo "hello from anysphere postinstall script!"
+
+# TODO: DO NOT RUN THIS AS ROOT
+PLIST="$(cat << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>Label</key>
+		<string>co.anysphere.anysphered</string>
+		<key>Program</key>
+		<string>$INSTALL_DIR/Anysphere.app/Contents/Resources/anysphered</string>
+		<key>RunAtLoad</key>
+		<true/>
+        <key>StandardOutPath</key>
+        <string>$LOG_DIR/anysphered.log</string>
+        <key>StandardErrorPath</key>
+        <string>$LOG_DIR/anysphered.err</string>
+	</dict>
+</plist>
+EOF
+)"
+
+PLIST_PATH="/Library/LaunchDaemons/co.anysphere.anysphered.plist"
+echo "$PLIST" > $PLIST_PATH
+chmod 644 $PLIST_PATH
+launchctl load -w $PLIST_PATH
+
+mkdir -p /usr/local/bin
+ln -sf "$INSTALL_DIR/Anysphere.app/Contents/Resources/anysphere" /usr/local/bin/anysphere
