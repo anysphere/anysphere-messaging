@@ -2,7 +2,7 @@
 
 #include "asphr/asphr.hpp"
 #include "client/daemon/daemon_rpc.hpp"
-#include "client/daemon/ui_msg.hpp"
+#include "client/daemon/transmitter.hpp"
 #include "server/pir/fast_pir/fastpir.hpp"
 #include "server/src/server_rpc.hpp"
 
@@ -236,9 +236,11 @@ TEST_F(DaemonRpcTest, SendMessage) {
   auto crypto1 = gen_crypto();
   auto config1 = gen_config(string(generateTempDir()), generateTempFile());
   DaemonRpc rpc1(crypto1, config1, stub_);
+  Transmitter t1(crypto1, config1, stub_);
   auto crypto2 = gen_crypto();
   auto config2 = gen_config(string(generateTempDir()), generateTempFile());
   DaemonRpc rpc2(crypto2, config2, stub_);
+  Transmitter t2(crypto2, config2, stub_);
 
   {
     RegisterUserRequest request;
@@ -316,15 +318,13 @@ TEST_F(DaemonRpcTest, SendMessage) {
   }
 
   {
-    process_ui_file(config1.send_file_address(), absl::Time(), stub_, crypto1,
-                    config1);
-    process_ui_file(config2.send_file_address(), absl::Time(), stub_, crypto2,
-                    config2);
+    t1.send_messages();
+    t2.send_messages();
   }
 
   {
-    retrieve_messages(config1.receive_file_address(), stub_, crypto1, config1);
-    retrieve_messages(config2.receive_file_address(), stub_, crypto2, config2);
+    t1.retrieve_messages();
+    t2.retrieve_messages();
   }
 
   {
@@ -354,9 +354,11 @@ TEST_F(DaemonRpcTest, SendMultipleMessages) {
   auto crypto1 = gen_crypto();
   auto config1 = gen_config(string(generateTempDir()), generateTempFile());
   DaemonRpc rpc1(crypto1, config1, stub_);
+  Transmitter t1(crypto1, config1, stub_);
   auto crypto2 = gen_crypto();
   auto config2 = gen_config(string(generateTempDir()), generateTempFile());
   DaemonRpc rpc2(crypto2, config2, stub_);
+  Transmitter t2(crypto2, config2, stub_);
 
   {
     RegisterUserRequest request;
@@ -434,15 +436,13 @@ TEST_F(DaemonRpcTest, SendMultipleMessages) {
   }
 
   {
-    process_ui_file(config1.send_file_address(), absl::Time(), stub_, crypto1,
-                    config1);
-    process_ui_file(config2.send_file_address(), absl::Time(), stub_, crypto2,
-                    config2);
+    t1.send_messages();
+    t2.send_messages();
   }
 
   {
-    retrieve_messages(config1.receive_file_address(), stub_, crypto1, config1);
-    retrieve_messages(config2.receive_file_address(), stub_, crypto2, config2);
+    t1.retrieve_messages();
+    t2.retrieve_messages();
   }
 
   {
@@ -464,15 +464,13 @@ TEST_F(DaemonRpcTest, SendMultipleMessages) {
   }
 
   {
-    process_ui_file(config1.send_file_address(), absl::Time(), stub_, crypto1,
-                    config1);
-    process_ui_file(config2.send_file_address(), absl::Time(), stub_, crypto2,
-                    config2);
+    t1.send_messages();
+    t2.send_messages();
   }
 
   {
-    retrieve_messages(config1.receive_file_address(), stub_, crypto1, config1);
-    retrieve_messages(config2.receive_file_address(), stub_, crypto2, config2);
+    t1.retrieve_messages();
+    t2.retrieve_messages();
   }
 
   {
