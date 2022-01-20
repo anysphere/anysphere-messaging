@@ -4,8 +4,19 @@
 #include "crypto.hpp"
 #include "schema/server.grpc.pb.h"
 
+struct InboxMessage {
+  std::string message;
+  std::string friend_name;
+  uint32_t id;
+};
+
 class Inbox {
  public:
+  Inbox(const string& file_address);
+  Inbox(const asphr::json& serialized_json, const string& file_address);
+
+  auto save() noexcept(false) -> void;
+
   auto get_encrypted_acks(const std::unordered_map<string, Friend>& friendTable,
                           const Crypto& crypto, const Friend& dummyMe)
       -> asphr::StatusOr<pir_value_t>;
@@ -20,5 +31,10 @@ class Inbox {
                        const asphrserver::ReceiveMessageResponse& reply,
                        Friend& friend_info, const Crypto& crypto,
                        string& previous_success_receive_friend)
-      -> std::optional<asphrclient::Message>;
+      -> std::optional<InboxMessage>;
+
+ private:
+  const string saved_file_address;
+  // maps (friend_name, id) to chunks!
+  std::unordered_map<pair<string, uint32_t>, vector<string>> inbox;
 };

@@ -5,10 +5,26 @@
 #include "schema/message.pb.h"
 
 struct MessageToSend {
-  std::string to;
-  asphrclient::Message m;
-  // this is the same id as m.id but in a more accessible format
+  string to;
   uint32_t id;
+  string msg;
+  bool chunked;
+  uint32_t num_chunks;
+  uint32_t chunks_start_id;
+
+  auto to_proto() -> asphrclient::Message {
+    asphrclient::Message message;
+    message.set_id(id);
+    message.set_msg(msg);
+    if (chunked) {
+      message.set_num_chunks(num_chunks);
+      message.set_chunks_start_id(chunks_start_id);
+    }
+    return message;
+  }
+
+  auto to_json() -> asphr::json;
+  static auto from_json(const asphr::json& j) -> MessageToSend;
 };
 
 // Outbox is ONLY concerned with outgoing messages.
@@ -33,6 +49,7 @@ class Outbox {
                        const Friend& dummyMe) -> MessageToSend;
 
  private:
+  const string saved_file_address;
   // stores a mapping from friend -> message to send. the vector is sorted by
   // ID, such that the first element has the lowest ID, i.e., is the first that
   // should be sent

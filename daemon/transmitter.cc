@@ -9,6 +9,7 @@ Transmitter::Transmitter(const Crypto& crypto, Config& config,
     : crypto(crypto),
       config(config),
       stub(stub),
+      inbox(config.data_dir / "inbox.json"),
       outbox(config.data_dir / "outbox.json") {}
 
 auto Transmitter::retrieve_messages() -> void {
@@ -69,14 +70,14 @@ auto Transmitter::retrieve_messages() -> void {
                               previous_success_receive_friend);
     if (message_opt.has_value()) {
       auto message = message_opt.value();
-      cout << "actual message: " << message.msg() << endl;
+      cout << "actual message: " << message.message << endl;
       auto file =
           std::ofstream(config.receive_file_address(), std::ios_base::app);
 
       auto time = absl::FormatTime(absl::Now(), absl::UTCTimeZone());
-      json jmsg = {{"from", friend_info.name},
+      json jmsg = {{"from", message.friend_name},
                    {"timestamp", time},
-                   {"message", message.msg()},
+                   {"message", message.message},
                    {"type", "MESSAGE_RECEIVED"}};
       if (file.is_open()) {
         file << std::setw(4) << jmsg.dump() << std::endl;
@@ -92,7 +93,7 @@ auto Transmitter::retrieve_messages() -> void {
 }
 
 auto Transmitter::send_messages() -> void {
-    if (!config.has_registered) {
+  if (!config.has_registered) {
     cout << "hasn't registered yet, so don't send a message" << endl;
     return;
   }
@@ -128,7 +129,7 @@ auto Transmitter::send_messages() -> void {
   just_sent_friend = friend_info.name;
 
   auto pir_value_message_status =
-      crypto.encrypt_send(messageToSend.m, friend_info);
+      crypto.encrypt_send(messageToSend.to_proto(), friend_info);
   if (!pir_value_message_status.ok()) {
     cout << "encryption failed; not doing anything with message"
          << pir_value_message_status.status() << endl;
