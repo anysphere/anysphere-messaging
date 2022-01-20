@@ -11,6 +11,7 @@
 #include <thread>
 #include <tuple>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -52,6 +53,9 @@ using absl::Status;
 using absl::StatusOr;
 using absl::StrCat;
 using absl::Time;
+
+using std::unordered_map;
+using std::unordered_set;
 }  // namespace asphr
 
 #define CEIL_DIV(a, b) (((a) + (b)-1) / (b))
