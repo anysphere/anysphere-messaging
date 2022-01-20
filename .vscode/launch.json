@@ -77,6 +77,29 @@
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
+            "name": "Debug daemon test (no prelaunch)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-bin/client/daemon/test",
+            "args": [
+                "--gtest_break_on_failure",
+                "--gtest_catch_exceptions=0"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
             "name": "Debug daemon test Mac",
             "type": "cppdbg",
             "request": "launch",
