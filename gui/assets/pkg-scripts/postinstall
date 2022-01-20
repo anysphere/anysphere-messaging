@@ -4,15 +4,21 @@
 # here we set up the daemon!
 # we also link the CLI to /usr/local/bin
 
-LOG_DIR=/var/log/anysphere
-mkdir -p $LOG_DIR
-exec 2>&1 > $LOG_DIR/postinstall.log
+LOG_DIR=""
+# set to XDG_CACHE_HOME/logs if it exists, otherwise use .anysphere directory as always
+if [ -d "${XDG_CACHE_HOME}" ]; then
+    LOG_DIR="${XDG_CACHE_HOME}/anysphere/logs"
+else
+    LOG_DIR="${HOME}/.anysphere/cache/logs"
+fi
+
+mkdir -p "$LOG_DIR"
+exec 2>&1 > "$LOG_DIR"/postinstall.log
 
 echo "hello from anysphere postinstall script!"
 
 INSTALL_DIR=$2
 
-# TODO: DO NOT RUN THIS AS ROOT
 PLIST="$(cat << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -33,10 +39,13 @@ PLIST="$(cat << EOF
 EOF
 )"
 
-PLIST_PATH="/Library/LaunchDaemons/co.anysphere.anysphered.plist"
-echo "$PLIST" > $PLIST_PATH
-chmod 644 $PLIST_PATH
-launchctl load -w $PLIST_PATH
+# launch as user
+uid=$(id -u "$USER")
+echo "user: $USER, uid: $uid"
+PLIST_PATH="$HOME/Library/LaunchAgents/co.anysphere.anysphered.plist"
+echo "$PLIST" > "$PLIST_PATH"
+chmod 644 "$PLIST_PATH"
+launchctl asuser "$uid" launchctl load "$PLIST_PATH"
 
 mkdir -p /usr/local/bin
 ln -sf "$INSTALL_DIR/Anysphere.app/Contents/Resources/anysphere" /usr/local/bin/anysphere

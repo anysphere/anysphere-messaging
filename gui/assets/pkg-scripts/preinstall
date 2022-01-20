@@ -4,8 +4,15 @@
 # here, we should check if a current version exists, and clean it up if it does.
 # for example, we should stop the daemon if it is running.
 
-LOG_DIR=/var/log/anysphere
-mkdir -p $LOG_DIR
-exec 2>&1 > $LOG_DIR/preinstall.log
+LOG_DIR=""
+# set to XDG_CACHE_HOME/logs if it exists, otherwise use .anysphere directory as always
+if [ -d "${XDG_CACHE_HOME}" ]; then
+    LOG_DIR="${XDG_CACHE_HOME}/anysphere/logs"
+else
+    LOG_DIR="${HOME}/.anysphere/cache/logs"
+fi
+
+mkdir -p "$LOG_DIR"
+exec 2>&1 > "$LOG_DIR"/preinstall.log
 
 echo "hello from anysphere preinstall script!"
