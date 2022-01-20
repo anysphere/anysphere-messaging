@@ -10,8 +10,6 @@
 #include "config.hpp"
 #include "schema/message.pb.h"
 
-using client::Message;
-
 using std::string;
 
 /* Crypto implements an IND-CCA2 secure scheme.
@@ -52,10 +50,18 @@ class Crypto {
   // we need key privacy. Block-cipher based symmetric-key encryption
   // schemes do support this out of the box, but it is important to keep in
   // mind because it is a somewhat nonstandard requirement.
-  auto encrypt_send(const Message& message_in, const Friend& friend_info) const
+  auto encrypt_send(const asphrclient::Message& message_in,
+                    const Friend& friend_info) const
       -> asphr::StatusOr<pir_value_t>;
 
   auto decrypt_receive(const pir_value_t& ciphertext,
                        const Friend& friend_info) const
-      -> asphr::StatusOr<Message>;
+      -> asphr::StatusOr<asphrclient::Message>;
+
+  // encrypt_ack encrypts the ack_id to the friend
+  auto encrypt_ack(uint32_t ack_id, const Friend& friend_info) const
+      -> asphr::StatusOr<string>;
+  // decrypt_ack undoes encrypt_ack
+  auto decrypt_ack(const string& ciphertext, const Friend& friend_info) const
+      -> asphr::StatusOr<uint32_t>;
 };

@@ -1,10 +1,19 @@
 #pragma once
 
 #include "asphr/asphr.hpp"
+#include "config.hpp"
 #include "schema/message.pb.h"
+
+struct MessageToSend {
+  std::string to;
+  asphrclient::Message m;
+  // this is the same id as m.id but in a more accessible format
+  uint32_t id;
+};
 
 // Outbox is ONLY concerned with outgoing messages.
 class Outbox {
+ public:
   Outbox(const string& file_address);
   Outbox(const asphr::json& serialized_json, const string& file_address);
 
@@ -12,10 +21,20 @@ class Outbox {
 
   // the message here can be any size! Outbox takes care of splitting it into
   // chunks.
-  auto add(const string& message, const string& friend_name) noexcept -> void;
-
-  auto ack(const string& friend_name, const int ack_id) noexcept -> void;
+  // modifies the friend to update the last_send_id
+  auto add(const string& message, Friend& friend_info) noexcept -> void;
 
   // returns a pair of (message, to_friend_name)
-  auto message_to_send() -> pair<asphrclient::Message, string>;
-}
+  // the prioritization of messages guarantees eventual delivery
+  // only returns a message sent to a friend if the friend is enabled
+  // if there are no real messages, returns a message sent to
+  // registrationInfo.name
+  auto message_to_send(const std::unordered_map<string, Friend>& friendTable,
+                       const Friend& dummyMe) -> MessageToSend;
+
+ private:
+  // stores a mapping from friend -> message to send. the vector is sorted by
+  // ID, such that the first element has the lowest ID, i.e., is the first that
+  // should be sent
+  std::unordered_map<string, std::vector<MessageToSend>> outbox;
+};

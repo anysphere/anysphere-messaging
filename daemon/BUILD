@@ -9,6 +9,7 @@ cc_library(
     srcs = ["config.cc"],
     hdrs = [
         "config.hpp",
+        "constants.hpp",
     ],
     linkstatic = True,
     deps = [
@@ -33,15 +34,24 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "crypto_test",
+    size = "small",
+    srcs = ["crypto_test.cc"],
+    deps = [
+        ":crypto_lib",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
 cc_library(
     name = "daemon_lib",
     srcs = [
         "daemon_rpc.cc",
+        "utils.hpp",
     ],
     hdrs = [
         "daemon_rpc.hpp",
-        "ui_msg.hpp",
-        "utils.hpp",
     ],
     linkstatic = True,
     deps = [
@@ -50,6 +60,30 @@ cc_library(
         "//asphr:asphr_lib",
         "//asphr/pir/fast_pir:fast_pir_lib",
         "//schema:daemon_cc_grpc",
+        "//schema:message_proto_cc",
+        "//schema:server_cc_grpc",
+        "@com_github_grpc_grpc//:grpc++",
+    ],
+)
+
+cc_library(
+    name = "transmitter_lib",
+    srcs = [
+        "inbox.cc",
+        "outbox.cc",
+        "transmitter.cc",
+    ],
+    hdrs = [
+        "inbox.hpp",
+        "outbox.hpp",
+        "transmitter.hpp",
+    ],
+    linkstatic = True,
+    deps = [
+        ":config_lib",
+        ":crypto_lib",
+        "//asphr:asphr_lib",
+        "//asphr/pir/fast_pir:fast_pir_lib",
         "//schema:message_proto_cc",
         "//schema:server_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
@@ -66,6 +100,7 @@ cc_binary(
     visibility = ["//:__pkg__"],
     deps = [
         ":daemon_lib",
+        ":transmitter_lib",
         "//client/client_lib",
     ],
 )
@@ -77,6 +112,7 @@ cc_test(
     linkstatic = True,
     deps = [
         ":daemon_lib",
+        ":transmitter_lib",
         "@com_google_googletest//:gtest_main",
     ],
 )

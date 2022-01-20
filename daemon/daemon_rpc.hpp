@@ -4,11 +4,10 @@
 #include "crypto.hpp"
 #include "schema/daemon.grpc.pb.h"
 #include "schema/server.grpc.pb.h"
-#include "utils.hpp"
 
 class DaemonRpc final : public asphrdaemon::Daemon::Service {
  public:
-  DaemonRpc(Crypto& crypto, Config& config,
+  DaemonRpc(const Crypto& crypto, Config& config,
             unique_ptr<asphrserver::Server::Stub>& stub)
       : crypto(crypto), config(config), stub(stub) {}
 

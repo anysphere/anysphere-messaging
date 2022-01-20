@@ -1,5 +1,7 @@
 #include "crypto.hpp"
 
+#include "constants.hpp"
+
 auto Crypto::generate_keypair() const -> std::pair<string, string> {
   unsigned char public_key[crypto_kx_PUBLICKEYBYTES];
   unsigned char secret_key[crypto_kx_SECRETKEYBYTES];
@@ -100,7 +102,7 @@ auto Crypto::derive_read_write_keys(string my_public_key, string my_private_key,
   return std::make_pair(read_key, write_key);
 }
 
-auto Crypto::encrypt_send(const Message& message_in,
+auto Crypto::encrypt_send(const asphrclient::Message& message_in,
                           const Friend& friend_info) const
     -> asphr::StatusOr<pir_value_t> {
   auto message = message_in;
@@ -115,7 +117,7 @@ auto Crypto::encrypt_send(const Message& message_in,
   unsigned long long ciphertext_len;
 
   // truncate the message if it is too long
-  // TODO: split into messages
+  // this should never happne, but just in case
   if (message.msg().size() > GUARANTEED_SINGLE_MESSAGE_SIZE) {
     message.mutable_msg()->resize(GUARANTEED_SINGLE_MESSAGE_SIZE);
   }
@@ -142,8 +144,6 @@ auto Crypto::encrypt_send(const Message& message_in,
 
   assert(padded_plaintext_len == plaintext_max_len);
   assert(padded_plaintext_len == plaintext.size());
-
-  // TODO: send acks.
 
   // encrypt it!
 
@@ -173,7 +173,7 @@ auto Crypto::encrypt_send(const Message& message_in,
 
 auto Crypto::decrypt_receive(const pir_value_t& ciphertext,
                              const Friend& friend_info) const
-    -> asphr::StatusOr<Message> {
+    -> asphr::StatusOr<asphrclient::Message> {
   auto ciphertext_len =
       MESSAGE_SIZE - crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
   string ciphertext_str = "";
@@ -219,10 +219,86 @@ auto Crypto::decrypt_receive(const pir_value_t& ciphertext,
 
   plaintext.resize(unpadded_plaintext_len);
 
-  Message message;
+  asphrclient::Message message;
   if (!message.ParseFromString(plaintext)) {
     return absl::UnknownError("failed to parse message");
   }
 
   return message;
+}
+
+// encrypt_ack encrypts the ack_id to the friend
+auto Crypto::encrypt_ack(uint32_t ack_id, const Friend& friend_info) const
+    -> asphr::StatusOr<string> {
+  if (friend_info.write_key.size() !=
+      crypto_aead_xchacha20poly1305_ietf_KEYBYTES) {
+    return asphr::InvalidArgumentError(
+        "friend_info.write_key is not the correct size");
+  }
+  std::string ciphertext;
+  ciphertext.resize(ENCRYPTED_ACKING_BYTES);
+  unsigned long long ciphertext_len;
+
+  std::string plaintext = reinterpret_cast<char*>(&ack_id);
+  auto plaintext_len = plaintext.size();
+  assert(plaintext_len == ACKING_BYTES);
+
+  unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+  randombytes_buf(nonce, sizeof nonce);
+
+  if (crypto_aead_xchacha20poly1305_ietf_encrypt(
+          reinterpret_cast<unsigned char*>(ciphertext.data()), &ciphertext_len,
+          reinterpret_cast<const unsigned char*>(plaintext.data()),
+          plaintext.size(), nullptr, 0, nullptr, nonce,
+          reinterpret_cast<const unsigned char*>(
+              friend_info.write_key.data())) != 0) {
+    return absl::UnknownError("failed to encrypt message");
+  }
+
+  assert(ciphertext_len ==
+         ENCRYPTED_ACKING_BYTES - crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
+
+  for (size_t i = 0; i < crypto_aead_xchacha20poly1305_ietf_NPUBBYTES; i++) {
+    ciphertext[i + ciphertext_len] += nonce[i];
+  }
+
+  return ciphertext;
+}
+// decrypt_ack undoes encrypt_ack
+auto Crypto::decrypt_ack(const string& ciphertext,
+                         const Friend& friend_info) const
+    -> asphr::StatusOr<uint32_t> {
+  if (friend_info.read_key.size() !=
+      crypto_aead_xchacha20poly1305_ietf_KEYBYTES) {
+    return asphr::InvalidArgumentError(
+        "friend_info.read_key is not the correct size");
+  }
+  auto ciphertext_len =
+      ENCRYPTED_ACKING_BYTES - crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
+  string ciphertext_str = "";
+  for (size_t i = 0; i < ciphertext_len; i++) {
+    ciphertext_str += ciphertext[i];
+  }
+  unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+  for (size_t i = 0; i < crypto_aead_xchacha20poly1305_ietf_NPUBBYTES; i++) {
+    nonce[i] = ciphertext[i + ciphertext_len];
+  }
+  std::string plaintext;
+  plaintext.resize(ACKING_BYTES);
+  unsigned long long plaintext_len;
+  if (crypto_aead_xchacha20poly1305_ietf_decrypt(
+          reinterpret_cast<unsigned char*>(plaintext.data()), &plaintext_len,
+          nullptr,
+          reinterpret_cast<const unsigned char*>(ciphertext_str.data()),
+          ciphertext_str.size(), nullptr, 0, nonce,
+          reinterpret_cast<const unsigned char*>(
+              friend_info.read_key.data())) != 0) {
+    return absl::UnknownError("failed to decrypt message");
+  }
+
+  assert(plaintext_len == ACKING_BYTES);
+
+  uint32_t ack_id = reinterpret_cast<uint32_t*>(plaintext.data())[0];
+
+  return ack_id;
 }

@@ -1,6 +1,7 @@
 #include "daemon_rpc.hpp"
 
 #include "google/protobuf/util/time_util.h"
+#include "utils.hpp"
 
 using namespace asphrdaemon;
 
@@ -104,8 +105,7 @@ Status DaemonRpc::GenerateFriendKey(
   auto friend_key =
       crypto.generate_friend_key(config.registrationInfo.public_key, index);
 
-  auto friend_info =
-      Friend{generateFriendKeyRequest->name(), index, -1, "", "", false, 0};
+  auto friend_info = Friend(generateFriendKeyRequest->name());
 
   config.add_friend(friend_info);
 

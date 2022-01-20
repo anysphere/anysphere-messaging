@@ -19,12 +19,11 @@ using json = nlohmann::json;
 using absl::StrCat;
 using absl::Time;
 
-// if the message is this size or shorter, it is guaranteed to be sent in a
-// single round. 1+5 is for the uint32 ID, 1+MESSAGE_SIZE is for the header of
-// the string, and 1 + 1 + 5 is for the repeated acks containing at least one
-// element. -1 at the end is for the padding which reserves one byte.
+// MAC bytes
 extern const size_t CRYPTO_ABYTES;
+// nonce bytes
 extern const size_t CRYPTO_NPUBBYTES;
+// the maximum size of a message such that it can be sent in a single message
 extern const size_t GUARANTEED_SINGLE_MESSAGE_SIZE;
 
 auto get_last_line(string filename);

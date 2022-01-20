@@ -4,21 +4,25 @@
 #include "asphr/pir/fast_pir/fast_pir_client.hpp"
 
 struct Friend {
+  Friend() = default;
+  Friend(const string& name) : name(name), enabled(false) {}
+  Friend(const Friend& f) = default;
+  Friend& operator=(const Friend& f) = default;
+
   string name;
-  int write_index;
   int read_index;
   string write_key;
   string read_key;
+  // ack_index is the index into the acking data for this friend
+  // this NEEDS to be unique for every friend!!
+  int ack_index;
   bool enabled;
   // latest_ack is the latest ID that was ACKed by the friend
   // any message with ID > latest_ack_id MUST be retried
-  int latest_ack_id;
-  // last_send_index is the ID of the last message that was added to the send
-  // queue for this friend. the messages in the queue have not yet been ACKed.
-  int last_send_id;
+  uint32_t latest_ack_id;
   // last_receive_id is the value that should be ACKed. we acknowledge that we
   // have received all IDs up to and including this value.
-  int last_receive_id;
+  uint32_t last_receive_id;
 
   auto to_json() -> asphr::json;
   static auto from_json(const asphr::json& j) -> Friend;
@@ -35,6 +39,7 @@ struct RegistrationInfo {
   static auto from_json(const asphr::json& j) -> RegistrationInfo;
 };
 
+// TODO: MUTEX GUARD THIS CONFIG!!!
 class Config {
  public:
   Config(const string& config_file_address);
@@ -60,12 +65,15 @@ class Config {
   // store secret key and galois keys for pir
   string pir_secret_key;
   // TODO(sualeh, urgent): make this private
+  // friendTable contains dummyMe!!! dummyMe is always disabled, but be careful!
   std::unordered_map<string, Friend> friendTable;
   string pir_galois_keys;
   // make this a ptr because we want it to possibly be null
   std::unique_ptr<FastPIRClient> pir_client = nullptr;
   // the data dir! user-configurable
   std::filesystem::path data_dir;
+  // me is used whenever we need to encrypt dummy data!
+  Friend dummyMe;
 
  private:
   // it stores its own file address

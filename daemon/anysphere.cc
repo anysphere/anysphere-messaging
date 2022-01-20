@@ -1,7 +1,7 @@
 
 #include "anysphere.hpp"
 
-#include "ui_msg.hpp"
+#include "transmitter.hpp"
 
 int main(int argc, char** argv) {
   std::string server_address(SERVER_ADDRESS);
@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
 
   Config config(config_file_address);
 
-  Crypto crypto;
+  const Crypto crypto;
 
   // remove the socket file first
   remove(socket_address.c_str());
@@ -59,11 +59,8 @@ int main(int argc, char** argv) {
   unique_ptr<asphrserver::Server::Stub> stub =
       asphrserver::Server::NewStub(channel);
 
-  // keep the duration in chrono for thread sleeping.
-  constexpr auto duration = absl::Milliseconds(5000);
-
-  // set the time to 0
-  auto last_ui_timestamp = absl::Time();
+  // TODO: VERIFY AND MAKE SURE CRYPTO, CONFIG, STUB ARE ALL THREADSAFE!!!!!
+  Transmitter transmitter(crypto, config, stub);
 
   // set up the daemon rpc server
   auto daemon = DaemonRpc(crypto, config, stub);
@@ -74,6 +71,9 @@ int main(int argc, char** argv) {
   // start the daemon rpc server
   auto daemon_server = unique_ptr<grpc::Server>(builder.BuildAndStart());
 
+  // keep the duration in chrono for thread sleeping.
+  constexpr auto duration = absl::Milliseconds(5000);
+
   while (true) {
     absl::SleepFor(duration);
     // check for new ui write:
@@ -82,14 +82,8 @@ int main(int argc, char** argv) {
     std::cout << "Client round" << std::endl;
 
     // receive and then send! it is important! 2x speedup
-    cout << "received messages file address: " << config.receive_file_address()
-         << endl;
-    retrieve_messages(config.receive_file_address(), stub, crypto, config);
-    cout << "send messages file address: " << config.send_file_address()
-         << endl;
-    process_ui_file(config.send_file_address(), last_ui_timestamp, stub, crypto,
-                    config);
-    last_ui_timestamp = absl::Now();
+    transmitter.retrieve_messages();
+    transmitter.send_messages();
 
     // sleep for 100ms
   }

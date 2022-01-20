@@ -6,6 +6,10 @@ extern constexpr size_t CRYPTO_ABYTES =
     crypto_aead_xchacha20poly1305_ietf_ABYTES;
 extern constexpr size_t CRYPTO_NPUBBYTES =
     crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
+// if the message is this size or shorter, it is guaranteed to be sent in a
+// single round. 1+5 is for the uint32 ID, 1+MESSAGE_SIZE is for the header of
+// the string, and 1 + 1 + 5 is for the repeated acks containing at least one
+// element. -1 at the end is for the padding which reserves one byte.
 extern constexpr size_t GUARANTEED_SINGLE_MESSAGE_SIZE =
     MESSAGE_SIZE - (1 + 5) -
     (1 +

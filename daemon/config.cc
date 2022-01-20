@@ -5,23 +5,24 @@
 
 auto Friend::to_json() -> asphr::json {
   return asphr::json{{"name", name},
-                     {"write_index", write_index},
                      {"read_index", read_index},
                      {"write_key", write_key},
                      {"read_key", read_key},
+                     {"ack_index", ack_index},
                      {"enabled", enabled},
-                     {"latest_ack", latest_ack}};
+                     {"latest_ack_id", latest_ack_id},
+                     {"last_receive_id", last_receive_id}};
 }
 
 auto Friend::from_json(const asphr::json& j) -> Friend {
   Friend f;
   f.name = j.at("name").get<string>();
-  f.write_index = j.at("write_index").get<int>();
   f.read_index = j.at("read_index").get<int>();
   f.write_key = j.at("write_key").get<string>();
   f.read_key = j.at("read_key").get<string>();
   f.enabled = j.at("enabled").get<bool>();
-  f.latest_ack = j.at("latest_ack").get<int>();
+  f.latest_ack_id = j.at("latest_ack_id").get<uint32_t>();
+  f.last_receive_id = j.at("last_receive_id").get<uint32_t>();
   return f;
 }
 
