@@ -26,4 +26,6 @@ class Transmitter {
   string just_sent_friend;
   string previous_success_receive_friend;
   Time last_ui_timestamp;
+
+  auto check_rep() const noexcept -> void;
 };

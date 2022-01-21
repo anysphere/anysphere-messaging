@@ -10,9 +10,12 @@ Transmitter::Transmitter(const Crypto& crypto, Config& config,
       config(config),
       stub(stub),
       inbox(config.data_dir / "inbox.json"),
-      outbox(config.data_dir / "outbox.json") {}
+      outbox(config.data_dir / "outbox.json") {
+  check_rep();
+}
 
 auto Transmitter::retrieve_messages() -> void {
+  check_rep();
   if (!config.has_registered) {
     cout << "hasn't registered yet, so cannot retrieve messages" << endl;
     return;
@@ -56,6 +59,8 @@ auto Transmitter::retrieve_messages() -> void {
 
   previous_success_receive_friend = "";
 
+  check_rep();
+
   // if dummy, we do not actually care about the answer.
   // we still do the rpc to not leak information.
   if (dummy) {
@@ -91,9 +96,11 @@ auto Transmitter::retrieve_messages() -> void {
   } else {
     cout << status.error_code() << ": " << status.error_message() << endl;
   }
+  check_rep();
 }
 
 auto Transmitter::send_messages() -> void {
+  check_rep();
   if (!config.has_registered) {
     cout << "hasn't registered yet, so don't send a message" << endl;
     return;
@@ -148,6 +155,7 @@ auto Transmitter::send_messages() -> void {
   cout << "Sending message to server: " << endl;
   cout << "index: " << index << endl;
   cout << "authentication_token: " << authentication_token << endl;
+  check_rep();
 
   // call register rpc to send the register request
   asphrserver::SendMessageInfo request;
@@ -179,4 +187,11 @@ auto Transmitter::send_messages() -> void {
     std::cerr << status.error_code() << ": " << status.error_message()
               << " details:" << status.error_details() << std::endl;
   }
+  check_rep();
+}
+
+auto Transmitter::check_rep() const noexcept -> void {
+  assert(&crypto != nullptr);
+  assert(&config != nullptr);
+  assert(&stub != nullptr);
 }
