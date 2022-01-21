@@ -150,7 +150,7 @@ auto Config::save() -> void {
 
 auto Config::has_space_for_friends() -> bool {
   check_rep();
-  return registrationInfo.allocation.size() > friendTable.size();
+  return friendTable.size() < MAX_FRIENDS;
 }
 
 auto Config::add_friend(const Friend& f) -> void {
