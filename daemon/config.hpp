@@ -116,4 +116,6 @@ class Config {
  private:
   // it stores its own file address
   string saved_file_address;
+
+  auto check_rep() const -> void;
 };

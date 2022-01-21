@@ -106,7 +106,7 @@ auto Inbox::update_ack_from_friend(pir_value_t& pir_acks, Friend& friend_info,
       cout << "decryption failed (this is expected!): " << ack.status() << endl;
       continue;
     }
-    if (ack.value() >= friend_info.last_receive_id) {
+    if (ack.value() > friend_info.last_receive_id) {
       friend_info.latest_ack_id = ack.value();
     } else {
       cout << "something weird is going on.... ACKing is older than latest ack "
@@ -187,4 +187,5 @@ auto Inbox::receive_message(FastPIRClient& client,
     inbox.erase(chunk_key);
     return InboxMessage{msg, friend_info.name, message.id()};
   }
+  return std::nullopt;
 }

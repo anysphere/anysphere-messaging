@@ -111,6 +111,8 @@ Config::Config(const asphr::json& config_json,
   }
 
   data_dir = config_json.at("data_dir").get<string>();
+
+  check_rep();
 }
 
 auto Config::save() -> void {
@@ -127,24 +129,31 @@ auto Config::save() -> void {
   }
   std::ofstream o(saved_file_address);
   o << std::setw(4) << config_json.dump(4) << std::endl;
+
+  check_rep();
 }
 
 auto Config::has_space_for_friends() -> bool {
+  check_rep();
   return registrationInfo.allocation.size() > friendTable.size();
 }
 
 auto Config::add_friend(const Friend& f) -> void {
+  check_rep();
   friendTable[f.name] = f;
   Config::save();
+  check_rep();
 }
 
 auto Config::remove_friend(const string& name) -> absl::Status {
+  check_rep();
   if (!friendTable.contains(name)) {
     return absl::Status(absl::StatusCode::kInvalidArgument,
                         "friend does not exist");
   }
   friendTable.erase(name);
   Config::save();
+  check_rep();
   return absl::OkStatus();
 }
 
@@ -153,4 +162,34 @@ auto Config::receive_file_address() -> std::filesystem::path {
 }
 auto Config::send_file_address() -> std::filesystem::path {
   return data_dir / "send.ndjson";
+}
+
+auto Config::check_rep() const -> void {
+  assert(saved_file_address != "");
+  assert(data_dir != "");
+  assert(db_rows > 0);
+
+  assert(friendTable.size() <= MAX_FRIENDS);
+
+  if (has_registered) {
+    assert(registrationInfo.name != "");
+    assert(registrationInfo.public_key.size() == crypto_kx_PUBLICKEYBYTES);
+    assert(registrationInfo.private_key.size() == crypto_kx_SECRETKEYBYTES);
+    assert(registrationInfo.authentication_token.size() > 0);
+    assert(registrationInfo.allocation.size() > 0);
+
+    assert(dummyMe.name == "dummyMe");
+    assert(dummyMe.write_key.size() ==
+           crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
+    assert(dummyMe.read_key.size() ==
+           crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
+    assert(dummyMe.enabled == false);
+
+    assert(pir_secret_key != "");
+    assert(pir_galois_keys != "");
+    assert(pir_client != nullptr);
+  } else {
+    assert(dummyMe.write_key.size() == 0);
+    assert(dummyMe.read_key.size() == 0);
+  }
 }

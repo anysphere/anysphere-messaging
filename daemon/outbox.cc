@@ -4,7 +4,7 @@
 
 auto MessageToSend::from_json(const asphr::json& json) -> MessageToSend {
   MessageToSend message;
-  message.to = json.at("to").get<string>();
+  message.to = Friend::from_json(json.at("to"));
   message.id = json.at("id").get<uint32_t>();
   message.msg = json.at("msg").get<string>();
   message.chunked = json.at("chunked").get<bool>();
@@ -15,7 +15,7 @@ auto MessageToSend::from_json(const asphr::json& json) -> MessageToSend {
 
 auto MessageToSend::to_json() -> asphr::json {
   return asphr::json{
-      {"to", to},
+      {"to", to.to_json()},
       {"id", id},
       {"msg", msg},
       {"chunked", chunked},
@@ -46,10 +46,10 @@ Outbox::Outbox(const asphr::json& serialized_json, const string& file_address)
     : saved_file_address(file_address) {
   for (auto& messageJson : serialized_json.at("outbox")) {
     auto message = MessageToSend::from_json(messageJson);
-    if (outbox.contains(message.to)) {
-      outbox[message.to].push_back(message);
+    if (outbox.contains(message.to.name)) {
+      outbox[message.to.name].push_back(message);
     } else {
-      outbox[message.to] = {message};
+      outbox[message.to.name] = {message};
     }
   }
   // sort the outbox list
