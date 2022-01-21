@@ -8,8 +8,6 @@ import { notarize } from "electron-notarize";
 // environment variable options:
 // - MAC_UNIVERSAL: true for universal, false for build for current architecture only
 // - MAC_DONT_NOTARIZE: true to skip notarization
-// - MAC_NOTARIZE_USERNAME: apple ID for notarization
-// - MAC_NOTARIZE_PASSWORD: apple ID app-specific password (NOT THE APPLE ID PASSWORD PLS) for notarization
 require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
 
 function base_dir(rel: string) {
@@ -29,7 +27,7 @@ function binaries_dir(rel: string) {
 }
 
 function mac_arch() {
-  if (process.env.MAC_UNIVERSAL) {
+  if (process.env.MAC_UNIVERSAL === "true") {
     return "universal" as ArchType;
   } else {
     return undefined; // build for current architecture
@@ -110,7 +108,7 @@ function package_mac() {
         return Promise.resolve();
       },
       afterAllArtifactBuild: async (buildResult: BuildResult) => {
-        if (!process.env.MAC_DONT_NOTARIZE) {
+        if (process.env.MAC_DONT_NOTARIZE !== "true") {
           await notarize_mac(buildResult.artifactPaths[0]);
         } else {
           console.log("WARNING: Skipping notarization. Don't publish this!!");
@@ -121,7 +119,7 @@ function package_mac() {
         const out_dir = context.appOutDir;
         app_out_dirs.push(out_dir);
 
-        if (!process.env.MAC_DONT_NOTARIZE) {
+        if (process.env.MAC_DONT_NOTARIZE !== "true") {
           const appName = context.packager.appInfo.productFilename;
           await notarize_mac(path.join(out_dir, `${appName}.app`));
         }
@@ -131,22 +129,12 @@ function package_mac() {
 }
 
 function notarize_mac(app_path: string) {
-  if (
-    !process.env.MAC_NOTARIZE_USERNAME ||
-    !process.env.MAC_NOTARIZE_PASSWORD
-  ) {
-    console.error(
-      "ERROR: MAC_NOTARIZE_USERNAME and MAC_NOTARIZE_PASSWORD must be set"
-    );
-    return;
-  }
   console.log("Notarizing " + app_path);
   return notarize({
-    // tool: "notarytool",
+    tool: "notarytool",
     appPath: app_path,
-    appBundleId: config.appId,
-    appleId: process.env.MAC_NOTARIZE_USERNAME,
-    appleIdPassword: process.env.MAC_NOTARIZE_PASSWORD,
+    keychain: `${process.env.HOME}/Library/Keychains/login.keychain-db`,
+    keychainProfile: "anysphere-gui-profile",
   });
 }
 
