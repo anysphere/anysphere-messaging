@@ -103,7 +103,7 @@ auto Inbox::update_ack_from_friend(pir_value_t& pir_acks, Friend& friend_info,
   for (size_t i = 0; i < MAX_FRIENDS; i++) {
     auto ack = crypto.decrypt_ack(encrypted_acks[i], friend_info);
     if (!ack.ok()) {
-      cout << "decryption failed (this is expected!): " << ack.status() << endl;
+      // DEBUG_PRINT("decryption failed (this is expected!): " + ack.status())
       continue;
     }
     if (ack.value() > friend_info.last_receive_id) {
@@ -153,6 +153,12 @@ auto Inbox::receive_message(FastPIRClient& client,
     return std::nullopt;
   }
 
+  // if this is an old message, just return here. we've already seen it!
+  if (message.id() <= friend_info.last_receive_id) {
+    cout << "message is old, we've already seen it" << endl;
+    return std::nullopt;
+  }
+
   // only ACK this message if it is exactly the next ID we expect. otherwise, we
   // still need to await more messages
   if (message.id() == friend_info.last_receive_id + 1) {
@@ -161,6 +167,10 @@ auto Inbox::receive_message(FastPIRClient& client,
     cout << "message ID is not next expected ID. we need to wait for more "
             "messages. WARNING may be worth looking into."
          << endl;
+    // return early, because the sender needs to resend previous messages first
+    // TODO: may be worth saving this and optimizing here, but it requires far
+    // more accounting work on our end
+    return std::nullopt;
   }
 
   if (message.num_chunks() == 0) {
