@@ -66,7 +66,7 @@ class DaemonRpcTest : public ::testing::Test {
   }
 
   void SetUp() override {
-    int port = 86651;
+    int port = 86534;
     server_address_ << "localhost:" << port;
     // Setup server
     grpc::ServerBuilder builder;
@@ -331,6 +331,7 @@ TEST_F(DaemonRpcTest, SendMessage) {
 
   {
     t1.retrieve_messages();
+    cout << "-----------------------------" << endl;
     t2.retrieve_messages();
   }
 
