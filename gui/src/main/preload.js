@@ -2,12 +2,43 @@ const { contextBridge } = require("electron");
 const { promisify } = require("util");
 var grpc = require("@grpc/grpc-js");
 
+function get_socket_path() {
+  if (process.env.XDG_RUNTIME_DIR) {
+    return path.join(
+      process.env.XDG_RUNTIME_DIR,
+      "anysphere",
+      "anysphere.sock"
+    );
+  } else if (process.env.XDG_CONFIG_HOME) {
+    return path.join(
+      process.env.XDG_CONFIG_HOME,
+      "anysphere",
+      "run",
+      "anysphere.sock"
+    );
+  } else if (process.env.HOME) {
+    return path.join(process.env.HOME, ".anysphere", "run", "anysphere.sock");
+  } else {
+    process.stderr(
+      "$HOME or $XDG_CONFIG_HOME or $XDG_RUNTIME_DIR not set! Cannot find socket, aborting. :("
+    );
+    throw new Error("$HOME or $XDG_CONFIG_HOME or $XDG_RUNTIME_DIR not set!");
+  }
+}
+
+function get_socket_address() {
+  return "unix://" + get_socket_path();
+}
+
 const daemonM = require("../daemon/schema/daemon_pb");
 const daemonS = require("../daemon/schema/daemon_grpc_pb");
+const path = require("path/posix");
 const daemonClient = new daemonS.DaemonClient(
-  "unix:///workspace/anysphere/anysphere.sock",
+  get_socket_address(),
   grpc.credentials.createInsecure()
 );
+
+console.log(`SOCKET ADDRESS: ${get_socket_address()}`);
 
 const FAKE_DATA = process.env.ASPHR_FAKE_DATA === "true";
 
