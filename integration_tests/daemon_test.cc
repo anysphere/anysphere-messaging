@@ -3,6 +3,7 @@
 #include "asphr/asphr.hpp"
 #include "client/daemon/daemon_rpc.hpp"
 #include "client/daemon/transmitter.hpp"
+#include "google/protobuf/util/time_util.h"
 #include "server/pir/fast_pir/fastpir.hpp"
 #include "server/src/server_rpc.hpp"
 
@@ -357,6 +358,7 @@ TEST_F(DaemonRpcTest, SendMessage) {
 };
 
 TEST_F(DaemonRpcTest, SendMultipleMessages) {
+  using TimeUtil = google::protobuf::util::TimeUtil;
   ResetStub();
 
   auto crypto1 = gen_crypto();
@@ -496,6 +498,13 @@ TEST_F(DaemonRpcTest, SendMultipleMessages) {
     EXPECT_TRUE(response.success());
     EXPECT_EQ(response.messages_size(), 2);
     EXPECT_EQ(response.messages(0).sender(), "user1");
+    cout << "message 1: " << response.messages(0).message() << endl;
+
+    cout << "message 1 time: "
+         << TimeUtil::ToString(response.messages(0).timestamp()) << endl;
+    cout << "message 2: " << response.messages(1).message() << endl;
+    cout << "message 2 time: "
+         << TimeUtil::ToString(response.messages(1).timestamp()) << endl;
     EXPECT_EQ(response.messages(0).message(),
               "hello from 1 to 2, again!!!! :0");
   }
