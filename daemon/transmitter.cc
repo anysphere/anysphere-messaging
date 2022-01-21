@@ -174,7 +174,7 @@ auto Transmitter::send_messages() -> void {
   grpc::Status status = stub->SendMessage(&context, request, &reply);
 
   if (status.ok()) {
-    std::cout << "Message sent to server: " << request.message() << std::endl;
+    std::cout << "Message sent to server!" << std::endl;
   } else {
     std::cerr << status.error_code() << ": " << status.error_message()
               << " details:" << status.error_details() << std::endl;
