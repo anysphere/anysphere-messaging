@@ -39,7 +39,6 @@ Status DaemonRpc::RegisterUser(ServerContext* context,
     cout << "register success" << endl;
     registerUserResponse->set_success(true);
 
-    config.has_registered = true;
     config.registrationInfo.authentication_token = reply.authentication_token();
     auto alloc_repeated = reply.allocation();
     config.registrationInfo.allocation =
@@ -63,6 +62,9 @@ Status DaemonRpc::RegisterUser(ServerContext* context,
 
     config.pir_client = std::make_unique<FastPIRClient>(config.pir_secret_key,
                                                         config.pir_galois_keys);
+    config.initialize_dummy_me();
+    // THIS has to happen last :)
+    config.has_registered = true;
 
     config.save();
   } else {

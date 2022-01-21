@@ -34,6 +34,7 @@ auto Transmitter::retrieve_messages() -> void {
   } else if (config.friendTable.size() > 0) {
     // note: we do not need cryptographic randomness here. randomness is only
     // for liveness
+    // TODO (BUG):
     auto random_friend = std::next(std::begin(config.friendTable),
                                    rand() % config.friendTable.size());
     friend_info = (*random_friend).second;
@@ -124,12 +125,10 @@ auto Transmitter::send_messages() -> void {
   // length is 1.
   auto index = config.registrationInfo.allocation.at(0);
 
-  auto friend_info = config.friendTable.at(messageToSend.to);
-
-  just_sent_friend = friend_info.name;
+  just_sent_friend = messageToSend.to.name;
 
   auto pir_value_message_status =
-      crypto.encrypt_send(messageToSend.to_proto(), friend_info);
+      crypto.encrypt_send(messageToSend.to_proto(), messageToSend.to);
   if (!pir_value_message_status.ok()) {
     cout << "encryption failed; not doing anything with message"
          << pir_value_message_status.status() << endl;

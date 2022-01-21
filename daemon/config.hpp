@@ -92,6 +92,7 @@ class Config {
   // .ndjson files.
   auto receive_file_address() -> std::filesystem::path;
   auto send_file_address() -> std::filesystem::path;
+  auto initialize_dummy_me() -> void;
 
   bool has_registered;
   RegistrationInfo registrationInfo;
@@ -102,7 +103,7 @@ class Config {
   // store secret key and galois keys for pir
   string pir_secret_key;
   // TODO(sualeh, urgent): make this private
-  // friendTable contains dummyMe!!! dummyMe is always disabled, but be careful!
+  // friendTable DOES NOT CONTAIN dummyMe
   std::unordered_map<string, Friend> friendTable;
   string pir_galois_keys;
   // make this a ptr because we want it to possibly be null

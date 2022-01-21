@@ -65,6 +65,18 @@ auto read_json_file(const string& config_file_address) -> asphr::json {
   return config_json;
 }
 
+auto Config::initialize_dummy_me() -> void {
+  auto crypto = Crypto();
+
+  auto dummy_friend_keypair = crypto.generate_keypair();
+  auto dummy_read_write_keys = crypto.derive_read_write_keys(
+      registrationInfo.public_key, registrationInfo.private_key,
+      dummy_friend_keypair.first);
+
+  dummyMe = Friend("dummyMe", -1, dummy_read_write_keys.first,
+                   dummy_read_write_keys.second, -1, false, 0, 0);
+}
+
 Config::Config(const string& config_file_address)
     : Config(read_json_file(config_file_address), config_file_address) {}
 
@@ -89,16 +101,8 @@ Config::Config(const asphr::json& config_json,
                    pir_secret_key);
     Base64::Decode(config_json.at("pir_galois_keys").get<string>(),
                    pir_galois_keys);
-
-    auto crypto = Crypto();
-
-    auto dummy_friend_keypair = crypto.generate_keypair();
-    auto dummy_read_write_keys = crypto.derive_read_write_keys(
-        registrationInfo.public_key, registrationInfo.private_key,
-        dummy_friend_keypair.first);
-
-    dummyMe = Friend("dummyMe", -1, dummy_read_write_keys.first,
-                     dummy_read_write_keys.second, -1, false, 0, 0);
+    // initialize the dummyMe
+    initialize_dummy_me();
   }
 
   for (auto& friend_json : config_json["friends"]) {

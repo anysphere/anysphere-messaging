@@ -91,7 +91,7 @@ auto Outbox::add(const string& message, Friend& friend_info) noexcept -> void {
       chunks_start_id = id;
     }
 
-    auto msgToSend = MessageToSend{friend_info.name,
+    auto msgToSend = MessageToSend{friend_info,
                                    id,
                                    chunked_message[i],
                                    chunked_message.size() > 1,
@@ -127,6 +127,15 @@ auto Outbox::message_to_send(
     }
   }
 
+  if (outbox.size() == 0) {
+    return MessageToSend{.to = dummyMe,
+                         .id = 0,
+                         .msg = "fake message",
+                         .chunked = false,
+                         .num_chunks = 0,
+                         .chunks_start_id = 0};
+  }
+
   // now choose a message to send!!
   // first try with the recently acked friends
   for (auto& friend_name : recently_acked_friends) {
@@ -135,9 +144,10 @@ auto Outbox::message_to_send(
       return messages.at(0);
     }
   }
-
+  cout << "outbox size is " << outbox.size() << endl;
   // if not returned yet, choose a random friend from the outbox
-  auto random_friend = std::next(std::begin(outbox), rand() % outbox.size());
+  auto random_friend_number = rand() % outbox.size();
+  auto random_friend = std::next(std::begin(outbox), random_friend_number);
   auto& messages = (*random_friend).second;
   return messages.at(0);
 }

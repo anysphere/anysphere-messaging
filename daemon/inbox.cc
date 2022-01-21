@@ -83,7 +83,7 @@ auto Inbox::get_encrypted_acks(
   pir_value_t pir_acks;
   for (size_t i = 0; i < MAX_FRIENDS; i++) {
     std::copy(encrypted_acks[i].begin(), encrypted_acks[i].end(),
-              encrypted_acks.begin() + i * ENCRYPTED_ACKING_BYTES);
+              pir_acks.begin() + i * ENCRYPTED_ACKING_BYTES);
   }
 
   return pir_acks;
@@ -106,7 +106,7 @@ auto Inbox::update_ack_from_friend(pir_value_t& pir_acks, Friend& friend_info,
       cout << "decryption failed (this is expected!): " << ack.status() << endl;
       continue;
     }
-    if (ack.value() > friend_info.last_receive_id) {
+    if (ack.value() >= friend_info.last_receive_id) {
       friend_info.latest_ack_id = ack.value();
     } else {
       cout << "something weird is going on.... ACKing is older than latest ack "

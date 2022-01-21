@@ -294,6 +294,8 @@ auto Crypto::decrypt_ack(const string& ciphertext,
           ciphertext_str.size(), nullptr, 0, nonce,
           reinterpret_cast<const unsigned char*>(
               friend_info.read_key.data())) != 0) {
+    // DEBUG PRINT
+    cout << "failed from a sad part" << endl;
     return absl::UnknownError("failed to decrypt message");
   }
 

@@ -5,7 +5,7 @@
 #include "schema/message.pb.h"
 
 struct MessageToSend {
-  string to;
+  Friend to;
   uint32_t id;
   string msg;
   bool chunked;
