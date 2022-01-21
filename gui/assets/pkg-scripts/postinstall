@@ -12,7 +12,7 @@ else
     LOG_DIR="${HOME}/.anysphere/cache/logs"
 fi
 
-mkdir -p "$LOG_DIR"
+install -d -o "$USER" -g "$(id -g "$USER")" "$LOG_DIR" 
 exec 2>&1 > "$LOG_DIR"/postinstall.log
 
 echo "hello from anysphere postinstall script!"
@@ -23,18 +23,20 @@ PLIST="$(cat << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-	<dict>
-		<key>Label</key>
-		<string>co.anysphere.anysphered</string>
-		<key>Program</key>
-		<string>$INSTALL_DIR/Anysphere.app/Contents/Resources/anysphered</string>
-		<key>RunAtLoad</key>
-		<true/>
-        <key>StandardOutPath</key>
-        <string>$LOG_DIR/anysphered.log</string>
-        <key>StandardErrorPath</key>
-        <string>$LOG_DIR/anysphered.err</string>
-	</dict>
+<dict>
+    <key>Label</key>
+    <string>co.anysphere.anysphered</string>
+    <key>Program</key>
+    <string>$INSTALL_DIR/Anysphere.app/Contents/Resources/anysphered</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+	<true/>
+    <key>StandardOutPath</key>
+    <string>$LOG_DIR/anysphered.log</string>
+    <key>StandardErrorPath</key>
+    <string>$LOG_DIR/anysphered.err</string>
+</dict>
 </plist>
 EOF
 )"
@@ -42,7 +44,7 @@ EOF
 # launch as user
 uid=$(id -u "$USER")
 echo "user: $USER, uid: $uid"
-PLIST_PATH="$HOME/Library/LaunchAgents/co.anysphere.anysphered.plist"
+PLIST_PATH="/Library/LaunchAgents/co.anysphere.anysphered.plist"
 echo "$PLIST" > "$PLIST_PATH"
 chmod 644 "$PLIST_PATH"
 launchctl asuser "$uid" launchctl load "$PLIST_PATH"

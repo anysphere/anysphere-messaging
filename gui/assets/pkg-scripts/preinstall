@@ -12,7 +12,7 @@ else
     LOG_DIR="${HOME}/.anysphere/cache/logs"
 fi
 
-mkdir -p "$LOG_DIR"
+install -d -o "$USER" -g "$(id -g "$USER")" "$LOG_DIR" 
 exec 2>&1 > "$LOG_DIR"/preinstall.log
 
 echo "hello from anysphere preinstall script!"
