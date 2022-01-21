@@ -13,9 +13,9 @@ cc_test(
 )
 
 cc_test(
-    name = "multiple_friend_test",
+    name = "multiple_friends_test",
     srcs = [
-        "multiple_friend_test.cc",
+        "multiple_friends_test.cc",
     ],
     deps = [
         "//client/daemon:daemon_lib",

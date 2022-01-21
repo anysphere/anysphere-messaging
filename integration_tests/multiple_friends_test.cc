@@ -303,8 +303,6 @@ TEST_F(MultipleFriendsTest, SendThreeMessages) {
   }
 
   EXPECT_EQ(to_receive.size(), 0);
-
-
 };
 
 // TEST_F(MultipleFriendsTest, SendMultipleMessages) {
