@@ -18,10 +18,7 @@ push-minimal: minimal-server
 	docker push us-east1-docker.pkg.dev/veil-messenger/server/server
 
 package-mac:
-	pushd client/gui
-	npm install
-	npm run package-mac
-	popd
+	pushd client/gui && npm install && npm run package-mac && popd
 	cp -r client/gui/release/build/*.pkg release
 	echo "Client successfully built for mac! Look in the release folder."
 
