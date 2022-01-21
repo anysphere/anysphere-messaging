@@ -59,9 +59,12 @@ Outbox::Outbox(const asphr::json& serialized_json, const string& file_address)
                 return a.id < b.id;
               });
   }
+
+  check_rep();
 }
 
 auto Outbox::save() noexcept(false) -> void {
+  check_rep();
   asphr::json j = {"outbox", {}};
   for (auto& [friend_name, messages] : outbox) {
     for (auto& message : messages) {
@@ -70,9 +73,11 @@ auto Outbox::save() noexcept(false) -> void {
   }
   std::ofstream o(saved_file_address);
   o << std::setw(4) << j.dump(4) << std::endl;
+  check_rep();
 }
 
 auto Outbox::add(const string& message, Friend& friend_info) noexcept -> void {
+  check_rep();
   // chunk! and add.
   vector<string> chunked_message;
   for (size_t i = 0; i < message.size(); i += GUARANTEED_SINGLE_MESSAGE_SIZE) {
@@ -104,11 +109,13 @@ auto Outbox::add(const string& message, Friend& friend_info) noexcept -> void {
       outbox[friend_info.name] = {msgToSend};
     }
   }
+  check_rep();
 }
 
 auto Outbox::message_to_send(
     const std::unordered_map<string, Friend>& friendTable,
     const Friend& dummyMe) -> MessageToSend {
+  check_rep();
   // first remove ACKed messages
   vector<string> recently_acked_friends;
   for (auto& [friend_name, messages] : outbox) {
@@ -126,6 +133,7 @@ auto Outbox::message_to_send(
       outbox.erase(friend_name);
     }
   }
+  check_rep();
 
   if (outbox.size() == 0) {
     return MessageToSend{.to = dummyMe,
@@ -150,4 +158,18 @@ auto Outbox::message_to_send(
   auto random_friend = std::next(std::begin(outbox), random_friend_number);
   auto& messages = (*random_friend).second;
   return messages.at(0);
+}
+
+auto Outbox::check_rep() const noexcept -> void {
+  assert(saved_file_address.size() > 0);
+  for (auto& [friend_name, messages] : outbox) {
+    for (auto& message : messages) {
+      assert(message.to.name == friend_name);
+    }
+    auto prevMessageId = 0;
+    for (auto& message : messages) {
+      assert(message.id > prevMessageId);
+      prevMessageId = message.id;
+    }
+  }
 }

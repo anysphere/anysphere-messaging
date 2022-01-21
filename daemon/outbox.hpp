@@ -54,4 +54,6 @@ class Outbox {
   // ID, such that the first element has the lowest ID, i.e., is the first that
   // should be sent
   std::unordered_map<string, std::vector<MessageToSend>> outbox;
+
+  auto check_rep() const noexcept -> void;
 };
