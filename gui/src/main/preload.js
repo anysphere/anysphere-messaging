@@ -32,7 +32,7 @@ function get_socket_address() {
 
 const daemonM = require("../daemon/schema/daemon_pb");
 const daemonS = require("../daemon/schema/daemon_grpc_pb");
-const path = require("path/posix");
+const path = require("path");
 const daemonClient = new daemonS.DaemonClient(
   get_socket_address(),
   grpc.credentials.createInsecure()
