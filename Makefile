@@ -19,10 +19,11 @@ push-minimal: minimal-server
 
 package-mac:
 	pushd client/gui
+	npm install
 	npm run package-mac
 	popd
-	cp -r client/gui/release release
-	echo "Client successfully built for mac!"
+	cp -r client/gui/release/build/*.pkg release
+	echo "Client successfully built for mac! Look in the release folder."
 
 clean:
 	docker rmi -f server
