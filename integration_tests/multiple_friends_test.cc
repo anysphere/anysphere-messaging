@@ -70,7 +70,7 @@ class MultipleFriendsTest : public ::testing::Test {
 
   void SetUp() override {
     // TODO(sualeh): do NOT do this. pick a good random unused port
-    int port = 23476;
+    int port = 43423;
     server_address_ << "localhost:" << port;
     // Setup server
     grpc::ServerBuilder builder;
@@ -118,14 +118,19 @@ TEST_F(MultipleFriendsTest, SendThreeMessages) {
 
   vector<string> names = {"user1local", "user2local", "user3local",
                           "user4local"};
+  vector<Crypto> cryptos;
+  vector<Config> configs;
+  for (size_t i = 0; i < names.size(); i++) {
+    auto config = gen_config(string(generateTempDir()), generateTempFile());
+    configs.push_back(std::move(config));
+  }
   vector<unique_ptr<DaemonRpc>> rpcs;
   vector<unique_ptr<Transmitter>> ts;
-  for (auto& _ : names) {
-    auto crypto = gen_crypto();
-    auto config = gen_config(generateTempDir().string(), generateTempFile());
-    auto rpc_ptr = make_unique<DaemonRpc>(crypto, config, stub_);
+  for (size_t i = 0; i < names.size(); i++) {
+    cryptos.push_back(gen_crypto());
+    auto rpc_ptr = make_unique<DaemonRpc>(cryptos[i], configs[i], stub_);
     rpcs.push_back(std::move(rpc_ptr));
-    auto t_ptr = make_unique<Transmitter>(crypto, config, stub_);
+    auto t_ptr = make_unique<Transmitter>(cryptos[i], configs[i], stub_);
     ts.push_back(std::move(t_ptr));
   }
 

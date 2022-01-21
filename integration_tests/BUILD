@@ -1,5 +1,6 @@
 cc_test(
     name = "daemon_test",
+    size = "small",
     srcs = [
         "daemon_test.cc",
     ],
