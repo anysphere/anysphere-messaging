@@ -21,6 +21,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
@@ -52,6 +53,7 @@ using absl::InvalidArgumentError;
 using absl::Status;
 using absl::StatusOr;
 using absl::StrCat;
+using absl::StrFormat;
 using absl::Time;
 
 using std::unordered_map;
