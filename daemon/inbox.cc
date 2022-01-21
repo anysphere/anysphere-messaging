@@ -29,9 +29,11 @@ Inbox::Inbox(const asphr::json& serialized_json, const string& file_address)
     auto chunks = inbox_item.at("chunks").get<vector<string>>();
     inbox[make_pair(friend_name, chunk_start_id)] = chunks;
   }
+  check_rep();
 }
 
 auto Inbox::save() noexcept(false) -> void {
+  check_rep();
   asphr::json j = {"inprogress", {}};
   for (const auto& inbox_item : inbox) {
     auto friend_name = inbox_item.first.first;
@@ -48,12 +50,14 @@ auto Inbox::save() noexcept(false) -> void {
   // DEBUG PRINT
   cout << "here 1: " << endl;
   o << std::setw(4) << j.dump(4) << std::endl;
+  check_rep();
 }
 
 auto Inbox::get_encrypted_acks(
     const std::unordered_map<string, Friend>& friendTable, const Crypto& crypto,
     const Friend& dummyMe) -> asphr::StatusOr<pir_value_t> {
   assert(friendTable.size() <= MAX_FRIENDS);
+  check_rep();
 
   vector<string> encrypted_acks(MAX_FRIENDS);
   for (auto& [friend_name, friend_info] : friendTable) {
@@ -86,11 +90,13 @@ auto Inbox::get_encrypted_acks(
               pir_acks.begin() + i * ENCRYPTED_ACKING_BYTES);
   }
 
+  check_rep();
   return pir_acks;
 }
 
 auto Inbox::update_ack_from_friend(pir_value_t& pir_acks, Friend& friend_info,
                                    const Crypto& crypto) -> bool {
+  check_rep();
   vector<string> encrypted_acks(MAX_FRIENDS);
   for (size_t i = 0; i < MAX_FRIENDS; i++) {
     encrypted_acks[i].resize(ENCRYPTED_ACKING_BYTES);
@@ -113,8 +119,10 @@ auto Inbox::update_ack_from_friend(pir_value_t& pir_acks, Friend& friend_info,
               "id. look into this"
            << endl;
     }
+    check_rep();
     return true;
   }
+  check_rep();
   return false;
 }
 
@@ -123,6 +131,7 @@ auto Inbox::receive_message(FastPIRClient& client,
                             Friend& friend_info, const Crypto& crypto,
                             string& previous_success_receive_friend)
     -> std::optional<InboxMessage> {
+  check_rep();
   // first look at the ACKs
   auto ack_answer = reply.pir_answer_acks();
   auto ack_answer_obj = client.answer_from_string(ack_answer);
@@ -186,6 +195,8 @@ auto Inbox::receive_message(FastPIRClient& client,
 
   chunks[message.id() - message.chunks_start_id()] = message.msg();
 
+  check_rep();
+
   if (friend_info.last_receive_id ==
       message.chunks_start_id() + message.num_chunks() - 1) {
     // we have all the chunks!
@@ -198,4 +209,12 @@ auto Inbox::receive_message(FastPIRClient& client,
     return InboxMessage{msg, friend_info.name, message.id()};
   }
   return std::nullopt;
+}
+
+auto Inbox::check_rep() const noexcept -> void {
+  assert(saved_file_address.size() > 0);
+  for (auto& [k, v] : inbox) {
+    // must always have more than 1 chunk — otherwise wouldn't need to chunk it!
+    assert(v.size() > 1);
+  }
 }
