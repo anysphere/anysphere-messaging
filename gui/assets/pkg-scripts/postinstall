@@ -4,15 +4,23 @@
 # here we set up the daemon!
 # we also link the CLI to /usr/local/bin
 
+create_user_dir () {
+    install -d -o "$USER" -g "$(id -g "$USER")" "$1" 
+}
+
 LOG_DIR=""
 # set to XDG_CACHE_HOME/logs if it exists, otherwise use .anysphere directory as always
 if [ -d "${XDG_CACHE_HOME}" ]; then
     LOG_DIR="${XDG_CACHE_HOME}/anysphere/logs"
+    create_user_dir "${XDG_CACHE_HOME}/anysphere"
+    create_user_dir "${XDG_CACHE_HOME}/anysphere/logs"
 else
     LOG_DIR="${HOME}/.anysphere/cache/logs"
+    create_user_dir "${HOME}/.anysphere"
+    create_user_dir "${HOME}/.anysphere/cache"
+    create_user_dir "${HOME}/.anysphere/cache/logs"
 fi
 
-install -d -o "$USER" -g "$(id -g "$USER")" "$LOG_DIR" 
 exec 2>&1 > "$LOG_DIR"/postinstall.log
 
 echo "hello from anysphere postinstall script!"
