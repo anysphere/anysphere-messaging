@@ -106,7 +106,7 @@ auto Inbox::update_ack_from_friend(pir_value_t& pir_acks, Friend& friend_info,
       // DEBUG_PRINT("decryption failed (this is expected!): " + ack.status())
       continue;
     }
-    if (ack.value() > friend_info.last_receive_id) {
+    if (ack.value() >= friend_info.latest_ack_id) {
       friend_info.latest_ack_id = ack.value();
     } else {
       cout << "something weird is going on.... ACKing is older than latest ack "

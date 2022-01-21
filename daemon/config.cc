@@ -5,6 +5,7 @@
 #include "crypto.hpp"
 
 auto Friend::to_json() -> asphr::json {
+  check_rep();
   return asphr::json{{"name", name},
                      {"read_index", read_index},
                      {"write_key", write_key},
@@ -19,13 +20,27 @@ auto Friend::from_json(const asphr::json& j) -> Friend {
   Friend f;
   f.name = j.at("name").get<string>();
   f.read_index = j.at("read_index").get<int>();
-  f.write_key = j.at("write_key").get<string>();
   f.read_key = j.at("read_key").get<string>();
+  f.write_key = j.at("write_key").get<string>();
   f.ack_index = j.at("ack_index").get<int>();
   f.enabled = j.at("enabled").get<bool>();
   f.latest_ack_id = j.at("latest_ack_id").get<uint32_t>();
   f.last_receive_id = j.at("last_receive_id").get<uint32_t>();
+  f.check_rep();
   return f;
+}
+
+auto Friend::check_rep() const -> void {
+  assert(!name.empty());
+  assert(ack_index >= 0);
+  assert(static_cast<size_t>(ack_index) < MAX_FRIENDS);
+  if (enabled) {
+    assert(read_index >= 0);
+    assert(read_key.size() == crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
+    assert(write_key.size() == crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
+  } else {
+    assert(read_index == -1);
+  }
 }
 
 // store the config in config_file_address
@@ -74,7 +89,7 @@ auto Config::initialize_dummy_me() -> void {
       dummy_friend_keypair.first);
 
   dummyMe = Friend("dummyMe", -1, dummy_read_write_keys.first,
-                   dummy_read_write_keys.second, -1, false, 0, 0);
+                   dummy_read_write_keys.second, 0, false, 0, 0);
 }
 
 Config::Config(const string& config_file_address)

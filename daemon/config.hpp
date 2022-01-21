@@ -4,13 +4,20 @@
 #include "asphr/pir/fast_pir/fast_pir_client.hpp"
 #include "constants.hpp"
 
-struct Friend {
+class Friend {
   using FriendTable = std::unordered_map<string, Friend>;
+
+ public:
   Friend() = default;
   Friend(const string& name, const FriendTable& ft)
-      : name(name), enabled(false) {
-    ack_index = 0;
-
+      : name(name),
+        read_index(-1),
+        read_key(""),
+        write_key(""),
+        ack_index(0),
+        enabled(false),
+        latest_ack_id(0),
+        last_receive_id(0) {
     auto rng = std::default_random_engine{};
 
     auto all_ack_indexes_not_used = asphr::unordered_set<int>{};
@@ -29,6 +36,8 @@ struct Friend {
     auto random_ack_index = dist(rng);
     // TODO: do this a better way
     ack_index = *std::next(all_ack_indexes_not_used.begin(), random_ack_index);
+
+    check_rep();
   }
   Friend(const string& name, const int read_index, const string& read_key,
          const string& write_key, const int ack_index, const bool enabled,
@@ -40,7 +49,9 @@ struct Friend {
         ack_index(ack_index),
         enabled(enabled),
         latest_ack_id(latest_ack_id),
-        last_receive_id(last_receive_id) {}
+        last_receive_id(last_receive_id) {
+    check_rep();
+  }
 
   Friend(const Friend& f) = default;
   Friend& operator=(const Friend& f) = default;
@@ -63,6 +74,9 @@ struct Friend {
 
   auto to_json() -> asphr::json;
   static auto from_json(const asphr::json& j) -> Friend;
+
+ private:
+  auto check_rep() const -> void;
 };
 
 struct RegistrationInfo {
