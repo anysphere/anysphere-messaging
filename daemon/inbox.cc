@@ -93,10 +93,12 @@ auto Inbox::update_ack_from_friend(pir_value_t& pir_acks, Friend& friend_info,
                                    const Crypto& crypto) -> bool {
   vector<string> encrypted_acks(MAX_FRIENDS);
   for (size_t i = 0; i < MAX_FRIENDS; i++) {
+    encrypted_acks[i].resize(ENCRYPTED_ACKING_BYTES);
     std::copy(pir_acks.begin() + i * ENCRYPTED_ACKING_BYTES,
               pir_acks.begin() + (i + 1) * ENCRYPTED_ACKING_BYTES,
               encrypted_acks[i].begin());
   }
+
   // try decrypting each!
   for (size_t i = 0; i < MAX_FRIENDS; i++) {
     auto ack = crypto.decrypt_ack(encrypted_acks[i], friend_info);
