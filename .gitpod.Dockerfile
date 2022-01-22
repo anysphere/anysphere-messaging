@@ -25,3 +25,6 @@ RUN sudo apt-get install apt-transport-https ca-certificates gnupg -y && \
     sudo curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && \
     sudo apt-get update -y && \
     sudo apt-get install google-cloud-sdk -y
+
+# install aws
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && sudo ./aws/install
