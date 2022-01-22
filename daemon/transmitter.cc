@@ -191,7 +191,9 @@ auto Transmitter::send_messages() -> void {
 }
 
 auto Transmitter::check_rep() const noexcept -> void {
-  assert(&crypto != nullptr);
-  assert(&config != nullptr);
-  assert(&stub != nullptr);
+  // TODO: figure out how to check for dangling references
+  // assert(&crypto != nullptr);
+  // assert(&config != nullptr);
+  // assert(&stub != nullptr);
+  assert(config.has_registered || !config.has_registered);
 }
