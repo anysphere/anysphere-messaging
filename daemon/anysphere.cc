@@ -8,6 +8,7 @@ int main(int argc, char** argv) {
 
   auto socket_address = string("");
   auto config_file_address = string("");
+  auto round_delay = DEFAULT_ROUND_DELAY_SECONDS;
 
   vector<string> args(argv + 1, argv + argc);
   string infname, outfname;
@@ -25,6 +26,8 @@ int main(int argc, char** argv) {
       std::cout
           << "  -c <config_file_address>  Address of config file (default: "
           << config_file_address << ")" << std::endl;
+      std::cout << "  -r <round_delay>  Round delay in seconds (default: "
+                << round_delay << ")" << std::endl;
       return 0;
     } else if (*i == "-s") {
       server_address = *++i;
@@ -32,6 +35,11 @@ int main(int argc, char** argv) {
       socket_address = *++i;
     } else if (*i == "-c") {
       config_file_address = *++i;
+    } else if (*i == "-r") {
+      round_delay = std::stoi(*++i);
+    } else {
+      std::cerr << "Unknown argument: " << *i << std::endl;
+      return 1;
     }
   }
 
@@ -72,7 +80,7 @@ int main(int argc, char** argv) {
   auto daemon_server = unique_ptr<grpc::Server>(builder.BuildAndStart());
 
   // keep the duration in chrono for thread sleeping.
-  constexpr auto duration = absl::Milliseconds(5000);
+  auto duration = absl::Milliseconds(round_delay * 1000);
 
   while (true) {
     absl::SleepFor(duration);
