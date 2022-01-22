@@ -103,7 +103,6 @@ auto Inbox::update_ack_from_friend(pir_value_t& pir_acks, Friend& friend_info,
   for (size_t i = 0; i < MAX_FRIENDS; i++) {
     auto ack = crypto.decrypt_ack(encrypted_acks[i], friend_info);
     if (!ack.ok()) {
-      // DEBUG_PRINT("decryption failed (this is expected!): " + ack.status())
       continue;
     }
     if (ack.value() >= friend_info.latest_ack_id) {
