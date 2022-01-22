@@ -228,7 +228,7 @@ Status DaemonRpc::GetAllMessages(
     string err;
     absl::ParseTime(absl::RFC3339_full, timestamp_str, &a_time, &err);
 
-     auto timestamp_str2 = b.at("timestamp").get<string>();
+    auto timestamp_str2 = b.at("timestamp").get<string>();
     Time b_time;
     absl::ParseTime(absl::RFC3339_full, timestamp_str2, &b_time, &err);
 
@@ -239,10 +239,6 @@ Status DaemonRpc::GetAllMessages(
   for (auto& message_json : messages) {
     auto message_info = getAllMessagesResponse->add_messages();
     message_info->set_sender(message_json.at("from").get<string>());
-    // print the message DEBUG
-    cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n\n\n\n\n\n"
-         << endl;
-    cout << message_json.at("message").get<string>() << endl;
 
     message_info->set_message(message_json.at("message").get<string>());
 
