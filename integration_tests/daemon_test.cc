@@ -110,6 +110,54 @@ class DaemonRpcTest : public ::testing::Test {
   vector<std::filesystem::path> temp_dirs_;
 };
 
+TEST_F(DaemonRpcTest, GetFriendListUnauthenticated) {
+  ResetStub();
+  auto crypto = gen_crypto();
+  auto config = gen_config(string(generateTempDir()), generateTempFile());
+  DaemonRpc rpc(crypto, config, stub_);
+
+  {
+    GetFriendListRequest request;
+    GetFriendListResponse response;
+    rpc.GetFriendList(nullptr, &request, &response);
+    EXPECT_FALSE(response.success());
+  }
+};
+
+TEST_F(DaemonRpcTest, LoadAndUnloadConfig) {
+  ResetStub();
+  auto config_file_address = generateTempFile();
+
+  {
+    auto crypto = gen_crypto();
+    auto config = gen_config(string(generateTempDir()), config_file_address);
+    DaemonRpc rpc(crypto, config, stub_);
+
+    {
+      RegisterUserRequest request;
+      request.set_name("test");
+      RegisterUserResponse response;
+      rpc.RegisterUser(nullptr, &request, &response);
+      EXPECT_TRUE(response.success());
+    }
+  }
+
+  {
+    // re-create config from the file!
+    auto config = Config(config_file_address);
+    auto crypto = gen_crypto();
+    DaemonRpc rpc(crypto, config, stub_);
+
+    {
+      GetFriendListRequest request;
+      GetFriendListResponse response;
+      rpc.GetFriendList(nullptr, &request, &response);
+      EXPECT_TRUE(response.success());
+      EXPECT_EQ(response.friend_list_size(), 0);
+    }
+  }
+}
+
 TEST_F(DaemonRpcTest, Register) {
   ResetStub();
   auto crypto = gen_crypto();
