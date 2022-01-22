@@ -62,7 +62,9 @@ int main(int argc, char** argv) {
   auto command_status = cmd_line.getArgument(1);
 
   if (!command_status.ok()) {
-    cout << command_status.status();
+    cout << "Anysphere CLI." << endl << endl;
+    cout << help << endl;
+    return 0;
   };
 
   auto command = command_status.value();
