@@ -81,6 +81,11 @@ Status DaemonRpc::GetFriendList(
     GetFriendListResponse* getFriendListResponse) {
   cout << "GetFriendList() called" << endl;
 
+  if (!config.has_registered) {
+    cout << "need to register first!" << endl;
+    return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
+  }
+
   for (auto& [s, _] : config.friendTable) {
     getFriendListResponse->add_friend_list(s);
   }
@@ -95,6 +100,11 @@ Status DaemonRpc::GenerateFriendKey(
     const GenerateFriendKeyRequest* generateFriendKeyRequest,
     GenerateFriendKeyResponse* generateFriendKeyResponse) {
   cout << "GenerateFriendKey() called" << endl;
+
+  if (!config.has_registered) {
+    cout << "need to register first!" << endl;
+    return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
+  }
 
   if (!config.has_space_for_friends()) {
     cout << "no more allocation" << endl;
@@ -122,6 +132,11 @@ Status DaemonRpc::AddFriend(ServerContext* context,
                             AddFriendResponse* addFriendResponse) {
   cout << "AddFriend() called" << endl;
   cout << "name: " << addFriendRequest->name() << endl;
+
+  if (!config.has_registered) {
+    cout << "need to register first!" << endl;
+    return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
+  }
 
   for (auto& [s, _] : config.friendTable) {
     cout << "friend: " << s << endl;
@@ -161,6 +176,11 @@ Status DaemonRpc::RemoveFriend(ServerContext* context,
                                RemoveFriendResponse* removeFriendResponse) {
   cout << "RemoveFriend() called" << endl;
 
+  if (!config.has_registered) {
+    cout << "need to register first!" << endl;
+    return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
+  }
+
   if (!config.friendTable.contains(removeFriendRequest->name())) {
     cout << "friend not found" << endl;
     removeFriendResponse->set_success(false);
@@ -184,6 +204,11 @@ Status DaemonRpc::SendMessage(ServerContext* context,
                               const SendMessageRequest* sendMessageRequest,
                               SendMessageResponse* sendMessageResponse) {
   cout << "SendMessage() called" << endl;
+
+  if (!config.has_registered) {
+    cout << "need to register first!" << endl;
+    return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
+  }
 
   if (!config.friendTable.contains(sendMessageRequest->name())) {
     cout << "friend not found" << endl;
@@ -218,6 +243,11 @@ Status DaemonRpc::GetAllMessages(
     GetAllMessagesResponse* getAllMessagesResponse) {
   using TimeUtil = google::protobuf::util::TimeUtil;
   cout << "GetAllMessages() called" << endl;
+
+  if (!config.has_registered) {
+    cout << "need to register first!" << endl;
+    return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
+  }
 
   auto messages = get_entries(config.receive_file_address());
 
@@ -263,6 +293,11 @@ Status DaemonRpc::GetNewMessages(
     GetNewMessagesResponse* getNewMessagesResponse) {
   using TimeUtil = google::protobuf::util::TimeUtil;
   cout << "GetNewMessages() called" << endl;
+
+  if (!config.has_registered) {
+    cout << "need to register first!" << endl;
+    return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
+  }
 
   auto messages = get_entries(config.receive_file_address());
 

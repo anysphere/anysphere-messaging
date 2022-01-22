@@ -63,6 +63,14 @@ auto RegistrationInfo::from_json(const asphr::json& j) -> RegistrationInfo {
   return reg_info;
 }
 
+auto new_config_json() -> asphr::json {
+  vector<asphr::json> friends;
+  asphr::json j = {{"has_registered", false},
+                   {"friends", friends},
+                   {"data_dir", get_default_data_dir()}};
+  return j;
+}
+
 auto read_json_file(const string& config_file_address) -> asphr::json {
   if (!std::filesystem::exists(config_file_address) ||
       std::filesystem::file_size(config_file_address) == 0) {
@@ -70,9 +78,7 @@ auto read_json_file(const string& config_file_address) -> asphr::json {
         std::filesystem::path(config_file_address).parent_path().u8string();
     std::filesystem::create_directories(dir_path);
     cout << "creating new config asphr::json!" << endl;
-    asphr::json j = {{"has_registered", false},
-                     {"friends", {}},
-                     {"data_dir", get_default_data_dir()}};
+    asphr::json j = new_config_json();
     std::ofstream o(config_file_address);
     o << std::setw(4) << j.dump(4) << std::endl;
   }
@@ -95,16 +101,30 @@ auto Config::initialize_dummy_me() -> void {
 Config::Config(const string& config_file_address)
     : Config(read_json_file(config_file_address), config_file_address) {}
 
-Config::Config(const asphr::json& config_json,
+Config::Config(const asphr::json& config_json_input,
                const string& config_file_address)
     : db_rows(CLIENT_DB_ROWS), saved_file_address(config_file_address) {
+  auto config_json = config_json_input;
   if (!config_json.contains("has_registered")) {
-    cout << "config file does not contain has_registered" << endl;
-    return;
+    cout << "WARNING (invalid config file): config file does not contain "
+            "has_registered"
+         << endl;
+    cout << "creating a new config file" << endl;
+    config_json = new_config_json();
   }
   if (!config_json.contains("friends")) {
-    cout << "config file does not contain friends" << endl;
-    return;
+    cout
+        << "WARNING (invalid config file): config file does not contain friends"
+        << endl;
+    cout << "creating a new config file" << endl;
+    config_json = new_config_json();
+  }
+  if (!config_json.contains("data_dir")) {
+    cout << "WARNING (invalid config file): config file does not contain "
+            "data_dir"
+         << endl;
+    cout << "creating a new config file" << endl;
+    config_json = new_config_json();
   }
   if (!config_json.at("has_registered").get<bool>()) {
     has_registered = false;
@@ -116,6 +136,9 @@ Config::Config(const asphr::json& config_json,
                    pir_secret_key);
     Base64::Decode(config_json.at("pir_galois_keys").get<string>(),
                    pir_galois_keys);
+    // create a pir_client !
+    pir_client =
+        std::make_unique<FastPIRClient>(pir_secret_key, pir_galois_keys);
     // initialize the dummyMe
     initialize_dummy_me();
   }
@@ -139,9 +162,11 @@ auto Config::save() -> void {
     config_json["pir_secret_key"] = Base64::Encode(pir_secret_key);
     config_json["pir_galois_keys"] = Base64::Encode(pir_galois_keys);
   }
+  vector<asphr::json> friends;
   for (auto& friend_pair : friendTable) {
-    config_json["friends"].push_back(friend_pair.second.to_json());
+    friends.push_back(friend_pair.second.to_json());
   }
+  config_json["friends"] = friends;
   std::ofstream o(saved_file_address);
   o << std::setw(4) << config_json.dump(4) << std::endl;
 
