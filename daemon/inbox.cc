@@ -11,7 +11,6 @@ auto read_inbox_json(const string& file_address) -> asphr::json {
     cout << "creating new inbox asphr::json!" << endl;
     asphr::json j = {{"inprogress", {}}};
     std::ofstream o(file_address);
-    cout << "here 2: " << endl;
     o << std::setw(4) << j.dump(4) << std::endl;
   }
   auto i_json = asphr::json::parse(std::ifstream(file_address));
@@ -47,8 +46,6 @@ auto Inbox::save() noexcept(false) -> void {
     j["inprogress"].push_back(j_item);
   }
   std::ofstream o(saved_file_address);
-  // DEBUG PRINT
-  cout << "here 1: " << endl;
   o << std::setw(4) << j.dump(4) << std::endl;
   check_rep();
 }
@@ -69,9 +66,6 @@ auto Inbox::get_encrypted_acks(
       cout << "encryption failed: " << ack.status() << endl;
       return absl::UnknownError("encryption failed");
     }
-    // DEBUG
-    cout << "encrypted ack: " << ack.value() << endl;
-    cout << "friend_name: " << friend_name << endl;
     encrypted_acks[friend_info.ack_index] = ack.value();
   }
   for (size_t i = 0; i < MAX_FRIENDS; i++) {
