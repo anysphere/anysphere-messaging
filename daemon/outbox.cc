@@ -166,7 +166,7 @@ auto Outbox::check_rep() const noexcept -> void {
     for (auto& message : messages) {
       assert(message.to.name == friend_name);
     }
-    auto prevMessageId = 0;
+    uint32_t prevMessageId = 0;
     for (auto& message : messages) {
       assert(message.id > prevMessageId);
       prevMessageId = message.id;
