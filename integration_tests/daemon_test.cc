@@ -158,6 +158,64 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfig) {
   }
 }
 
+TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceiveHalfFriend) {
+  ResetStub();
+  auto config_file_address = generateTempFile();
+
+  {
+    auto crypto1 = gen_crypto();
+    auto config1 = gen_config(string(generateTempDir()), config_file_address);
+    DaemonRpc rpc1(crypto1, config1, stub_);
+    auto crypto2 = gen_crypto();
+    auto config2 = gen_config(string(generateTempDir()), generateTempFile());
+    DaemonRpc rpc2(crypto2, config2, stub_);
+
+    {
+      RegisterUserRequest request;
+      request.set_name("user1local");
+      RegisterUserResponse response;
+      rpc1.RegisterUser(nullptr, &request, &response);
+    }
+    {
+      RegisterUserRequest request;
+      request.set_name("user2local");
+      RegisterUserResponse response;
+      rpc2.RegisterUser(nullptr, &request, &response);
+    }
+
+    {
+      GenerateFriendKeyRequest request;
+      request.set_name("user2");
+      GenerateFriendKeyResponse response;
+      rpc1.GenerateFriendKey(nullptr, &request, &response);
+      EXPECT_TRUE(response.success());
+      EXPECT_GT(response.key().size(), 0);
+    }
+
+    {
+      GenerateFriendKeyRequest request;
+      request.set_name("user1");
+      GenerateFriendKeyResponse response;
+      rpc2.GenerateFriendKey(nullptr, &request, &response);
+      EXPECT_TRUE(response.success());
+      EXPECT_GT(response.key().size(), 0);
+    }
+  }
+
+  {
+    // re-create config from the file!
+    auto config = Config(config_file_address);
+    auto crypto = gen_crypto();
+    Transmitter t(crypto, config, stub_);
+
+    t.retrieve_messages();
+    t.send_messages();
+
+    t.retrieve_messages();
+    t.send_messages();
+  }
+}
+
 TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceive) {
   ResetStub();
   auto config_file_address = generateTempFile();
