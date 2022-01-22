@@ -179,6 +179,28 @@ auto Config::has_space_for_friends() -> bool {
   return friendTable.size() < MAX_FRIENDS;
 }
 
+auto Config::num_enabled_friends() -> int {
+  auto num_enabled_friends = 0;
+  for (auto& friend_pair : friendTable) {
+    if (friend_pair.second.enabled) {
+      num_enabled_friends++;
+    }
+  }
+  return num_enabled_friends;
+}
+
+auto Config::random_enabled_friend() -> string {
+  assert(num_enabled_friends() > 0);
+  vector<string> enabled_friends;
+  for (auto& friend_pair : friendTable) {
+    if (friend_pair.second.enabled) {
+      enabled_friends.push_back(friend_pair.first);
+    }
+  }
+  auto random_index = rand() % enabled_friends.size();
+  return enabled_friends[random_index];
+}
+
 auto Config::add_friend(const Friend& f) -> void {
   check_rep();
   friendTable[f.name] = f;

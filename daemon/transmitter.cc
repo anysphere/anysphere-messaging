@@ -34,12 +34,10 @@ auto Transmitter::retrieve_messages() -> void {
     friend_info = config.friendTable.at(just_sent_friend);
   } else if (config.friendTable.contains(previous_success_receive_friend)) {
     friend_info = config.friendTable.at(previous_success_receive_friend);
-  } else if (config.friendTable.size() > 0) {
+  } else if (config.num_enabled_friends() > 0) {
     // note: we do not need cryptographic randomness here. randomness is only
     // for liveness
-    auto random_friend = std::next(std::begin(config.friendTable),
-                                   rand() % config.friendTable.size());
-    friend_info = (*random_friend).second;
+    friend_info = config.friendTable.at(config.random_enabled_friend());
   } else {
     friend_info = config.dummyMe;
     dummy = true;

@@ -101,6 +101,8 @@ class Config {
   auto remove_friend(const string& name) -> absl::Status;
 
   auto has_space_for_friends() -> bool;
+  auto num_enabled_friends() -> int;
+  auto random_enabled_friend() -> string;
 
   // TODO: transition to .md files stored with metadata, rather than the giant
   // .ndjson files.
