@@ -13,9 +13,13 @@ push: server
 	docker tag server us-east1-docker.pkg.dev/veil-messenger/server/server
 	docker push us-east1-docker.pkg.dev/veil-messenger/server/server
 
-push-minimal: minimal-server
+push-minimal-gcloud: minimal-server
 	docker tag minimal-server us-east1-docker.pkg.dev/veil-messenger/server/server
 	docker push us-east1-docker.pkg.dev/veil-messenger/server/server
+
+push-minimal-aws: minimal-server
+	docker tag minimal-server 946207870883.dkr.ecr.us-east-1.amazonaws.com/asphr-server
+	docker push 946207870883.dkr.ecr.us-east-1.amazonaws.com/asphr-server
 
 package-mac:
 	pushd client/gui && npm install && npm run package-mac && popd
