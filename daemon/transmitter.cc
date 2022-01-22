@@ -37,7 +37,6 @@ auto Transmitter::retrieve_messages() -> void {
   } else if (config.friendTable.size() > 0) {
     // note: we do not need cryptographic randomness here. randomness is only
     // for liveness
-    // TODO (BUG):
     auto random_friend = std::next(std::begin(config.friendTable),
                                    rand() % config.friendTable.size());
     friend_info = (*random_friend).second;
