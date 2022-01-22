@@ -11,7 +11,7 @@ class Friend {
   Friend() = default;
   Friend(const string& name, const FriendTable& ft)
       : name(name),
-        read_index(-1),
+        read_index(0),
         read_key(""),
         write_key(""),
         ack_index(0),
@@ -57,7 +57,7 @@ class Friend {
   Friend& operator=(const Friend& f) = default;
 
   string name;
-  int read_index;
+  pir_index_t read_index;
   string read_key;
   string write_key;
   // ack_index is the index into the acking data for this friend

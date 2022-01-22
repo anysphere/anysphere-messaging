@@ -39,7 +39,8 @@ auto Friend::check_rep() const -> void {
     assert(read_key.size() == crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
     assert(write_key.size() == crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
   } else {
-    assert(read_index == -1);
+    // read_index must be valid! and index 0 will ALWAYS be a valid index.
+    assert(read_index == 0);
   }
 }
 
@@ -94,7 +95,7 @@ auto Config::initialize_dummy_me() -> void {
       registrationInfo.public_key, registrationInfo.private_key,
       dummy_friend_keypair.first);
 
-  dummyMe = Friend("dummyMe", -1, dummy_read_write_keys.first,
+  dummyMe = Friend("dummyMe", 0, dummy_read_write_keys.first,
                    dummy_read_write_keys.second, 0, false, 0, 0);
 }
 
