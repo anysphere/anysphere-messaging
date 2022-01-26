@@ -4,6 +4,8 @@ RUN apt-get update && apt-get install -y libpq-dev
 
 WORKDIR /app
 COPY as_server /app
+COPY init_db_and_run_server.sh /app
+COPY server/database/schema.sql /app
 
-ENTRYPOINT ["/app/as_server"]
-CMD ["-d", "34.73.92.64"]
+ENTRYPOINT ["/app/init_db_and_run_server.sh"]
+CMD ["db_host_name", "db_password"]

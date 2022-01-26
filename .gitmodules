@@ -4,3 +4,6 @@
 [submodule "website/anysphere-pages"]
 	path = website/anysphere-pages
 	url = git@github.com:anysphere/anysphere-pages
+[submodule "non_code/emails/kerberi"]
+	path = non_code/emails/kerberi
+	url = git@github.com:arvid220u/kerberi
