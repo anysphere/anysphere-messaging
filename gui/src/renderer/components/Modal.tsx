@@ -12,7 +12,7 @@ function Modal({
       <div className="backdrop-blur-sm w-screen h-screen" onClick={onClose}>
         <div className="grid w-screen h-screen">
           <div
-            className="place-self-center w-96 bg-white rounded-md p-2"
+            className="place-self-center w-96 bg-white rounded-md p-2 border-2 border-asbrown-100"
             onClick={(event) => {
               event.stopPropagation();
             }}
