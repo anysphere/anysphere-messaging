@@ -61,7 +61,8 @@ class AccountManagerPostgres {
  public:
   AccountManagerPostgres(string db_address)
       : conn(make_unique<pqxx::connection>(
-            "postgresql://postgres:3b125115d91aeef4724a0c81bed8fce6782f8360b3b8c36611@" + 
+            "postgresql://"
+            "postgres:3b125115d91aeef4724a0c81bed8fce6782f8360b3b8c36611@" +
             db_address + ":5432/postgres")) {
     std::cout << "Connected to " << conn->dbname() << '\n';
   }
@@ -87,10 +88,17 @@ class AccountManagerPostgres {
 
     token_to_index_map[authentication_token] = indices;
 
+    // convert public_key to hex
+    std::stringstream ss;
+    for (auto& c : public_key) {
+      ss << std::hex << std::setw(2) << std::setfill('0') << (int)c;
+    }
+    string hex_public_key = ss.str();
+
     W.exec0(
         "INSERT INTO accounts (public_key, authentication_token, pir_index) "
-        "VALUES ('" +
-        public_key + "', '" + authentication_token + "'," +
+        "VALUES (\\x'" +
+        hex_public_key + "', '" + authentication_token + "'," +
         std::to_string(indices[0]) + ")");
 
     W.commit();
