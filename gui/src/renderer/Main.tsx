@@ -3,6 +3,7 @@ import * as React from "react";
 import MessageList from "./components/MessageList";
 import Read from "./components/Read";
 import Write from "./components/Write";
+import FriendsModal from "./components/FriendsModal";
 import { Message } from "./types";
 import { Tab, TabType, TabContainer } from "./components/Tabs";
 import { truncate } from "./utils";
@@ -15,6 +16,7 @@ const defaultTabs: Tab[] = [
 function Main() {
   const [tabs, setTabs] = React.useState<Tab[]>(defaultTabs);
   const [selectedTab, setSelectedTab] = React.useState<number>(0);
+  const [modal, setModal] = React.useState<JSX.Element | null>(null);
 
   const readMessage = React.useCallback(
     (message: Message) => {
@@ -88,6 +90,14 @@ function Main() {
     setSelectedTab(tabs.length);
   }, [tabs]);
 
+  const closeModal = React.useCallback(() => {
+    setModal(null);
+  }, [setModal]);
+
+  const openFriendModal = React.useCallback(() => {
+    setModal(<FriendsModal onClose={closeModal} />);
+  }, [setModal, closeModal]);
+
   let selectedComponent;
   switch (tabs[selectedTab].type) {
     case TabType.New:
@@ -146,6 +156,12 @@ function Main() {
           />
           <button
             className="unselectable px-2 rounded-md bg-asbrown-100 text-asbrown-light "
+            onClick={openFriendModal}
+          >
+            <div className="codicon codicon-person-add"></div>
+          </button>
+          <button
+            className="unselectable px-2 rounded-md bg-asbrown-100 text-asbrown-light "
             onClick={writeMessage}
           >
             <div className="codicon codicon-edit"></div>
@@ -153,6 +169,7 @@ function Main() {
         </div>
         {selectedComponent}
       </div>
+      {modal}
     </div>
   );
 }
