@@ -1,6 +1,7 @@
-.PHONY: server minimal-server push-minimal clean push distribute build-client
+.PHONY: server minimal-server push push-minimal package-mac clean
 
 server: 
+	echo "WARNING: THE server.Dockerfile IS OUT OF DATE. PLEASE UPDATE IT, TAKING INSPIRATION FROM minimal-server.Dockerfile."
 	DOCKER_BUILDKIT=1 docker build -f server.Dockerfile -t server .
 
 minimal-server: 
@@ -11,14 +12,10 @@ minimal-server:
 	rm -f as_server
 
 push: server
-	docker tag server us-east1-docker.pkg.dev/veil-messenger/server/server
-	docker push us-east1-docker.pkg.dev/veil-messenger/server/server
+	docker tag server 946207870883.dkr.ecr.us-east-1.amazonaws.com/asphr-server
+	docker push 946207870883.dkr.ecr.us-east-1.amazonaws.com/asphr-server
 
-push-minimal-gcloud: minimal-server
-	docker tag minimal-server us-east1-docker.pkg.dev/veil-messenger/server/server
-	docker push us-east1-docker.pkg.dev/veil-messenger/server/server
-
-push-minimal-aws: minimal-server
+push-minimal: minimal-server
 	docker tag minimal-server 946207870883.dkr.ecr.us-east-1.amazonaws.com/asphr-server
 	docker push 946207870883.dkr.ecr.us-east-1.amazonaws.com/asphr-server
 
