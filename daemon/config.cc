@@ -68,7 +68,8 @@ auto new_config_json() -> asphr::json {
   vector<asphr::json> friends;
   asphr::json j = {{"has_registered", false},
                    {"friends", friends},
-                   {"data_dir", get_default_data_dir()}};
+                   {"data_dir", get_default_data_dir()},
+                   {"server_address", DEFAULT_SERVER_ADDRESS}};
   return j;
 }
 
@@ -127,6 +128,13 @@ Config::Config(const asphr::json& config_json_input,
     cout << "creating a new config file" << endl;
     config_json = new_config_json();
   }
+  if (!config_json.contains("server_address")) {
+    cout << "WARNING (invalid config file): config file does not contain "
+            "server_address"
+         << endl;
+    cout << "creating a new config file" << endl;
+    config_json = new_config_json();
+  }
   if (!config_json.at("has_registered").get<bool>()) {
     has_registered = false;
   } else {
@@ -150,6 +158,7 @@ Config::Config(const asphr::json& config_json_input,
   }
 
   data_dir = config_json.at("data_dir").get<string>();
+  server_address = config_json.at("server_address").get<string>();
 
   check_rep();
 }
@@ -158,6 +167,7 @@ auto Config::save() -> void {
   asphr::json config_json;
   config_json["has_registered"] = has_registered;
   config_json["data_dir"] = data_dir;
+  config_json["server_address"] = server_address;
   if (has_registered) {
     config_json["registration_info"] = registrationInfo.to_json();
     config_json["pir_secret_key"] = Base64::Encode(pir_secret_key);

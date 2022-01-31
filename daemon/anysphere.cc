@@ -4,8 +4,7 @@
 #include "transmitter.hpp"
 
 int main(int argc, char** argv) {
-  std::string server_address(SERVER_ADDRESS);
-
+  auto server_address = string("");
   auto socket_address = string("");
   auto config_file_address = string("");
   auto round_delay = DEFAULT_ROUND_DELAY_SECONDS;
@@ -55,6 +54,10 @@ int main(int argc, char** argv) {
   }
 
   Config config(config_file_address);
+
+  if (server_address == "") {
+    server_address = config.server_address;
+  }
 
   const Crypto crypto;
 

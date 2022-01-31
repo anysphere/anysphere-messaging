@@ -118,6 +118,8 @@ class Config {
   const size_t db_rows;
   // store secret key and galois keys for pir
   string pir_secret_key;
+  // store server address
+  string server_address;
   // TODO(sualeh, urgent): make this private
   // friendTable DOES NOT CONTAIN dummyMe
   std::unordered_map<string, Friend> friendTable;
