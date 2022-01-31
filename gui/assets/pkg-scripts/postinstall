@@ -55,6 +55,8 @@ echo "user: $USER, uid: $uid"
 PLIST_PATH="/Library/LaunchAgents/co.anysphere.anysphered.plist"
 echo "$PLIST" > "$PLIST_PATH"
 chmod 644 "$PLIST_PATH"
+# if already existed, unload
+launchctl asuser "$uid" launchctl unload "$PLIST_PATH"
 launchctl asuser "$uid" launchctl load "$PLIST_PATH"
 
 mkdir -p /usr/local/bin
