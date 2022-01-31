@@ -9,6 +9,7 @@ int main(int argc, char** argv) {
   auto socket_address = string("");
   auto config_file_address = string("");
   auto round_delay = DEFAULT_ROUND_DELAY_SECONDS;
+  auto tls = true;
 
   vector<string> args(argv + 1, argv + argc);
   string infname, outfname;
@@ -28,6 +29,7 @@ int main(int argc, char** argv) {
           << config_file_address << ")" << std::endl;
       std::cout << "  -r <round_delay>  Round delay in seconds (default: "
                 << round_delay << ")" << std::endl;
+      std::cout << "  --no-tls  Don't use TLS (default: use tls)" << std::endl;
       return 0;
     } else if (*i == "-s") {
       server_address = *++i;
@@ -37,6 +39,8 @@ int main(int argc, char** argv) {
       config_file_address = *++i;
     } else if (*i == "-r") {
       round_delay = std::stoi(*++i);
+    } else if (*i == "--no-tls") {
+      tls = false;
     } else {
       std::cerr << "Unknown argument: " << *i << std::endl;
       return 1;
@@ -62,8 +66,12 @@ int main(int argc, char** argv) {
 
   // connect to the anysphere servers
   cout << "Client querying server address: " << server_address << std::endl;
+  auto channel_creds = grpc::SslCredentials(grpc::SslCredentialsOptions());
+  if (!tls) {
+    channel_creds = grpc::InsecureChannelCredentials();
+  }
   shared_ptr<grpc::Channel> channel =
-      grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials());
+      grpc::CreateChannel(server_address, channel_creds);
   unique_ptr<asphrserver::Server::Stub> stub =
       asphrserver::Server::NewStub(channel);
 
