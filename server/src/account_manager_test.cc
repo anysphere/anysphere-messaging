@@ -39,7 +39,7 @@ TYPED_TEST(AccountManagerTest, DISABLED_Basic) {
   EXPECT_FALSE(account_manager.valid_index_access("public_ke", index));
 }
 
-TYPED_TEST(AccountManagerTest, ISABLED_RealPublicKey) {
+TYPED_TEST(AccountManagerTest, DISABLED_RealPublicKey) {
   string db_address = "127.0.0.1";
   TypeParam account_manager(db_address);
 
