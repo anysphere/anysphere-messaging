@@ -97,7 +97,7 @@ class AccountManagerPostgres {
 
     W.exec0(
         "INSERT INTO accounts (public_key, authentication_token, pir_index) "
-        "VALUES (\\x'" +
+        "VALUES ('\\x" +
         hex_public_key + "', '" + authentication_token + "'," +
         std::to_string(indices[0]) + ")");
 

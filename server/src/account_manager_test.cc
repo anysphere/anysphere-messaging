@@ -39,12 +39,13 @@ TYPED_TEST(AccountManagerTest, DISABLED_Basic) {
   EXPECT_FALSE(account_manager.valid_index_access("public_ke", index));
 }
 
-TYPED_TEST(AccountManagerTest, DISABLED_RealPublicKey) {
+TYPED_TEST(AccountManagerTest, ISABLED_RealPublicKey) {
   string db_address = "127.0.0.1";
   TypeParam account_manager(db_address);
 
   auto index = 1;
   char public_key_buffer[2];
+  // a real public key has non-utf8 characters
   public_key_buffer[0] = 0;    // invalid character
   public_key_buffer[0] = 255;  // possibly invalid character
   string public_key;
