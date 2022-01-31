@@ -10,7 +10,7 @@ using namespace asphrserver;
 TEST(ServerRpcTest, Register) {
   FastPIR pir;
   FastPIR pir_acks;
-  AccountManagerInMemory account_manager("unused");
+  AccountManagerInMemory account_manager;
   auto rpc = ServerRpc<FastPIR, AccountManagerInMemory>(
       std::move(pir), std::move(pir_acks), std::move(account_manager));
 
@@ -28,7 +28,7 @@ TEST(ServerRpcTest, Register) {
 TEST(ServerRpcTest, SendMessage) {
   FastPIR pir;
   FastPIR pir_acks;
-  AccountManagerInMemory account_manager("unused");
+  AccountManagerInMemory account_manager;
   auto rpc = ServerRpc<FastPIR, AccountManagerInMemory>(
       std::move(pir), std::move(pir_acks), std::move(account_manager));
 
@@ -71,7 +71,7 @@ TEST(ServerRpcTest, SendMessage) {
 TEST(ServerRpcTest, SendMessageIncorrectSize) {
   FastPIR pir;
   FastPIR pir_acks;
-  AccountManagerInMemory account_manager("unused");
+  AccountManagerInMemory account_manager;
   auto rpc = ServerRpc<FastPIR, AccountManagerInMemory>(
       std::move(pir), std::move(pir_acks), std::move(account_manager));
 
@@ -114,7 +114,7 @@ TEST(ServerRpcTest, SendMessageIncorrectSize) {
 TEST(ServerRpcTest, SendMessageIncorrectSize2) {
   FastPIR pir;
   FastPIR pir_acks;
-  AccountManagerInMemory account_manager("unused");
+  AccountManagerInMemory account_manager;
   auto rpc = ServerRpc<FastPIR, AccountManagerInMemory>(
       std::move(pir), std::move(pir_acks), std::move(account_manager));
 

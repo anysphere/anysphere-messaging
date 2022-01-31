@@ -22,8 +22,10 @@ auto gen_crypto() -> Crypto {
 }
 
 auto gen_config(string tmp_dir, string tmp_file) -> Config {
-  json config_json = {
-      {"has_registered", false}, {"friends", {}}, {"data_dir", tmp_dir}};
+  json config_json = {{"has_registered", false},
+                      {"friends", {}},
+                      {"data_dir", tmp_dir},
+                      {"server_address", "unused"}};
   Config config(config_json, tmp_file);
   return config;
 }
@@ -31,7 +33,7 @@ auto gen_config(string tmp_dir, string tmp_file) -> Config {
 auto gen_server_rpc() {
   FastPIR pir;
   FastPIR pir_acks;
-  AccountManagerInMemory account_manager("in_memory");
+  AccountManagerInMemory account_manager;
   return ServerRpc(std::move(pir), std::move(pir_acks),
                    std::move(account_manager));
 }

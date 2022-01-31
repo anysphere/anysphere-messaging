@@ -9,6 +9,7 @@
 int main(int argc, char** argv) {
   std::string server_address("0.0.0.0:50051");
   std::string db_address("127.0.0.1");
+  std::string db_password("password");
 
   vector<string> args(argv + 1, argv + argc);
   string infname, outfname;
@@ -23,11 +24,18 @@ int main(int argc, char** argv) {
                 << server_address << ")" << std::endl;
       std::cout << "  -d <db_address>      Address of database (default: "
                 << db_address << ")" << std::endl;
+      std::cout << "  -p <db_password>     Password of database (default: "
+                << db_password << ")" << std::endl;
       return 0;
     } else if (*i == "-a") {
       server_address = *++i;
     } else if (*i == "-d") {
       db_address = *++i;
+    } else if (*i == "-p") {
+      db_password = *++i;
+    } else {
+      std::cout << "Unknown argument: " << *i << std::endl;
+      return 1;
     }
   }
 
@@ -40,7 +48,7 @@ int main(int argc, char** argv) {
 #else
   using AccountManager = AccountManagerPostgres;
 #endif
-  AccountManager account_manager(db_address);
+  AccountManager account_manager(db_address, db_password);
 
   // MessengerImpl<NonPrivatePIR, AccountManager> messenger_service(pir,
   // account_manager); MessengerImpl<SealPIR, AccountManager>

@@ -15,7 +15,8 @@ TYPED_TEST_SUITE(AccountManagerTest, Implementations);
 // this should pass iff postgres is running! (hence disabled)
 TYPED_TEST(AccountManagerTest, DISABLED_Basic) {
   string db_address = "127.0.0.1";
-  TypeParam account_manager(db_address);
+  string db_password = "password";
+  TypeParam account_manager(db_address, db_password);
 
   auto index = 1;
   auto public_key = "public_key";
@@ -41,13 +42,14 @@ TYPED_TEST(AccountManagerTest, DISABLED_Basic) {
 
 TYPED_TEST(AccountManagerTest, DISABLED_RealPublicKey) {
   string db_address = "127.0.0.1";
-  TypeParam account_manager(db_address);
+  string db_password = "password";
+  TypeParam account_manager(db_address, db_password);
 
   auto index = 1;
   char public_key_buffer[2];
   // a real public key has non-utf8 characters
-  public_key_buffer[0] = 0;    // invalid character
-  public_key_buffer[0] = 255;  // possibly invalid character
+  public_key_buffer[0] = static_cast<char>(0);    // invalid character
+  public_key_buffer[0] = static_cast<char>(255);  // possibly invalid character
   string public_key;
   public_key.assign(public_key_buffer, sizeof(public_key_buffer));
   auto [auth_token, allocation] =
