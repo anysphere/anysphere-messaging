@@ -38,3 +38,33 @@ TYPED_TEST(AccountManagerTest, DISABLED_Basic) {
   EXPECT_FALSE(account_manager.valid_index_access("public_key1", index));
   EXPECT_FALSE(account_manager.valid_index_access("public_ke", index));
 }
+
+TYPED_TEST(AccountManagerTest, DISABLED_RealPublicKey) {
+  string db_address = "127.0.0.1";
+  TypeParam account_manager(db_address);
+
+  auto index = 1;
+  char public_key_buffer[2];
+  public_key_buffer[0] = 0;    // invalid character
+  public_key_buffer[0] = 255;  // possibly invalid character
+  string public_key;
+  public_key.assign(public_key_buffer, sizeof(public_key_buffer));
+  auto [auth_token, allocation] =
+      account_manager.generate_account(public_key, index);
+
+  // TODO: update this when we allow bigger allocations
+  EXPECT_EQ(allocation.size(), 1);
+
+  EXPECT_EQ(allocation[0], index);
+
+  EXPECT_TRUE(account_manager.valid_index_access(auth_token, index));
+
+  EXPECT_FALSE(account_manager.valid_index_access(auth_token, index + 1));
+
+  EXPECT_FALSE(account_manager.valid_index_access(auth_token, index - 1));
+
+  EXPECT_FALSE(account_manager.valid_index_access("", index));
+
+  EXPECT_FALSE(account_manager.valid_index_access("public_key1", index));
+  EXPECT_FALSE(account_manager.valid_index_access("public_ke", index));
+}
