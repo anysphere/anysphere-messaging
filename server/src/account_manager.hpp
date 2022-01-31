@@ -61,10 +61,8 @@ class AccountManagerPostgres {
  public:
   AccountManagerPostgres(string db_address)
       : conn(make_unique<pqxx::connection>(
-            "dbname=postgres user=postgres "
-            "password=3b125115d91aeef4724a0c81bed8fce6782f8360b3b8c36611 "
-            "hostaddr=" +
-            db_address + " port=5432")) {
+            "postgresql://postgres:3b125115d91aeef4724a0c81bed8fce6782f8360b3b8c36611@" + 
+            db_address + ":5432/postgres")) {
     std::cout << "Connected to " << conn->dbname() << '\n';
   }
 
