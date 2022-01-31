@@ -1,6 +1,6 @@
 FROM debian:bullseye
 
-RUN apt-get update && apt-get install -y libpq-dev
+RUN apt-get update && apt-get install -y libpq-dev && apt-get install -y postgresql-client
 
 WORKDIR /app
 COPY as_server /app
