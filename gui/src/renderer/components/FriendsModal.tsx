@@ -61,14 +61,18 @@ function FriendsModal({
 export function InitFriendModal({
   onClose,
   friend,
+  friendKey,
 }: {
   onClose: () => void;
   friend: string;
+  friendKey: string;
 }) {
   return (
     <Modal onClose={onClose}>
       <div className="grid">
-        <div>Init friend {friend} hello</div>
+        <div>
+          Init friend {friend} hello. Key: {friendKey}
+        </div>
       </div>
     </Modal>
   );

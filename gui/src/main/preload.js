@@ -101,6 +101,33 @@ contextBridge.exposeInMainWorld("getNewMessages", async () => {
   }
 });
 
+contextBridge.exposeInMainWorld(
+  "generateFriendKey",
+  async (requestedFriend) => {
+    if (FAKE_DATA) {
+      return {
+        friend: "sualeh",
+        key: "6aFLPa03ldA9OyY-XlCRibbo3SG8Wsprw1iylnjvZIiFc",
+      };
+    }
+    const request = new daemonM.GenerateFriendKeyRequest();
+    request.setName(requestedFriend);
+    const generateFriendKey = promisify(daemonClient.generateFriendKey).bind(
+      daemonClient
+    );
+    try {
+      const response = await generateFriendKey(request);
+      return {
+        friend: requestedFriend,
+        key: response.getKey(),
+      };
+    } catch (e) {
+      console.log(`error in generateFriendKey: ${e}`);
+      return [];
+    }
+  }
+);
+
 contextBridge.exposeInMainWorld("getAllMessages", async () => {
   if (FAKE_DATA) {
     return [

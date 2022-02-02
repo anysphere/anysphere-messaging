@@ -8,6 +8,7 @@ import { InitFriendModal } from "./components/FriendsModal";
 import { Message } from "./types";
 import { Tab, TabType, TabContainer } from "./components/Tabs";
 import { truncate } from "./utils";
+import { stringify } from "querystring";
 
 const defaultTabs: Tab[] = [
   { type: TabType.New, name: "New", data: null, unclosable: true },
@@ -103,7 +104,17 @@ function Main() {
 
   const openAddFriendModal = React.useCallback(
     (friend: string) => {
-      setModal(<InitFriendModal onClose={closeModal} friend={friend} />);
+      (window as any)
+        .generateFriendKey(friend)
+        .then(({ friend, key }: { friend: string; key: string }) => {
+          setModal(
+            <InitFriendModal
+              onClose={closeModal}
+              friend={friend}
+              friendKey={key}
+            />
+          );
+        });
     },
     [setModal, closeModal]
   );
