@@ -268,6 +268,9 @@ Status DaemonRpc::GetAllMessages(
 
   for (auto& message_json : messages) {
     auto message_info = getAllMessagesResponse->add_messages();
+
+    // message_info->set_id(StrC)
+
     message_info->set_sender(message_json.at("from").get<string>());
 
     message_info->set_message(message_json.at("message").get<string>());
