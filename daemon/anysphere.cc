@@ -69,7 +69,8 @@ int main(int argc, char** argv) {
 
   // connect to the anysphere servers
   cout << "Client querying server address: " << server_address << std::endl;
-  auto channel_creds = grpc::SslCredentials(grpc::SslCredentialsOptions());
+  auto channel_creds = grpc::SslCredentials(
+      grpc::SslCredentialsOptions{.pem_root_certs = AMAZON_ROOT_CERTS});
   if (!tls) {
     channel_creds = grpc::InsecureChannelCredentials();
   }
