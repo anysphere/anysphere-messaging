@@ -4,6 +4,7 @@ import MessageList from "./components/MessageList";
 import Read from "./components/Read";
 import Write from "./components/Write";
 import FriendsModal from "./components/FriendsModal";
+import { InitFriendModal } from "./components/FriendsModal";
 import { Message } from "./types";
 import { Tab, TabType, TabContainer } from "./components/Tabs";
 import { truncate } from "./utils";
@@ -95,8 +96,17 @@ function Main() {
   }, [setModal]);
 
   const openFriendModal = React.useCallback(() => {
-    setModal(<FriendsModal onClose={closeModal} />);
+    setModal(
+      <FriendsModal onClose={closeModal} onAddFriend={openAddFriendModal} />
+    );
   }, [setModal, closeModal]);
+
+  const openAddFriendModal = React.useCallback(
+    (friend: string) => {
+      setModal(<InitFriendModal onClose={closeModal} friend={friend} />);
+    },
+    [setModal, closeModal]
+  );
 
   let selectedComponent;
   switch (tabs[selectedTab].type) {
