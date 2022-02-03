@@ -72,7 +72,7 @@ class MultipleFriendsTest : public ::testing::Test {
 
   void SetUp() override {
     // TODO(sualeh): do NOT do this. pick a good random unused port
-    int port = 43423;
+    int port = 43422;
     server_address_ << "localhost:" << port;
     // Setup server
     grpc::ServerBuilder builder;
