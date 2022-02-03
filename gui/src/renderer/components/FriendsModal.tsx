@@ -41,6 +41,7 @@ function FriendsModal({
             <button
               className="unselectable px-2 rounded-md bg-asbrown-100 text-asbrown-light "
               onClick={() => onAddFriend(friendname)}
+              disabled={friendname.length === 0}
             >
               <div className="codicon codicon-arrow-right"></div>
             </button>
