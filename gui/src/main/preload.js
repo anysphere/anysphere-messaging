@@ -190,8 +190,8 @@ contextBridge.exposeInMainWorld("getAllMessages", async () => {
     const l = lm.map((m) => {
       return {
         id: m.getId(),
-        from: m.getFrom(),
-        to: m.getTo(),
+        from: m.getSender(),
+        to: "me",
         message: m.getMessage(),
         timestamp: m.getTimestamp(),
       };

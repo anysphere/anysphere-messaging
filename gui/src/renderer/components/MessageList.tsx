@@ -9,6 +9,11 @@ function MessageBlurb({
   message: Message;
   onClick: () => void;
 }) {
+  let timestamp_string = "";
+  try {
+    timestamp_string = formatTime(message.timestamp);
+  } catch {}
+
   return (
     <div
       className="bg-white px-4 py-4 rounded-sm hover:cursor-pointer"
@@ -18,9 +23,7 @@ function MessageBlurb({
         <div>{message.from}</div>
         <div>{truncate(message.message, 50)}</div>
         <div className="flex-1"></div>
-        <div className="text-asbrown-200 text-sm">
-          {formatTime(message.timestamp)}
-        </div>
+        <div className="text-asbrown-200 text-sm">{timestamp_string}</div>
       </div>
     </div>
   );
