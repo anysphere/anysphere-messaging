@@ -80,6 +80,7 @@ auto Transmitter::retrieve_messages() -> void {
       auto time = absl::FormatTime(absl::Now(), absl::UTCTimeZone());
       json jmsg = {{"from", message.friend_name},
                    {"timestamp", time},
+                   {"id", message.id},
                    {"message", message.message},
                    {"type", "MESSAGE_RECEIVED"}};
       if (file.is_open()) {
