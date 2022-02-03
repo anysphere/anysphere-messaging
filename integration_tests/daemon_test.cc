@@ -220,14 +220,15 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceiveHalfFriend) {
 
 TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceive) {
   ResetStub();
-  auto config_file_address = generateTempFile();
+  auto config_file_address1 = generateTempFile();
+  auto config_file_address2 = generateTempFile();
 
   {
     auto crypto1 = gen_crypto();
-    auto config1 = gen_config(string(generateTempDir()), config_file_address);
+    auto config1 = gen_config(string(generateTempDir()), config_file_address1);
     DaemonRpc rpc1(crypto1, config1, stub_);
     auto crypto2 = gen_crypto();
-    auto config2 = gen_config(string(generateTempDir()), generateTempFile());
+    auto config2 = gen_config(string(generateTempDir()), config_file_address2);
     DaemonRpc rpc2(crypto2, config2, stub_);
 
     {
@@ -290,12 +291,64 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceive) {
 
   {
     // re-create config from the file!
-    auto config = Config(config_file_address);
-    auto crypto = gen_crypto();
-    Transmitter t(crypto, config, stub_);
+    auto crypto1 = gen_crypto();
+    auto config1 = Config(config_file_address1);
+    DaemonRpc rpc1(crypto1, config1, stub_);
+    Transmitter t1(crypto1, config1, stub_);
 
-    t.retrieve_messages();
-    t.send_messages();
+    auto crypto2 = gen_crypto();
+    auto config2 = Config(config_file_address2);
+    DaemonRpc rpc2(crypto2, config2, stub_);
+    Transmitter t2(crypto2, config2, stub_);
+
+    {
+      SendMessageRequest request;
+      request.set_name("user2");
+      request.set_message("hello from 1 to 2");
+      asphrdaemon::SendMessageResponse response;
+      rpc1.SendMessage(nullptr, &request, &response);
+      EXPECT_TRUE(response.success());
+    }
+
+    {
+      SendMessageRequest request;
+      request.set_name("user1");
+      request.set_message("hello from 2 to 1");
+      asphrdaemon::SendMessageResponse response;
+      rpc2.SendMessage(nullptr, &request, &response);
+      EXPECT_TRUE(response.success());
+    }
+
+    {
+      t1.send_messages();
+      t2.send_messages();
+    }
+
+    {
+      t1.retrieve_messages();
+      cout << "-----------------------------" << endl;
+      t2.retrieve_messages();
+    }
+
+    {
+      GetAllMessagesRequest request;
+      GetAllMessagesResponse response;
+      rpc1.GetAllMessages(nullptr, &request, &response);
+      EXPECT_TRUE(response.success());
+      EXPECT_EQ(response.messages_size(), 1);
+      EXPECT_EQ(response.messages(0).sender(), "user2");
+      EXPECT_EQ(response.messages(0).message(), "hello from 2 to 1");
+    }
+
+    {
+      GetAllMessagesRequest request;
+      GetAllMessagesResponse response;
+      rpc2.GetAllMessages(nullptr, &request, &response);
+      EXPECT_TRUE(response.success());
+      EXPECT_EQ(response.messages_size(), 1);
+      EXPECT_EQ(response.messages(0).sender(), "user1");
+      EXPECT_EQ(response.messages(0).message(), "hello from 1 to 2");
+    }
   }
 }
 
