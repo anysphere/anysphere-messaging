@@ -2391,8 +2391,9 @@ proto.asphrdaemon.MessageInfo.prototype.toObject = function(opt_includeInstance)
  */
 proto.asphrdaemon.MessageInfo.toObject = function(includeInstance, msg) {
   var f, obj = {
-    sender: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    message: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    id: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    sender: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    message: jspb.Message.getFieldWithDefault(msg, 3, ""),
     timestamp: (f = msg.getTimestamp()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f)
   };
 
@@ -2432,13 +2433,17 @@ proto.asphrdaemon.MessageInfo.deserializeBinaryFromReader = function(msg, reader
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setSender(value);
+      msg.setId(value);
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
-      msg.setMessage(value);
+      msg.setSender(value);
       break;
     case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setMessage(value);
+      break;
+    case 4:
       var value = new google_protobuf_timestamp_pb.Timestamp;
       reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
       msg.setTimestamp(value);
@@ -2472,24 +2477,31 @@ proto.asphrdaemon.MessageInfo.prototype.serializeBinary = function() {
  */
 proto.asphrdaemon.MessageInfo.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getSender();
+  f = message.getId();
   if (f.length > 0) {
     writer.writeString(
       1,
       f
     );
   }
-  f = message.getMessage();
+  f = message.getSender();
   if (f.length > 0) {
     writer.writeString(
       2,
       f
     );
   }
+  f = message.getMessage();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
   f = message.getTimestamp();
   if (f != null) {
     writer.writeMessage(
-      3,
+      4,
       f,
       google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
     );
@@ -2498,10 +2510,10 @@ proto.asphrdaemon.MessageInfo.serializeBinaryToWriter = function(message, writer
 
 
 /**
- * optional string sender = 1;
+ * optional string id = 1;
  * @return {string}
  */
-proto.asphrdaemon.MessageInfo.prototype.getSender = function() {
+proto.asphrdaemon.MessageInfo.prototype.getId = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -2510,16 +2522,16 @@ proto.asphrdaemon.MessageInfo.prototype.getSender = function() {
  * @param {string} value
  * @return {!proto.asphrdaemon.MessageInfo} returns this
  */
-proto.asphrdaemon.MessageInfo.prototype.setSender = function(value) {
+proto.asphrdaemon.MessageInfo.prototype.setId = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * optional string message = 2;
+ * optional string sender = 2;
  * @return {string}
  */
-proto.asphrdaemon.MessageInfo.prototype.getMessage = function() {
+proto.asphrdaemon.MessageInfo.prototype.getSender = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
@@ -2528,18 +2540,36 @@ proto.asphrdaemon.MessageInfo.prototype.getMessage = function() {
  * @param {string} value
  * @return {!proto.asphrdaemon.MessageInfo} returns this
  */
-proto.asphrdaemon.MessageInfo.prototype.setMessage = function(value) {
+proto.asphrdaemon.MessageInfo.prototype.setSender = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
 /**
- * optional google.protobuf.Timestamp timestamp = 3;
+ * optional string message = 3;
+ * @return {string}
+ */
+proto.asphrdaemon.MessageInfo.prototype.getMessage = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.asphrdaemon.MessageInfo} returns this
+ */
+proto.asphrdaemon.MessageInfo.prototype.setMessage = function(value) {
+  return jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional google.protobuf.Timestamp timestamp = 4;
  * @return {?proto.google.protobuf.Timestamp}
  */
 proto.asphrdaemon.MessageInfo.prototype.getTimestamp = function() {
   return /** @type{?proto.google.protobuf.Timestamp} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 3));
+    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 4));
 };
 
 
@@ -2548,7 +2578,7 @@ proto.asphrdaemon.MessageInfo.prototype.getTimestamp = function() {
  * @return {!proto.asphrdaemon.MessageInfo} returns this
 */
 proto.asphrdaemon.MessageInfo.prototype.setTimestamp = function(value) {
-  return jspb.Message.setWrapperField(this, 3, value);
+  return jspb.Message.setWrapperField(this, 4, value);
 };
 
 
@@ -2566,7 +2596,7 @@ proto.asphrdaemon.MessageInfo.prototype.clearTimestamp = function() {
  * @return {boolean}
  */
 proto.asphrdaemon.MessageInfo.prototype.hasTimestamp = function() {
-  return jspb.Message.getField(this, 3) != null;
+  return jspb.Message.getField(this, 4) != null;
 };
 
 

@@ -301,6 +301,9 @@ export namespace GetAllMessagesResponse {
 }
 
 export class MessageInfo extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
   getSender(): string;
   setSender(value: string): void;
 
@@ -324,6 +327,7 @@ export class MessageInfo extends jspb.Message {
 
 export namespace MessageInfo {
   export type AsObject = {
+    id: string,
     sender: string,
     message: string,
     timestamp?: google_protobuf_timestamp_pb.Timestamp.AsObject,
