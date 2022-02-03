@@ -1,4 +1,4 @@
-const { contextBridge } = require("electron");
+const { contextBridge, clipboard } = require("electron");
 const { promisify } = require("util");
 var grpc = require("@grpc/grpc-js");
 const daemonM = require("../daemon/schema/daemon_pb");
@@ -57,6 +57,10 @@ contextBridge.exposeInMainWorld("send", async (to, message) => {
     console.log(`error in send: ${e}`);
     return false;
   }
+});
+
+contextBridge.exposeInMainWorld("copyToClipboard", async (s) => {
+  clipboard.writeText(s, "selection");
 });
 
 contextBridge.exposeInMainWorld("getNewMessages", async () => {
