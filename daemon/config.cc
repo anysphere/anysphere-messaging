@@ -8,8 +8,8 @@ auto Friend::to_json() -> asphr::json {
   check_rep();
   return asphr::json{{"name", name},
                      {"read_index", read_index},
-                     {"write_key", Base64::Encode(write_key)},
-                     {"read_key", Base64::Encode(read_key)},
+                     {"write_key", asphr::Base64Escape(write_key)},
+                     {"read_key", asphr::Base64Escape(read_key)},
                      {"ack_index", ack_index},
                      {"enabled", enabled},
                      {"latest_ack_id", latest_ack_id},
@@ -20,8 +20,8 @@ auto Friend::from_json(const asphr::json& j) -> Friend {
   Friend f;
   f.name = j.at("name").get<string>();
   f.read_index = j.at("read_index").get<int>();
-  Base64::Decode(j.at("write_key").get<string>(), f.write_key);
-  Base64::Decode(j.at("read_key").get<string>(), f.read_key);
+  asphr::Base64Unescape(j.at("write_key").get<string>(), &f.write_key);
+  asphr::Base64Unescape(j.at("read_key").get<string>(), &f.read_key);
   f.ack_index = j.at("ack_index").get<int>();
   f.enabled = j.at("enabled").get<bool>();
   f.latest_ack_id = j.at("latest_ack_id").get<uint32_t>();
@@ -47,8 +47,8 @@ auto Friend::check_rep() const -> void {
 // store the config in config_file_address
 auto RegistrationInfo::to_json() -> asphr::json {
   asphr::json reg_json = {{"name", name},
-                          {"public_key", Base64::Encode(public_key)},
-                          {"private_key", Base64::Encode(private_key)},
+                          {"public_key", asphr::Base64Escape(public_key)},
+                          {"private_key", asphr::Base64Escape(private_key)},
                           {"authentication_token", authentication_token},
                           {"allocation", allocation}};
   return reg_json;
@@ -57,8 +57,9 @@ auto RegistrationInfo::to_json() -> asphr::json {
 auto RegistrationInfo::from_json(const asphr::json& j) -> RegistrationInfo {
   RegistrationInfo reg_info;
   reg_info.name = j.at("name").get<string>();
-  Base64::Decode(j.at("public_key").get<string>(), reg_info.public_key);
-  Base64::Decode(j.at("private_key").get<string>(), reg_info.private_key);
+  asphr::Base64Unescape(j.at("public_key").get<string>(), &reg_info.public_key);
+  asphr::Base64Unescape(j.at("private_key").get<string>(),
+                        &reg_info.private_key);
   reg_info.authentication_token = j.at("authentication_token").get<string>();
   reg_info.allocation = j.at("allocation").get<vector<int>>();
   return reg_info;
@@ -141,10 +142,10 @@ Config::Config(const asphr::json& config_json_input,
     has_registered = true;
     registrationInfo =
         RegistrationInfo::from_json(config_json.at("registration_info"));
-    Base64::Decode(config_json.at("pir_secret_key").get<string>(),
-                   pir_secret_key);
-    Base64::Decode(config_json.at("pir_galois_keys").get<string>(),
-                   pir_galois_keys);
+    asphr::Base64Unescape(config_json.at("pir_secret_key").get<string>(),
+                          &pir_secret_key);
+    asphr::Base64Unescape(config_json.at("pir_galois_keys").get<string>(),
+                          &pir_galois_keys);
     // create a pir_client !
     pir_client =
         std::make_unique<FastPIRClient>(pir_secret_key, pir_galois_keys);
@@ -170,8 +171,8 @@ auto Config::save() -> void {
   config_json["server_address"] = server_address;
   if (has_registered) {
     config_json["registration_info"] = registrationInfo.to_json();
-    config_json["pir_secret_key"] = Base64::Encode(pir_secret_key);
-    config_json["pir_galois_keys"] = Base64::Encode(pir_galois_keys);
+    config_json["pir_secret_key"] = asphr::Base64Escape(pir_secret_key);
+    config_json["pir_galois_keys"] = asphr::Base64Escape(pir_galois_keys);
   }
   vector<asphr::json> friends;
   for (auto& friend_pair : friendTable) {
