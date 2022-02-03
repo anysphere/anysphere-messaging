@@ -132,6 +132,21 @@ contextBridge.exposeInMainWorld(
   }
 );
 
+contextBridge.exposeInMainWorld(
+  "addFriend",
+  async (requestedFriend, requestedFriendKey) => {
+    const request = new daemonM.AddFriendRequest();
+    request.setName(requestedFriend);
+    request.setKey(requestedFriendKey);
+    const addFriend = promisify(daemonClient.addFriend).bind(daemonClient);
+    try {
+      const response = await addFriend(request);
+    } catch (e) {
+      console.log(`error in addFriend: ${e}`);
+    }
+  }
+);
+
 contextBridge.exposeInMainWorld("getAllMessages", async () => {
   if (FAKE_DATA) {
     return [

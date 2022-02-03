@@ -62,11 +62,14 @@ export function InitFriendModal({
   onClose,
   friend,
   friendKey,
+  onPasteKey,
 }: {
   onClose: () => void;
   friend: string;
   friendKey: string;
+  onPasteKey: (_: string) => void;
 }) {
+  const [theirkey, setTheirkey] = React.useState<string>("");
   return (
     <Modal onClose={onClose}>
       <div className="grid">
@@ -94,10 +97,17 @@ export function InitFriendModal({
             <input
               autoFocus
               type="text"
+              value={theirkey}
+              onChange={(e) => {
+                setTheirkey(e.target.value);
+              }}
               className="bg-red-100/[0] px-2 font-mono focus:outline-none
               focus:ring-0 border-b-2 flex-grow border-asbrown-100"
             />
-            <button className="unselectable px-2 py-0 rounded-md bg-asbrown-100 text-asbrown-light">
+            <button
+              className="unselectable px-2 py-0 rounded-md bg-asbrown-100 text-asbrown-light"
+              onClick={() => onPasteKey(theirkey)}
+            >
               <div className="codicon codicon-check"></div>
             </button>
           </div>

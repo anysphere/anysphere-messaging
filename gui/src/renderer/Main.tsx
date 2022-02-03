@@ -112,6 +112,10 @@ function Main() {
               onClose={closeModal}
               friend={friend}
               friendKey={key}
+              onPasteKey={(key: string) => {
+                (window as any).addFriend(friend, key);
+                closeModal();
+              }}
             />
           );
         });
