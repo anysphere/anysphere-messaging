@@ -8,8 +8,8 @@ auto Friend::to_json() -> asphr::json {
   check_rep();
   return asphr::json{{"name", name},
                      {"read_index", read_index},
-                     {"write_key", write_key},
-                     {"read_key", read_key},
+                     {"write_key", Base64::Encode(write_key)},
+                     {"read_key", Base64::Encode(read_key)},
                      {"ack_index", ack_index},
                      {"enabled", enabled},
                      {"latest_ack_id", latest_ack_id},
@@ -20,8 +20,8 @@ auto Friend::from_json(const asphr::json& j) -> Friend {
   Friend f;
   f.name = j.at("name").get<string>();
   f.read_index = j.at("read_index").get<int>();
-  f.read_key = j.at("read_key").get<string>();
-  f.write_key = j.at("write_key").get<string>();
+  Base64::Decode(j.at("write_key").get<string>(), f.write_key);
+  Base64::Decode(j.at("read_key").get<string>(), f.read_key);
   f.ack_index = j.at("ack_index").get<int>();
   f.enabled = j.at("enabled").get<bool>();
   f.latest_ack_id = j.at("latest_ack_id").get<uint32_t>();

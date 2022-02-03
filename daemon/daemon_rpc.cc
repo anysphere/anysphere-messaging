@@ -166,6 +166,7 @@ Status DaemonRpc::AddFriend(ServerContext* context,
   friend_info.write_key = write_key;
   friend_info.read_index = read_index;
   friend_info.enabled = true;
+  config.save();
 
   addFriendResponse->set_success(true);
   return Status::OK;
