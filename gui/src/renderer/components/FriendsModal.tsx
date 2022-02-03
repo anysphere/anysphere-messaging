@@ -22,11 +22,11 @@ function FriendsModal({
   return (
     <Modal onClose={onClose}>
       <div className="grid">
-        <div className="text-asbrown-light text-xs pt-2">New</div>
+        <div className="text-asbrown-light unselectable text-xs pt-2">New</div>
         <hr className="border-asbrown-100" />
         <div className={`mt-1 ${selected === 0 ? "bg-asbeige" : ""}`}>
           <div className="p-2 flex flex-row gap-2">
-            <div>Add friend:</div>
+            <div className="unselectable">Add friend:</div>
             <input
               autoFocus={selected === 0}
               type="text"
@@ -47,10 +47,10 @@ function FriendsModal({
             </button>
           </div>
         </div>
-        <div className="text-asbrown-300 text-xs text-center pt-1">
+        <div className="text-asbrown-300 unselectable text-xs text-center pt-1">
           (First enter their name. Next, you'll get a secret key.)
         </div>
-        <div className="text-asbrown-light text-xs pt-2">
+        <div className="text-asbrown-light unselectable text-xs pt-2">
           Pending invitations
         </div>
         <hr className="border-asbrown-100" />
@@ -68,11 +68,13 @@ function FriendsModal({
           ))}
         {friends.filter((friend) => friend.status === "initiated").length ===
           0 && (
-          <div className="text-asbrown-300 text-xs text-center pt-1">
+          <div className="text-asbrown-300 unselectable text-xs text-center pt-1">
             (No pending invitations.)
           </div>
         )}
-        <div className="text-asbrown-light text-xs pt-2">Friends</div>
+        <div className="text-asbrown-light text-xs unselectable pt-2">
+          Friends
+        </div>
         <hr className="border-asbrown-100" />
         {friends
           .filter((friend) => friend.status === "added")
@@ -107,11 +109,13 @@ export function InitFriendModal({
     <Modal onClose={onClose}>
       <div className="grid">
         <div className="text-center font-bold">{friend}</div>
-        <div className="text-sm text-center py-1">
+        <div className="text-sm text-center unselectable py-1">
           You're almost done adding {friend} as a friend!
         </div>
         <div className="grid">
-          <div className="text-sm">1. Send the following key to {friend}.</div>
+          <div className="text-sm unselectable">
+            1. Send the following key to {friend}.
+          </div>
           <div className="flex flex-row my-2 gap-1 justify-center">
             <code className="justify-self-center bg-asbeige py-1 px-2 rounded-md">
               {friendKey}
@@ -125,7 +129,7 @@ export function InitFriendModal({
           </div>
         </div>
         <div className="grid">
-          <div className="text-sm">2. Paste their key below.</div>
+          <div className="text-sm unselectable">2. Paste their key below.</div>
           <div className="flex flex-row my-2 gap-1 justify-center mx-9">
             <input
               autoFocus
