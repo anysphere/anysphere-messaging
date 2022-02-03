@@ -202,3 +202,40 @@ contextBridge.exposeInMainWorld("getAllMessages", async () => {
     return [];
   }
 });
+
+contextBridge.exposeInMainWorld("getFriendList", async () => {
+  if (FAKE_DATA) {
+    return [
+      {
+        name: "Friend 1",
+        status: "initiated",
+      },
+      {
+        name: "Friend 2",
+        status: "added",
+      },
+      {
+        name: "Friend 3",
+        status: "added",
+      },
+    ];
+  }
+  const request = new daemonM.GetFriendListRequest();
+  const getFriendList = promisify(daemonClient.getFriendList).bind(
+    daemonClient
+  );
+  try {
+    const response = await getFriendList(request);
+    const lm = response.getFriendListList();
+    const l = lm.map((m) => {
+      return {
+        name: m,
+        status: "added", // TODO: get status
+      };
+    });
+    return l;
+  } catch (e) {
+    console.log(`error in getFriendList: ${e}`);
+    return [];
+  }
+});

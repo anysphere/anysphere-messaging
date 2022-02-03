@@ -1,5 +1,6 @@
 import * as React from "react";
 import Modal from "./Modal";
+import { Friend } from "../types";
 
 function FriendsModal({
   onClose,
@@ -10,6 +11,13 @@ function FriendsModal({
 }) {
   const [selected, setSelected] = React.useState<number>(0);
   const [friendname, setFriendname] = React.useState<string>("");
+  const [friends, setFriends] = React.useState<Friend[]>([]);
+
+  React.useEffect(() => {
+    (window as any).getFriendList().then((friends: Friend[]) => {
+      setFriends(friends);
+    });
+  }, []);
 
   return (
     <Modal onClose={onClose}>
@@ -45,14 +53,38 @@ function FriendsModal({
           Pending invitations
         </div>
         <hr className="border-asbrown-100" />
-        <div className={`mt-1 p-2 ${selected === 1 ? "bg-gray-100" : ""}`}>
-          Friend 1
-        </div>
+        {friends
+          .filter((friend) => friend.status === "initiated")
+          .map((friend, index) => (
+            <div
+              className={`mt-1 text-sm py-1 px-2 ${
+                selected === index + 2 ? "bg-gray-100" : ""
+              }`}
+              key={index}
+            >
+              {friend.name}
+            </div>
+          ))}
+        {friends.filter((friend) => friend.status === "initiated").length ===
+          0 && (
+          <div className="text-asbrown-300 text-xs text-center pt-1">
+            (No pending invitations.)
+          </div>
+        )}
         <div className="text-asbrown-light text-xs pt-2">Friends</div>
         <hr className="border-asbrown-100" />
-        <div className={`mt-1 p-2 ${selected === 1 ? "bg-gray-100" : ""}`}>
-          Friend 2
-        </div>
+        {friends
+          .filter((friend) => friend.status === "added")
+          .map((friend, index) => (
+            <div
+              className={`mt-1 text-sm py-1 px-2 ${
+                selected === index + 2 ? "bg-gray-100" : ""
+              }`}
+              key={index}
+            >
+              {friend.name}
+            </div>
+          ))}
       </div>
     </Modal>
   );
