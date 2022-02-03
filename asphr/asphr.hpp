@@ -19,13 +19,13 @@
 #include "absl/random/random.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/escaping.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "base64.hpp"
 #include "json/nlohmann_json.h"
 #include "utils.hpp"
 
@@ -49,6 +49,8 @@ using std::vector;
 namespace asphr {
 using json = nlohmann::json;
 
+using absl::Base64Escape;
+using absl::Base64Unescape;
 using absl::InvalidArgumentError;
 using absl::Status;
 using absl::StatusOr;

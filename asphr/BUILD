@@ -2,7 +2,6 @@ cc_library(
     name = "asphr_lib",
     srcs = [
         "asphr.hpp",
-        "base64.hpp",
         "json/nlohmann_json.h",
     ],
     linkstatic = True,
@@ -41,17 +40,6 @@ cc_test(
     linkstatic = True,
     deps = [
         ":utils",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_test(
-    name = "base64_test",
-    size = "small",
-    srcs = ["base64_test.cc"],
-    linkstatic = True,
-    deps = [
-        ":asphr_lib",
         "@com_google_googletest//:gtest_main",
     ],
 )
