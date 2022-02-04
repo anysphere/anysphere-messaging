@@ -237,3 +237,16 @@ contextBridge.exposeInMainWorld("getFriendList", async () => {
     return [];
   }
 });
+
+contextBridge.exposeInMainWorld("messageSeen", async (message_id) => {
+  const request = new daemonM.MessageSeenRequest();
+  request.setId(message_id);
+  const messageSeen = promisify(daemonClient.messageSeen).bind(daemonClient);
+  try {
+    const response = await messageSeen(request);
+    return true;
+  } catch (e) {
+    console.log(`error in send: ${e}`);
+    return false;
+  }
+});

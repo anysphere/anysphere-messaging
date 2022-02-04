@@ -21,13 +21,14 @@ function Main() {
   const [modal, setModal] = React.useState<JSX.Element | null>(null);
 
   const readMessage = React.useCallback(
-    (message: Message) => {
+    (message: Message, mode: string) => {
       for (let i = 0; i < tabs.length; i++) {
         if (tabs[i].type === TabType.Read && tabs[i].data.id === message.id) {
           setSelectedTab(i);
           return;
         }
       }
+      (window as any).messageSeen(message.id);
       const readTab = {
         type: TabType.Read,
         name: `${truncate(message.message, 10)} - ${message.from}`,
@@ -127,12 +128,18 @@ function Main() {
   switch (tabs[selectedTab].type) {
     case TabType.New:
       selectedComponent = (
-        <MessageList readCallback={readMessage} messages="new" />
+        <MessageList
+          readCallback={(m: Message) => readMessage(m, "new")}
+          messages="new"
+        />
       );
       break;
     case TabType.All:
       selectedComponent = (
-        <MessageList readCallback={readMessage} messages="all" />
+        <MessageList
+          readCallback={(m: Message) => readMessage(m, "all")}
+          messages="all"
+        />
       );
       break;
     case TabType.Read:
