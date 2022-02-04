@@ -115,6 +115,28 @@ function deserialize_asphrdaemon_GetNewMessagesResponse(buffer_arg) {
   return schema_daemon_pb.GetNewMessagesResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_asphrdaemon_MessageSeenRequest(arg) {
+  if (!(arg instanceof schema_daemon_pb.MessageSeenRequest)) {
+    throw new Error('Expected argument of type asphrdaemon.MessageSeenRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_MessageSeenRequest(buffer_arg) {
+  return schema_daemon_pb.MessageSeenRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_asphrdaemon_MessageSeenResponse(arg) {
+  if (!(arg instanceof schema_daemon_pb.MessageSeenResponse)) {
+    throw new Error('Expected argument of type asphrdaemon.MessageSeenResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_MessageSeenResponse(buffer_arg) {
+  return schema_daemon_pb.MessageSeenResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_asphrdaemon_RegisterUserRequest(arg) {
   if (!(arg instanceof schema_daemon_pb.RegisterUserRequest)) {
     throw new Error('Expected argument of type asphrdaemon.RegisterUserRequest');
@@ -270,6 +292,17 @@ var DaemonService = exports.DaemonService = {
     requestDeserialize: deserialize_asphrdaemon_GetNewMessagesRequest,
     responseSerialize: serialize_asphrdaemon_GetNewMessagesResponse,
     responseDeserialize: deserialize_asphrdaemon_GetNewMessagesResponse,
+  },
+  messageSeen: {
+    path: '/asphrdaemon.Daemon/MessageSeen',
+    requestStream: false,
+    responseStream: false,
+    requestType: schema_daemon_pb.MessageSeenRequest,
+    responseType: schema_daemon_pb.MessageSeenResponse,
+    requestSerialize: serialize_asphrdaemon_MessageSeenRequest,
+    requestDeserialize: deserialize_asphrdaemon_MessageSeenRequest,
+    responseSerialize: serialize_asphrdaemon_MessageSeenResponse,
+    responseDeserialize: deserialize_asphrdaemon_MessageSeenResponse,
   },
 };
 

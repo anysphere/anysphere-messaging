@@ -15,6 +15,7 @@ interface IDaemonService extends grpc.ServiceDefinition<grpc.UntypedServiceImple
   sendMessage: grpc.MethodDefinition<schema_daemon_pb.SendMessageRequest, schema_daemon_pb.SendMessageResponse>;
   getAllMessages: grpc.MethodDefinition<schema_daemon_pb.GetAllMessagesRequest, schema_daemon_pb.GetAllMessagesResponse>;
   getNewMessages: grpc.MethodDefinition<schema_daemon_pb.GetNewMessagesRequest, schema_daemon_pb.GetNewMessagesResponse>;
+  messageSeen: grpc.MethodDefinition<schema_daemon_pb.MessageSeenRequest, schema_daemon_pb.MessageSeenResponse>;
 }
 
 export const DaemonService: IDaemonService;
@@ -28,6 +29,7 @@ export interface IDaemonServer extends grpc.UntypedServiceImplementation {
   sendMessage: grpc.handleUnaryCall<schema_daemon_pb.SendMessageRequest, schema_daemon_pb.SendMessageResponse>;
   getAllMessages: grpc.handleUnaryCall<schema_daemon_pb.GetAllMessagesRequest, schema_daemon_pb.GetAllMessagesResponse>;
   getNewMessages: grpc.handleUnaryCall<schema_daemon_pb.GetNewMessagesRequest, schema_daemon_pb.GetNewMessagesResponse>;
+  messageSeen: grpc.handleUnaryCall<schema_daemon_pb.MessageSeenRequest, schema_daemon_pb.MessageSeenResponse>;
 }
 
 export class DaemonClient extends grpc.Client {
@@ -56,4 +58,7 @@ export class DaemonClient extends grpc.Client {
   getNewMessages(argument: schema_daemon_pb.GetNewMessagesRequest, callback: grpc.requestCallback<schema_daemon_pb.GetNewMessagesResponse>): grpc.ClientUnaryCall;
   getNewMessages(argument: schema_daemon_pb.GetNewMessagesRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetNewMessagesResponse>): grpc.ClientUnaryCall;
   getNewMessages(argument: schema_daemon_pb.GetNewMessagesRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetNewMessagesResponse>): grpc.ClientUnaryCall;
+  messageSeen(argument: schema_daemon_pb.MessageSeenRequest, callback: grpc.requestCallback<schema_daemon_pb.MessageSeenResponse>): grpc.ClientUnaryCall;
+  messageSeen(argument: schema_daemon_pb.MessageSeenRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.MessageSeenResponse>): grpc.ClientUnaryCall;
+  messageSeen(argument: schema_daemon_pb.MessageSeenRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.MessageSeenResponse>): grpc.ClientUnaryCall;
 }
