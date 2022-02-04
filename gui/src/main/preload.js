@@ -42,7 +42,7 @@ console.log(`SOCKET ADDRESS: ${get_socket_address()}`);
 
 const FAKE_DATA = process.env.ASPHR_FAKE_DATA === "true";
 
-contextBridge.exposeInMainWorld("send", async (to, message) => {
+contextBridge.exposeInMainWorld("send", async (message, to) => {
   if (FAKE_DATA) {
     return true;
   }
