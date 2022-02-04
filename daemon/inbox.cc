@@ -22,7 +22,7 @@ Inbox::Inbox(const string& file_address)
 
 Inbox::Inbox(const asphr::json& serialized_json, const string& file_address)
     : saved_file_address(file_address) {
-  for (const auto& inbox_item : serialized_json["inprogress"]) {
+  for (const auto& inbox_item : serialized_json.at("inprogress")) {
     auto friend_name = inbox_item.at("friend_name").get<string>();
     auto chunk_start_id = inbox_item.at("chunk_start_id").get<uint32_t>();
     auto chunks = inbox_item.at("chunks").get<vector<string>>();
@@ -43,7 +43,7 @@ auto Inbox::save() noexcept(false) -> void {
         {"chunk_start_id", chunk_start_id},
         {"chunks", chunks},
     };
-    j["inprogress"].push_back(j_item);
+    j.at("inprogress").push_back(j_item);
   }
   std::ofstream o(saved_file_address);
   o << std::setw(4) << j.dump(4) << std::endl;
@@ -69,7 +69,7 @@ auto Inbox::get_encrypted_acks(
     encrypted_acks[friend_info.ack_index] = ack.value();
   }
   for (size_t i = 0; i < MAX_FRIENDS; i++) {
-    if (encrypted_acks[i].empty()) {
+    if (encrypted_acks.at(i).empty()) {
       auto ack = crypto.encrypt_ack(0, dummyMe);
       if (!ack.ok()) {
         cout << "encryption failed: " << ack.status() << endl;
@@ -80,7 +80,7 @@ auto Inbox::get_encrypted_acks(
   }
   pir_value_t pir_acks;
   for (size_t i = 0; i < MAX_FRIENDS; i++) {
-    std::copy(encrypted_acks[i].begin(), encrypted_acks[i].end(),
+    std::copy(encrypted_acks.at(i).begin(), encrypted_acks.at(i).end(),
               pir_acks.begin() + i * ENCRYPTED_ACKING_BYTES);
   }
 
@@ -93,15 +93,15 @@ auto Inbox::update_ack_from_friend(pir_value_t& pir_acks, Friend& friend_info,
   check_rep();
   vector<string> encrypted_acks(MAX_FRIENDS);
   for (size_t i = 0; i < MAX_FRIENDS; i++) {
-    encrypted_acks[i].resize(ENCRYPTED_ACKING_BYTES);
+    encrypted_acks.at(i).resize(ENCRYPTED_ACKING_BYTES);
     std::copy(pir_acks.begin() + i * ENCRYPTED_ACKING_BYTES,
               pir_acks.begin() + (i + 1) * ENCRYPTED_ACKING_BYTES,
-              encrypted_acks[i].begin());
+              encrypted_acks.at(i).begin());
   }
 
   // try decrypting each!
   for (size_t i = 0; i < MAX_FRIENDS; i++) {
-    auto ack = crypto.decrypt_ack(encrypted_acks[i], friend_info);
+    auto ack = crypto.decrypt_ack(encrypted_acks.at(i), friend_info);
     if (!ack.ok()) {
       continue;
     }

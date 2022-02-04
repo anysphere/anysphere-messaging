@@ -30,11 +30,11 @@ auto Crypto::decode_friend_key(const string& friend_key) const
   string index_str;
   string public_key_b64;
   for (size_t i = 0; i < friend_key.size(); ++i) {
-    if (friend_key[i] == 'a') {
+    if (friend_key.at(i) == 'a') {
       public_key_b64 = friend_key.substr(i + 1);
       break;
     }
-    index_str += friend_key[i];
+    index_str += friend_key.at(i);
   }
   int index;
   auto success = absl::SimpleAtoi(index_str, &index);
@@ -178,7 +178,7 @@ auto Crypto::decrypt_receive(const pir_value_t& ciphertext,
       MESSAGE_SIZE - crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
   string ciphertext_str = "";
   for (size_t i = 0; i < ciphertext_len; i++) {
-    ciphertext_str += ciphertext[i];
+    ciphertext_str += ciphertext.at(i);
   }
   unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
   for (size_t i = 0; i < crypto_aead_xchacha20poly1305_ietf_NPUBBYTES; i++) {
@@ -278,7 +278,7 @@ auto Crypto::decrypt_ack(const string& ciphertext,
       ENCRYPTED_ACKING_BYTES - crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
   string ciphertext_str = "";
   for (size_t i = 0; i < ciphertext_len; i++) {
-    ciphertext_str += ciphertext[i];
+    ciphertext_str += ciphertext.at(i);
   }
   unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
   for (size_t i = 0; i < crypto_aead_xchacha20poly1305_ietf_NPUBBYTES; i++) {

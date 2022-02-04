@@ -112,7 +112,8 @@ Status DaemonRpc::GenerateFriendKey(
     return Status(grpc::StatusCode::INVALID_ARGUMENT, "no more allocation");
   }
 
-  auto index = config.registrationInfo.allocation[config.friendTable.size()];
+  // note: for now, we only support the first index ever!
+  auto index = config.registrationInfo.allocation.at(0);
 
   auto friend_key =
       crypto.generate_friend_key(config.registrationInfo.public_key, index);
@@ -158,7 +159,7 @@ Status DaemonRpc::AddFriend(ServerContext* context,
 
   auto& [read_index, friend_public_key] = decoded_friend_key.value();
 
-  auto& friend_info = config.friendTable[addFriendRequest->name()];
+  auto& friend_info = config.friendTable.at(addFriendRequest->name());
   auto [read_key, write_key] = crypto.derive_read_write_keys(
       config.registrationInfo.public_key, config.registrationInfo.private_key,
       friend_public_key);
@@ -217,7 +218,7 @@ Status DaemonRpc::SendMessage(ServerContext* context,
     return Status(grpc::StatusCode::INVALID_ARGUMENT, "friend not found");
   }
 
-  auto& friend_info = config.friendTable[sendMessageRequest->name()];
+  auto& friend_info = config.friendTable.at(sendMessageRequest->name());
 
   if (!friend_info.enabled) {
     cout << "friend disabled" << endl;

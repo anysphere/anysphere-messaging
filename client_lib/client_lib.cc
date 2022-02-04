@@ -233,7 +233,7 @@ auto get_new_entries(const string& file_address, const Time& last_timestamp)
       continue;
     }
     auto j = json::parse(line);
-    string jt = j["timestamp"].get<string>();
+    string jt = j.at("timestamp").get<string>();
     Time jt_time;
     string err;
     absl::ParseTime(absl::RFC3339_full, jt, &jt_time, &err);

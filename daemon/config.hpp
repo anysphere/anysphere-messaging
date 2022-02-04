@@ -84,6 +84,9 @@ struct RegistrationInfo {
   string public_key;
   string private_key;
   string authentication_token;
+  // NOTE: OUR CURRENT CODE ONLY SUPPORTS ALLOCATION.SIZE() == 1
+  // if we want to support bigger allocations in the future, it is very
+  // important to carefully think about the code!
   vector<int> allocation;
 
   auto to_json() -> asphr::json;

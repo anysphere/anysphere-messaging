@@ -68,7 +68,7 @@ auto Outbox::save() noexcept(false) -> void {
   asphr::json j = {"outbox", {}};
   for (auto& [friend_name, messages] : outbox) {
     for (auto& message : messages) {
-      j["outbox"].push_back(message.to_json());
+      j.at("outbox").push_back(message.to_json());
     }
   }
   std::ofstream o(saved_file_address);
@@ -98,7 +98,7 @@ auto Outbox::add(const string& message, Friend& friend_info) noexcept -> void {
 
     auto msgToSend = MessageToSend{friend_info,
                                    id,
-                                   chunked_message[i],
+                                   chunked_message.at(i),
                                    chunked_message.size() > 1,
                                    (uint32_t)chunked_message.size(),
                                    chunks_start_id};

@@ -153,7 +153,7 @@ Config::Config(const asphr::json& config_json_input,
     initialize_dummy_me();
   }
 
-  for (auto& friend_json : config_json["friends"]) {
+  for (auto& friend_json : config_json.at("friends")) {
     Friend f = Friend::from_json(friend_json);
     friendTable[f.name] = f;
   }
@@ -209,7 +209,7 @@ auto Config::random_enabled_friend() -> string {
     }
   }
   auto random_index = rand() % enabled_friends.size();
-  return enabled_friends[random_index];
+  return enabled_friends.at(random_index);
 }
 
 auto Config::add_friend(const Friend& f) -> void {
