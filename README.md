@@ -55,3 +55,37 @@ with your Apple ID and teamId. Enter profile name `anysphere-gui-profile` and an
 Then everything should just work! For more details, read https://scriptingosx.com/2021/07/notarize-a-command-line-tool-with-notarytool/.
 
 Let `.env` contain the environment variables specified by `helpers/scripts/package-mac.ts`.
+
+# LOCAL MANUAL TEST
+
+Build:
+
+```
+bazel build //client/... --host_javabase=@local_jdk//:jdk
+```
+
+Run normal daemon:
+
+```
+./bazel-bin/client/daemon/daemon
+```
+
+Run daemon 2:
+
+```
+rm -rf ~/.anysphere2 && mkdir ~/.anysphere2 && ./bazel-bin/client/daemon/daemon -d "$HOME/.anysphere2/anysphere.sock" -c "$HOME/.anysphere2/config.json"
+```
+
+Next, run
+
+```
+./bazel-bin/client/cli/asphr
+```
+
+to connect to daemon 1, and
+
+```
+./bazel-bin/client/cli/asphr socket unix:///Users/arvid/.anysphere2/anysphere.sock
+```
+
+to connect to daemon 2.
