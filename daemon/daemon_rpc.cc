@@ -308,6 +308,21 @@ Status DaemonRpc::GetNewMessages(
 
   auto messages = get_entries(config.receive_file_address());
 
+  // sort messages
+  std::sort(messages.begin(), messages.end(), [](const json& a, const json& b) {
+    auto timestamp_str = a.at("timestamp").get<string>();
+    Time a_time;
+    string err;
+    absl::ParseTime(absl::RFC3339_full, timestamp_str, &a_time, &err);
+
+    auto timestamp_str2 = b.at("timestamp").get<string>();
+    Time b_time;
+    absl::ParseTime(absl::RFC3339_full, timestamp_str2, &b_time, &err);
+
+    // convert timestamp into time_t
+    return a_time > b_time;
+  });
+
   for (auto& message_json : messages) {
     auto message_info = getNewMessagesResponse->add_messages();
     message_info->set_id(
