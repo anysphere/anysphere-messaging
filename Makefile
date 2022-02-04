@@ -26,8 +26,8 @@ package-mac:
 	echo "Client successfully built for mac! Look in the release folder."
 
 # we generate a random release ID so that only people we send the link to can download
-publish-mac-alpha:
-	RELEASE_ID=$(echo $RANDOM | shasum -a 256 | head -c 20) pushd release && pushd build && PKG_FILENAME=$(ls *-arm64.pkg) aws s3 cp "$PKG_FILENAME" "s3://co-anysphere-distribution/$RELEASE_ID/$PKG_FILENAME" && popd && popd && echo "http://distribution.anysphere.co/$RELEASE_ID/$PKG_FILENAME"
+publish-mac-alpha: package-mac
+	RELEASE_ID=$(echo $RANDOM | shasum -a 256 | head -c 20) pushd client/gui/release/build && PKG_FILENAME=$(ls *-arm64.pkg) aws s3 cp "$PKG_FILENAME" "s3://co-anysphere-distribution/$RELEASE_ID/$PKG_FILENAME" && popd && echo "http://distribution.anysphere.co/$RELEASE_ID/$PKG_FILENAME"
 	echo "Client successfully published to s3! Download from URL above."
 
 clean:
