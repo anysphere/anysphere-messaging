@@ -176,30 +176,32 @@ function Main() {
   );
 
   return (
-    <div>
+    <div className="w-full">
       <div className="h-4 draggable" />
-      <div className="p-2">
-        <div className="flex flex-row gap-2">
-          <TabContainer
-            tabs={tabs}
-            selectTab={setSelectedTab}
-            closeTab={closeTab}
-            selectedTab={selectedTab}
-          />
-          <button
-            className="unselectable px-2 rounded-md bg-asbrown-100 text-asbrown-light "
-            onClick={openFriendModal}
-          >
-            <div className="codicon codicon-person-add"></div>
-          </button>
-          <button
-            className="unselectable px-2 rounded-md bg-asbrown-100 text-asbrown-light "
-            onClick={writeMessage}
-          >
-            <div className="codicon codicon-edit"></div>
-          </button>
+      <div className="flex flex-row gap-2 fixed w-full pt-2 px-2">
+        <TabContainer
+          tabs={tabs}
+          selectTab={setSelectedTab}
+          closeTab={closeTab}
+          selectedTab={selectedTab}
+        />
+        <button
+          className="unselectable px-2 rounded-md bg-asbrown-100 text-asbrown-light "
+          onClick={openFriendModal}
+        >
+          <div className="codicon codicon-person-add"></div>
+        </button>
+        <button
+          className="unselectable px-2 rounded-md bg-asbrown-100 text-asbrown-light "
+          onClick={writeMessage}
+        >
+          <div className="codicon codicon-edit"></div>
+        </button>
+      </div>
+      <div>
+        <div className="overflow-scroll mt-9 pb-12 h-[calc(100vh_-_3.25rem)]">
+          {selectedComponent}
         </div>
-        {selectedComponent}
       </div>
       {modal}
     </div>

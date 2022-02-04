@@ -26,7 +26,7 @@ function FriendsModal({
         <hr className="border-asbrown-100" />
         <div className={`mt-1 ${selected === 0 ? "bg-asbeige" : ""}`}>
           <div className="p-2 flex flex-row gap-2">
-            <div className="unselectable">Add friend:</div>
+            <div className="unselectable text-sm">Add friend:</div>
             <input
               autoFocus={selected === 0}
               type="text"
@@ -35,7 +35,7 @@ function FriendsModal({
                 setFriendname(e.target.value);
               }}
               className="bg-red-100/[0] focus:border-none focus:border-red-500 flex-grow
-              focus:outline-none
+              focus:outline-none text-sm
               focus:ring-0"
             />
             <button
