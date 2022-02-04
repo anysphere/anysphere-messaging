@@ -35,7 +35,7 @@ function MessageBlurb({
 function NoMessages({ explanation }: { explanation: string }) {
   return (
     <div className="grid h-full pt-48">
-      <div className="place-self-center text-asbrown-200 text-xs">
+      <div className="place-self-center text-asbrown-200 text-xs unselectable">
         {explanation}
       </div>
     </div>
