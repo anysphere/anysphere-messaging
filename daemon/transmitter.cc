@@ -113,14 +113,14 @@ auto Transmitter::send_messages() -> void {
   std::unordered_map<string, string> friend_to_message;
 
   for (auto& entry : new_entries) {
-    auto to = entry["to"].get<string>();
+    auto to = entry.at("to").get<string>();
     if (!config.friendTable.contains(to)) {
       std::cerr << "FriendHashTable does not contain " << to
                 << "; ignoring message" << endl;
       continue;
     }
     auto friend_info = config.friendTable.at(to);
-    outbox.add(entry["message"].get<string>(), friend_info);
+    outbox.add(entry.at("message").get<string>(), friend_info);
   }
 
   auto messageToSend =
