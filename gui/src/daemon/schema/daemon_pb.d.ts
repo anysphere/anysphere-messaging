@@ -60,14 +60,38 @@ export namespace GetFriendListRequest {
   }
 }
 
+export class FriendInfo extends jspb.Message {
+  getName(): string;
+  setName(value: string): void;
+
+  getEnabled(): boolean;
+  setEnabled(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): FriendInfo.AsObject;
+  static toObject(includeInstance: boolean, msg: FriendInfo): FriendInfo.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: FriendInfo, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): FriendInfo;
+  static deserializeBinaryFromReader(message: FriendInfo, reader: jspb.BinaryReader): FriendInfo;
+}
+
+export namespace FriendInfo {
+  export type AsObject = {
+    name: string,
+    enabled: boolean,
+  }
+}
+
 export class GetFriendListResponse extends jspb.Message {
   getSuccess(): boolean;
   setSuccess(value: boolean): void;
 
-  clearFriendListList(): void;
-  getFriendListList(): Array<string>;
-  setFriendListList(value: Array<string>): void;
-  addFriendList(value: string, index?: number): string;
+  clearFriendInfosList(): void;
+  getFriendInfosList(): Array<FriendInfo>;
+  setFriendInfosList(value: Array<FriendInfo>): void;
+  addFriendInfos(value?: FriendInfo, index?: number): FriendInfo;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetFriendListResponse.AsObject;
@@ -82,7 +106,7 @@ export class GetFriendListResponse extends jspb.Message {
 export namespace GetFriendListResponse {
   export type AsObject = {
     success: boolean,
-    friendListList: Array<string>,
+    friendInfosList: Array<FriendInfo.AsObject>,
   }
 }
 
