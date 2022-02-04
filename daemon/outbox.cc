@@ -119,10 +119,11 @@ auto Outbox::message_to_send(
   check_rep();
   // first remove ACKed messages
   vector<string> recently_acked_friends;
+  vector<string> remove_friend_names;
   for (auto& [friend_name, messages] : outbox) {
     auto remove_num = 0;
     for (size_t i = 0; i < messages.size(); i++) {
-      if (messages[i].id <= friendTable.at(friend_name).latest_ack_id) {
+      if (messages.at(i).id <= friendTable.at(friend_name).latest_ack_id) {
         remove_num++;
         recently_acked_friends.push_back(friend_name);
       } else {
@@ -131,8 +132,13 @@ auto Outbox::message_to_send(
     }
     messages.erase(messages.begin(), messages.begin() + remove_num);
     if (messages.size() == 0) {
-      outbox.erase(friend_name);
+      remove_friend_names.push_back(friend_name);
     }
+  }
+  // remove the empty message lists in a second loop so as to not get stupid
+  // use-after-free errors :')
+  for (auto& friend_name : remove_friend_names) {
+    outbox.erase(friend_name);
   }
   check_rep();
 
