@@ -76,7 +76,8 @@ auto Outbox::save() noexcept(false) -> void {
   check_rep();
 }
 
-auto Outbox::add(const string& message, Friend& friend_info) noexcept -> void {
+auto Outbox::add(const string& message, const Friend& friend_info) noexcept
+    -> void {
   check_rep();
   // chunk! and add.
   vector<string> chunked_message;

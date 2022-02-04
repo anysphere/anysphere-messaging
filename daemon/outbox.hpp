@@ -37,8 +37,7 @@ class Outbox {
 
   // the message here can be any size! Outbox takes care of splitting it into
   // chunks.
-  // modifies the friend to update the last_send_id
-  auto add(const string& message, Friend& friend_info) noexcept -> void;
+  auto add(const string& message, const Friend& friend_info) noexcept -> void;
 
   // returns a pair of (message, to_friend_name)
   // the prioritization of messages guarantees eventual delivery

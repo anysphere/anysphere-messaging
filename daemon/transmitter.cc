@@ -71,6 +71,9 @@ auto Transmitter::retrieve_messages() -> void {
     auto message_opt =
         inbox.receive_message(client, reply, friend_info_mut, crypto,
                               previous_success_receive_friend);
+    // the friend info might have been mutated, so we should save the config
+    // now!
+    config.save();
     if (message_opt.has_value()) {
       auto message = message_opt.value();
       cout << "actual message: " << message.message << endl;
@@ -119,7 +122,7 @@ auto Transmitter::send_messages() -> void {
                 << "; ignoring message" << endl;
       continue;
     }
-    auto friend_info = config.friendTable.at(to);
+    const auto friend_info = config.friendTable.at(to);
     outbox.add(entry.at("message").get<string>(), friend_info);
   }
 
