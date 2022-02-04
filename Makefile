@@ -1,4 +1,4 @@
-.PHONY: server minimal-server push push-minimal package-mac clean
+.PHONY: server minimal-server push push-minimal package-mac publish-mac-alpha update-gui-proto clean
 
 server: 
 	echo "WARNING: THE server.Dockerfile IS OUT OF DATE. PLEASE UPDATE IT, TAKING INSPIRATION FROM minimal-server.Dockerfile."
@@ -26,10 +26,12 @@ package-mac:
 	echo "Client successfully built for mac! Look in the release folder."
 
 # we generate a random release ID so that only people we send the link to can download
-# publish-mac-alpha: package-mac
-publish-mac-alpha:
+publish-mac-alpha: package-mac
 	./publish.sh arm64
 	echo "Client successfully published to s3! Download from URL above."
+
+update-gui-proto:
+	cd client/gui && npm run update
 
 clean:
 	docker rmi -f server
