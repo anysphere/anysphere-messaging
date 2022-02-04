@@ -52,8 +52,15 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
       const asphrdaemon::GetNewMessagesRequest* getNewMessagesRequest,
       asphrdaemon::GetNewMessagesResponse* getNewMessagesResponse) override;
 
+  grpc::Status MessageSeen(
+      grpc::ServerContext* context,
+      const asphrdaemon::MessageSeenRequest* messageSeenRequest,
+      asphrdaemon::MessageSeenResponse* messageSeenResponse) override;
+
  private:
   const Crypto& crypto;
   Config& config;
   unique_ptr<asphrserver::Server::Stub>& stub;
+
+  auto message_id(const asphr::json& message_json) -> string;
 };

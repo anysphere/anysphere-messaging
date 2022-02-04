@@ -237,6 +237,9 @@ auto Config::receive_file_address() -> std::filesystem::path {
 auto Config::send_file_address() -> std::filesystem::path {
   return data_dir / "send.ndjson";
 }
+auto Config::seen_file_address() -> std::filesystem::path {
+  return data_dir / "seen.ndjson";
+}
 
 auto Config::check_rep() const -> void {
   assert(saved_file_address != "");

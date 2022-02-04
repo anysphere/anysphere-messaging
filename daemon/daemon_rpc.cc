@@ -269,18 +269,12 @@ Status DaemonRpc::GetAllMessages(
   });
 
   for (auto& message_json : messages) {
-    if (message_json.at("seen").get<bool>()) {
-      continue;
-    }
+    auto id = message_id(message_json);
 
     auto message_info = getAllMessagesResponse->add_messages();
 
-    message_info->set_id(
-        asphr::StrCat("from:", message_json.at("from").get<string>(), ":",
-                      message_json.at("id").get<uint32_t>()));
-
+    message_info->set_id(id);
     message_info->set_sender(message_json.at("from").get<string>());
-
     message_info->set_message(message_json.at("message").get<string>());
 
     auto timestamp_str = message_json.at("timestamp").get<string>();
@@ -312,6 +306,13 @@ Status DaemonRpc::GetNewMessages(
 
   auto messages = get_entries(config.receive_file_address());
 
+  auto seen_messages = get_entries(config.seen_file_address());
+
+  auto seen_set = std::unordered_set<string>();
+  for (auto& seen_message : seen_messages) {
+    seen_set.insert(seen_message.at("id").get<string>());
+  }
+
   // sort messages
   std::sort(messages.begin(), messages.end(), [](const json& a, const json& b) {
     auto timestamp_str = a.at("timestamp").get<string>();
@@ -328,12 +329,16 @@ Status DaemonRpc::GetNewMessages(
   });
 
   for (auto& message_json : messages) {
+    auto id = message_id(message_json);
+    if (seen_set.contains(id)) {
+      continue;
+    }
+
     auto message_info = getNewMessagesResponse->add_messages();
-    message_info->set_id(
-        asphr::StrCat("from:", message_json.at("from").get<string>(), ":",
-                      message_json.at("id").get<uint32_t>()));
+    message_info->set_id(id);
     message_info->set_sender(message_json.at("from").get<string>());
     message_info->set_message(message_json.at("message").get<string>());
+
     auto timestamp_str = message_json.at("timestamp").get<string>();
 
     // convert timestamp using TimeUtil::FromString
@@ -348,4 +353,33 @@ Status DaemonRpc::GetNewMessages(
 
   getNewMessagesResponse->set_success(true);
   return Status::OK;
+}
+
+Status DaemonRpc::MessageSeen(ServerContext* context,
+                              const MessageSeenRequest* messageSeenRequest,
+                              MessageSeenResponse* messageSeenResponse) {
+  cout << "MessageSeen() called" << endl;
+
+  if (!config.has_registered) {
+    cout << "need to register first!" << endl;
+    return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
+  }
+
+  auto message_id = messageSeenRequest->id();
+
+  auto file = std::ofstream(config.seen_file_address(), std::ios_base::app);
+  json jmsg = {{"id", message_id}};
+  if (file.is_open()) {
+    file << std::setw(4) << jmsg.dump() << std::endl;
+    file.close();
+  } else {
+    return Status(grpc::StatusCode::UNKNOWN, "file is not open");
+  }
+
+  return Status::OK;
+}
+
+auto DaemonRpc::message_id(const asphr::json& message_json) -> string {
+  return asphr::StrCat("from:", message_json.at("from").get<string>(), ":",
+                       message_json.at("id").get<uint32_t>());
 }

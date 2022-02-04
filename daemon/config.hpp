@@ -111,6 +111,7 @@ class Config {
   // .ndjson files.
   auto receive_file_address() -> std::filesystem::path;
   auto send_file_address() -> std::filesystem::path;
+  auto seen_file_address() -> std::filesystem::path;
   auto initialize_dummy_me() -> void;
 
   bool has_registered;
