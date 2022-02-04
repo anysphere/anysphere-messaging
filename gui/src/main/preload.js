@@ -224,11 +224,11 @@ contextBridge.exposeInMainWorld("getFriendList", async () => {
   );
   try {
     const response = await getFriendList(request);
-    const lm = response.getFriendListList();
+    const lm = response.getFriendInfosList();
     const l = lm.map((m) => {
       return {
-        name: m,
-        status: "added", // TODO: get status
+        name: m.getName(),
+        status: m.getEnabled() ? "added" : "initiated",
       };
     });
     return l;
