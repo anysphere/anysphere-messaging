@@ -86,8 +86,10 @@ Status DaemonRpc::GetFriendList(
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  for (auto& [s, _] : config.friendTable) {
-    getFriendListResponse->add_friend_list(s);
+  for (auto& [_, s] : config.friendTable) {
+    auto new_friend = getFriendListResponse->add_friend_infos();
+    new_friend->set_name(s.name);
+    new_friend->set_enabled(s.enabled);
   }
 
   getFriendListResponse->set_success(true);

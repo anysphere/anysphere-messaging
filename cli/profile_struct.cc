@@ -42,9 +42,9 @@ auto Profile::get_friends(unique_ptr<asphrdaemon::Daemon::Stub>& stub)
 
   Friend::FriendMap friends_map;
 
-  for (const auto& friend_name_ : reply.friend_list()) {
-    Friend friend_struct(friend_name_);
-    friends_map.insert(std::make_pair(friend_name_, friend_struct));
+  for (const auto& friend_info : reply.friend_infos()) {
+    Friend friend_struct(friend_info.name());
+    friends_map.insert(std::make_pair(friend_info.name(), friend_struct));
   }
 
   return friends_map;
