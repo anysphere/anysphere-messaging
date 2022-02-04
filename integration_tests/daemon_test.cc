@@ -912,7 +912,6 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
 };
 
 TEST_F(DaemonRpcTest, SeenMessage) {
-  using TimeUtil = google::protobuf::util::TimeUtil;
   ResetStub();
 
   auto crypto1 = gen_crypto();
