@@ -63,6 +63,20 @@ contextBridge.exposeInMainWorld("copyToClipboard", async (s) => {
   clipboard.writeText(s, "selection");
 });
 
+function convertProtobufMessageToTypedMessage(m) {
+  console.log("seconds", m.getTimestamp().getSeconds());
+  var d = new Date(
+    m.getTimestamp().getSeconds() * 1e3 + m.getTimestamp().getNanos() / 1e6
+  );
+  return {
+    id: m.getId(),
+    from: m.getSender(),
+    to: "me",
+    message: m.getMessage(),
+    timestamp: d,
+  };
+}
+
 contextBridge.exposeInMainWorld("getNewMessages", async () => {
   if (FAKE_DATA) {
     return [
@@ -89,15 +103,7 @@ contextBridge.exposeInMainWorld("getNewMessages", async () => {
   try {
     const response = await getNewMessages(request);
     const lm = response.getMessagesList();
-    const l = lm.map((m) => {
-      return {
-        id: m.getId(),
-        from: m.getSender(),
-        to: "me",
-        message: m.getMessage(),
-        timestamp: m.getTimestamp(),
-      };
-    });
+    const l = lm.map(convertProtobufMessageToTypedMessage);
     return l;
   } catch (e) {
     console.log(`error in getNewMessages: ${e}`);
@@ -187,15 +193,7 @@ contextBridge.exposeInMainWorld("getAllMessages", async () => {
   try {
     const response = await getAllMessages(request);
     const lm = response.getMessagesList();
-    const l = lm.map((m) => {
-      return {
-        id: m.getId(),
-        from: m.getSender(),
-        to: "me",
-        message: m.getMessage(),
-        timestamp: m.getTimestamp(),
-      };
-    });
+    const l = lm.map(convertProtobufMessageToTypedMessage);
     return l;
   } catch (e) {
     console.log(`error in getAllMessages: ${e}`);

@@ -6,5 +6,5 @@ export function truncate(str: string, maxLength: number) {
 }
 
 export function formatTime(date: Date) {
-  return date.toLocaleTimeString();
+  return date.toLocaleString();
 }
