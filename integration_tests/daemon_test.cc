@@ -69,7 +69,7 @@ class DaemonRpcTest : public ::testing::Test {
   }
 
   void SetUp() override {
-    int port = 43425;
+    int port = 43426;
     server_address_ << "localhost:" << port;
     // Setup server
     grpc::ServerBuilder builder;
