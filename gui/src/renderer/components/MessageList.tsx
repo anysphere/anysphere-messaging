@@ -21,8 +21,10 @@ function MessageBlurb({
       onClick={onClick}
     >
       <div className="flex flex-row gap-5">
-        <div>{message.from}</div>
-        <div>{truncate(message.message, 50)}</div>
+        <div className="text-asbrown-dark text-sm">{message.from}</div>
+        <div className="text-asbrown-300 text-sm">
+          {truncate(message.message, 70)}
+        </div>
         <div className="flex-1"></div>
         <div className="text-asbrown-200 text-sm">{timestamp_string}</div>
       </div>
