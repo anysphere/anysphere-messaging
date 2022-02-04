@@ -85,6 +85,7 @@ auto Transmitter::retrieve_messages() -> void {
                    {"timestamp", time},
                    {"id", message.id},
                    {"message", message.message},
+                   {"seen", false},
                    {"type", "MESSAGE_RECEIVED"}};
       if (file.is_open()) {
         file << std::setw(4) << jmsg.dump() << std::endl;

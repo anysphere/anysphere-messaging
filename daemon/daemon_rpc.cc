@@ -269,6 +269,10 @@ Status DaemonRpc::GetAllMessages(
   });
 
   for (auto& message_json : messages) {
+    if (message_json.at("seen").get<bool>()) {
+      continue;
+    }
+
     auto message_info = getAllMessagesResponse->add_messages();
 
     message_info->set_id(
