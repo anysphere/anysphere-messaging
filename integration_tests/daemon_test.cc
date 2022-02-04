@@ -155,7 +155,7 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfig) {
       GetFriendListResponse response;
       rpc.GetFriendList(nullptr, &request, &response);
       EXPECT_TRUE(response.success());
-      EXPECT_EQ(response.friend_list_size(), 0);
+      EXPECT_EQ(response.friend_infos_size(), 0);
     }
   }
 }
@@ -385,7 +385,7 @@ TEST_F(DaemonRpcTest, GetFriendList) {
     GetFriendListResponse response;
     rpc.GetFriendList(nullptr, &request, &response);
     EXPECT_TRUE(response.success());
-    EXPECT_EQ(response.friend_list_size(), 0);
+    EXPECT_EQ(response.friend_infos_size(), 0);
   }
 };
 
@@ -477,6 +477,102 @@ TEST_F(DaemonRpcTest, AddFriend) {
     AddFriendResponse response;
     rpc2.AddFriend(nullptr, &request, &response);
     EXPECT_TRUE(response.success());
+  }
+};
+
+TEST_F(DaemonRpcTest, AddFriendAndCheckFriendList) {
+  ResetStub();
+
+  auto crypto1 = gen_crypto();
+  auto config1 = gen_config(string(generateTempDir()), generateTempFile());
+  DaemonRpc rpc1(crypto1, config1, stub_);
+  auto crypto2 = gen_crypto();
+  auto config2 = gen_config(string(generateTempDir()), generateTempFile());
+  DaemonRpc rpc2(crypto2, config2, stub_);
+
+  {
+    RegisterUserRequest request;
+    request.set_name("user1local");
+    RegisterUserResponse response;
+    rpc1.RegisterUser(nullptr, &request, &response);
+  }
+  {
+    RegisterUserRequest request;
+    request.set_name("user2local");
+    RegisterUserResponse response;
+    rpc2.RegisterUser(nullptr, &request, &response);
+  }
+
+  {
+    GetFriendListRequest request;
+    GetFriendListResponse response;
+    rpc1.GetFriendList(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_EQ(response.friend_infos_size(), 0);
+  }
+
+  string user1_key;
+  string user2_key;
+
+  {
+    GenerateFriendKeyRequest request;
+    request.set_name("user2");
+    GenerateFriendKeyResponse response;
+    rpc1.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_GT(response.key().size(), 0);
+    user1_key = response.key();
+  }
+
+  {
+    GenerateFriendKeyRequest request;
+    request.set_name("user1");
+    GenerateFriendKeyResponse response;
+    rpc2.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_GT(response.key().size(), 0);
+    user2_key = response.key();
+  }
+
+  {
+    GetFriendListRequest request;
+    GetFriendListResponse response;
+    rpc1.GetFriendList(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_EQ(response.friend_infos_size(), 1);
+    EXPECT_EQ(response.friend_infos(0).name(), "user2");
+    EXPECT_EQ(response.friend_infos(0).enabled(), false);
+  }
+
+  cout << "user1_key: " << user1_key << endl;
+  cout << "user2_key: " << user2_key << endl;
+
+  {
+    AddFriendRequest request;
+    request.set_name("user2");
+    request.set_key(user2_key);
+    AddFriendResponse response;
+    rpc1.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+  }
+
+  {
+    AddFriendRequest request;
+    request.set_name("user1");
+    request.set_key(user1_key);
+    AddFriendResponse response;
+    rpc2.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+  }
+
+  {
+    GetFriendListRequest request;
+    GetFriendListResponse response;
+    rpc1.GetFriendList(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_EQ(response.friend_infos_size(), 1);
+    EXPECT_EQ(response.friend_infos(0).name(), "user2");
+    EXPECT_EQ(response.friend_infos(0).enabled(), true);
   }
 };
 
