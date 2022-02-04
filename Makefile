@@ -30,6 +30,7 @@ publish-mac-alpha: package-mac
 	./publish.sh arm64
 	echo "Client successfully published to s3! Download from URL above."
 
+# whenver daemon.proto is changed, run this on the server and push the changed files!
 update-gui-proto:
 	cd client/gui && npm run update
 
