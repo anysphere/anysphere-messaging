@@ -911,5 +911,200 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
   }
 };
 
+TEST_F(DaemonRpcTest, SeenMessage) {
+  using TimeUtil = google::protobuf::util::TimeUtil;
+  ResetStub();
+
+  auto crypto1 = gen_crypto();
+  auto config1 = gen_config(string(generateTempDir()), generateTempFile());
+  DaemonRpc rpc1(crypto1, config1, stub_);
+  Transmitter t1(crypto1, config1, stub_);
+  auto crypto2 = gen_crypto();
+  auto config2 = gen_config(string(generateTempDir()), generateTempFile());
+  DaemonRpc rpc2(crypto2, config2, stub_);
+  Transmitter t2(crypto2, config2, stub_);
+
+  {
+    RegisterUserRequest request;
+    request.set_name("user1local");
+    RegisterUserResponse response;
+    rpc1.RegisterUser(nullptr, &request, &response);
+  }
+  {
+    RegisterUserRequest request;
+    request.set_name("user2local");
+    RegisterUserResponse response;
+    rpc2.RegisterUser(nullptr, &request, &response);
+  }
+
+  string user1_key;
+  string user2_key;
+
+  {
+    GenerateFriendKeyRequest request;
+    request.set_name("user2");
+    GenerateFriendKeyResponse response;
+    rpc1.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_GT(response.key().size(), 0);
+    user1_key = response.key();
+  }
+
+  {
+    GenerateFriendKeyRequest request;
+    request.set_name("user1");
+    GenerateFriendKeyResponse response;
+    rpc2.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_GT(response.key().size(), 0);
+    user2_key = response.key();
+  }
+
+  cout << "user1_key: " << user1_key << endl;
+  cout << "user2_key: " << user2_key << endl;
+
+  {
+    AddFriendRequest request;
+    request.set_name("user2");
+    request.set_key(user2_key);
+    AddFriendResponse response;
+    rpc1.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+  }
+
+  {
+    AddFriendRequest request;
+    request.set_name("user1");
+    request.set_key(user1_key);
+    AddFriendResponse response;
+    rpc2.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+  }
+
+  {
+    SendMessageRequest request;
+    request.set_name("user2");
+    request.set_message("hello from 1 to 2");
+    asphrdaemon::SendMessageResponse response;
+    rpc1.SendMessage(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+  }
+
+  {
+    SendMessageRequest request;
+    request.set_name("user2");
+    request.set_message("hello from 1 to 2, again!!!! :0");
+    asphrdaemon::SendMessageResponse response;
+    rpc1.SendMessage(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+  }
+
+  // retrieve-send is how messages are propagated!
+  t1.retrieve_messages();
+  t1.send_messages();
+
+  t2.retrieve_messages();
+  t2.send_messages();
+
+  // 1 can impossibly receive anything
+  {
+    GetAllMessagesRequest request;
+    GetAllMessagesResponse response;
+    rpc1.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_EQ(response.messages_size(), 0);
+  }
+
+  // 2 should have received the first message!
+  {
+    GetAllMessagesRequest request;
+    GetAllMessagesResponse response;
+    rpc2.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_EQ(response.messages_size(), 1);
+    EXPECT_EQ(response.messages(0).sender(), "user1");
+    EXPECT_EQ(response.messages(0).message(), "hello from 1 to 2");
+  }
+
+  // 2 has sent the ACK for the first message, so 1 should safely send the next
+  // message
+  t1.retrieve_messages();
+  t1.send_messages();
+
+  t2.retrieve_messages();
+  t2.send_messages();
+
+  {
+    GetAllMessagesRequest request;
+    GetAllMessagesResponse response;
+    rpc1.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_EQ(response.messages_size(), 0);
+  }
+
+  string first_message_id;
+
+  {
+    GetAllMessagesRequest request;
+    GetAllMessagesResponse response;
+    rpc2.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_EQ(response.messages_size(), 2);
+    EXPECT_EQ(response.messages(0).sender(), "user1");
+    EXPECT_EQ(response.messages(0).message(),
+              "hello from 1 to 2, again!!!! :0");
+    EXPECT_EQ(response.messages(1).sender(), "user1");
+    EXPECT_EQ(response.messages(1).message(), "hello from 1 to 2");
+    first_message_id = response.messages(1).id();
+  }
+
+  {
+    GetNewMessagesRequest request;
+    GetNewMessagesResponse response;
+    rpc2.GetNewMessages(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_EQ(response.messages_size(), 2);
+    EXPECT_EQ(response.messages(0).sender(), "user1");
+    EXPECT_EQ(response.messages(0).message(),
+              "hello from 1 to 2, again!!!! :0");
+    EXPECT_EQ(response.messages(1).sender(), "user1");
+    EXPECT_EQ(response.messages(1).message(), "hello from 1 to 2");
+  }
+
+  // now see the message!
+  {
+    MessageSeenRequest request;
+    MessageSeenResponse response;
+    request.set_id(first_message_id);
+    auto status = rpc2.MessageSeen(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
+  }
+
+  // all messages should be same, new messages should be different!
+  {
+    GetAllMessagesRequest request;
+    GetAllMessagesResponse response;
+    rpc2.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_EQ(response.messages_size(), 2);
+    EXPECT_EQ(response.messages(0).sender(), "user1");
+    EXPECT_EQ(response.messages(0).message(),
+              "hello from 1 to 2, again!!!! :0");
+    EXPECT_EQ(response.messages(1).sender(), "user1");
+    EXPECT_EQ(response.messages(1).message(), "hello from 1 to 2");
+  }
+
+  {
+    GetNewMessagesRequest request;
+    GetNewMessagesResponse response;
+    rpc2.GetNewMessages(nullptr, &request, &response);
+    EXPECT_TRUE(response.success());
+    EXPECT_EQ(response.messages_size(), 1);
+    EXPECT_EQ(response.messages(0).sender(), "user1");
+    EXPECT_EQ(response.messages(0).message(),
+              "hello from 1 to 2, again!!!! :0");
+  }
+};
+
 }  // namespace
 }  // namespace asphr::testing
