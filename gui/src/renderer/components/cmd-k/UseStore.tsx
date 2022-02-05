@@ -40,7 +40,7 @@ export class ActionInterface {
 export function useStore(props: useStoreProps) {
   const optionsRef = React.useRef({
     animations: {
-      enterMs: 200,
+      enterMs: 100,
       exitMs: 100,
     },
     ...props.options,
