@@ -93,7 +93,12 @@ struct RegistrationInfo {
   static auto from_json(const asphr::json& j) -> RegistrationInfo;
 };
 
-// TODO: MUTEX GUARD THIS CONFIG!!!
+/**
+ * @brief The Config class
+ *
+ * Note: almost all accesses to this class are guarded by config_mutex
+ * std::lock_guard<std::mutex> l(config_mtx);
+ */
 class Config {
  public:
   Config(const string& config_file_address);
@@ -134,6 +139,7 @@ class Config {
   std::filesystem::path data_dir;
   // me is used whenever we need to encrypt dummy data!
   Friend dummyMe;
+  mutable std::mutex config_mtx;
 
  private:
   // it stores its own file address

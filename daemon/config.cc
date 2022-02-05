@@ -165,6 +165,8 @@ Config::Config(const asphr::json& config_json_input,
 }
 
 auto Config::save() -> void {
+  std::lock_guard<std::mutex> l(config_mtx);
+
   asphr::json config_json;
   config_json["has_registered"] = has_registered;
   config_json["data_dir"] = data_dir;
@@ -186,11 +188,15 @@ auto Config::save() -> void {
 }
 
 auto Config::has_space_for_friends() -> bool {
+  std::lock_guard<std::mutex> l(config_mtx);
+
   check_rep();
   return friendTable.size() < MAX_FRIENDS;
 }
 
 auto Config::num_enabled_friends() -> int {
+  std::lock_guard<std::mutex> l(config_mtx);
+
   auto num_enabled_friends = 0;
   for (auto& friend_pair : friendTable) {
     if (friend_pair.second.enabled) {
@@ -202,6 +208,8 @@ auto Config::num_enabled_friends() -> int {
 
 auto Config::random_enabled_friend() -> string {
   assert(num_enabled_friends() > 0);
+  std::lock_guard<std::mutex> l(config_mtx);
+
   vector<string> enabled_friends;
   for (auto& friend_pair : friendTable) {
     if (friend_pair.second.enabled) {
@@ -213,6 +221,8 @@ auto Config::random_enabled_friend() -> string {
 }
 
 auto Config::add_friend(const Friend& f) -> void {
+  std::lock_guard<std::mutex> l(config_mtx);
+
   check_rep();
   friendTable[f.name] = f;
   Config::save();
@@ -220,6 +230,8 @@ auto Config::add_friend(const Friend& f) -> void {
 }
 
 auto Config::remove_friend(const string& name) -> absl::Status {
+  std::lock_guard<std::mutex> l(config_mtx);
+
   check_rep();
   if (!friendTable.contains(name)) {
     return absl::Status(absl::StatusCode::kInvalidArgument,
