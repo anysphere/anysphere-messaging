@@ -37,9 +37,46 @@ export function shouldRejectKeystrokes(
 }
 
 const SSR = typeof window === "undefined";
-const isMac = !SSR && process.platform === "darwin";
+const isMac = !SSR && (window as any).isPlatformMac();
 export function isModKey(
   event: KeyboardEvent | MouseEvent | React.KeyboardEvent
 ) {
   return isMac ? event.metaKey : event.ctrlKey;
+}
+
+export function usePointerMovedSinceMount() {
+  const [moved, setMoved] = React.useState(false);
+
+  React.useEffect(() => {
+    function handler() {
+      setMoved(true);
+    }
+
+    if (!moved) {
+      window.addEventListener("pointermove", handler);
+      return () => window.removeEventListener("pointermove", handler);
+    } else {
+      return () => {};
+    }
+  }, [moved]);
+
+  return moved;
+}
+
+export function useThrottledValue(value: any, ms: number = 100) {
+  const [throttledValue, setThrottledValue] = React.useState(value);
+  const lastRan = React.useRef(Date.now());
+
+  React.useEffect(() => {
+    const timeout = setTimeout(() => {
+      setThrottledValue(value);
+      lastRan.current = Date.now();
+    }, lastRan.current - (Date.now() - ms));
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [ms, value]);
+
+  return throttledValue;
 }

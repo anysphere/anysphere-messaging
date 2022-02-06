@@ -19,13 +19,13 @@
     "start:renderer": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack serve --config ./helpers/configs/webpack.config.renderer.dev.ts"
   },
   "devDependencies": {
-    "@vscode/codicons": "^0.0.27",
     "@pmmmwh/react-refresh-webpack-plugin": "0.5.4",
     "@types/node": "17.0.5",
     "@types/react": "^17.0.38",
     "@types/react-dom": "^17.0.11",
     "@types/react-test-renderer": "^17.0.1",
     "@types/webpack-env": "^1.16.3",
+    "@vscode/codicons": "^0.0.27",
     "chalk": "^4.1.2",
     "concurrently": "^6.5.1",
     "cross-env": "^7.0.3",
@@ -59,8 +59,11 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.5.0",
     "google-protobuf": "^3.19.3",
+    "match-sorter": "^6.3.1",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "react-virtual": "^2.10.4",
+    "tiny-invariant": "^1.2.0"
   },
   "devEngines": {
     "node": ">=14.x",

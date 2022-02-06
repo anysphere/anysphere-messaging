@@ -14,6 +14,11 @@ import { RegisterModal } from "./components/RegisterModal";
 import { Message } from "./types";
 import { Tab, TabType, TabContainer } from "./components/Tabs";
 import { truncate } from "./utils";
+import { stringify } from "querystring";
+import { CmdK } from "./components/cmd-k/CmdK";
+import { CmdKPortal } from "./components/cmd-k/CmdKPortal";
+import { CmdKSearch } from "./components/cmd-k/CmdKSearch";
+import { CmdKResultRenderer } from "./components/cmd-k/CmdKResultRenderer";
 
 const defaultTabs: Tab[] = [
   { type: TabType.New, name: "New", data: null, unclosable: true },
@@ -200,6 +205,32 @@ function Main() {
       }
     });
   }, []);
+  const actions = [
+    {
+      id: "friend",
+      name: "Friends",
+      shortcut: ["f"],
+      keywords: "friends",
+    },
+    {
+      id: "write",
+      name: "Write",
+      shortcut: ["w"],
+      keywords: "write",
+    },
+    {
+      id: "search",
+      name: "Search",
+      shortcut: ["\\"],
+      keywords: "search",
+    },
+    {
+      id: "settings",
+      name: "Settings",
+      shortcut: ["s"],
+      keywords: "settings",
+    },
+  ];
 
   return (
     <div className="w-full">
@@ -230,6 +261,12 @@ function Main() {
         </div>
       </div>
       {modal}
+      <CmdK actions={actions}>
+        <CmdKPortal onClose={closeModal}>
+          <CmdKSearch />
+          <CmdKResultRenderer />
+        </CmdKPortal>
+      </CmdK>
     </div>
   );
 }

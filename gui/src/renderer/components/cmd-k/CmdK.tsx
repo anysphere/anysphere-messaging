@@ -7,7 +7,7 @@ export const KBarContext = React.createContext<IKBarContext>(
   {} as IKBarContext
 );
 
-export const KBarProvider: React.FC<KBarProviderProps> = (props) => {
+export const CmdK: React.FC<KBarProviderProps> = (props) => {
   const contextValue = useStore(props);
 
   return (

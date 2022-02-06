@@ -5,7 +5,7 @@ import { useKBar } from "./useKBar";
 export const KBAR_LISTBOX = "kbar-listbox";
 export const getListboxItemId = (id: number) => `kbar-listbox-item-${id}`;
 
-export function KBarSearch(
+export function CmdKSearch(
   props: React.InputHTMLAttributes<HTMLInputElement> & {
     defaultPlaceholder?: string;
   }
@@ -42,29 +42,32 @@ export function KBarSearch(
   }, [actions, currentRootActionId, props.defaultPlaceholder]);
 
   return (
-    <input
-      ref={ownRef}
-      autoFocus
-      autoComplete="off"
-      role="combobox"
-      spellCheck="false"
-      aria-expanded={showing}
-      aria-controls={KBAR_LISTBOX}
-      aria-activedescendant={getListboxItemId(activeIndex)}
-      value={search}
-      placeholder={placeholder}
-      onChange={(event) => {
-        props.onChange?.(event);
-        query.setSearch(event.target.value);
-        options?.callbacks?.onQueryChange?.(event.target.value);
-      }}
-      onKeyDown={(event) => {
-        if (currentRootActionId && !search && event.key === "Backspace") {
-          const parent = actions[currentRootActionId].parent;
-          query.setCurrentRootAction(parent);
-        }
-      }}
-      {...props}
-    />
+    <div className="flex flex-row">
+      <input
+        className="focus:outline-none flex-grow pl-2"
+        ref={ownRef}
+        autoFocus
+        autoComplete="off"
+        role="combobox"
+        spellCheck="false"
+        aria-expanded={showing}
+        aria-controls={KBAR_LISTBOX}
+        aria-activedescendant={getListboxItemId(activeIndex)}
+        value={search}
+        placeholder={placeholder}
+        onChange={(event) => {
+          props.onChange?.(event);
+          query.setSearch(event.target.value);
+          options?.callbacks?.onQueryChange?.(event.target.value);
+        }}
+        onKeyDown={(event) => {
+          if (currentRootActionId && !search && event.key === "Backspace") {
+            const parent = actions[currentRootActionId].parent;
+            query.setCurrentRootAction(parent);
+          }
+        }}
+        {...props}
+      />
+    </div>
   );
 }
