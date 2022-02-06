@@ -43,19 +43,21 @@ int main(int argc, char** argv) {
 
   static Friend::FriendMap kFriends_map_;
 
-  auto help =
-      StrCat("Usage: \n",
-             // register
-             "asphr register: {name}\n",
-             // init-friend
-             "asphr init-friend: {name}\n",
-             // TODO: add-friend must have an init-friend before
-             "asphr add-friend: {name} {key}\n",
-             // TODO: explain the options better.
-             "asphr (s | m | send | msg | message) {name}\n",
-             "asphr (get-friends | friends)\n",
-             // TODO: explain that -a is optional.
-             "asphr (inbox | i) [-a | -all]\n", "asphr socket {address}\n");
+  const auto binary_name = argv[0];
+
+  auto help = StrCat("Usage: \n",
+                     // register
+                     binary_name, " register: {name}\n",
+                     // init-friend
+                     binary_name, " init-friend: {name}\n",
+                     // TODO: add-friend must have an init-friend before
+                     binary_name, " add-friend: {name} {key}\n",
+                     // TODO: explain the options better.
+                     binary_name, " (s | m | send | msg | message) {name}\n",
+                     binary_name, " (get-friends | friends)\n",
+                     // TODO: explain that -a is optional.
+                     binary_name, " (inbox | i) [-a | -all]\n", binary_name,
+                     " socket {address}\n");
 
   CommandLine cmd_line{argc, argv, help};
 
@@ -88,8 +90,8 @@ int main(int argc, char** argv) {
 
     if (!status.ok()) {
       cout << status.status() << endl;
-      cout << "Usage: asphr register {name}" << endl;
-      cout << "Example: asphr register Elon\n\n" << endl;
+      cout << "Usage: " << binary_name << " register {name}" << endl;
+      cout << "Example: " << binary_name << " register Elon\n\n" << endl;
       cout << help << endl;
       return 0;
     }
@@ -102,8 +104,8 @@ int main(int argc, char** argv) {
     auto status = cmd_line.getArgument(2);
     if (!status.ok()) {
       cout << status.status() << endl;
-      cout << "Usage: asphr init-friend {name}" << endl;
-      cout << "Example: asphr init-friend Elon\n\n" << endl;
+      cout << "Usage: " << binary_name << " init-friend {name}" << endl;
+      cout << "Example: " << binary_name << " init-friend Elon\n\n" << endl;
       cout << help << endl;
       return 0;
     }
@@ -126,8 +128,9 @@ int main(int argc, char** argv) {
     auto status = cmd_line.getArgument(2);
     auto key_status = cmd_line.getArgument(3);
     if (!status.ok() || !key_status.ok()) {
-      cout << "Usage: asphr add-friend {name} {key}" << endl;
-      cout << "Example: asphr add-friend Elon 123456789" << endl;
+      cout << "Usage: " << binary_name << " add-friend {name} {key}" << endl;
+      cout << "Example: " << binary_name << " add-friend Elon 123456789"
+           << endl;
       cout << "You can find the key of your friend by asking them to add you "
               "as a friend with the command init-friend {name}\n\n"
            << endl;
@@ -158,9 +161,11 @@ int main(int argc, char** argv) {
     auto status = cmd_line.getArgument(2);
     auto message_status = cmd_line.getArgument(3);
     if (!status.ok() || !message_status.ok()) {
-      cout << "Usage: asphr (s | m | send | msg | message) {name} {message}"
+      cout << "Usage: " << binary_name
+           << " (s | m | send | msg | message) {name} {message}" << endl;
+      cout << "Example: " << binary_name
+           << " message Elon Hello, how are you?\n\n"
            << endl;
-      cout << "Example: asphr message Elon Hello, how are you?\n\n" << endl;
       cout << help << endl;
       return 0;
     }
