@@ -1,12 +1,11 @@
 import { AfterPackContext, BuildResult } from "electron-builder";
-import { ArchType } from "builder-util";
 const builder = require("electron-builder");
 import path from "path";
 import fs from "fs";
 import { notarize } from "electron-notarize";
 
 // environment variable options:
-// - MAC_UNIVERSAL: true for universal, false for build for current architecture only
+// - MAC_ARCH: "universal", "x64", "arm64" or undefined for the current architecture
 // - MAC_DONT_NOTARIZE: true to skip notarization
 require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
 
@@ -27,11 +26,7 @@ function binaries_dir(rel: string) {
 }
 
 function mac_arch() {
-  if (process.env.MAC_UNIVERSAL === "true") {
-    return "universal" as ArchType;
-  } else {
-    return undefined; // build for current architecture
-  }
+  return process.env.MAC_ARCH;
 }
 
 const config = {
