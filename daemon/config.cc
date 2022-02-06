@@ -313,6 +313,34 @@ auto Config::db_rows() -> size_t {
   return db_rows_;
 }
 
+auto Config::kill() -> void {
+  const std::lock_guard<std::mutex> l(config_mtx);
+
+  {
+    const std::lock_guard<std::mutex> kill_l(kill_mtx);
+    kill_ = true;
+  }
+
+  kill_cv.notify_all();
+}
+
+auto Config::wait_until_killed_or_seconds(int seconds) -> bool {
+  std::unique_lock<std::mutex> kill_l(kill_mtx);
+
+  if (kill_) {
+    return true;
+  }
+
+  kill_cv.wait_for(kill_l, std::chrono::seconds(seconds),
+                   [this] { return kill_; });
+
+  kill_l.unlock();
+
+  // kill only ever changes false -> true, so we are fine returning this here
+  // even after unlocking
+  return kill_;
+}
+
 // private method; hence no check_rep, no lock
 auto Config::check_rep() const -> void {
   assert(saved_file_address != "");

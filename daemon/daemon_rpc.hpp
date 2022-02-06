@@ -57,6 +57,10 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
       const asphrdaemon::MessageSeenRequest* messageSeenRequest,
       asphrdaemon::MessageSeenResponse* messageSeenResponse) override;
 
+  grpc::Status Kill(grpc::ServerContext* context,
+                    const asphrdaemon::KillRequest* killRequest,
+                    asphrdaemon::KillResponse* killResponse) override;
+
  private:
   const Crypto crypto;
   shared_ptr<Config> config;

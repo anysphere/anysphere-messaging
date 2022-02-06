@@ -91,12 +91,12 @@ int main(int argc, char** argv) {
   // start the daemon rpc server
   auto daemon_server = unique_ptr<grpc::Server>(builder.BuildAndStart());
 
-  // keep the duration in chrono for thread sleeping.
-  auto duration = absl::Milliseconds(round_delay * 1000);
-
   while (true) {
-    absl::SleepFor(duration);
-    // check for new ui write:
+    auto killed = config->wait_until_killed_or_seconds(round_delay);
+    if (killed) {
+      daemon_server->Shutdown();
+      break;
+    }
 
     // do a round
     std::cout << "Client round" << std::endl;

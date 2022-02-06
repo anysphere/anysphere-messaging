@@ -384,3 +384,11 @@ auto DaemonRpc::message_id(const asphr::json& message_json) -> string {
   return asphr::StrCat("from:", message_json.at("from").get<string>(), ":",
                        message_json.at("id").get<uint32_t>());
 }
+
+auto DaemonRpc::Kill(ServerContext* context, const KillRequest* killRequest,
+                     KillResponse* killResponse) -> Status {
+  cout << "Kill() called" << endl;
+  config->kill();
+  cout << "Will kill daemon ASAP" << endl;
+  return Status::OK;
+}

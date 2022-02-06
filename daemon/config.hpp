@@ -61,6 +61,10 @@ class Config {
   auto pir_client() -> FastPIRClient&;
   auto db_rows() -> size_t;
 
+  auto kill() -> void;
+  // returns true iff killed
+  auto wait_until_killed_or_seconds(int seconds) -> bool;
+
  private:
   // it stores its own file address
   string saved_file_address;
@@ -84,6 +88,10 @@ class Config {
   // me is used whenever we need to encrypt dummy data!
   Friend dummyMe;
   mutable std::mutex config_mtx;
+
+  mutable std::mutex kill_mtx;
+  std::condition_variable kill_cv;
+  bool kill_ = false;
 
   auto check_rep() const -> void;
   auto initialize_dummy_me() -> void;
