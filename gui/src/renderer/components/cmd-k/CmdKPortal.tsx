@@ -1,3 +1,4 @@
+import { NONAME } from "dns";
 import * as React from "react";
 import Modal from "../Modal";
 import { VisualState } from "./types";
@@ -5,9 +6,10 @@ import { useKBar } from "./useKBar";
 
 interface Props {
   children: React.ReactNode;
+  onClose: () => void;
 }
 
-export function CmdKPortal(props: Props, onClose: () => void) {
+export function CmdKPortal(props: Props) {
   const { showing } = useKBar((state) => ({
     showing: state.visualState !== VisualState.hidden,
   }));
@@ -16,5 +18,5 @@ export function CmdKPortal(props: Props, onClose: () => void) {
     return null;
   }
 
-  return <Modal onClose={onClose}>{props.children}</Modal>;
+  return <Modal onClose={props.onClose}>{props.children}</Modal>;
 }
