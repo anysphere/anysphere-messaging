@@ -126,6 +126,25 @@ TEST_F(DaemonRpcTest, GetFriendListUnauthenticated) {
   }
 };
 
+TEST_F(DaemonRpcTest, KillDaemon) {
+  ResetStub();
+  auto crypto = gen_crypto();
+  auto config = gen_config(string(generateTempDir()), generateTempFile());
+  DaemonRpc rpc(crypto, config, stub_);
+
+  auto killed = config->wait_until_killed_or_seconds(0);
+  EXPECT_FALSE(killed);
+
+  {
+    KillRequest request;
+    KillResponse response;
+    rpc.Kill(nullptr, &request, &response);
+  }
+
+  killed = config->wait_until_killed_or_seconds(1000);
+  EXPECT_TRUE(killed);
+}
+
 TEST_F(DaemonRpcTest, LoadAndUnloadConfig) {
   ResetStub();
   auto config_file_address = generateTempFile();
