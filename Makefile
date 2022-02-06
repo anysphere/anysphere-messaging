@@ -20,14 +20,19 @@ push-minimal: minimal-server
 	docker push 946207870883.dkr.ecr.us-east-1.amazonaws.com/asphr-server
 	echo "Now update infra/aws/variables.tf to include the new sha256 in the asphr_server_image_tag variable!"
 
-package-mac:
-	pushd client/gui && npm install && npm run package-mac && popd
-	cp -r client/gui/release/build/*.pkg release
-	echo "Client successfully built for mac! Look in the release folder."
+package-mac-arm64:
+	pushd client/gui && npm install && npm run package-mac-arm64 && popd
+	./move-pkg.sh
+	echo "Client successfully built for mac-arm64! Look in the release folder."
+
+package-mac-x86_64:
+	pushd client/gui && npm install && npm run package-mac-x86_64 && popd
+	./move-pkg.sh x86_64
+	echo "Client successfully built for mac-x86_64! Look in the release folder."
 
 # we generate a random release ID so that only people we send the link to can download
-publish-mac-alpha: package-mac
-	./publish.sh arm64
+publish-alpha: package-mac-arm64 package-mac-x86_64
+	./publish.sh arm64 x86_64
 	echo "Client successfully published to s3! Download from URL above."
 
 # whenver daemon.proto is changed, run this on the server and push the changed files!

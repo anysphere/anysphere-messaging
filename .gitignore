@@ -9,5 +9,3 @@ bazel-*
 compile_commands.json
 
 .user.bazelrc
-
-release
