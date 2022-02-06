@@ -366,8 +366,6 @@ auto Config::save() -> void {
 
 // private method; hence, no check_rep, no lock
 auto Config::initialize_dummy_me() -> void {
-  assert(has_registered_);
-
   auto crypto = Crypto();
 
   auto dummy_friend_keypair = crypto.generate_keypair();
