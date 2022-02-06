@@ -8,17 +8,17 @@
 
 class Transmitter {
  public:
-  Transmitter(const Crypto& crypto, Config& config,
-              unique_ptr<asphrserver::Server::Stub>& stub);
+  Transmitter(const Crypto crypto, shared_ptr<Config> config,
+              shared_ptr<asphrserver::Server::Stub> stub);
 
   auto retrieve_messages() -> void;
 
   auto send_messages() -> void;
 
  private:
-  const Crypto& crypto;
-  Config& config;
-  unique_ptr<asphrserver::Server::Stub>& stub;
+  const Crypto crypto;
+  shared_ptr<Config> config;
+  shared_ptr<asphrserver::Server::Stub> stub;
 
   Inbox inbox;
   Outbox outbox;

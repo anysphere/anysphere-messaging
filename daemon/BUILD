@@ -6,11 +6,16 @@ package(
 
 cc_library(
     name = "base_lib",
-    srcs = ["config.cc", "crypto.cc"],
+    srcs = [
+        "config.cc",
+        "crypto.cc",
+        "friend.cc",
+    ],
     hdrs = [
         "config.hpp",
         "constants.hpp",
-        "crypto.hpp"
+        "crypto.hpp",
+        "friend.hpp",
     ],
     linkstatic = True,
     deps = [

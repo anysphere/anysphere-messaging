@@ -4,46 +4,6 @@
 #include "client/client_lib/client_lib.hpp"
 #include "crypto.hpp"
 
-auto Friend::to_json() -> asphr::json {
-  check_rep();
-  return asphr::json{{"name", name},
-                     {"read_index", read_index},
-                     {"write_key", asphr::Base64Escape(write_key)},
-                     {"read_key", asphr::Base64Escape(read_key)},
-                     {"ack_index", ack_index},
-                     {"enabled", enabled},
-                     {"latest_ack_id", latest_ack_id},
-                     {"last_receive_id", last_receive_id}};
-}
-
-auto Friend::from_json(const asphr::json& j) -> Friend {
-  Friend f;
-  f.name = j.at("name").get<string>();
-  f.read_index = j.at("read_index").get<int>();
-  asphr::Base64Unescape(j.at("write_key").get<string>(), &f.write_key);
-  asphr::Base64Unescape(j.at("read_key").get<string>(), &f.read_key);
-  f.ack_index = j.at("ack_index").get<int>();
-  f.enabled = j.at("enabled").get<bool>();
-  f.latest_ack_id = j.at("latest_ack_id").get<uint32_t>();
-  f.last_receive_id = j.at("last_receive_id").get<uint32_t>();
-  f.check_rep();
-  return f;
-}
-
-auto Friend::check_rep() const -> void {
-  assert(!name.empty());
-  assert(ack_index >= 0);
-  assert(static_cast<size_t>(ack_index) < MAX_FRIENDS);
-  if (enabled) {
-    assert(read_index >= 0);
-    assert(read_key.size() == crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
-    assert(write_key.size() == crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
-  } else {
-    // read_index must be valid! and index 0 will ALWAYS be a valid index.
-    assert(read_index == 0);
-  }
-}
-
 // store the config in config_file_address
 auto RegistrationInfo::to_json() -> asphr::json {
   asphr::json reg_json = {{"name", name},
@@ -90,6 +50,9 @@ auto read_json_file(const string& config_file_address) -> asphr::json {
 }
 
 auto Config::initialize_dummy_me() -> void {
+  // check_rep(); rep will be broken before we initialize dummy me!
+  assert(has_registered_);
+
   auto crypto = Crypto();
 
   auto dummy_friend_keypair = crypto.generate_keypair();
@@ -99,6 +62,14 @@ auto Config::initialize_dummy_me() -> void {
 
   dummyMe = Friend("dummyMe", 0, dummy_read_write_keys.first,
                    dummy_read_write_keys.second, 0, false, 0, 0);
+
+  save();
+  check_rep();
+}
+
+auto Config::server_address() -> std::string {
+  check_rep();
+  return server_address_;
 }
 
 Config::Config(const string& config_file_address)
@@ -106,7 +77,7 @@ Config::Config(const string& config_file_address)
 
 Config::Config(const asphr::json& config_json_input,
                const string& config_file_address)
-    : db_rows(CLIENT_DB_ROWS), saved_file_address(config_file_address) {
+    : saved_file_address(config_file_address), db_rows_(CLIENT_DB_ROWS) {
   auto config_json = config_json_input;
   if (!config_json.contains("has_registered")) {
     cout << "WARNING (invalid config file): config file does not contain "
@@ -137,9 +108,9 @@ Config::Config(const asphr::json& config_json_input,
     config_json = new_config_json();
   }
   if (!config_json.at("has_registered").get<bool>()) {
-    has_registered = false;
+    has_registered_ = false;
   } else {
-    has_registered = true;
+    has_registered_ = true;
     registrationInfo =
         RegistrationInfo::from_json(config_json.at("registration_info"));
     asphr::Base64Unescape(config_json.at("pir_secret_key").get<string>(),
@@ -147,7 +118,7 @@ Config::Config(const asphr::json& config_json_input,
     asphr::Base64Unescape(config_json.at("pir_galois_keys").get<string>(),
                           &pir_galois_keys);
     // create a pir_client !
-    pir_client =
+    pir_client_ =
         std::make_unique<FastPIRClient>(pir_secret_key, pir_galois_keys);
     // initialize the dummyMe
     initialize_dummy_me();
@@ -159,7 +130,9 @@ Config::Config(const asphr::json& config_json_input,
   }
 
   data_dir = config_json.at("data_dir").get<string>();
-  server_address = config_json.at("server_address").get<string>();
+  server_address_ = config_json.at("server_address").get<string>();
+
+  save();
 
   check_rep();
 }
@@ -168,10 +141,10 @@ auto Config::save() -> void {
   std::lock_guard<std::mutex> l(config_mtx);
 
   asphr::json config_json;
-  config_json["has_registered"] = has_registered;
+  config_json["has_registered"] = has_registered_;
   config_json["data_dir"] = data_dir;
-  config_json["server_address"] = server_address;
-  if (has_registered) {
+  config_json["server_address"] = server_address_;
+  if (has_registered_) {
     config_json["registration_info"] = registrationInfo.to_json();
     config_json["pir_secret_key"] = asphr::Base64Escape(pir_secret_key);
     config_json["pir_galois_keys"] = asphr::Base64Escape(pir_galois_keys);
@@ -194,8 +167,60 @@ auto Config::has_space_for_friends() -> bool {
   return friendTable.size() < MAX_FRIENDS;
 }
 
+auto Config::has_registered() -> bool {
+  std::lock_guard<std::mutex> l(config_mtx);
+
+  check_rep();
+  return has_registered_;
+}
+
+auto Config::do_register(const string& name, const string& public_key,
+                         const string& private_key,
+                         const string& authentication_token,
+                         const vector<int>& allocation) -> void {
+  check_rep();
+
+  std::lock_guard<std::mutex> l(config_mtx);
+
+  registrationInfo = RegistrationInfo{
+      .name = name,
+      .public_key = public_key,
+      .private_key = private_key,
+      .authentication_token = authentication_token,
+      .allocation = allocation,
+  };
+
+  has_registered_ = true;
+
+  auto [secret_key, galois_keys] = generate_keys();
+  pir_secret_key = secret_key;
+  pir_galois_keys = galois_keys;
+
+  assert(pir_client_ == nullptr);
+
+  pir_client_ =
+      std::make_unique<FastPIRClient>(pir_secret_key, pir_galois_keys);
+  initialize_dummy_me();
+
+  // THIS has to happen last :)
+  has_registered_ = true;
+
+  save();
+
+  check_rep();
+}
+
+auto Config::registration_info() -> RegistrationInfo {
+  std::lock_guard<std::mutex> l(config_mtx);
+
+  check_rep();
+  return registrationInfo;
+}
+
 auto Config::num_enabled_friends() -> int {
   std::lock_guard<std::mutex> l(config_mtx);
+
+  check_rep();
 
   auto num_enabled_friends = 0;
   for (auto& friend_pair : friendTable) {
@@ -203,29 +228,51 @@ auto Config::num_enabled_friends() -> int {
       num_enabled_friends++;
     }
   }
+
+  check_rep();
+
   return num_enabled_friends;
 }
 
-auto Config::random_enabled_friend() -> string {
-  assert(num_enabled_friends() > 0);
+auto Config::random_enabled_friend() -> asphr::StatusOr<Friend> {
   std::lock_guard<std::mutex> l(config_mtx);
 
-  vector<string> enabled_friends;
+  check_rep();
+
+  if (num_enabled_friends() == 0) {
+    return absl::NotFoundError("No enabled friends");
+  }
+
+  vector<Friend> enabled_friends;
   for (auto& friend_pair : friendTable) {
     if (friend_pair.second.enabled) {
-      enabled_friends.push_back(friend_pair.first);
+      enabled_friends.push_back(friend_pair.second);
     }
   }
   auto random_index = rand() % enabled_friends.size();
+
+  check_rep();
+
   return enabled_friends.at(random_index);
+}
+
+auto Config::dummy_me() -> Friend {
+  std::lock_guard<std::mutex> l(config_mtx);
+
+  check_rep();
+
+  return dummyMe;
 }
 
 auto Config::add_friend(const Friend& f) -> void {
   std::lock_guard<std::mutex> l(config_mtx);
 
   check_rep();
+
+  assert(!friendTable.contains(f.name));
   friendTable[f.name] = f;
-  Config::save();
+
+  save();
   check_rep();
 }
 
@@ -233,14 +280,56 @@ auto Config::remove_friend(const string& name) -> absl::Status {
   std::lock_guard<std::mutex> l(config_mtx);
 
   check_rep();
+
   if (!friendTable.contains(name)) {
     return absl::Status(absl::StatusCode::kInvalidArgument,
                         "friend does not exist");
   }
   friendTable.erase(name);
-  Config::save();
+
+  save();
   check_rep();
+
   return absl::OkStatus();
+}
+
+auto Config::friends() const -> vector<Friend> {
+  std::lock_guard<std::mutex> l(config_mtx);
+
+  check_rep();
+
+  vector<Friend> friends;
+  for (auto& [_, f] : friendTable) {
+    friends.push_back(f);
+  }
+
+  check_rep();
+  return friends;
+}
+
+auto Config::get_friend(const string& name) const -> absl::StatusOr<Friend> {
+  std::lock_guard<std::mutex> l(config_mtx);
+
+  check_rep();
+
+  if (!friendTable.contains(name)) {
+    return absl::InvalidArgumentError("friend does not exist");
+  }
+
+  check_rep();
+  return friendTable.at(name);
+}
+
+auto Config::update_friend(const Friend& f) -> void {
+  std::lock_guard<std::mutex> l(config_mtx);
+
+  check_rep();
+
+  assert(friendTable.contains(f.name));
+  friendTable[f.name] = f;
+  save();
+
+  check_rep();
 }
 
 auto Config::receive_file_address() -> std::filesystem::path {
@@ -252,15 +341,29 @@ auto Config::send_file_address() -> std::filesystem::path {
 auto Config::seen_file_address() -> std::filesystem::path {
   return data_dir / "seen.ndjson";
 }
+auto Config::data_dir_address() -> std::filesystem::path { return data_dir; }
+
+auto Config::pir_client() -> FastPIRClient& {
+  std::lock_guard<std::mutex> l(config_mtx);
+
+  check_rep();
+  return *pir_client_;
+}
+
+auto Config::db_rows() -> size_t {
+  std::lock_guard<std::mutex> l(config_mtx);
+
+  return db_rows_;
+}
 
 auto Config::check_rep() const -> void {
   assert(saved_file_address != "");
   assert(data_dir != "");
-  assert(db_rows > 0);
+  assert(db_rows_ > 0);
 
   assert(friendTable.size() <= MAX_FRIENDS);
 
-  if (has_registered) {
+  if (has_registered_) {
     assert(registrationInfo.name != "");
     assert(registrationInfo.public_key.size() == crypto_kx_PUBLICKEYBYTES);
     assert(registrationInfo.private_key.size() == crypto_kx_SECRETKEYBYTES);
@@ -276,7 +379,7 @@ auto Config::check_rep() const -> void {
 
     assert(pir_secret_key != "");
     assert(pir_galois_keys != "");
-    assert(pir_client != nullptr);
+    assert(pir_client_ != nullptr);
   } else {
     assert(dummyMe.write_key.size() == 0);
     assert(dummyMe.read_key.size() == 0);

@@ -7,8 +7,8 @@
 
 class DaemonRpc final : public asphrdaemon::Daemon::Service {
  public:
-  DaemonRpc(const Crypto& crypto, Config& config,
-            unique_ptr<asphrserver::Server::Stub>& stub)
+  DaemonRpc(const Crypto crypto, shared_ptr<Config> config,
+            shared_ptr<asphrserver::Server::Stub> stub)
       : crypto(crypto), config(config), stub(stub) {}
 
   grpc::Status RegisterUser(
@@ -58,9 +58,9 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
       asphrdaemon::MessageSeenResponse* messageSeenResponse) override;
 
  private:
-  const Crypto& crypto;
-  Config& config;
-  unique_ptr<asphrserver::Server::Stub>& stub;
+  const Crypto crypto;
+  shared_ptr<Config> config;
+  shared_ptr<asphrserver::Server::Stub> stub;
 
   auto message_id(const asphr::json& message_json) -> string;
 };

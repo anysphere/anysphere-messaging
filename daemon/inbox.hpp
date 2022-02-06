@@ -17,19 +17,20 @@ class Inbox {
 
   auto save() noexcept(false) -> void;
 
-  auto get_encrypted_acks(const std::unordered_map<string, Friend>& friendTable,
-                          const Crypto& crypto, const Friend& dummyMe)
+  auto get_encrypted_acks(const vector<Friend>& friends, const Crypto& crypto,
+                          const Friend& dummyMe)
       -> asphr::StatusOr<pir_value_t>;
 
   // modifies friend_info to store the latest ack id!
-  auto update_ack_from_friend(pir_value_t& pir_acks, Friend& friend_info,
-                              const Crypto& crypto) -> bool;
+  auto update_ack_from_friend(Config& config, pir_value_t& pir_acks,
+                              const Friend& friend_info, const Crypto& crypto)
+      -> bool;
 
   // receives a message! returns a message if all of its chunks have been
   // received, and it's a real message.
-  auto receive_message(FastPIRClient& client,
+  auto receive_message(FastPIRClient& client, Config& config,
                        const asphrserver::ReceiveMessageResponse& reply,
-                       Friend& friend_info, const Crypto& crypto,
+                       const Friend& friend_info, const Crypto& crypto,
                        string& previous_success_receive_friend)
       -> std::optional<InboxMessage>;
 

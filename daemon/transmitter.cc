@@ -4,24 +4,24 @@
 
 // TODO: make an actual directory structure here! do not just do giant .ndjson
 // files
-Transmitter::Transmitter(const Crypto& crypto, Config& config,
-                         unique_ptr<asphrserver::Server::Stub>& stub)
+Transmitter::Transmitter(const Crypto crypto, shared_ptr<Config> config,
+                         shared_ptr<asphrserver::Server::Stub> stub)
     : crypto(crypto),
       config(config),
       stub(stub),
-      inbox(config.data_dir / "inbox.json"),
-      outbox(config.data_dir / "outbox.json") {
+      inbox(config->data_dir_address() / "inbox.json"),
+      outbox(config->data_dir_address() / "outbox.json") {
   check_rep();
 }
 
 auto Transmitter::retrieve_messages() -> void {
   check_rep();
-  if (!config.has_registered) {
+  if (!config->has_registered()) {
     cout << "hasn't registered yet, so cannot retrieve messages" << endl;
     return;
   }
 
-  auto& client = *config.pir_client;
+  auto& client = config->pir_client();
   asphrserver::ReceiveMessageInfo request;
 
   // choose a friend to receive from!!
@@ -30,20 +30,24 @@ auto Transmitter::retrieve_messages() -> void {
   // previous round priority 3: random!
   Friend friend_info;
   bool dummy = false;
-  if (config.friendTable.contains(just_sent_friend)) {
-    friend_info = config.friendTable.at(just_sent_friend);
-  } else if (config.friendTable.contains(previous_success_receive_friend)) {
-    friend_info = config.friendTable.at(previous_success_receive_friend);
-  } else if (config.num_enabled_friends() > 0) {
+  if (auto friend_info_status = config->get_friend(just_sent_friend);
+      friend_info_status.ok()) {
+    friend_info = friend_info_status.value();
+  } else if (auto friend_info_status =
+                 config->get_friend(previous_success_receive_friend);
+             friend_info_status.ok()) {
+    friend_info = friend_info_status.value();
+  } else if (auto friend_info_status = config->random_enabled_friend();
+             friend_info_status.ok()) {
     // note: we do not need cryptographic randomness here. randomness is only
     // for liveness
-    friend_info = config.friendTable.at(config.random_enabled_friend());
+    friend_info = friend_info_status.value();
   } else {
-    friend_info = config.dummyMe;
+    friend_info = config->dummy_me();
     dummy = true;
   }
 
-  auto query = client.query(friend_info.read_index, config.db_rows);
+  auto query = client.query(friend_info.read_index, config->db_rows());
 
   auto serialized_query = query.serialize_to_string();
 
@@ -67,18 +71,14 @@ auto Transmitter::retrieve_messages() -> void {
   if (status.ok()) {
     cout << "received message!!!" << endl;
 
-    Friend& friend_info_mut = config.friendTable.at(friend_info.name);
     auto message_opt =
-        inbox.receive_message(client, reply, friend_info_mut, crypto,
+        inbox.receive_message(client, *config, reply, friend_info, crypto,
                               previous_success_receive_friend);
-    // the friend info might have been mutated, so we should save the config
-    // now!
-    config.save();
     if (message_opt.has_value()) {
       auto message = message_opt.value();
       cout << "actual message: " << message.message << endl;
       auto file =
-          std::ofstream(config.receive_file_address(), std::ios_base::app);
+          std::ofstream(config->receive_file_address(), std::ios_base::app);
 
       auto time = absl::FormatTime(absl::Now(), absl::UTCTimeZone());
       json jmsg = {{"from", message.friend_name},
@@ -102,36 +102,36 @@ auto Transmitter::retrieve_messages() -> void {
 
 auto Transmitter::send_messages() -> void {
   check_rep();
-  if (!config.has_registered) {
+  if (!config->has_registered()) {
     cout << "hasn't registered yet, so don't send a message" << endl;
     return;
   }
 
   auto new_entries =
-      get_new_entries(config.send_file_address(), last_ui_timestamp);
+      get_new_entries(config->send_file_address(), last_ui_timestamp);
   last_ui_timestamp = absl::Now();
 
-  auto authentication_token = config.registrationInfo.authentication_token;
+  auto authentication_token = config->registration_info().authentication_token;
 
   std::unordered_map<string, string> friend_to_message;
 
   for (auto& entry : new_entries) {
     auto to = entry.at("to").get<string>();
-    if (!config.friendTable.contains(to)) {
+    const auto friend_info_status = config->get_friend(to);
+    if (!friend_info_status.ok()) {
       std::cerr << "FriendHashTable does not contain " << to
                 << "; ignoring message" << endl;
       continue;
     }
-    const auto friend_info = config.friendTable.at(to);
+    const auto friend_info = friend_info_status.value();
     outbox.add(entry.at("message").get<string>(), friend_info);
   }
 
-  auto messageToSend =
-      outbox.message_to_send(config.friendTable, config.dummyMe);
+  auto messageToSend = outbox.message_to_send(*config, config->dummy_me());
   // always send to the 0th index. currently we only support one index per
   // person!! in the future, this may change, so please don't assert that the
   // length is 1.
-  auto index = config.registrationInfo.allocation.at(0);
+  auto index = config->registration_info().allocation.at(0);
 
   just_sent_friend = messageToSend.to.name;
 
@@ -145,7 +145,7 @@ auto Transmitter::send_messages() -> void {
   auto pir_value_message = pir_value_message_status.value();
 
   auto pir_encrypted_acks_status =
-      inbox.get_encrypted_acks(config.friendTable, crypto, config.dummyMe);
+      inbox.get_encrypted_acks(config->friends(), crypto, config->dummy_me());
   if (!pir_encrypted_acks_status.ok()) {
     cout << "encryption failed; not doing anything with message"
          << pir_encrypted_acks_status.status() << endl;
@@ -192,9 +192,5 @@ auto Transmitter::send_messages() -> void {
 }
 
 auto Transmitter::check_rep() const noexcept -> void {
-  // TODO: figure out how to check for dangling references
-  // assert(&crypto != nullptr);
-  // assert(&config != nullptr);
-  // assert(&stub != nullptr);
-  assert(config.has_registered || !config.has_registered);
+  assert(config->has_registered() || !config->has_registered());
 }

@@ -53,10 +53,10 @@ int main(int argc, char** argv) {
     config_file_address = get_config_file_address().string();
   }
 
-  Config config(config_file_address);
+  auto config = make_shared<Config>(config_file_address);
 
   if (server_address == "") {
-    server_address = config.server_address;
+    server_address = config->server_address();
   }
 
   const Crypto crypto;
@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
   }
   shared_ptr<grpc::Channel> channel =
       grpc::CreateChannel(server_address, channel_creds);
-  unique_ptr<asphrserver::Server::Stub> stub =
+  shared_ptr<asphrserver::Server::Stub> stub =
       asphrserver::Server::NewStub(channel);
 
   // TODO: VERIFY AND MAKE SURE CRYPTO, CONFIG, STUB ARE ALL THREADSAFE!!!!!

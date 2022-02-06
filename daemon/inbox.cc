@@ -50,14 +50,14 @@ auto Inbox::save() noexcept(false) -> void {
   check_rep();
 }
 
-auto Inbox::get_encrypted_acks(
-    const std::unordered_map<string, Friend>& friendTable, const Crypto& crypto,
-    const Friend& dummyMe) -> asphr::StatusOr<pir_value_t> {
-  assert(friendTable.size() <= MAX_FRIENDS);
+auto Inbox::get_encrypted_acks(const vector<Friend>& friends,
+                               const Crypto& crypto, const Friend& dummyMe)
+    -> asphr::StatusOr<pir_value_t> {
+  assert(friends.size() <= MAX_FRIENDS);
   check_rep();
 
   vector<string> encrypted_acks(MAX_FRIENDS);
-  for (auto& [friend_name, friend_info] : friendTable) {
+  for (auto& friend_info : friends) {
     if (!friend_info.enabled) {
       continue;
     }
@@ -88,7 +88,8 @@ auto Inbox::get_encrypted_acks(
   return pir_acks;
 }
 
-auto Inbox::update_ack_from_friend(pir_value_t& pir_acks, Friend& friend_info,
+auto Inbox::update_ack_from_friend(Config& config, pir_value_t& pir_acks,
+                                   const Friend& friend_info,
                                    const Crypto& crypto) -> bool {
   check_rep();
   vector<string> encrypted_acks(MAX_FRIENDS);
@@ -106,7 +107,9 @@ auto Inbox::update_ack_from_friend(pir_value_t& pir_acks, Friend& friend_info,
       continue;
     }
     if (ack.value() >= friend_info.latest_ack_id) {
-      friend_info.latest_ack_id = ack.value();
+      auto new_friend_info = friend_info;
+      new_friend_info.latest_ack_id = ack.value();
+      config.update_friend(new_friend_info);
     } else {
       cout << "something weird is going on.... ACKing is older than latest ack "
               "id. look into this"
@@ -119,9 +122,9 @@ auto Inbox::update_ack_from_friend(pir_value_t& pir_acks, Friend& friend_info,
   return false;
 }
 
-auto Inbox::receive_message(FastPIRClient& client,
+auto Inbox::receive_message(FastPIRClient& client, Config& config,
                             const asphrserver::ReceiveMessageResponse& reply,
-                            Friend& friend_info, const Crypto& crypto,
+                            const Friend& friend_info, const Crypto& crypto,
                             string& previous_success_receive_friend)
     -> std::optional<InboxMessage> {
   check_rep();
@@ -130,7 +133,8 @@ auto Inbox::receive_message(FastPIRClient& client,
   auto ack_answer_obj = client.answer_from_string(ack_answer);
   auto decoded_acks = client.decode(ack_answer_obj, friend_info.read_index);
   // now check to see what we can do with this! update the friend ACK info
-  auto success_acks = update_ack_from_friend(decoded_acks, friend_info, crypto);
+  auto success_acks =
+      update_ack_from_friend(config, decoded_acks, friend_info, crypto);
   // we do not want to break if this wasn't successful. it is ok if it
   // isn't!!!
   cout << "acks successful or not (expect fail often): " << success_acks
@@ -164,7 +168,9 @@ auto Inbox::receive_message(FastPIRClient& client,
   // only ACK this message if it is exactly the next ID we expect. otherwise, we
   // still need to await more messages
   if (message.id() == friend_info.last_receive_id + 1) {
-    friend_info.last_receive_id = message.id();
+    auto new_friend_info = friend_info;
+    new_friend_info.last_receive_id = message.id();
+    config.update_friend(new_friend_info);
   } else {
     cout << "message ID is not next expected ID. we need to wait for more "
             "messages. WARNING may be worth looking into."

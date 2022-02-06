@@ -113,9 +113,8 @@ auto Outbox::add(const string& message, const Friend& friend_info) noexcept
   check_rep();
 }
 
-auto Outbox::message_to_send(
-    const std::unordered_map<string, Friend>& friendTable,
-    const Friend& dummyMe) -> MessageToSend {
+auto Outbox::message_to_send(const Config& config, const Friend& dummyMe)
+    -> MessageToSend {
   check_rep();
   // first remove ACKed messages
   vector<string> recently_acked_friends;
@@ -123,7 +122,13 @@ auto Outbox::message_to_send(
   for (auto& [friend_name, messages] : outbox) {
     auto remove_num = 0;
     for (size_t i = 0; i < messages.size(); i++) {
-      if (messages.at(i).id <= friendTable.at(friend_name).latest_ack_id) {
+      auto friend_info_status = config.get_friend(friend_name);
+      if (!friend_info_status.ok()) {
+        remove_friend_names.push_back(friend_name);
+        continue;
+      }
+      auto friend_info = friend_info_status.value();
+      if (messages.at(i).id <= friend_info.latest_ack_id) {
         remove_num++;
         recently_acked_friends.push_back(friend_name);
       } else {

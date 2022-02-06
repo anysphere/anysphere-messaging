@@ -13,18 +13,13 @@ Status DaemonRpc::RegisterUser(ServerContext* context,
                                RegisterUserResponse* registerUserResponse) {
   cout << "RegisterUser() called" << endl;
 
-  if (config.has_registered) {
+  if (config->has_registered()) {
     cout << "already registered" << endl;
     return Status(grpc::StatusCode::ALREADY_EXISTS, "already registered");
   }
 
-  auto [public_key, secret_key] = crypto.generate_keypair();
-
-  config.registrationInfo = RegistrationInfo{
-      .name = registerUserRequest->name(),
-      .public_key = public_key,
-      .private_key = secret_key,
-  };
+  const auto name = registerUserRequest->name();
+  const auto [public_key, secret_key] = crypto.generate_keypair();
 
   // call register rpc to send the register request
   asphrserver::RegisterInfo request;
@@ -39,9 +34,9 @@ Status DaemonRpc::RegisterUser(ServerContext* context,
     cout << "register success" << endl;
     registerUserResponse->set_success(true);
 
-    config.registrationInfo.authentication_token = reply.authentication_token();
+    const auto authentication_token = reply.authentication_token();
     auto alloc_repeated = reply.allocation();
-    config.registrationInfo.allocation =
+    const auto allocation =
         vector<int>(alloc_repeated.begin(), alloc_repeated.end());
 
     if (reply.authentication_token() == "") {
@@ -54,19 +49,9 @@ Status DaemonRpc::RegisterUser(ServerContext* context,
       return Status(grpc::StatusCode::UNKNOWN, "allocation is empty");
     }
 
-    auto [secret_key, galois_keys] = generate_keys();
-    config.pir_secret_key = secret_key;
-    config.pir_galois_keys = galois_keys;
+    config->do_register(name, public_key, secret_key, authentication_token,
+                        allocation);
 
-    assert(config.pir_client == nullptr);
-
-    config.pir_client = std::make_unique<FastPIRClient>(config.pir_secret_key,
-                                                        config.pir_galois_keys);
-    config.initialize_dummy_me();
-    // THIS has to happen last :)
-    config.has_registered = true;
-
-    config.save();
   } else {
     cout << status.error_code() << ": " << status.error_message() << endl;
     registerUserResponse->set_success(false);
@@ -81,12 +66,12 @@ Status DaemonRpc::GetFriendList(
     GetFriendListResponse* getFriendListResponse) {
   cout << "GetFriendList() called" << endl;
 
-  if (!config.has_registered) {
+  if (!config->has_registered()) {
     cout << "need to register first!" << endl;
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  for (auto& [_, s] : config.friendTable) {
+  for (auto& s : config->friends()) {
     auto new_friend = getFriendListResponse->add_friend_infos();
     new_friend->set_name(s.name);
     new_friend->set_enabled(s.enabled);
@@ -103,27 +88,37 @@ Status DaemonRpc::GenerateFriendKey(
     GenerateFriendKeyResponse* generateFriendKeyResponse) {
   cout << "GenerateFriendKey() called" << endl;
 
-  if (!config.has_registered) {
+  if (!config->has_registered()) {
     cout << "need to register first!" << endl;
+    generateFriendKeyResponse->set_success(false);
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  if (!config.has_space_for_friends()) {
+  if (!config->has_space_for_friends()) {
     cout << "no more allocation" << endl;
     generateFriendKeyResponse->set_success(false);
     return Status(grpc::StatusCode::INVALID_ARGUMENT, "no more allocation");
   }
 
+  const auto friend_info_status =
+      config->get_friend(generateFriendKeyRequest->name());
+  if (friend_info_status.ok()) {
+    cout << "friend already exists" << endl;
+    generateFriendKeyResponse->set_success(false);
+    return Status(grpc::StatusCode::ALREADY_EXISTS, "friend already exists");
+  }
+
   // note: for now, we only support the first index ever!
-  auto index = config.registrationInfo.allocation.at(0);
+  auto registration_info = config->registration_info();
+  auto index = registration_info.allocation.at(0);
 
   auto friend_key =
-      crypto.generate_friend_key(config.registrationInfo.public_key, index);
+      crypto.generate_friend_key(registration_info.public_key, index);
 
   auto friend_info =
-      Friend(generateFriendKeyRequest->name(), config.friendTable);
+      Friend(generateFriendKeyRequest->name(), config->friends());
 
-  config.add_friend(friend_info);
+  config->add_friend(friend_info);
 
   generateFriendKeyResponse->set_key(friend_key);
   generateFriendKeyResponse->set_success(true);
@@ -136,21 +131,21 @@ Status DaemonRpc::AddFriend(ServerContext* context,
   cout << "AddFriend() called" << endl;
   cout << "name: " << addFriendRequest->name() << endl;
 
-  if (!config.has_registered) {
+  if (!config->has_registered()) {
     cout << "need to register first!" << endl;
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  for (auto& [s, _] : config.friendTable) {
-    cout << "friend: " << s << endl;
-  }
+  auto friend_info_status = config->get_friend(addFriendRequest->name());
 
-  if (!config.friendTable.contains(addFriendRequest->name())) {
+  if (!friend_info_status.ok()) {
     cout << "friend not found; call generatefriendkey first!" << endl;
     addFriendResponse->set_success(false);
     return Status(grpc::StatusCode::INVALID_ARGUMENT,
                   "friend not found; call generatefriendkey first!");
   }
+
+  auto friend_info = friend_info_status.value();
 
   auto decoded_friend_key = crypto.decode_friend_key(addFriendRequest->key());
   if (!decoded_friend_key.ok()) {
@@ -161,15 +156,15 @@ Status DaemonRpc::AddFriend(ServerContext* context,
 
   auto& [read_index, friend_public_key] = decoded_friend_key.value();
 
-  auto& friend_info = config.friendTable.at(addFriendRequest->name());
   auto [read_key, write_key] = crypto.derive_read_write_keys(
-      config.registrationInfo.public_key, config.registrationInfo.private_key,
-      friend_public_key);
+      config->registration_info().public_key,
+      config->registration_info().private_key, friend_public_key);
   friend_info.read_key = read_key;
   friend_info.write_key = write_key;
   friend_info.read_index = read_index;
   friend_info.enabled = true;
-  config.save();
+
+  config->update_friend(friend_info);
 
   addFriendResponse->set_success(true);
   return Status::OK;
@@ -180,19 +175,21 @@ Status DaemonRpc::RemoveFriend(ServerContext* context,
                                RemoveFriendResponse* removeFriendResponse) {
   cout << "RemoveFriend() called" << endl;
 
-  if (!config.has_registered) {
+  if (!config->has_registered()) {
     cout << "need to register first!" << endl;
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  if (!config.friendTable.contains(removeFriendRequest->name())) {
+  auto friend_info_status = config->get_friend(removeFriendRequest->name());
+
+  if (!friend_info_status.ok()) {
     cout << "friend not found" << endl;
     removeFriendResponse->set_success(false);
     return Status(grpc::StatusCode::INVALID_ARGUMENT, "friend not found");
   }
 
   // remove friend from friend table
-  auto status = config.remove_friend(removeFriendRequest->name());
+  auto status = config->remove_friend(removeFriendRequest->name());
 
   if (!status.ok()) {
     cout << "remove friend failed" << endl;
@@ -209,18 +206,20 @@ Status DaemonRpc::SendMessage(ServerContext* context,
                               SendMessageResponse* sendMessageResponse) {
   cout << "SendMessage() called" << endl;
 
-  if (!config.has_registered) {
+  if (!config->has_registered()) {
     cout << "need to register first!" << endl;
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  if (!config.friendTable.contains(sendMessageRequest->name())) {
+  auto friend_info_status = config->get_friend(sendMessageRequest->name());
+
+  if (!friend_info_status.ok()) {
     cout << "friend not found" << endl;
     sendMessageResponse->set_success(false);
     return Status(grpc::StatusCode::INVALID_ARGUMENT, "friend not found");
   }
 
-  auto& friend_info = config.friendTable.at(sendMessageRequest->name());
+  auto friend_info = friend_info_status.value();
 
   if (!friend_info.enabled) {
     cout << "friend disabled" << endl;
@@ -230,7 +229,7 @@ Status DaemonRpc::SendMessage(ServerContext* context,
 
   auto message = sendMessageRequest->message();
 
-  auto status = write_msg_to_file(config.send_file_address(), message,
+  auto status = write_msg_to_file(config->send_file_address(), message,
                                   "MESSAGE", friend_info.name);
   if (!status.ok()) {
     cout << "write message to file failed" << endl;
@@ -248,12 +247,12 @@ Status DaemonRpc::GetAllMessages(
   using TimeUtil = google::protobuf::util::TimeUtil;
   cout << "GetAllMessages() called" << endl;
 
-  if (!config.has_registered) {
+  if (!config->has_registered()) {
     cout << "need to register first!" << endl;
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  auto messages = get_entries(config.receive_file_address());
+  auto messages = get_entries(config->receive_file_address());
 
   // sort messages
   std::sort(messages.begin(), messages.end(), [](const json& a, const json& b) {
@@ -301,14 +300,14 @@ Status DaemonRpc::GetNewMessages(
   using TimeUtil = google::protobuf::util::TimeUtil;
   cout << "GetNewMessages() called" << endl;
 
-  if (!config.has_registered) {
+  if (!config->has_registered()) {
     cout << "need to register first!" << endl;
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  auto messages = get_entries(config.receive_file_address());
+  auto messages = get_entries(config->receive_file_address());
 
-  auto seen_messages = get_entries(config.seen_file_address());
+  auto seen_messages = get_entries(config->seen_file_address());
 
   auto seen_set = std::unordered_set<string>();
   for (auto& seen_message : seen_messages) {
@@ -362,14 +361,14 @@ Status DaemonRpc::MessageSeen(ServerContext* context,
                               MessageSeenResponse* messageSeenResponse) {
   cout << "MessageSeen() called" << endl;
 
-  if (!config.has_registered) {
+  if (!config->has_registered()) {
     cout << "need to register first!" << endl;
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
   auto message_id = messageSeenRequest->id();
 
-  auto file = std::ofstream(config.seen_file_address(), std::ios_base::app);
+  auto file = std::ofstream(config->seen_file_address(), std::ios_base::app);
   json jmsg = {{"id", message_id}};
   if (file.is_open()) {
     file << std::setw(4) << jmsg.dump() << std::endl;

@@ -44,8 +44,8 @@ class Outbox {
   // only returns a message sent to a friend if the friend is enabled
   // if there are no real messages, returns a message sent to
   // registrationInfo.name
-  auto message_to_send(const std::unordered_map<string, Friend>& friendTable,
-                       const Friend& dummyMe) -> MessageToSend;
+  auto message_to_send(const Config& config, const Friend& dummyMe)
+      -> MessageToSend;
 
  private:
   const string saved_file_address;
