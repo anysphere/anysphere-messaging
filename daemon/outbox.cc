@@ -128,6 +128,9 @@ auto Outbox::message_to_send(const Config& config, const Friend& dummyMe)
         continue;
       }
       auto friend_info = friend_info_status.value();
+      cout << friend_name
+           << ": friend_info.latest_ack_id=" << friend_info.latest_ack_id
+           << endl;
       if (messages.at(i).id <= friend_info.latest_ack_id) {
         remove_num++;
         recently_acked_friends.push_back(friend_name);

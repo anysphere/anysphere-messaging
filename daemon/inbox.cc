@@ -110,6 +110,8 @@ auto Inbox::update_ack_from_friend(Config& config, pir_value_t& pir_acks,
       auto new_friend_info = friend_info;
       new_friend_info.latest_ack_id = ack.value();
       config.update_friend(new_friend_info);
+      cout << "updating friend " << new_friend_info.name << " with ack id "
+           << new_friend_info.latest_ack_id << endl;
     } else {
       cout << "something weird is going on.... ACKing is older than latest ack "
               "id. look into this"
@@ -124,10 +126,11 @@ auto Inbox::update_ack_from_friend(Config& config, pir_value_t& pir_acks,
 
 auto Inbox::receive_message(FastPIRClient& client, Config& config,
                             const asphrserver::ReceiveMessageResponse& reply,
-                            const Friend& friend_info, const Crypto& crypto,
+                            const Friend& friend_info_in, const Crypto& crypto,
                             string& previous_success_receive_friend)
     -> std::optional<InboxMessage> {
   check_rep();
+  Friend friend_info = friend_info_in;
   // first look at the ACKs
   auto ack_answer = reply.pir_answer_acks();
   auto ack_answer_obj = client.answer_from_string(ack_answer);
@@ -135,6 +138,13 @@ auto Inbox::receive_message(FastPIRClient& client, Config& config,
   // now check to see what we can do with this! update the friend ACK info
   auto success_acks =
       update_ack_from_friend(config, decoded_acks, friend_info, crypto);
+  // friend_info may have been updated!
+  auto friend_info_status = config.get_friend(friend_info.name);
+  if (!friend_info_status.ok()) {
+    // friend info has been deleted!
+    return std::nullopt;
+  }
+  friend_info = friend_info_status.value();
   // we do not want to break if this wasn't successful. it is ok if it
   // isn't!!!
   cout << "acks successful or not (expect fail often): " << success_acks
@@ -171,6 +181,13 @@ auto Inbox::receive_message(FastPIRClient& client, Config& config,
     auto new_friend_info = friend_info;
     new_friend_info.last_receive_id = message.id();
     config.update_friend(new_friend_info);
+    // friend_info has been updated!
+    auto friend_info_status = config.get_friend(friend_info.name);
+    if (!friend_info_status.ok()) {
+      // friend info has been deleted!
+      return std::nullopt;
+    }
+    friend_info = friend_info_status.value();
   } else {
     cout << "message ID is not next expected ID. we need to wait for more "
             "messages. WARNING may be worth looking into."
