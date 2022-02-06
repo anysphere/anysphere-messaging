@@ -23,12 +23,12 @@ auto gen_crypto() -> Crypto {
   return crypto;
 }
 
-auto gen_config(string tmp_dir, string tmp_file) -> Config {
+auto gen_config(string tmp_dir, string tmp_file) -> shared_ptr<Config> {
   json config_json = {{"has_registered", false},
                       {"friends", {}},
                       {"data_dir", tmp_dir},
                       {"server_address", "unused"}};
-  Config config(config_json, tmp_file);
+  auto config = make_shared<Config>(config_json, tmp_file);
   return config;
 }
 
@@ -72,7 +72,7 @@ class MultipleFriendsTest : public ::testing::Test {
 
   void SetUp() override {
     // TODO(sualeh): do NOT do this. pick a good random unused port
-    int port = 43422;
+    int port = 43421;
     server_address_ << "localhost:" << port;
     // Setup server
     grpc::ServerBuilder builder;
@@ -107,7 +107,7 @@ class MultipleFriendsTest : public ::testing::Test {
     stub_ = asphrserver::Server::NewStub(channel);
   }
 
-  std::unique_ptr<asphrserver::Server::Stub> stub_;
+  std::shared_ptr<asphrserver::Server::Stub> stub_;
   std::unique_ptr<grpc::Server> server_;
   std::ostringstream server_address_;
   ServerRpc service_;
@@ -121,10 +121,10 @@ TEST_F(MultipleFriendsTest, SendThreeMessages) {
   vector<string> names = {"user1local", "user2local", "user3local",
                           "user4local"};
   vector<Crypto> cryptos;
-  vector<Config> configs;
+  vector<shared_ptr<Config>> configs;
   for (size_t i = 0; i < names.size(); i++) {
     auto config = gen_config(string(generateTempDir()), generateTempFile());
-    configs.push_back(std::move(config));
+    configs.push_back(config);
   }
   vector<unique_ptr<DaemonRpc>> rpcs;
   vector<unique_ptr<Transmitter>> ts;
@@ -455,10 +455,10 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
   vector<string> names = {"user1local", "user2local", "user3local",
                           "user4local"};
   vector<Crypto> cryptos;
-  vector<Config> configs;
+  vector<shared_ptr<Config>> configs;
   for (size_t i = 0; i < names.size(); i++) {
     auto config = gen_config(string(generateTempDir()), generateTempFile());
-    configs.push_back(std::move(config));
+    configs.push_back(config);
   }
   vector<unique_ptr<DaemonRpc>> rpcs;
   vector<unique_ptr<Transmitter>> ts;

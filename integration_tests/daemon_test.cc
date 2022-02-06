@@ -21,12 +21,12 @@ auto gen_crypto() -> Crypto {
   return crypto;
 }
 
-auto gen_config(string tmp_dir, string tmp_file) -> Config {
+auto gen_config(string tmp_dir, string tmp_file) -> shared_ptr<Config> {
   json config_json = {{"has_registered", false},
                       {"friends", {}},
                       {"data_dir", tmp_dir},
                       {"server_address", "unused"}};
-  Config config(config_json, tmp_file);
+  auto config = make_shared<Config>(config_json, tmp_file);
   return config;
 }
 
@@ -69,7 +69,7 @@ class DaemonRpcTest : public ::testing::Test {
   }
 
   void SetUp() override {
-    int port = 43426;
+    int port = 43427;
     server_address_ << "localhost:" << port;
     // Setup server
     grpc::ServerBuilder builder;
@@ -104,7 +104,7 @@ class DaemonRpcTest : public ::testing::Test {
     stub_ = asphrserver::Server::NewStub(channel);
   }
 
-  std::unique_ptr<asphrserver::Server::Stub> stub_;
+  std::shared_ptr<asphrserver::Server::Stub> stub_;
   std::unique_ptr<grpc::Server> server_;
   std::ostringstream server_address_;
   ServerRpc service_;
@@ -146,7 +146,7 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfig) {
 
   {
     // re-create config from the file!
-    auto config = Config(config_file_address);
+    auto config = make_shared<Config>(config_file_address);
     auto crypto = gen_crypto();
     DaemonRpc rpc(crypto, config, stub_);
 
@@ -206,7 +206,7 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceiveHalfFriend) {
 
   {
     // re-create config from the file!
-    auto config = Config(config_file_address);
+    auto config = make_shared<Config>(config_file_address);
     auto crypto = gen_crypto();
     Transmitter t(crypto, config, stub_);
 
@@ -292,12 +292,12 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceive) {
   {
     // re-create config from the file!
     auto crypto1 = gen_crypto();
-    auto config1 = Config(config_file_address1);
+    auto config1 = make_shared<Config>(config_file_address1);
     DaemonRpc rpc1(crypto1, config1, stub_);
     Transmitter t1(crypto1, config1, stub_);
 
     auto crypto2 = gen_crypto();
-    auto config2 = Config(config_file_address2);
+    auto config2 = make_shared<Config>(config_file_address2);
     DaemonRpc rpc2(crypto2, config2, stub_);
     Transmitter t2(crypto2, config2, stub_);
 
