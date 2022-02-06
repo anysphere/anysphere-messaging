@@ -49,24 +49,6 @@ auto read_json_file(const string& config_file_address) -> asphr::json {
   return config_json;
 }
 
-auto Config::initialize_dummy_me() -> void {
-  // check_rep(); rep will be broken before we initialize dummy me!
-  assert(has_registered_);
-
-  auto crypto = Crypto();
-
-  auto dummy_friend_keypair = crypto.generate_keypair();
-  auto dummy_read_write_keys = crypto.derive_read_write_keys(
-      registrationInfo.public_key, registrationInfo.private_key,
-      dummy_friend_keypair.first);
-
-  dummyMe = Friend("dummyMe", 0, dummy_read_write_keys.first,
-                   dummy_read_write_keys.second, 0, false, 0, 0);
-
-  save();
-  check_rep();
-}
-
 auto Config::server_address() -> std::string {
   check_rep();
   return server_address_;
@@ -137,38 +119,15 @@ Config::Config(const asphr::json& config_json_input,
   check_rep();
 }
 
-auto Config::save() -> void {
-  std::lock_guard<std::mutex> l(config_mtx);
-
-  asphr::json config_json;
-  config_json["has_registered"] = has_registered_;
-  config_json["data_dir"] = data_dir;
-  config_json["server_address"] = server_address_;
-  if (has_registered_) {
-    config_json["registration_info"] = registrationInfo.to_json();
-    config_json["pir_secret_key"] = asphr::Base64Escape(pir_secret_key);
-    config_json["pir_galois_keys"] = asphr::Base64Escape(pir_galois_keys);
-  }
-  vector<asphr::json> friends;
-  for (auto& friend_pair : friendTable) {
-    friends.push_back(friend_pair.second.to_json());
-  }
-  config_json["friends"] = friends;
-  std::ofstream o(saved_file_address);
-  o << std::setw(4) << config_json.dump(4) << std::endl;
-
-  check_rep();
-}
-
 auto Config::has_space_for_friends() -> bool {
-  std::lock_guard<std::mutex> l(config_mtx);
+  const std::lock_guard<std::mutex> l(config_mtx);
 
   check_rep();
   return friendTable.size() < MAX_FRIENDS;
 }
 
 auto Config::has_registered() -> bool {
-  std::lock_guard<std::mutex> l(config_mtx);
+  const std::lock_guard<std::mutex> l(config_mtx);
 
   check_rep();
   return has_registered_;
@@ -180,7 +139,7 @@ auto Config::do_register(const string& name, const string& public_key,
                          const vector<int>& allocation) -> void {
   check_rep();
 
-  std::lock_guard<std::mutex> l(config_mtx);
+  const std::lock_guard<std::mutex> l(config_mtx);
 
   registrationInfo = RegistrationInfo{
       .name = name,
@@ -189,8 +148,6 @@ auto Config::do_register(const string& name, const string& public_key,
       .authentication_token = authentication_token,
       .allocation = allocation,
   };
-
-  has_registered_ = true;
 
   auto [secret_key, galois_keys] = generate_keys();
   pir_secret_key = secret_key;
@@ -202,7 +159,6 @@ auto Config::do_register(const string& name, const string& public_key,
       std::make_unique<FastPIRClient>(pir_secret_key, pir_galois_keys);
   initialize_dummy_me();
 
-  // THIS has to happen last :)
   has_registered_ = true;
 
   save();
@@ -211,14 +167,14 @@ auto Config::do_register(const string& name, const string& public_key,
 }
 
 auto Config::registration_info() -> RegistrationInfo {
-  std::lock_guard<std::mutex> l(config_mtx);
+  const std::lock_guard<std::mutex> l(config_mtx);
 
   check_rep();
   return registrationInfo;
 }
 
 auto Config::num_enabled_friends() -> int {
-  std::lock_guard<std::mutex> l(config_mtx);
+  const std::lock_guard<std::mutex> l(config_mtx);
 
   check_rep();
 
@@ -235,13 +191,9 @@ auto Config::num_enabled_friends() -> int {
 }
 
 auto Config::random_enabled_friend() -> asphr::StatusOr<Friend> {
-  std::lock_guard<std::mutex> l(config_mtx);
+  const std::lock_guard<std::mutex> l(config_mtx);
 
   check_rep();
-
-  if (num_enabled_friends() == 0) {
-    return absl::NotFoundError("No enabled friends");
-  }
 
   vector<Friend> enabled_friends;
   for (auto& friend_pair : friendTable) {
@@ -249,6 +201,11 @@ auto Config::random_enabled_friend() -> asphr::StatusOr<Friend> {
       enabled_friends.push_back(friend_pair.second);
     }
   }
+
+  if (enabled_friends.size() == 0) {
+    return absl::NotFoundError("No enabled friends");
+  }
+
   auto random_index = rand() % enabled_friends.size();
 
   check_rep();
@@ -257,7 +214,7 @@ auto Config::random_enabled_friend() -> asphr::StatusOr<Friend> {
 }
 
 auto Config::dummy_me() -> Friend {
-  std::lock_guard<std::mutex> l(config_mtx);
+  const std::lock_guard<std::mutex> l(config_mtx);
 
   check_rep();
 
@@ -265,7 +222,7 @@ auto Config::dummy_me() -> Friend {
 }
 
 auto Config::add_friend(const Friend& f) -> void {
-  std::lock_guard<std::mutex> l(config_mtx);
+  const std::lock_guard<std::mutex> l(config_mtx);
 
   check_rep();
 
@@ -277,7 +234,7 @@ auto Config::add_friend(const Friend& f) -> void {
 }
 
 auto Config::remove_friend(const string& name) -> absl::Status {
-  std::lock_guard<std::mutex> l(config_mtx);
+  const std::lock_guard<std::mutex> l(config_mtx);
 
   check_rep();
 
@@ -294,7 +251,7 @@ auto Config::remove_friend(const string& name) -> absl::Status {
 }
 
 auto Config::friends() const -> vector<Friend> {
-  std::lock_guard<std::mutex> l(config_mtx);
+  const std::lock_guard<std::mutex> l(config_mtx);
 
   check_rep();
 
@@ -308,7 +265,7 @@ auto Config::friends() const -> vector<Friend> {
 }
 
 auto Config::get_friend(const string& name) const -> absl::StatusOr<Friend> {
-  std::lock_guard<std::mutex> l(config_mtx);
+  const std::lock_guard<std::mutex> l(config_mtx);
 
   check_rep();
 
@@ -321,7 +278,7 @@ auto Config::get_friend(const string& name) const -> absl::StatusOr<Friend> {
 }
 
 auto Config::update_friend(const Friend& f) -> void {
-  std::lock_guard<std::mutex> l(config_mtx);
+  const std::lock_guard<std::mutex> l(config_mtx);
 
   check_rep();
 
@@ -344,18 +301,19 @@ auto Config::seen_file_address() -> std::filesystem::path {
 auto Config::data_dir_address() -> std::filesystem::path { return data_dir; }
 
 auto Config::pir_client() -> FastPIRClient& {
-  std::lock_guard<std::mutex> l(config_mtx);
+  const std::lock_guard<std::mutex> l(config_mtx);
 
   check_rep();
   return *pir_client_;
 }
 
 auto Config::db_rows() -> size_t {
-  std::lock_guard<std::mutex> l(config_mtx);
+  const std::lock_guard<std::mutex> l(config_mtx);
 
   return db_rows_;
 }
 
+// private method; hence no check_rep, no lock
 auto Config::check_rep() const -> void {
   assert(saved_file_address != "");
   assert(data_dir != "");
@@ -384,4 +342,41 @@ auto Config::check_rep() const -> void {
     assert(dummyMe.write_key.size() == 0);
     assert(dummyMe.read_key.size() == 0);
   }
+}
+
+// private method; hence, no check_rep, no lock
+auto Config::save() -> void {
+  asphr::json config_json;
+  config_json["has_registered"] = has_registered_;
+  config_json["data_dir"] = data_dir;
+  config_json["server_address"] = server_address_;
+  if (has_registered_) {
+    config_json["registration_info"] = registrationInfo.to_json();
+    config_json["pir_secret_key"] = asphr::Base64Escape(pir_secret_key);
+    config_json["pir_galois_keys"] = asphr::Base64Escape(pir_galois_keys);
+  }
+  vector<asphr::json> friends;
+  for (auto& friend_pair : friendTable) {
+    friends.push_back(friend_pair.second.to_json());
+  }
+  config_json["friends"] = friends;
+  std::ofstream o(saved_file_address);
+  o << std::setw(4) << config_json.dump(4) << std::endl;
+}
+
+// private method; hence, no check_rep, no lock
+auto Config::initialize_dummy_me() -> void {
+  assert(has_registered_);
+
+  auto crypto = Crypto();
+
+  auto dummy_friend_keypair = crypto.generate_keypair();
+  auto dummy_read_write_keys = crypto.derive_read_write_keys(
+      registrationInfo.public_key, registrationInfo.private_key,
+      dummy_friend_keypair.first);
+
+  dummyMe = Friend("dummyMe", 0, dummy_read_write_keys.first,
+                   dummy_read_write_keys.second, 0, false, 0, 0);
+
+  save();
 }

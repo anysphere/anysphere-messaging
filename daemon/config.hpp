@@ -30,8 +30,6 @@ class Config {
   Config(const string& config_file_address);
   Config(const asphr::json& config_json, const string& config_file_address);
 
-  auto save() -> void;
-
   // precondition: friend_info.name is not in friendTable
   auto add_friend(const Friend& friend_info) -> void;
   auto remove_friend(const string& name) -> asphr::Status;
@@ -89,4 +87,6 @@ class Config {
 
   auto check_rep() const -> void;
   auto initialize_dummy_me() -> void;
+
+  auto save() -> void;
 };
