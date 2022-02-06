@@ -189,7 +189,19 @@ int main(int argc, char** argv) {
     for (auto& [name, friend_] : kFriends_map_) {
       cout << name << endl;
     }
+  } else if (command == "kill") {
+    grpc::ClientContext context;
+    asphrdaemon::KillRequest request;
+    asphrdaemon::KillResponse response;
 
+    grpc::Status status = stub->Kill(&context, request, &response);
+
+    if (!status.ok()) {
+      cout << "kill failed: " << status.error_message() << endl;
+      return 0;
+    } else {
+      cout << "Successfully killed the daemon!" << endl;
+    }
   } else {
     cout << "Unknown command: " << command << endl;
     cout << help << endl;

@@ -95,6 +95,7 @@ int main(int argc, char** argv) {
     auto killed = config->wait_until_killed_or_seconds(round_delay);
     if (killed) {
       daemon_server->Shutdown();
+      cout << "Daemon killed!" << endl;
       break;
     }
 
