@@ -30,7 +30,7 @@ class Inbox {
   // received, and it's a real message.
   auto receive_message(FastPIRClient& client, Config& config,
                        const asphrserver::ReceiveMessageResponse& reply,
-                       const Friend& friend_info, const Crypto& crypto,
+                       const Friend& friend_info_in, const Crypto& crypto,
                        string& previous_success_receive_friend)
       -> std::optional<InboxMessage>;
 
