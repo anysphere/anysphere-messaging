@@ -1,4 +1,4 @@
-const { contextBridge, clipboard, shell } = require("electron");
+const { contextBridge, clipboard } = require("electron");
 const { promisify } = require("util");
 var grpc = require("@grpc/grpc-js");
 const daemonM = require("../daemon/schema/daemon_pb");
@@ -261,10 +261,6 @@ contextBridge.exposeInMainWorld("hasRegistered", async () => {
     console.log(`error in hasRegistered: ${e}`);
     return false;
   }
-});
-
-contextBridge.exposeInMainWorld("openExternal", (link) => {
-  shell.openExternal(link);
 });
 
 contextBridge.exposeInMainWorld("register", async (username, accessKey) => {
