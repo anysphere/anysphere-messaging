@@ -49,7 +49,7 @@ export function RegisterModal({
         </div>
         <div className="grid">
           <button
-            className="place-self-center rounded-lg unselectable bg-asbrown-100 text-asbrown-light px-3 py-1"
+            className="place-self-center my-2 rounded-lg unselectable bg-asbrown-100 text-asbrown-light px-3 py-1"
             onClick={() => onRegister(username, accesskey)}
           >
             Register
