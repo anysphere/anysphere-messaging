@@ -8,6 +8,9 @@ export class RegisterUserRequest extends jspb.Message {
   getName(): string;
   setName(value: string): void;
 
+  getBetaKey(): string;
+  setBetaKey(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RegisterUserRequest.AsObject;
   static toObject(includeInstance: boolean, msg: RegisterUserRequest): RegisterUserRequest.AsObject;
@@ -21,6 +24,7 @@ export class RegisterUserRequest extends jspb.Message {
 export namespace RegisterUserRequest {
   export type AsObject = {
     name: string,
+    betaKey: string,
   }
 }
 

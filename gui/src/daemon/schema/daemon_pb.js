@@ -577,7 +577,8 @@ proto.asphrdaemon.RegisterUserRequest.prototype.toObject = function(opt_includeI
  */
 proto.asphrdaemon.RegisterUserRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    name: jspb.Message.getFieldWithDefault(msg, 1, "")
+    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    betaKey: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -618,6 +619,10 @@ proto.asphrdaemon.RegisterUserRequest.deserializeBinaryFromReader = function(msg
       var value = /** @type {string} */ (reader.readString());
       msg.setName(value);
       break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setBetaKey(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -654,6 +659,13 @@ proto.asphrdaemon.RegisterUserRequest.serializeBinaryToWriter = function(message
       f
     );
   }
+  f = message.getBetaKey();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -672,6 +684,24 @@ proto.asphrdaemon.RegisterUserRequest.prototype.getName = function() {
  */
 proto.asphrdaemon.RegisterUserRequest.prototype.setName = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string beta_key = 2;
+ * @return {string}
+ */
+proto.asphrdaemon.RegisterUserRequest.prototype.getBetaKey = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.asphrdaemon.RegisterUserRequest} returns this
+ */
+proto.asphrdaemon.RegisterUserRequest.prototype.setBetaKey = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
