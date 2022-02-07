@@ -17,6 +17,7 @@ TEST(ServerRpcTest, Register) {
   {
     RegisterInfo request;
     request.set_public_key("fake_public_key");
+    request.set_beta_key("asphr_magic");
     RegisterResponse response;
     auto status = rpc.Register(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
@@ -37,6 +38,7 @@ TEST(ServerRpcTest, SendMessage) {
   {
     RegisterInfo request;
     request.set_public_key("fake_public_key");
+    request.set_beta_key("asphr_magic");
     RegisterResponse response;
     auto status = rpc.Register(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
@@ -80,6 +82,7 @@ TEST(ServerRpcTest, SendMessageIncorrectSize) {
   {
     RegisterInfo request;
     request.set_public_key("fake_public_key");
+    request.set_beta_key("asphr_magic");
     RegisterResponse response;
     auto status = rpc.Register(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
@@ -123,6 +126,7 @@ TEST(ServerRpcTest, SendMessageIncorrectSize2) {
   {
     RegisterInfo request;
     request.set_public_key("fake_public_key");
+    request.set_beta_key("asphr_magic");
     RegisterResponse response;
     auto status = rpc.Register(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
