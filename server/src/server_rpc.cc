@@ -1,5 +1,7 @@
 #include "server_rpc.hpp"
 
+#include "beta_key_auth.hpp"
+
 using grpc::ServerContext;
 using grpc::Status;
 
@@ -11,6 +13,12 @@ Status ServerRpc<PIR, AccountManager>::Register(
     RegisterResponse* registerResponse) {
   cout << "Register() called" << endl;
   try {
+    auto beta_key = registerInfo->beta_key();
+
+    if (!beta_key_authenticator(beta_key)) {
+      return Status(grpc::StatusCode::UNAUTHENTICATED, "beta_key is invalid");
+    }
+
     // TODO: allocate in a loop
     auto allocation = pir.allocate();
     auto acks_allocation = pir_acks.allocate();

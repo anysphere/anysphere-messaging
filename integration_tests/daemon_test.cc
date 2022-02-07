@@ -157,6 +157,7 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfig) {
     {
       RegisterUserRequest request;
       request.set_name("test");
+      request.set_beta_key("asphr_magic");
       RegisterUserResponse response;
       rpc.RegisterUser(nullptr, &request, &response);
       EXPECT_TRUE(response.success());
@@ -194,12 +195,14 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceiveHalfFriend) {
     {
       RegisterUserRequest request;
       request.set_name("user1local");
+      request.set_beta_key("asphr_magic");
       RegisterUserResponse response;
       rpc1.RegisterUser(nullptr, &request, &response);
     }
     {
       RegisterUserRequest request;
       request.set_name("user2local");
+      request.set_beta_key("asphr_magic");
       RegisterUserResponse response;
       rpc2.RegisterUser(nullptr, &request, &response);
     }
@@ -253,12 +256,14 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceive) {
     {
       RegisterUserRequest request;
       request.set_name("user1local");
+      request.set_beta_key("asphr_magic");
       RegisterUserResponse response;
       rpc1.RegisterUser(nullptr, &request, &response);
     }
     {
       RegisterUserRequest request;
       request.set_name("user2local");
+      request.set_beta_key("asphr_magic");
       RegisterUserResponse response;
       rpc2.RegisterUser(nullptr, &request, &response);
     }
@@ -380,6 +385,7 @@ TEST_F(DaemonRpcTest, Register) {
   {
     RegisterUserRequest request;
     request.set_name("test");
+    request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
     rpc.RegisterUser(nullptr, &request, &response);
     EXPECT_TRUE(response.success());
@@ -395,6 +401,7 @@ TEST_F(DaemonRpcTest, GetFriendList) {
   {
     RegisterUserRequest request;
     request.set_name("test");
+    request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
     rpc.RegisterUser(nullptr, &request, &response);
   }
@@ -417,6 +424,7 @@ TEST_F(DaemonRpcTest, GenerateFriendKey) {
   {
     RegisterUserRequest request;
     request.set_name("test");
+    request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
     rpc.RegisterUser(nullptr, &request, &response);
   }
@@ -444,12 +452,14 @@ TEST_F(DaemonRpcTest, AddFriend) {
   {
     RegisterUserRequest request;
     request.set_name("user1local");
+    request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
     rpc1.RegisterUser(nullptr, &request, &response);
   }
   {
     RegisterUserRequest request;
     request.set_name("user2local");
+    request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
     rpc2.RegisterUser(nullptr, &request, &response);
   }
@@ -512,12 +522,14 @@ TEST_F(DaemonRpcTest, AddFriendAndCheckFriendList) {
   {
     RegisterUserRequest request;
     request.set_name("user1local");
+    request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
     rpc1.RegisterUser(nullptr, &request, &response);
   }
   {
     RegisterUserRequest request;
     request.set_name("user2local");
+    request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
     rpc2.RegisterUser(nullptr, &request, &response);
   }
@@ -610,12 +622,14 @@ TEST_F(DaemonRpcTest, SendMessage) {
   {
     RegisterUserRequest request;
     request.set_name("user1local");
+    request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
     rpc1.RegisterUser(nullptr, &request, &response);
   }
   {
     RegisterUserRequest request;
     request.set_name("user2local");
+    request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
     rpc2.RegisterUser(nullptr, &request, &response);
   }
@@ -730,12 +744,14 @@ TEST_F(DaemonRpcTest, SendMultipleMessages) {
   {
     RegisterUserRequest request;
     request.set_name("user1local");
+    request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
     rpc1.RegisterUser(nullptr, &request, &response);
   }
   {
     RegisterUserRequest request;
     request.set_name("user2local");
+    request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
     rpc2.RegisterUser(nullptr, &request, &response);
   }
@@ -880,12 +896,14 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
   {
     RegisterUserRequest request;
     request.set_name("user1local");
+    request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
     rpc1.RegisterUser(nullptr, &request, &response);
   }
   {
     RegisterUserRequest request;
     request.set_name("user2local");
+    request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
     rpc2.RegisterUser(nullptr, &request, &response);
   }
@@ -1041,12 +1059,14 @@ TEST_F(DaemonRpcTest, SeenMessage) {
   {
     RegisterUserRequest request;
     request.set_name("user1local");
+    request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
     rpc1.RegisterUser(nullptr, &request, &response);
   }
   {
     RegisterUserRequest request;
     request.set_name("user2local");
+    request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
     rpc2.RegisterUser(nullptr, &request, &response);
   }

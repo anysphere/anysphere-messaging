@@ -15,6 +15,7 @@ cc_library(
         "account_manager.hpp",
         "server_rpc.cc",
         "server_rpc.hpp",
+        "beta_key_auth.hpp",
     ],
     defines = select({
         "//conditions:default": ["USE_POSTGRES_DB"],

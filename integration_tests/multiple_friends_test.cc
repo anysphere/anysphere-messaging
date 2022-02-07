@@ -139,6 +139,7 @@ TEST_F(MultipleFriendsTest, SendThreeMessages) {
   for (size_t i = 0; i < names.size(); i++) {
     RegisterUserRequest request;
     request.set_name(names[i]);
+    request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
     rpcs[i]->RegisterUser(nullptr, &request, &response);
   }
@@ -327,12 +328,14 @@ TEST_F(MultipleFriendsTest, SendMultipleMessages) {
   {
     RegisterUserRequest request;
     request.set_name("user1local");
+    request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
     rpc1.RegisterUser(nullptr, &request, &response);
   }
   {
     RegisterUserRequest request;
     request.set_name("user2local");
+    request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
     rpc2.RegisterUser(nullptr, &request, &response);
   }
@@ -473,6 +476,7 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
   for (size_t i = 0; i < names.size(); i++) {
     RegisterUserRequest request;
     request.set_name(names[i]);
+    request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
     rpcs[i]->RegisterUser(nullptr, &request, &response);
   }
