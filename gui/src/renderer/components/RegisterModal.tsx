@@ -22,7 +22,7 @@ export function RegisterModal({
           .
         </div>
         <div className="flex flex-row my-2 gap-1 justify-center">
-          <label>Name: </label>
+          <label className="unselectable">Name: </label>
           <input
             autoFocus
             type="text"
@@ -30,12 +30,12 @@ export function RegisterModal({
             onChange={(e) => {
               setUsername(e.target.value);
             }}
-            className="bg-red-100/[0] px-2 font-mono focus:outline-none
+            className="bg-red-100/[0] px-1 mx-2 font-mono focus:outline-none
               focus:ring-0 border-b-2 flex-grow border-asbrown-100"
           />
         </div>
         <div className="flex flex-row my-2 gap-1 justify-center">
-          <label>Access key: </label>
+          <label className="unselectable">Access key: </label>
           <input
             autoFocus
             type="text"
@@ -43,7 +43,7 @@ export function RegisterModal({
             onChange={(e) => {
               setAccesskey(e.target.value);
             }}
-            className="bg-red-100/[0] px-2 font-mono focus:outline-none
+            className="bg-red-100/[0] mx-2 px-1 font-mono focus:outline-none
               focus:ring-0 border-b-2 flex-grow border-asbrown-100"
           />
         </div>
