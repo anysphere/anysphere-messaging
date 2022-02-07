@@ -115,6 +115,50 @@ function deserialize_asphrdaemon_GetNewMessagesResponse(buffer_arg) {
   return schema_daemon_pb.GetNewMessagesResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_asphrdaemon_GetStatusRequest(arg) {
+  if (!(arg instanceof schema_daemon_pb.GetStatusRequest)) {
+    throw new Error('Expected argument of type asphrdaemon.GetStatusRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_GetStatusRequest(buffer_arg) {
+  return schema_daemon_pb.GetStatusRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_asphrdaemon_GetStatusResponse(arg) {
+  if (!(arg instanceof schema_daemon_pb.GetStatusResponse)) {
+    throw new Error('Expected argument of type asphrdaemon.GetStatusResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_GetStatusResponse(buffer_arg) {
+  return schema_daemon_pb.GetStatusResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_asphrdaemon_KillRequest(arg) {
+  if (!(arg instanceof schema_daemon_pb.KillRequest)) {
+    throw new Error('Expected argument of type asphrdaemon.KillRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_KillRequest(buffer_arg) {
+  return schema_daemon_pb.KillRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_asphrdaemon_KillResponse(arg) {
+  if (!(arg instanceof schema_daemon_pb.KillResponse)) {
+    throw new Error('Expected argument of type asphrdaemon.KillResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_KillResponse(buffer_arg) {
+  return schema_daemon_pb.KillResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_asphrdaemon_MessageSeenRequest(arg) {
   if (!(arg instanceof schema_daemon_pb.MessageSeenRequest)) {
     throw new Error('Expected argument of type asphrdaemon.MessageSeenRequest');
@@ -303,6 +347,28 @@ var DaemonService = exports.DaemonService = {
     requestDeserialize: deserialize_asphrdaemon_MessageSeenRequest,
     responseSerialize: serialize_asphrdaemon_MessageSeenResponse,
     responseDeserialize: deserialize_asphrdaemon_MessageSeenResponse,
+  },
+  getStatus: {
+    path: '/asphrdaemon.Daemon/GetStatus',
+    requestStream: false,
+    responseStream: false,
+    requestType: schema_daemon_pb.GetStatusRequest,
+    responseType: schema_daemon_pb.GetStatusResponse,
+    requestSerialize: serialize_asphrdaemon_GetStatusRequest,
+    requestDeserialize: deserialize_asphrdaemon_GetStatusRequest,
+    responseSerialize: serialize_asphrdaemon_GetStatusResponse,
+    responseDeserialize: deserialize_asphrdaemon_GetStatusResponse,
+  },
+  kill: {
+    path: '/asphrdaemon.Daemon/Kill',
+    requestStream: false,
+    responseStream: false,
+    requestType: schema_daemon_pb.KillRequest,
+    responseType: schema_daemon_pb.KillResponse,
+    requestSerialize: serialize_asphrdaemon_KillRequest,
+    requestDeserialize: deserialize_asphrdaemon_KillRequest,
+    responseSerialize: serialize_asphrdaemon_KillResponse,
+    responseDeserialize: deserialize_asphrdaemon_KillResponse,
   },
 };
 
