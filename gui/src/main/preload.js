@@ -1,4 +1,4 @@
-const { contextBridge, clipboard } = require("electron");
+const { contextBridge, clipboard, shell } = require("electron");
 const { promisify } = require("util");
 var grpc = require("@grpc/grpc-js");
 const daemonM = require("../daemon/schema/daemon_pb");
@@ -249,4 +249,36 @@ contextBridge.exposeInMainWorld("messageSeen", async (message_id) => {
     console.log(`error in send: ${e}`);
     return false;
   }
+});
+
+contextBridge.exposeInMainWorld("hasRegistered", async () => {
+  const request = new daemonM.GetStatusRequest();
+  const getStatus = promisify(daemonClient.getStatus).bind(daemonClient);
+  try {
+    const response = await getStatus(request);
+    return response.getRegistered();
+  } catch (e) {
+    console.log(`error in hasRegistered: ${e}`);
+    return false;
+  }
+});
+
+contextBridge.exposeInMainWorld("openExternal", (link) => {
+  shell.openExternal(link);
+});
+
+contextBridge.exposeInMainWorld("register", async (username, accessKey) => {
+  const request = new daemonM.RegisterUserRequest();
+  request.setName(username);
+  // TODO: add accessKey
+  const register = promisify(daemonClient.registerUser).bind(daemonClient);
+  try {
+    const response = await register(request);
+    if (response.getSuccess()) {
+      return true;
+    }
+  } catch (e) {
+    console.log(`error in register: ${e}`);
+  }
+  return false;
 });

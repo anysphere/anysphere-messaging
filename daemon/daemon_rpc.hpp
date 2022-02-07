@@ -57,6 +57,11 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
       const asphrdaemon::MessageSeenRequest* messageSeenRequest,
       asphrdaemon::MessageSeenResponse* messageSeenResponse) override;
 
+  grpc::Status GetStatus(
+      grpc::ServerContext* context,
+      const asphrdaemon::GetStatusRequest* getStatusRequest,
+      asphrdaemon::GetStatusResponse* getStatusResponse) override;
+
   grpc::Status Kill(grpc::ServerContext* context,
                     const asphrdaemon::KillRequest* killRequest,
                     asphrdaemon::KillResponse* killResponse) override;

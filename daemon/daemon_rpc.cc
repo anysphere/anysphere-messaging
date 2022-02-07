@@ -380,6 +380,16 @@ Status DaemonRpc::MessageSeen(ServerContext* context,
   return Status::OK;
 }
 
+auto DaemonRpc::GetStatus(ServerContext* context,
+                          const GetStatusRequest* getStatusRequest,
+                          GetStatusResponse* getStatusResponse) -> Status {
+  cout << "GetStatus() called" << endl;
+
+  getStatusResponse->set_registered(config->has_registered());
+
+  return Status::OK;
+}
+
 auto DaemonRpc::message_id(const asphr::json& message_json) -> string {
   return asphr::StrCat("from:", message_json.at("from").get<string>(), ":",
                        message_json.at("id").get<uint32_t>());

@@ -1,7 +1,7 @@
 /* eslint global-require: off, no-console: off, promise/always-return: off */
 
 import path from "path";
-import { app, BrowserWindow, session } from "electron";
+import { app, BrowserWindow, session, shell } from "electron";
 import MenuBuilder from "./menu";
 import { resolveHtmlPath } from "./util";
 
@@ -108,3 +108,10 @@ app
     });
   })
   .catch(console.log);
+
+app.on("web-contents-created", (event, contents) => {
+  contents.on("will-navigate", (event, navigationUrl) => {
+    event.preventDefault();
+    shell.openExternal(navigationUrl);
+  });
+});

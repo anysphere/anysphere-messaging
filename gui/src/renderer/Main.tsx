@@ -5,10 +5,10 @@ import Read from "./components/Read";
 import Write from "./components/Write";
 import FriendsModal from "./components/FriendsModal";
 import { InitFriendModal } from "./components/FriendsModal";
+import { RegisterModal } from "./components/RegisterModal";
 import { Message } from "./types";
 import { Tab, TabType, TabContainer } from "./components/Tabs";
 import { truncate } from "./utils";
-import { stringify } from "querystring";
 
 const defaultTabs: Tab[] = [
   { type: TabType.New, name: "New", data: null, unclosable: true },
@@ -174,6 +174,27 @@ function Main() {
     },
     [tabs, selectedTab, setTabs, setSelectedTab]
   );
+
+  React.useEffect(() => {
+    (window as any).hasRegistered().then((registered: boolean) => {
+      if (!registered) {
+        setModal(
+          <RegisterModal
+            onClose={closeModal}
+            onRegister={(username: string, key: string) => {
+              (window as any)
+                .register(username, key)
+                .then((registered: boolean) => {
+                  if (registered) {
+                    closeModal();
+                  }
+                });
+            }}
+          />
+        );
+      }
+    });
+  }, []);
 
   return (
     <div className="w-full">
