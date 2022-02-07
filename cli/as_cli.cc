@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
 
   Message message_to_send;
   // Friend friend_to_add;
-  static Profile kProfile_;
+  static Beta_Profile kProfile_;
   static Inbox kInbox_;
 
   static Friend::FriendMap kFriends_map_;
@@ -86,18 +86,34 @@ int main(int argc, char** argv) {
 
   // parse the commands
   if (command == "register") {
-    auto status = cmd_line.getArgument(2);
+    auto name_status = cmd_line.getArgument(2);
+    auto beta_key_status = cmd_line.getArgument(3);
 
-    if (!status.ok()) {
-      cout << status.status() << endl;
-      cout << "Usage: " << binary_name << " register {name}" << endl;
-      cout << "Example: " << binary_name << " register Elon\n\n" << endl;
+    if (!name_status.ok()) {
+      cout << name_status.status() << endl;
+      cout << StrCat("Usage: ", binary_name, " register {name} {beta_key}")
+           << endl;
+      cout << StrCat("Usage: ", binary_name, " register Elon MuskLovesTesla")
+           << endl;
       cout << help << endl;
       return 0;
     }
 
-    auto name = status.value();
+    if (!beta_key_status.ok()) {
+      cout << beta_key_status.status() << endl;
+      cout << StrCat("Usage: ", binary_name, " register {name} {beta_key}")
+           << endl;
+      cout << StrCat("Usage: ", binary_name, " register Elon MuskLovesTesla")
+           << endl;
+      cout << help << endl;
+      return 0;
+    }
+
+    auto name = name_status.value();
+    auto beta_key = beta_key_status.value();
+
     kProfile_.set_name(name);
+    kProfile_.set_beta_key(beta_key);
 
     kProfile_.add(stub);
   } else if (command == "init-friend") {
@@ -172,12 +188,12 @@ int main(int argc, char** argv) {
     auto name = status.value();
     auto msg = cmd_line.getConcatArguments(3).value();
 
-    Message m{msg, name, kProfile_.name_};
+    Message m{msg, name, kProfile_.name()};
     m.send(stub);
 
   } else if (command == "inbox" || command == "i") {
     cout << "Inbox:" << endl;
-    kInbox_.update(stub, kProfile_.name_);
+    kInbox_.update(stub, kProfile_.name());
     for (auto& [time, message] : kInbox_.get_messages()) {
       cout << absl::FormatTime(time, absl::UTCTimeZone()) << ": "
            << message.msg_ << endl;

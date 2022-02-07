@@ -21,9 +21,12 @@ Status DaemonRpc::RegisterUser(ServerContext* context,
   const auto name = registerUserRequest->name();
   const auto [public_key, secret_key] = crypto.generate_keypair();
 
+  auto beta_key = registerUserRequest->beta_key();
+
   // call register rpc to send the register request
   asphrserver::RegisterInfo request;
   request.set_public_key(public_key);
+  request.set_beta_key(beta_key);
 
   asphrserver::RegisterResponse reply;
   grpc::ClientContext client_context;

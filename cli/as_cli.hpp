@@ -77,9 +77,35 @@ struct Profile {
 
   void set_time() { time_ = absl::Now(); }
   void set_name(const string& name) { name_ = name; }
+  auto name() -> string { return name_; }
+
   void clear() { name_.clear(); }
   bool complete() const { return !name_is_empty(); }
 
  private:
   bool name_is_empty() const { return name_.empty(); }
+};
+
+struct Beta_Profile {
+ public:
+  Beta_Profile() = default;
+  Beta_Profile(const string& name, const string& beta_key)
+      : profile_(Profile(name)), beta_key_(beta_key) {}
+
+  Profile profile_;
+  string beta_key_;
+
+  void add(unique_ptr<asphrdaemon::Daemon::Stub>& stub);
+  auto get_friends(unique_ptr<asphrdaemon::Daemon::Stub>& stub)
+      -> asphr::StatusOr<Friend::FriendMap> {
+    return profile_.get_friends(stub);
+  };
+
+  void set_time() { profile_.set_time(); }
+  void set_name(const string& name) { profile_.set_name(name); }
+  void set_beta_key(const string& beta_key) { beta_key_ = beta_key; }
+  auto name() -> string { return profile_.name(); }
+
+  void clear() { profile_.clear(); }
+  bool complete() const { return profile_.complete() && !beta_key_.empty(); }
 };
