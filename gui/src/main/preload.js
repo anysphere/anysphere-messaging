@@ -266,7 +266,7 @@ contextBridge.exposeInMainWorld("hasRegistered", async () => {
 contextBridge.exposeInMainWorld("register", async (username, accessKey) => {
   const request = new daemonM.RegisterUserRequest();
   request.setName(username);
-  // TODO: add accessKey
+  request.setBetaKey(accessKey);
   const register = promisify(daemonClient.registerUser).bind(daemonClient);
   try {
     const response = await register(request);
