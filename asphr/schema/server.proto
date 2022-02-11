@@ -1,0 +1,48 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
+syntax = "proto3";
+
+package asphrserver;
+
+service Server {
+  rpc Register(RegisterInfo) returns (RegisterResponse) {}
+
+  // Sending and receiving protobufs
+  rpc SendMessage(SendMessageInfo) returns (SendMessageResponse) {}
+  rpc ReceiveMessage(ReceiveMessageInfo) returns (ReceiveMessageResponse) {}
+}
+
+// The RegisterInfo message is sent to the server to register a new user.
+message RegisterInfo { 
+  bytes public_key = 1;
+  string beta_key = 2;
+}
+
+// RegisterResponse is a response to a RegisterInfo request.
+message RegisterResponse {
+  bytes public_key = 1;
+  repeated int32 allocation = 2;
+  string authentication_token = 3;
+}
+
+message SendMessageInfo {
+  int32 index = 1;
+  string authentication_token = 2;
+  bytes message = 3;
+  bytes acks = 4;
+}
+
+message SendMessageResponse { 
+}
+
+message ReceiveMessageInfo { 
+  bytes pir_query = 1;
+}
+
+message ReceiveMessageResponse { 
+  bytes pir_answer = 1; 
+  bytes pir_answer_acks = 2;
+}

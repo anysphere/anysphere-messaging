@@ -1,0 +1,41 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
+/*
+message.proto contains the protobuf for the messages exchanged between clients.
+the server only ever sees encrypted versions of these messages, and hence, this file
+should ONLY be depended on by the client.
+*/
+
+syntax = "proto3";
+
+package asphrclient;
+
+// Given that we have a very very limited bandwidth, our goal is to define a Message type that is as small
+// as possible.
+//
+// TODO: allow a message to transparently flow into the next message. this is problematic, though,
+// because the next message can only be sent after the first message has been acked, unless multiple channels are used.
+//
+// update GUARANTEED_MESSAGE_SIZE in client_lib.hpp whenever this is updated.
+message Message {
+    // id is a unique id for the message. it is unique for a <sender, receiver> ordered pair.
+    // if the id is 0, then the message is a dummy message, with no actual msg to display to the user.
+    // TODO: to optimize space usage, we should merge the id here and the nonce used for encryption.
+    // this requires some careful thought with dummy messages.
+    uint32 id = 1;
+    // msg contains the actual UTF-8 message, if such a message exists
+    string msg = 2; 
+    // acks contains the ids of messages that the sender has received and has not acked before.
+    // this field is ONLY used when a dedicated communication channel is used. otherwise, ACKs are stored elsewhere.
+    repeated uint32 acks = 3;
+    // if the message is a long message, this field contains the number of parts it has
+    // this field is not set if the message isn't long.
+    uint32 num_chunks = 4;
+    // if the message is a long message, this field contains the start id of the long message.
+    // the index in this message in the long message is (id - parts_start_id)
+    // this field is not set if the message isn't long.
+    uint32 chunks_start_id = 5;
+}

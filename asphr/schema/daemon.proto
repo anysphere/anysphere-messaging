@@ -1,0 +1,135 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
+/*
+daemon.proto defines the rpc between daemon and UI.
+*/
+
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package asphrdaemon;
+
+service Daemon {
+    rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {}
+
+    rpc GetFriendList(GetFriendListRequest) returns (GetFriendListResponse) {}
+
+    rpc GenerateFriendKey(GenerateFriendKeyRequest) returns (GenerateFriendKeyResponse) {}
+
+    rpc AddFriend(AddFriendRequest) returns (AddFriendResponse) {}
+
+    rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse) {}
+
+    rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {}
+
+    rpc GetAllMessages(GetAllMessagesRequest) returns (GetAllMessagesResponse) {}
+
+    rpc GetNewMessages(GetNewMessagesRequest) returns (GetNewMessagesResponse) {}
+
+    rpc MessageSeen(MessageSeenRequest) returns (MessageSeenResponse) {}
+
+    // GetStatus returns the status of the daemon. Things like how long since the last send/receive cycle, etc.
+    rpc GetStatus(GetStatusRequest) returns (GetStatusResponse) {}
+
+    rpc Kill(KillRequest) returns (KillResponse) {}
+}
+
+message RegisterUserRequest {
+    string name = 1;
+    string beta_key = 2;
+}
+
+message RegisterUserResponse {
+    bool success = 1;
+}
+
+message GetFriendListRequest {}
+
+message FriendInfo {
+    string name = 1;
+    bool enabled = 2;
+}
+
+message GetFriendListResponse {
+    bool success = 1;
+    repeated FriendInfo friend_infos = 2;
+}
+
+message GenerateFriendKeyRequest {
+    string name = 1;
+}
+
+message GenerateFriendKeyResponse {
+    string key = 1;
+    bool success = 2;
+}
+
+message AddFriendRequest {
+    string name = 1;
+    string key = 2;
+}
+
+message AddFriendResponse {
+    bool success = 1;
+}
+
+message RemoveFriendRequest {
+    string name = 1;
+}
+
+message RemoveFriendResponse {
+    bool success = 1;
+}
+
+message SendMessageRequest {
+    string name = 1;
+    string message = 2;
+}
+
+message SendMessageResponse {
+    bool success = 1;
+}
+
+message GetAllMessagesRequest {}
+
+message GetAllMessagesResponse {
+    bool success = 1;
+    repeated MessageInfo messages = 2;
+}
+
+message MessageInfo {
+    // this ID is NOT the same as the ID in message.proto
+    // in particular, this ID is guaranteed to be unique among ALL messages, whereas the ID in message.proto
+    // is only unique for each <sender, recipient> pair.
+    // the format of this ID is something like (to|from):sender:sequence_number
+    string id = 1;
+    string sender = 2;
+    string message = 3;
+    google.protobuf.Timestamp timestamp = 4;
+}
+
+message GetNewMessagesRequest {}
+
+message GetNewMessagesResponse {
+    bool success = 1;
+    repeated MessageInfo messages = 2;
+}
+
+message MessageSeenRequest {
+    string id = 1;
+}
+
+message MessageSeenResponse {}
+
+message GetStatusRequest {}
+
+message GetStatusResponse {
+    bool registered = 1;
+}
+
+message KillRequest {}
+message KillResponse {}

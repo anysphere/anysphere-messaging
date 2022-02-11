@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 #pragma once
 
 #include <stdlib.h>
@@ -26,7 +31,7 @@
 #include "absl/strings/str_split.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "json/nlohmann_json.h"
+#include "third_party/json/nlohmann_json.h"
 #include "utils.hpp"
 
 using std::array;
