@@ -4,9 +4,9 @@
 [submodule "non_code/emails/kerberi"]
 	path = non_code/emails/kerberi
 	url = git@github.com:arvid220u/kerberi
-[submodule "asphr/third_party/seal/SEAL"]
-	path = asphr/third_party/seal/SEAL
-	url = https://github.com/anysphere/SEAL
-[submodule "asphr/third_party/libsodium/libsodium"]
-	path = asphr/third_party/libsodium/libsodium
-	url = https://github.com/anysphere/libsodium
+[submodule "client"]
+	path = client
+	url = git@github.com:anysphere/client
+[submodule "asphr"]
+	path = asphr
+	url = git@github.com:anysphere/asphr
