@@ -1,0 +1,6 @@
+[submodule "third_party/seal/SEAL"]
+	path = third_party/seal/SEAL
+	url = https://github.com/anysphere/SEAL
+[submodule "third_party/libsodium/libsodium"]
+	path = third_party/libsodium/libsodium
+	url = https://github.com/anysphere/libsodium
