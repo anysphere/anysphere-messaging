@@ -1,6 +1,11 @@
-import rimraf from 'rimraf';
-import webpackPaths from '../configs/webpack.paths.ts';
-import process from 'process';
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
+import rimraf from "rimraf";
+import webpackPaths from "../configs/webpack.paths.ts";
+import process from "process";
 
 const args = process.argv.slice(2);
 const commandMap = {

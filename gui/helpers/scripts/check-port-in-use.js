@@ -1,7 +1,12 @@
-import chalk from 'chalk';
-import detectPort from 'detect-port';
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
 
-const port = process.env.PORT || '1212';
+import chalk from "chalk";
+import detectPort from "detect-port";
+
+const port = process.env.PORT || "1212";
 
 detectPort(port, (err, availablePort) => {
   if (port !== String(availablePort)) {

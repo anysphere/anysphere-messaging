@@ -1,5 +1,10 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 #pragma once
-#include "client/client_lib/client_lib.hpp"
+#include "client_lib/client_lib.hpp"
 
 // we support up to 4 billion messages! that's a lot.
 // (we use unsigned integers)

@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 #pragma once
 
 #include <sodium.h>
@@ -6,7 +11,7 @@
 #include <string>
 
 #include "asphr/asphr.hpp"
-#include "client/client_lib/client_lib.hpp"
+#include "client_lib/client_lib.hpp"
 #include "config.hpp"
 #include "schema/message.pb.h"
 

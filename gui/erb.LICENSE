@@ -1,3 +1,9 @@
+The basic structure of this folder is based on electron-react-boilerplate; see https://github.com/electron-react-boilerplate/electron-react-boilerplate.
+
+Their license is reproduced below.
+
+---
+
 The MIT License (MIT)
 
 Copyright (c) 2015-present Electron React Boilerplate

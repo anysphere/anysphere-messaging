@@ -1,3 +1,8 @@
+#
+# Copyright 2022 Anysphere, Inc.
+# SPDX-License-Identifier: GPL-3.0-only
+#
+
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 
 cc_binary(
@@ -16,9 +21,9 @@ cc_binary(
     linkstatic = True,
     visibility = ["//:__pkg__"],
     deps = [
-        "//asphr:asphr_lib",
-        "//client/client_lib",
-        "//schema:daemon_cc_grpc",
+        "//client_lib",
+        "@asphr//asphr:asphr_lib",
+        "@asphr//schema:daemon_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
     ],
 )

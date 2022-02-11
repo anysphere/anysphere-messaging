@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+#
+# Copyright 2022 Anysphere, Inc.
+# SPDX-License-Identifier: GPL-3.0-only
+#
+
 # postinstall is run in the Mac .pkg after the installation has gone through
 # here we set up the daemon!
 # we also link the CLI to /usr/local/bin

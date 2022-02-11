@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 #include "daemon_rpc.hpp"
 
 #include "google/protobuf/util/time_util.h"

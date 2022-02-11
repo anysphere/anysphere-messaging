@@ -1,11 +1,16 @@
-// Check if the renderer and main bundles are built
-import path from 'path';
-import chalk from 'chalk';
-import fs from 'fs';
-import webpackPaths from '../configs/webpack.paths';
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
 
-const mainPath = path.join(webpackPaths.distMainPath, 'main.js');
-const rendererPath = path.join(webpackPaths.distRendererPath, 'renderer.js');
+// Check if the renderer and main bundles are built
+import path from "path";
+import chalk from "chalk";
+import fs from "fs";
+import webpackPaths from "../configs/webpack.paths";
+
+const mainPath = path.join(webpackPaths.distMainPath, "main.js");
+const rendererPath = path.join(webpackPaths.distRendererPath, "renderer.js");
 
 if (!fs.existsSync(mainPath)) {
   throw new Error(

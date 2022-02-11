@@ -1,8 +1,13 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 #include "crypto.hpp"
 
 #include <gtest/gtest.h>
 
-#include "client/client_lib/client_lib.hpp"
+#include "client_lib/client_lib.hpp"
 
 TEST(CryptoTest, EncryptDecrypt) {
   Crypto crypto;

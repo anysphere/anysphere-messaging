@@ -1,36 +1,22 @@
-# BUILD
+# Anysphere Client
+
+## Build
+
+Clone anysphere/asphr and anysphere/client and put them in a directory side-by-side. Then, in the `client` directory, run:
 
 ```
-bazel build //src:anysphere
+bazel build //...
 ```
 
-# RUN
+to build, and
 
 ```
-bazel run //src:anysphere
+bazel test //...
 ```
 
-# TEST
+to test.
 
-```
-bazel test --test_output=all //test:as_test
-```
-
-# LOCAL BUILD
-
-```
-bazel build //client/... --host_javabase=@local_jdk//:jdk
-```
-
-Note that the schema and the server do not really want to build on Mac M1. This is fine. We only need to build the client locally.
-
-# LOCAL RUN
-
-```
-bazel run //client/daemon --host_javabase=@local_jdk//:jdk --action_env="HOME=$HOME"
-```
-
-# PACKAGE
+## Package
 
 ```
 npm run package-mac
@@ -56,7 +42,7 @@ Then everything should just work! For more details, read https://scriptingosx.co
 
 Let `.env` contain the environment variables specified by `helpers/scripts/package-mac.ts`.
 
-# LOCAL MANUAL TEST
+## Manual test
 
 Build:
 

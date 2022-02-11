@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 export function truncate(str: string, maxLength: number) {
   if (str.length <= maxLength) {
     return str;

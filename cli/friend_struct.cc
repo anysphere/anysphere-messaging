@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 #include "as_cli.hpp"
 
 auto Friend::generate_key(unique_ptr<asphrdaemon::Daemon::Stub>& stub)

@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 #include "inbox.hpp"
 
 void Inbox::add(const string& msg, const string& to, const string& from,

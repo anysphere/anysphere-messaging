@@ -1,9 +1,14 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 #pragma once
 
 #include <grpcpp/grpcpp.h>
 
 #include "asphr/asphr.hpp"
-#include "client/client_lib/client_lib.hpp"
+#include "client_lib/client_lib.hpp"
 #include "parse_command_line.hpp"
 #include "schema/daemon.grpc.pb.h"
 

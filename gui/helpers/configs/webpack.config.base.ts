@@ -1,15 +1,20 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 /**
  * Base webpack config used across other specific configs
  */
 
-import webpack from 'webpack';
-import webpackPaths from './webpack.paths';
-import { dependencies as externals } from '../../release/app/package.json';
+import webpack from "webpack";
+import webpackPaths from "./webpack.paths";
+import { dependencies as externals } from "../../release/app/package.json";
 
 const configuration: webpack.Configuration = {
   externals: [...Object.keys(externals || {})],
 
-  stats: 'errors-only',
+  stats: "errors-only",
 
   module: {
     rules: [
@@ -17,7 +22,7 @@ const configuration: webpack.Configuration = {
         test: /\.[jt]sx?$/,
         exclude: /node_modules/,
         use: {
-          loader: 'ts-loader',
+          loader: "ts-loader",
           options: {
             // Remove this line to enable type checking in webpack builds
             transpileOnly: true,
@@ -26,7 +31,7 @@ const configuration: webpack.Configuration = {
       },
       {
         test: /\.scss$/,
-        use: ['style-loader', 'css-loader', 'postcss-loader'],
+        use: ["style-loader", "css-loader", "postcss-loader"],
       },
     ],
   },
@@ -35,7 +40,7 @@ const configuration: webpack.Configuration = {
     path: webpackPaths.srcPath,
     // https://github.com/webpack/webpack/issues/1114
     library: {
-      type: 'commonjs2',
+      type: "commonjs2",
     },
   },
 
@@ -43,13 +48,13 @@ const configuration: webpack.Configuration = {
    * Determine the array of extensions that should be used to resolve modules.
    */
   resolve: {
-    extensions: ['.js', '.jsx', '.json', '.ts', '.tsx'],
-    modules: [webpackPaths.srcPath, 'node_modules'],
+    extensions: [".js", ".jsx", ".json", ".ts", ".tsx"],
+    modules: [webpackPaths.srcPath, "node_modules"],
   },
 
   plugins: [
     new webpack.EnvironmentPlugin({
-      NODE_ENV: 'production',
+      NODE_ENV: "production",
     }),
   ],
 };

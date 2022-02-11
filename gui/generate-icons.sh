@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+#
+# Copyright 2022 Anysphere, Inc.
+# SPDX-License-Identifier: GPL-3.0-only
+#
+
 INPUT_FILE="$1"
 echo "input file (should be 1024x1024): $INPUT_FILE"
 

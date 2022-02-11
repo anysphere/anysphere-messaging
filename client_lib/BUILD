@@ -1,3 +1,8 @@
+#
+# Copyright 2022 Anysphere, Inc.
+# SPDX-License-Identifier: GPL-3.0-only
+#
+
 cc_library(
     name = "client_lib",
     srcs = [
@@ -9,12 +14,12 @@ cc_library(
     linkstatic = True,
     visibility = ["//visibility:public"],
     deps = [
-        "//asphr:asphr_lib",
+        "@asphr//asphr:asphr_lib",
+        "@asphr//third_party/libsodium",
         "@com_google_absl//absl/hash",
         "@com_google_absl//absl/random",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/time",
-        "@libsodium",
     ],
 )
 

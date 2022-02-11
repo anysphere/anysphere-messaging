@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 import { AfterPackContext, BuildResult } from "electron-builder";
 const builder = require("electron-builder");
 import path from "path";

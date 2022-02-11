@@ -1,7 +1,13 @@
+#
+# Copyright 2022 Anysphere, Inc.
+# SPDX-License-Identifier: GPL-3.0-only
+#
+
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 
+# public visibility needed for integration_tests
 package(
-    default_visibility = ["//integration_tests:__pkg__"],
+    default_visibility = ["//visibility:public"],
 )
 
 cc_library(
@@ -19,11 +25,11 @@ cc_library(
     ],
     linkstatic = True,
     deps = [
-        "//asphr:asphr_lib",
-        "//asphr/pir/fast_pir:fast_pir_lib",
-        "//client/client_lib",
-        "//schema:message_proto_cc",
-        "@libsodium",
+        "//client_lib",
+        "@asphr//asphr:asphr_lib",
+        "@asphr//pir/fast_pir:fast_pir_lib",
+        "@asphr//schema:message_proto_cc",
+        "@asphr//third_party/libsodium",
     ],
 )
 
@@ -49,11 +55,11 @@ cc_library(
     linkstatic = True,
     deps = [
         ":base_lib",
-        "//asphr:asphr_lib",
-        "//asphr/pir/fast_pir:fast_pir_lib",
-        "//schema:daemon_cc_grpc",
-        "//schema:message_proto_cc",
-        "//schema:server_cc_grpc",
+        "@asphr//asphr:asphr_lib",
+        "@asphr//pir/fast_pir:fast_pir_lib",
+        "@asphr//schema:daemon_cc_grpc",
+        "@asphr//schema:message_proto_cc",
+        "@asphr//schema:server_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
     ],
 )
@@ -73,10 +79,10 @@ cc_library(
     linkstatic = True,
     deps = [
         ":base_lib",
-        "//asphr:asphr_lib",
-        "//asphr/pir/fast_pir:fast_pir_lib",
-        "//schema:message_proto_cc",
-        "//schema:server_cc_grpc",
+        "@asphr//asphr:asphr_lib",
+        "@asphr//pir/fast_pir:fast_pir_lib",
+        "@asphr//schema:message_proto_cc",
+        "@asphr//schema:server_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
     ],
 )
@@ -92,7 +98,7 @@ cc_binary(
     deps = [
         ":daemon_lib",
         ":transmitter_lib",
-        "//client/client_lib",
+        "//client_lib",
     ],
 )
 

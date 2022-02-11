@@ -1,9 +1,9 @@
 {
   "name": "anysphere",
   "scripts": {
-    "update": "bazel build //schema:daemon_js_grpc && rm -rf src/daemon && cp -r ../../bazel-bin/schema/daemon_js_grpc_pb src/daemon",
-    "build-binaries-mac-arm64": "rm -rf binaries && bazel build //:asphr-release -c opt && mkdir binaries && cp $(bazel info output_path)/darwin_arm64-opt/bin/client/cli/asphr binaries/anysphere && cp $(bazel info output_path)/darwin_arm64-opt/bin/client/daemon/daemon binaries/anysphered",
-    "build-binaries-mac-x86_64": "rm -rf binaries && arch --x86_64 /usr/local/bin/bazel build //:asphr-release -c opt && mkdir binaries && cp $(bazel info output_path)/darwin-opt/bin/client/cli/asphr binaries/anysphere && cp $(bazel info output_path)/darwin-opt/bin/client/daemon/daemon binaries/anysphered",
+    "update": "cd ../../asphr && bazel build //schema:daemon_js_grpc && cd ../client/gui && rm -rf src/daemon && cp -r ../../asphr/bazel-bin/schema/daemon_js_grpc_pb src/daemon",
+    "build-binaries-mac-arm64": "rm -rf binaries && bazel build //:asphr-release -c opt && mkdir binaries && cp $(bazel info output_path)/darwin_arm64-opt/bin/cli/asphr binaries/anysphere && cp $(bazel info output_path)/darwin_arm64-opt/bin/daemon/daemon binaries/anysphered",
+    "build-binaries-mac-x86_64": "rm -rf binaries && arch --x86_64 /usr/local/bin/bazel build //:asphr-release -c opt && mkdir binaries && cp $(bazel info output_path)/darwin-opt/bin/cli/asphr binaries/anysphere && cp $(bazel info output_path)/darwin-opt/bin/daemon/daemon binaries/anysphered",
     "build": "concurrently \"npm run build:main\" \"npm run build:renderer\"",
     "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./helpers/configs/webpack.config.main.prod.ts",
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./helpers/configs/webpack.config.renderer.prod.ts",
@@ -18,7 +18,6 @@
     "start:main": "cross-env NODE_ENV=development electron -r ts-node/register/transpile-only ./src/main/main.ts",
     "start:renderer": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack serve --config ./helpers/configs/webpack.config.renderer.dev.ts"
   },
-  "license": "MIT",
   "devDependencies": {
     "@vscode/codicons": "^0.0.27",
     "@pmmmwh/react-refresh-webpack-plugin": "0.5.4",

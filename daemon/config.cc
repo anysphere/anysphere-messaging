@@ -1,7 +1,11 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
 
 #include "config.hpp"
 
-#include "client/client_lib/client_lib.hpp"
+#include "client_lib/client_lib.hpp"
 #include "crypto.hpp"
 
 // store the config in config_file_address

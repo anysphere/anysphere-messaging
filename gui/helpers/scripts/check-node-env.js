@@ -1,4 +1,9 @@
-import chalk from 'chalk';
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
+import chalk from "chalk";
 
 export default function checkNodeEnv(expectedEnv) {
   if (!expectedEnv) {

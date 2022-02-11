@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+#
+# Copyright 2022 Anysphere, Inc.
+# SPDX-License-Identifier: GPL-3.0-only
+#
+
 # preinstall is run before the Mac .pkg installs.
 # here, we should check if a current version exists, and clean it up if it does.
 # for example, we should stop the daemon if it is running.

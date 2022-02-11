@@ -1,9 +1,14 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 #pragma once
 
 #include "asphr/asphr.hpp"
-#include "asphr/pir/fast_pir/fast_pir_client.hpp"
 #include "constants.hpp"
 #include "friend.hpp"
+#include "pir/fast_pir/fast_pir_client.hpp"
 
 struct RegistrationInfo {
   string name;

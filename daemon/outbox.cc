@@ -1,6 +1,11 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 #include "outbox.hpp"
 
-#include "client/client_lib/client_lib.hpp"
+#include "client_lib/client_lib.hpp"
 
 auto MessageToSend::from_json(const asphr::json& json) -> MessageToSend {
   MessageToSend message;
