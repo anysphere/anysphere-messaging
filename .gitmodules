@@ -6,7 +6,7 @@
 	url = git@github.com:arvid220u/kerberi
 [submodule "client"]
 	path = client
-	url = git@github.com:anysphere/client
+	url = https://github.com/anysphere/client
 [submodule "asphr"]
 	path = asphr
-	url = git@github.com:anysphere/asphr
+	url = https://github.com/anysphere/asphr
