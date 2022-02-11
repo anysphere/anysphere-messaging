@@ -14,6 +14,6 @@ cc_binary(
         "examples.h",
     ],
     deps = [
-        "@seal",
+        "@asphr//third_party/seal",
     ],
 )

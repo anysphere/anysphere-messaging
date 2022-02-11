@@ -42,8 +42,9 @@ class ServerRpc final : public asphrserver::Server::Service {
   auto get_seal_slot_count() const { return pir.get_seal_slot_count(); }
 
  private:
-  PIR pir;       // stores actual messages for every user
-  // TODO: have a different size for the acks PIR, because the requirements are slightly different!
+  PIR pir;  // stores actual messages for every user
+  // TODO: have a different size for the acks PIR, because the requirements are
+  // slightly different!
   PIR pir_acks;  // stores ACKs for every user
   AccountManager account_manager;
 };

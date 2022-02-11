@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "asphr/pir/fast_pir/fast_pir_client.hpp"
+#include "pir/fast_pir/fast_pir_client.hpp"
 
 using std::cout;
 using std::endl;

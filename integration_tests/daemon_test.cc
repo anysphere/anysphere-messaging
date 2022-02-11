@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 #include "asphr/asphr.hpp"
-#include "client/daemon/daemon_rpc.hpp"
-#include "client/daemon/transmitter.hpp"
+#include "daemon/daemon_rpc.hpp"
+#include "daemon/transmitter.hpp"
 #include "google/protobuf/util/time_util.h"
 #include "server/pir/fast_pir/fastpir.hpp"
 #include "server/src/server_rpc.hpp"

@@ -5,6 +5,6 @@ cc_library(
     linkstatic = True,
     visibility = ["//visibility:public"],
     deps = [
-        "//asphr:asphr_lib",
+        "@asphr//asphr:asphr_lib",
     ],
 )

@@ -1,9 +1,8 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
-load("@io_bazel_rules_docker//cc:image.bzl", "cc_image")
-load(
-    "@io_bazel_rules_docker//container:container.bzl",
-    "container_image",
-)
+# load("@io_bazel_rules_docker//cc:image.bzl", "cc_image")
+# load(
+#     "@io_bazel_rules_docker//container:container.bzl",
+# )
 
 package(
     default_visibility = ["//integration_tests:__pkg__"],
@@ -13,9 +12,9 @@ cc_library(
     name = "as_server_lib",
     hdrs = [
         "account_manager.hpp",
+        "beta_key_auth.hpp",
         "server_rpc.cc",
         "server_rpc.hpp",
-        "beta_key_auth.hpp",
     ],
     defines = select({
         "//conditions:default": ["USE_POSTGRES_DB"],
@@ -24,10 +23,10 @@ cc_library(
     linkopts = ["-lpq"],
     linkstatic = True,
     deps = [
-        "//asphr:asphr_lib",
-        "//schema:server_cc_grpc",
         "//server/pir/fast_pir:server_fast_pir_lib",
         "//server/pir/nonprivate:nonprivate_pir_lib",
+        "@asphr//asphr:asphr_lib",
+        "@asphr//schema:server_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@libpqxx",
     ],

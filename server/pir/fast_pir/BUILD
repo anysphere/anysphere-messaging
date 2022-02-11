@@ -18,9 +18,9 @@ cc_library(
         "//server/src:__pkg__",
     ],
     deps = [
-        "//asphr:asphr_lib",
-        "//asphr/pir/fast_pir:fast_pir_lib",
-        "@seal",
+        "@asphr//asphr:asphr_lib",
+        "@asphr//pir/fast_pir:fast_pir_lib",
+        "@asphr//third_party/seal",
     ],
 )
 
@@ -32,7 +32,7 @@ cc_test(
     linkstatic = True,
     deps = [
         ":server_fast_pir_lib",
-        "//asphr/pir/fast_pir:fast_pir_lib",
+        "@asphr//pir/fast_pir:fast_pir_lib",
         "@com_google_googletest//:gtest_main",
     ],
 )
