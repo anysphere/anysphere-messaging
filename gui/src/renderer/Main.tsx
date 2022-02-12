@@ -294,7 +294,7 @@ function Main() {
         {modal}
         <CmdKPortal onClose={closeModal}>
           <CmdKSearch />
-          <div className="h-auto">
+          <div className="h-auto overflow-y-auto">
             <CmdKResultRenderer />
           </div>
         </CmdKPortal>

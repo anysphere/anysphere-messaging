@@ -44,25 +44,6 @@ export function isModKey(
   return isMac ? event.metaKey : event.ctrlKey;
 }
 
-export function usePointerMovedSinceMount() {
-  const [moved, setMoved] = React.useState(false);
-
-  React.useEffect(() => {
-    function handler() {
-      setMoved(true);
-    }
-
-    if (!moved) {
-      window.addEventListener("pointermove", handler);
-      return () => window.removeEventListener("pointermove", handler);
-    } else {
-      return () => {};
-    }
-  }, [moved]);
-
-  return moved;
-}
-
 export function useThrottledValue(value: any, ms: number = 100) {
   const [throttledValue, setThrottledValue] = React.useState(value);
   const lastRan = React.useRef(Date.now());

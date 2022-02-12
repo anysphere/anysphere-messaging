@@ -1,27 +1,34 @@
 import * as React from "react";
 import { useVirtual } from "react-virtual";
 
-import { ActionImpl } from "./types";
-import { getListboxItemId, KBAR_LISTBOX } from "./CmdKSearch";
-import { useKBar } from "./useKBar";
-import { usePointerMovedSinceMount } from "../../utils";
+import { usePointerMovedSinceMount } from "../utils";
 
-const START_INDEX = 0;
+interface ListItem {
+  name: string;
+  id: string;
+  action: (() => void) | null;
+}
 
-interface RenderParams<T = ActionImpl | string> {
+// string is a divider thing
+interface RenderParams<T = ListItem | string> {
   item: T;
   active: boolean;
 }
 
-interface KBarResultsProps {
-  items: any[];
+interface SelectableListProps {
+  items: ListItem[];
   onRender: (params: RenderParams) => React.ReactElement;
-  maxHeight?: number;
+  globalAction: () => void;
 }
 
-export const CmdKResultHandler: React.FC<KBarResultsProps> = (props) => {
+export function SelectableList(props: SelectableListProps) {
   const activeRef = React.useRef<HTMLDivElement>(null);
   const parentRef = React.useRef(null);
+
+  let startIndex = 0;
+  while (typeof props.items[startIndex] === "string") startIndex++;
+
+  const [activeIndex, setActiveIndex] = React.useState(startIndex);
 
   // store a ref to all items so we do not have to pass
   // them as a dependency when setting up event listeners.
@@ -33,43 +40,49 @@ export const CmdKResultHandler: React.FC<KBarResultsProps> = (props) => {
     parentRef,
   });
 
-  const { query, search, currentRootActionId, activeIndex, options } = useKBar(
-    (state) => ({
-      search: state.searchQuery,
-      currentRootActionId: state.currentRootActionId,
-      activeIndex: state.activeIndex,
-    })
+  const previousIndex = React.useCallback(
+    (oldIndex: number) => {
+      let nextIndex = oldIndex > startIndex ? oldIndex - 1 : oldIndex;
+      while (typeof props.items[nextIndex] === "string") {
+        if (nextIndex === startIndex) break;
+        nextIndex -= 1;
+      }
+      return nextIndex;
+    },
+    [props.items, startIndex]
   );
+
+  const nextIndex = React.useCallback(
+    (oldIndex: number) => {
+      let nextIndex =
+        oldIndex < props.items.length - 1 ? oldIndex + 1 : oldIndex;
+      while (typeof props.items[nextIndex] === "string") {
+        if (nextIndex === props.items.length - 1) break;
+        nextIndex -= 1;
+      }
+      return nextIndex;
+    },
+    [props.items]
+  );
+
+  React.useEffect(() => {
+    if (activeIndex > props.items.length - 1) {
+      setActiveIndex(props.items.length - 1);
+    }
+  }, [props.items, activeIndex, setActiveIndex]);
 
   // Handle keyboard up and down events.
   React.useEffect(() => {
     const handler = (event: any) => {
       if (event.key === "ArrowUp" || (event.ctrlKey && event.key === "k")) {
         event.preventDefault();
-        query.setActiveIndex((index) => {
-          let nextIndex = index > START_INDEX ? index - 1 : index;
-          // avoid setting active index on a group
-          if (typeof itemsRef.current[nextIndex] === "string") {
-            if (nextIndex === 0) return index;
-            nextIndex -= 1;
-          }
-          return nextIndex;
-        });
+        setActiveIndex(previousIndex);
       } else if (
         event.key === "ArrowDown" ||
         (event.ctrlKey && event.key === "j")
       ) {
         event.preventDefault();
-        query.setActiveIndex((index) => {
-          let nextIndex =
-            index < itemsRef.current.length - 1 ? index + 1 : index;
-          // avoid setting active index on a group
-          if (typeof itemsRef.current[nextIndex] === "string") {
-            if (nextIndex === itemsRef.current.length - 1) return index;
-            nextIndex += 1;
-          }
-          return nextIndex;
-        });
+        setActiveIndex(nextIndex);
       } else if (event.key === "Enter") {
         event.preventDefault();
         // storing the active dom element in a ref prevents us from
@@ -81,49 +94,32 @@ export const CmdKResultHandler: React.FC<KBarResultsProps> = (props) => {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [query]);
+  }, [setActiveIndex, previousIndex, nextIndex]);
 
   // destructuring here to prevent linter warning to pass
   // entire rowVirtualizer in the dependencies array.
   const { scrollToIndex } = rowVirtualizer;
   React.useEffect(() => {
-    console.log("scroll to index pls");
     scrollToIndex(activeIndex, {
       // ensure that if the first item in the list is a group
       // name and we are focused on the second item, to not
       // scroll past that group, hiding it.
-      align: activeIndex <= 1 ? "end" : "center",
+      align: activeIndex <= 1 ? "end" : "auto",
     });
   }, [activeIndex, scrollToIndex]);
 
-  React.useEffect(() => {
-    // TODO(sualeh): fix scenario where async actions load in
-    // and active index is reset to the first item. i.e. when
-    // users register actions and bust the `useRegisterActions`
-    // cache, we won't want to reset their active index as they
-    // are navigating the list.
-    query.setActiveIndex(
-      // avoid setting active index on a group
-      typeof props.items[START_INDEX] === "string"
-        ? START_INDEX + 1
-        : START_INDEX
-    );
-  }, [search, currentRootActionId, props.items, query]);
-
-  const execute = React.useCallback(
-    (item: RenderParams["item"]) => {
-      if (typeof item === "string") return;
-      if (item.command) {
-        item.command.perform(item);
-        query.toggle();
-      } else {
-        query.setSearch("");
-        query.setCurrentRootAction(item.id);
-      }
-      options.callbacks?.onSelectAction?.(item);
-    },
-    [query, options]
-  );
+  const execute = React.useCallback((item: RenderParams["item"]) => {
+    if (typeof item === "string") return;
+    if (item.action) {
+      item.action();
+      props.globalAction();
+      // if you click divider, you should only display things in that section
+      // TODO(sualeh): this is a hack, we should be able to do this
+      //   } else {
+      //     query.setSearch("");
+      //     query.setCurrentRootAction(item.id);
+    }
+  }, []);
 
   const pointerMoved = usePointerMovedSinceMount();
 
@@ -132,7 +128,6 @@ export const CmdKResultHandler: React.FC<KBarResultsProps> = (props) => {
       <div ref={parentRef} className="relative overflow-auto max-h-full">
         <div
           role="listbox"
-          id={KBAR_LISTBOX}
           // TODO(sualeh): ask Arvid about this.
           className="w-full"
           /* This is a hack to make the listbox scrollable. */
@@ -140,15 +135,14 @@ export const CmdKResultHandler: React.FC<KBarResultsProps> = (props) => {
             height: `${rowVirtualizer.totalSize}px`,
           }}
         >
-          <hr className="border-asbrown-100" />
           {rowVirtualizer.virtualItems.map((virtualRow) => {
             const item = itemsRef.current[virtualRow.index];
             const handlers = typeof item !== "string" && {
               onPointerMove: () =>
                 pointerMoved &&
                 activeIndex !== virtualRow.index &&
-                query.setActiveIndex(virtualRow.index),
-              onPointerDown: () => query.setActiveIndex(virtualRow.index),
+                setActiveIndex(virtualRow.index),
+              onPointerDown: () => setActiveIndex(virtualRow.index),
               onClick: () => execute(item),
             };
             const active = virtualRow.index === activeIndex;
@@ -156,11 +150,10 @@ export const CmdKResultHandler: React.FC<KBarResultsProps> = (props) => {
             return (
               <div
                 ref={active ? activeRef : null}
-                id={getListboxItemId(virtualRow.index)}
                 role="option"
                 aria-selected={active}
                 key={virtualRow.index}
-                className="absolute top-0 left-0 w-full text-asbrown-light h-8"
+                className="absolute top-0 left-0 w-full text-asbrown-light"
                 style={{
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
@@ -182,4 +175,4 @@ export const CmdKResultHandler: React.FC<KBarResultsProps> = (props) => {
       </div>
     </div>
   );
-};
+}
