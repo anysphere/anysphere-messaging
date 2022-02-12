@@ -3,25 +3,26 @@ import { useVirtual } from "react-virtual";
 
 import { usePointerMovedSinceMount } from "../utils";
 
-interface ListItem {
-  name: string;
+interface ListItem<T> {
   id: string;
+  data: T;
   action: (() => void) | null;
 }
 
 // string is a divider thing
-interface RenderParams<T = ListItem | string> {
-  item: T;
+interface RenderParams<T, TT = ListItem<T> | string> {
+  item: TT;
   active: boolean;
 }
 
-interface SelectableListProps {
-  items: ListItem[];
-  onRender: (params: RenderParams) => React.ReactElement;
+interface SelectableListProps<T> {
+  items: ListItem<T>[];
+  onRender: (params: RenderParams<T>) => React.ReactElement;
   globalAction: () => void;
+  searchable: boolean;
 }
 
-export function SelectableList(props: SelectableListProps) {
+export function SelectableList(props: SelectableListProps<T>) {
   const activeRef = React.useRef<HTMLDivElement>(null);
   const parentRef = React.useRef(null);
 
@@ -74,12 +75,15 @@ export function SelectableList(props: SelectableListProps) {
   // Handle keyboard up and down events.
   React.useEffect(() => {
     const handler = (event: any) => {
-      if (event.key === "ArrowUp" || (event.ctrlKey && event.key === "k")) {
+      if (
+        event.key === "ArrowUp" ||
+        ((event.ctrlKey || !props.searchable) && event.key === "k")
+      ) {
         event.preventDefault();
         setActiveIndex(previousIndex);
       } else if (
         event.key === "ArrowDown" ||
-        (event.ctrlKey && event.key === "j")
+        ((event.ctrlKey || !props.searchable) && event.key === "j")
       ) {
         event.preventDefault();
         setActiveIndex(nextIndex);
@@ -127,7 +131,7 @@ export function SelectableList(props: SelectableListProps) {
 
   return (
     <div>
-      <div ref={parentRef} className="relative overflow-auto max-h-full">
+      <div ref={parentRef} className="relative max-h-full">
         <div
           role="listbox"
           // TODO(sualeh): ask Arvid about this.
