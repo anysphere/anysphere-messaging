@@ -136,11 +136,14 @@ function Write(props: {
           ...props.data,
           focus: props.data.focus === "content" ? "to" : "content",
         });
+      } else if (event.metaKey && event.key === "Enter") {
+        event.preventDefault();
+        send();
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [props]);
+  }, [props, send]);
 
   React.useEffect(() => {
     if (props.data.focus === "content") {
@@ -176,7 +179,7 @@ function Write(props: {
         </div>
         <hr className="border-asbrown-100" />
         <textarea
-          className="whitespace-pre-wrap resize-none w-full focus:outline-none h-full grow h-96 pt-4"
+          className="whitespace-pre-wrap resize-none w-full focus:outline-none h-full grow h-96 pt-4 text-sm"
           value={content}
           onChange={(e) =>
             props.edit({
