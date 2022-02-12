@@ -7,6 +7,8 @@
 [submodule "client"]
 	path = client
 	url = https://github.com/anysphere/client
+	branch = main
 [submodule "asphr"]
 	path = asphr
 	url = https://github.com/anysphere/asphr
+	branch = main
