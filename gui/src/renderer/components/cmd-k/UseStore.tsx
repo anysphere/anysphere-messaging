@@ -1,5 +1,6 @@
 import * as React from "react";
 import invariant from "tiny-invariant";
+import { deepEqual } from "fast-equals";
 
 import {
   Action,
@@ -13,6 +14,9 @@ import {
 
 import { VisualState } from "./types";
 
+/**
+ * The useStore hook returns the store's state and dispatch function.
+ */
 type useStoreProps = KBarProviderProps;
 
 interface ActionInterfaceOptions {
@@ -171,6 +175,13 @@ export function useStore(props: useStoreProps) {
   }, [getState, publisher, registerActions]);
 }
 
+/* The Publisher class is a class that holds a state and a list of subscribers. 
+The subscribers are a list of Subscriber objects that hold a function that collects 
+the state and a function that is called when the state changes.
+
+The subscribe method sets up a new Subscriber object and adds it to the list of subscribers.
+The notify method calls the notify method of each subscriber.
+*/
 class Publisher {
   getState;
   subscribers: Subscriber[] = [];
@@ -207,6 +218,8 @@ class Publisher {
   }
 }
 
+/* The Subscriber class is a class that collects the latest state of a component and passes it to a
+callback function. */
 class Subscriber {
   collected: any;
   collector;
@@ -217,14 +230,15 @@ class Subscriber {
     this.onChange = onChange;
   }
 
+  /**
+   * Collect the latest state of the component and pass it to the onChange function.
+   */
   collect() {
     try {
       // grab latest state
       const recollect = this.collector();
 
-      // TODO: is this necessary?
-      //   if (!deepEqual(recollect, this.collected)) {
-      if (recollect !== this.collected) {
+      if (!deepEqual(recollect, this.collected)) {
         this.collected = recollect;
         if (this.onChange) {
           this.onChange(this.collected);

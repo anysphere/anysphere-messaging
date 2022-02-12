@@ -145,8 +145,7 @@ function useShortcuts() {
             query.toggle();
             options.callbacks?.onOpen?.();
           } else {
-            // TODO: Uncomment this!!
-            // action.command?.perform();
+            action.command?.perform();
             options.callbacks?.onSelectAction?.(action);
           }
 

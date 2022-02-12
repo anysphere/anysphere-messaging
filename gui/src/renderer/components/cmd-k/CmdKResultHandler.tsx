@@ -44,7 +44,7 @@ export const CmdKResultHandler: React.FC<KBarResultsProps> = (props) => {
   // Handle keyboard up and down events.
   React.useEffect(() => {
     const handler = (event: any) => {
-      if (event.key === "ArrowUp" || (event.ctrlKey && event.key === "p")) {
+      if (event.key === "ArrowUp" || (event.ctrlKey && event.key === "k")) {
         event.preventDefault();
         query.setActiveIndex((index) => {
           let nextIndex = index > START_INDEX ? index - 1 : index;
@@ -57,7 +57,7 @@ export const CmdKResultHandler: React.FC<KBarResultsProps> = (props) => {
         });
       } else if (
         event.key === "ArrowDown" ||
-        (event.ctrlKey && event.key === "n")
+        (event.ctrlKey && event.key === "j")
       ) {
         event.preventDefault();
         query.setActiveIndex((index) => {
@@ -87,11 +87,12 @@ export const CmdKResultHandler: React.FC<KBarResultsProps> = (props) => {
   // entire rowVirtualizer in the dependencies array.
   const { scrollToIndex } = rowVirtualizer;
   React.useEffect(() => {
+    console.log("scroll to index pls");
     scrollToIndex(activeIndex, {
       // ensure that if the first item in the list is a group
       // name and we are focused on the second item, to not
       // scroll past that group, hiding it.
-      align: activeIndex <= 1 ? "end" : "auto",
+      align: activeIndex <= 1 ? "end" : "center",
     });
   }, [activeIndex, scrollToIndex]);
 
@@ -112,13 +113,13 @@ export const CmdKResultHandler: React.FC<KBarResultsProps> = (props) => {
   const execute = React.useCallback(
     (item: RenderParams["item"]) => {
       if (typeof item === "string") return;
-      //   if (item.command) {
-      //     item.command.perform(item);
-      //     query.toggle();
-      //   } else {
-      //     query.setSearch("");
-      //     query.setCurrentRootAction(item.id);
-      //   }
+      if (item.command) {
+        item.command.perform(item);
+        query.toggle();
+      } else {
+        query.setSearch("");
+        query.setCurrentRootAction(item.id);
+      }
       options.callbacks?.onSelectAction?.(item);
     },
     [query, options]
@@ -127,62 +128,57 @@ export const CmdKResultHandler: React.FC<KBarResultsProps> = (props) => {
   const pointerMoved = usePointerMovedSinceMount();
 
   return (
-    <div
-      ref={parentRef}
-      style={{
-        maxHeight: props.maxHeight || 400,
-        position: "relative",
-        overflow: "auto",
-      }}
-    >
-      <div
-        role="listbox"
-        id={KBAR_LISTBOX}
-        style={{
-          height: `${rowVirtualizer.totalSize}px`,
-          width: "100%",
-        }}
-      >
-        {rowVirtualizer.virtualItems.map((virtualRow) => {
-          const item = itemsRef.current[virtualRow.index];
-          const handlers = typeof item !== "string" && {
-            onPointerMove: () =>
-              pointerMoved &&
-              activeIndex !== virtualRow.index &&
-              query.setActiveIndex(virtualRow.index),
-            onPointerDown: () => query.setActiveIndex(virtualRow.index),
-            onClick: () => execute(item),
-          };
-          const active = virtualRow.index === activeIndex;
+    <div>
+      <div ref={parentRef} className="relative overflow-auto max-h-full">
+        <div
+          role="listbox"
+          id={KBAR_LISTBOX}
+          // TODO(sualeh): ask Arvid about this.
+          className="w-full"
+          /* This is a hack to make the listbox scrollable. */
+          style={{
+            height: `${rowVirtualizer.totalSize}px`,
+          }}
+        >
+          <hr className="border-asbrown-100" />
+          {rowVirtualizer.virtualItems.map((virtualRow) => {
+            const item = itemsRef.current[virtualRow.index];
+            const handlers = typeof item !== "string" && {
+              onPointerMove: () =>
+                pointerMoved &&
+                activeIndex !== virtualRow.index &&
+                query.setActiveIndex(virtualRow.index),
+              onPointerDown: () => query.setActiveIndex(virtualRow.index),
+              onClick: () => execute(item),
+            };
+            const active = virtualRow.index === activeIndex;
 
-          return (
-            <div
-              ref={active ? activeRef : null}
-              id={getListboxItemId(virtualRow.index)}
-              role="option"
-              aria-selected={active}
-              key={virtualRow.index}
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                transform: `translateY(${virtualRow.start}px)`,
-              }}
-              {...handlers}
-            >
-              {React.cloneElement(
-                props.onRender({
-                  item,
-                  active,
-                }),
-                {
-                  ref: virtualRow.measureRef,
-                }
-              )}
-            </div>
-          );
-        })}
+            return (
+              <div
+                ref={active ? activeRef : null}
+                id={getListboxItemId(virtualRow.index)}
+                role="option"
+                aria-selected={active}
+                key={virtualRow.index}
+                className="absolute top-0 left-0 w-full text-asbrown-light h-8"
+                style={{
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
+                {...handlers}
+              >
+                {React.cloneElement(
+                  props.onRender({
+                    item,
+                    active,
+                  }),
+                  {
+                    ref: virtualRow.measureRef,
+                  }
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
