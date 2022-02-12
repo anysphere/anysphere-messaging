@@ -283,3 +283,6 @@ contextBridge.exposeInMainWorld("register", async (username, accessKey) => {
   }
   return false;
 });
+contextBridge.exposeInMainWorld("isPlatformMac", () => {
+  return process.platform === "darwin";
+});

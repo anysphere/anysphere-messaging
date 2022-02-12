@@ -14,6 +14,12 @@ import { RegisterModal } from "./components/RegisterModal";
 import { Message } from "./types";
 import { Tab, TabType, TabContainer } from "./components/Tabs";
 import { truncate } from "./utils";
+import { stringify } from "querystring";
+import { CmdK } from "./components/cmd-k/CmdK";
+import { CmdKPortal } from "./components/cmd-k/CmdKPortal";
+import { CmdKSearch } from "./components/cmd-k/CmdKSearch";
+import { CmdKResultRenderer } from "./components/cmd-k/CmdKResultRenderer";
+import { KBarOptions } from "./components/cmd-k/types";
 
 const defaultTabs: Tab[] = [
   { type: TabType.New, name: "New", data: null, unclosable: true },
@@ -202,6 +208,58 @@ function Main() {
       }
     });
   }, []);
+  const CmdKActions = [
+    {
+      id: "friend",
+      name: "Add and Manage Friends",
+      shortcut: ["f"],
+      keywords: "friends",
+      perform: () => {
+        openFriendModal();
+      },
+    },
+    {
+      id: "write",
+      name: "Compose",
+      shortcut: ["c"],
+      keywords: "write compose messages",
+      perform: () => {
+        writeMessage();
+      },
+    },
+    {
+      id: "search",
+      name: "Search",
+      shortcut: ["\\"],
+      keywords: "search",
+    },
+    // {
+    //   id: "settings",
+    //   name: "Settings",
+    //   shortcut: ["s"],
+    //   keywords: "settings",
+    // },
+    {
+      id: "help",
+      name: "Help",
+      shortcut: ["h"],
+      keywords: "help",
+    },
+    // {
+    //   id: "quit",
+    //   name: "Quit",
+    //   shortcut: ["q"],
+    //   keywords: "quit",
+    // },
+  ];
+
+  const CmdKOptions: KBarOptions = {
+    callbacks: {
+      onClose: () => {
+        closeModal();
+      },
+    },
+  };
 
   return (
     <div className="w-full">
@@ -231,7 +289,16 @@ function Main() {
           {selectedComponent}
         </div>
       </div>
-      {modal}
+
+      <CmdK actions={CmdKActions} options={CmdKOptions}>
+        {modal}
+        <CmdKPortal onClose={closeModal}>
+          <CmdKSearch />
+          <div className="h-auto">
+            <CmdKResultRenderer />
+          </div>
+        </CmdKPortal>
+      </CmdK>
     </div>
   );
 }
