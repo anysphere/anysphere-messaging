@@ -84,8 +84,8 @@ function Main() {
           newTabs.push(tabs[i]);
         }
       }
-      setTabs(newTabs);
       setSelectedTab(0);
+      setTabs(newTabs);
     },
     [tabs, selectedTab]
   );

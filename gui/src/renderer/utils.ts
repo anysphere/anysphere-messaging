@@ -31,10 +31,12 @@ export function useSearch<T>(
   ) as T[];
 }
 
-export function useFocus() {
+export function useFocus(): [React.MutableRefObject<any>, () => void] {
   const htmlElRef = React.useRef(null);
   const setFocus = () => {
-    htmlElRef.current && (htmlElRef.current as any).focus();
+    if (htmlElRef.current) {
+      (htmlElRef.current as any).focus();
+    }
   };
 
   return [htmlElRef, setFocus];
