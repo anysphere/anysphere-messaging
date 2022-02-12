@@ -66,10 +66,10 @@ export function SelectableList(props: SelectableListProps) {
   );
 
   React.useEffect(() => {
-    if (activeIndex > props.items.length - 1) {
+    if (activeIndex > props.items.length - 1 && props.items.length > 0) {
       setActiveIndex(props.items.length - 1);
     }
-  }, [props.items, activeIndex, setActiveIndex]);
+  }, [props.items.length, activeIndex, setActiveIndex]);
 
   // Handle keyboard up and down events.
   React.useEffect(() => {
@@ -122,6 +122,8 @@ export function SelectableList(props: SelectableListProps) {
   }, []);
 
   const pointerMoved = usePointerMovedSinceMount();
+
+  console.log("ACTIVE INDEX", activeIndex);
 
   return (
     <div>
