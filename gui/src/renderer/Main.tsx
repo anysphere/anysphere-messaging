@@ -228,8 +228,17 @@ function Main() {
     {
       id: "search",
       name: "Search",
-      shortcut: ["\\"],
+      shortcut: ["/"],
       keywords: "search",
+    },
+    {
+      id: "next_tab",
+      name: "Next Tab",
+      shortcut: ["g", "t"],
+      keywords: "next tab",
+      perform: () => {
+        setSelectedTab((selectedTab + 1) % tabs.length);
+      },
     },
     // {
     //   id: "settings",

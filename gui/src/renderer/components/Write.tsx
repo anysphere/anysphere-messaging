@@ -44,7 +44,6 @@ function MultiSelect(props: {
         <SelectableList
           items={filteredOptions.map((friend) => {
             return {
-              name: friend.name,
               id: friend.name,
               action: () => {
                 console.log("action!");
@@ -53,8 +52,10 @@ function MultiSelect(props: {
                   text: friend.name,
                 });
               },
+              data: friend.name,
             };
           })}
+          searchable={true}
           globalAction={() => {}}
           onRender={({ item, active }) =>
             typeof item === "string" ? (
@@ -65,7 +66,7 @@ function MultiSelect(props: {
                   active ? "bg-asbeige border-asbrown-100" : "border-white"
                 }`}
               >
-                {item.name}
+                {item.data}
               </div>
             )
           }

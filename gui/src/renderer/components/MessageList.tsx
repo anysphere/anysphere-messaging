@@ -6,13 +6,14 @@
 import * as React from "react";
 import { Message } from "../types";
 import { truncate, formatTime } from "../utils";
+import { SelectableList } from "./SelectableList";
 
 function MessageBlurb({
   message,
-  onClick,
+  active,
 }: {
   message: Message;
-  onClick: () => void;
+  active: boolean;
 }) {
   let timestamp_string = "";
   try {
@@ -22,8 +23,9 @@ function MessageBlurb({
 
   return (
     <div
-      className="bg-white px-4 py-4 rounded-sm hover:cursor-pointer"
-      onClick={onClick}
+      className={`${
+        active ? "bg-asbeige border-asbrown-100" : "bg-white border-white"
+      } border-l-4 px-4 py-4 rounded-sm my-2`}
     >
       <div className="flex flex-row gap-5">
         <div className="text-asbrown-dark text-sm">{message.from}</div>
@@ -72,6 +74,32 @@ function MessageList(props: {
     <div>
       <div className="flex place-content-center w-full mt-8">
         <div className="place-self-center flex flex-col w-full max-w-3xl">
+          <SelectableList
+            items={messages.map((message) => {
+              return {
+                id: message.id,
+                data: message,
+                action: () => props.readCallback(message),
+              };
+            })}
+            searchable={false}
+            globalAction={() => {}}
+            onRender={({ item, active }) =>
+              typeof item === "string" ? (
+                <div className="unselectable">{item}</div>
+              ) : (
+                <MessageBlurb
+                  active={active}
+                  key={item.id}
+                  message={item.data}
+                />
+              )
+            }
+          />
+        </div>
+      </div>
+      {/* <div className="flex place-content-center w-full mt-8">
+        <div className="place-self-center flex flex-col w-full max-w-3xl">
           <div className="grid grid-cols-1 gap-2">
             {messages.map((message, index) => (
               <MessageBlurb
@@ -82,7 +110,7 @@ function MessageList(props: {
             ))}
           </div>
         </div>
-      </div>
+      </div> */}
       {messages.length === 0 && (
         <NoMessages explanation={noMessageExplanation} />
       )}
