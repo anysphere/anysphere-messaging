@@ -76,8 +76,8 @@ export class ActionInterface {
 export function useStore(props: useStoreProps) {
   const optionsRef = React.useRef({
     animations: {
-      enterMs: 100,
-      exitMs: 100,
+      enterMs: 0,
+      exitMs: 0,
     },
     ...props.options,
   } as KBarOptions);

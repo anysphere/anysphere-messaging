@@ -292,6 +292,7 @@ function Main() {
         {modal}
         <CmdKPortal onClose={closeModal}>
           <CmdKSearch />
+          <hr className="border-asbeige" />
           <div className="h-auto overflow-y-auto">
             <CmdKResultRenderer />
           </div>

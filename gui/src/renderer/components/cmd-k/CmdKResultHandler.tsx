@@ -140,7 +140,6 @@ export const CmdKResultHandler: React.FC<KBarResultsProps> = (props) => {
             height: `${rowVirtualizer.totalSize}px`,
           }}
         >
-          <hr className="border-asbrown-100" />
           {rowVirtualizer.virtualItems.map((virtualRow) => {
             const item = itemsRef.current[virtualRow.index];
             const handlers = typeof item !== "string" && {
