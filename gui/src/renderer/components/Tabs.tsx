@@ -61,6 +61,25 @@ export function TabContainer(props: {
   closeTab: (index: number) => void;
   selectedTab: number;
 }) {
+  React.useEffect(() => {
+    const handler = (event: any) => {
+      if (event.ctrlKey && event.shiftKey && event.key === "Tab") {
+        event.preventDefault();
+        props.selectTab(
+          (props.selectedTab - 1 + props.tabs.length) % props.tabs.length
+        );
+      } else if (event.ctrlKey && event.key === "Tab") {
+        event.preventDefault();
+        props.selectTab((props.selectedTab + 1) % props.tabs.length);
+      } else if (event.metaKey && event.key === "w") {
+        event.preventDefault();
+        props.closeTab(props.selectedTab);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [props]);
+
   return (
     <div className="flex-1 mb-1">
       <div className="flex flex-row">

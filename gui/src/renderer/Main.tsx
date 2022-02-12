@@ -93,7 +93,7 @@ function Main() {
   const writeMessage = React.useCallback(() => {
     const writeTab: Tab = {
       type: TabType.Write,
-      name: "Write",
+      name: "Compose",
       data: {
         content: "",
         to: "",
