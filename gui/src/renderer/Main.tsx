@@ -20,11 +20,21 @@ import { CmdKPortal } from "./components/cmd-k/CmdKPortal";
 import { CmdKSearch } from "./components/cmd-k/CmdKSearch";
 import { CmdKResultRenderer } from "./components/cmd-k/CmdKResultRenderer";
 import { KBarOptions } from "./components/cmd-k/types";
+import { StatusHandler, StatusContext } from "./components/Status";
+import { ProgressPlugin } from "webpack";
 
 const defaultTabs: Tab[] = [
   { type: TabType.New, name: "New", data: null, unclosable: true },
   { type: TabType.All, name: "All", data: null, unclosable: true },
 ];
+
+function StatusMain() {
+  return (
+    <StatusHandler>
+      <Main />
+    </StatusHandler>
+  );
+}
 
 function Main() {
   const [tabs, setTabs] = React.useState<Tab[]>(defaultTabs);
@@ -78,9 +88,21 @@ function Main() {
     [tabs, selectedTab]
   );
 
+  const { setStatus } = React.useContext(StatusContext);
+
   const send = React.useCallback(
     (content: string, to: string) => {
-      (window as any).send(content, to);
+      (window as any).send(content, to).then((s: boolean) => {
+        if (s) {
+          console.log("SEND SUCCESS");
+          console.log(setStatus);
+          // setStatus("Message sent!");
+        } else {
+          console.log("SEND FAILURE");
+          console.log(setStatus);
+          // setStatus("Message failed to send!");
+        }
+      });
       let newTabs = [];
       for (let i = 0; i < tabs.length; i++) {
         if (i === selectedTab) {
@@ -98,7 +120,7 @@ function Main() {
       setPreviousSelectedTab(selectedTab);
       setTabs(newTabs);
     },
-    [tabs, selectedTab, previousSelectedTab]
+    [tabs, selectedTab, previousSelectedTab, setStatus]
   );
 
   const writeMessage = React.useCallback(() => {
@@ -353,4 +375,4 @@ function Main() {
   );
 }
 
-export default Main;
+export default StatusMain;
