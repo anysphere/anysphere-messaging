@@ -82,6 +82,7 @@ export function useStore(props: useStoreProps) {
     ...props.options,
   } as KBarOptions);
 
+  // TODO: this doesn't work with the model we're currently using for the callbacks, since the perform functions are changing for us but this thing expects the perform functions to never change. this causes a bunch of bugs.
   const actionsInterface = React.useMemo(
     () =>
       new ActionInterface(props.actions || [], {

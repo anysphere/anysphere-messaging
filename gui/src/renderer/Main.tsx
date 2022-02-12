@@ -223,9 +223,7 @@ function Main() {
       name: "Compose",
       shortcut: ["c"],
       keywords: "write compose messages",
-      perform: () => {
-        writeMessage();
-      },
+      perform: writeMessage,
     },
     {
       id: "search",
