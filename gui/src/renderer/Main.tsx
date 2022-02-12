@@ -91,6 +91,8 @@ function Main() {
       data: {
         content: "",
         to: "",
+        multiSelectState: { text: "" },
+        focus: "to",
       },
       unclosable: false,
     };
