@@ -108,6 +108,7 @@ function Write(props: {
   data: WriteData;
   send: (content: string, to: string) => void;
   edit: (data: any) => void;
+  onClose: () => void;
 }) {
   const content = props.data.content;
   const to = props.data.to;
@@ -140,6 +141,9 @@ function Write(props: {
       } else if (event.metaKey && event.key === "Enter") {
         event.preventDefault();
         send();
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        props.onClose();
       }
     };
     window.addEventListener("keydown", handler);
