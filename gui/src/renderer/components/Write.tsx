@@ -5,6 +5,8 @@
 
 import * as React from "react";
 import { Friend } from "../types";
+import { useSearch, useFocus } from "../utils";
+import { SelectableList } from "./SelectableList";
 
 type MultiSelectData = {
   text: string;
@@ -20,30 +22,63 @@ type WriteData = {
 function MultiSelect(props: {
   options: Friend[];
   multiSelectState: MultiSelectData;
-  onSelect: (selected: Friend) => void;
+  onSelect: (state: MultiSelectData) => void;
   onEdit: (state: MultiSelectData) => void;
   focused: boolean;
   className: string;
 }) {
-  const filteredOptions = props.options.filter((option) => {
-    return true;
-  });
+  const filteredOptions = useSearch(
+    props.options,
+    props.multiSelectState.text,
+    ["name"]
+  );
+
+  const [inputRef, setInputRef] = useFocus();
+
+  console.log(filteredOptions);
 
   let selectBox = undefined;
   if (props.focused) {
     selectBox = (
-      <>
-        <h3 className="text-xs text-asbrown-200 mt-1 mb-0 unselectable">
-          Select a friend
-        </h3>
-        {filteredOptions.map((option) => (
-          <div key={option.name} className="text-sm">
-            {option.name}
-          </div>
-        ))}
-      </>
+      <div className="mt-1">
+        <SelectableList
+          items={filteredOptions.map((friend) => {
+            return {
+              name: friend.name,
+              id: friend.name,
+              action: () => {
+                console.log("action!");
+                props.onSelect({
+                  ...props.multiSelectState,
+                  text: friend.name,
+                });
+              },
+            };
+          })}
+          globalAction={() => {}}
+          onRender={({ item, active }) =>
+            typeof item === "string" ? (
+              <div className="unselectable">{item}</div>
+            ) : (
+              <div
+                className={`text-sm px-2 py-1 mx-auto border-l-4 ${
+                  active ? "bg-asbeige border-asbrown-100" : "border-white"
+                }`}
+              >
+                {item.name}
+              </div>
+            )
+          }
+        />
+      </div>
     );
   }
+
+  React.useEffect(() => {
+    if (props.focused) {
+      setInputRef();
+    }
+  }, [props.focused, setInputRef]);
 
   return (
     <div className={props.className}>
@@ -57,6 +92,7 @@ function MultiSelect(props: {
               text: e.target.value,
             })
           }
+          ref={inputRef}
           placeholder="Search for a friend..."
           value={props.multiSelectState.text}
           autoFocus={props.focused}
@@ -77,6 +113,8 @@ function Write(props: {
 
   const [friends, setFriends] = React.useState<Friend[]>([]);
 
+  const [contextTestareaFocusRef, setContextTestareaFocusRef] = useFocus();
+
   React.useEffect(() => {
     (window as any).getFriendList().then((friends: Friend[]) => {
       setFriends(friends);
@@ -90,13 +128,33 @@ function Write(props: {
     props.send(content, to);
   }, [content, to]);
 
+  React.useEffect(() => {
+    const handler = (event: any) => {
+      if (event.key === "Tab") {
+        event.preventDefault();
+        props.edit({
+          ...props.data,
+          focus: props.data.focus === "content" ? "to" : "content",
+        });
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [props]);
+
+  React.useEffect(() => {
+    if (props.data.focus === "content") {
+      setContextTestareaFocusRef();
+    }
+  }, [props.data.focus, setContextTestareaFocusRef]);
+
   return (
     <div className="flex place-content-center w-full mt-8">
       <div className="place-self-center flex flex-col w-full max-w-3xl bg-white p-2 px-4">
         <div className="py-2">
           <div className="flex flex-row content-center items-start">
             <div className="place-content-center grid">
-              <div className="align-bottom text-sm">To:</div>
+              <div className="text-sm unselectable">To:</div>
             </div>
             <MultiSelect
               className="flex-1"
@@ -104,8 +162,12 @@ function Write(props: {
               onEdit={(state: MultiSelectData) =>
                 props.edit({ ...props.data, multiSelectState: state })
               }
-              onSelect={(selected: Friend) =>
-                props.edit({ ...props.data, to: selected.name })
+              onSelect={(state: MultiSelectData) =>
+                props.edit({
+                  ...props.data,
+                  multiSelectState: state,
+                  focus: props.data.focus === "content" ? "to" : "content",
+                })
               }
               multiSelectState={props.data.multiSelectState}
               focused={props.data.focus === "to"}
@@ -123,6 +185,7 @@ function Write(props: {
             })
           }
           autoFocus={props.data.focus === "content"}
+          ref={contextTestareaFocusRef}
         />
         <div className="flex flex-row content-center py-2">
           <div className="flex-1"></div>
