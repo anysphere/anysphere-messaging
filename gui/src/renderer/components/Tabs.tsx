@@ -4,6 +4,7 @@
 //
 
 import * as React from "react";
+import { usePointerMovedSinceMount } from "../utils";
 
 export interface Tab {
   type: TabType;
@@ -30,8 +31,13 @@ export function TabElem({
   onClose: () => void;
   tab: Tab;
 }) {
+  const [hovering, setHovering] = React.useState(false);
   const closeButton = (
-    <div className="place-content-center grid">
+    <div
+      className={`place-content-center grid ${
+        hovering || selected ? "" : "invisible"
+      }`}
+    >
       <div
         className="codicon codicon-close"
         onClick={(event) => {
@@ -48,6 +54,10 @@ export function TabElem({
         selected ? "text-black" : "text-asbrown-200"
       }`}
       onClick={onClick}
+      onMouseOver={() => {
+        setHovering(true);
+      }}
+      onMouseOut={() => setHovering(false)}
     >
       <div>{tab.name}</div>
       {!tab.unclosable && closeButton}
@@ -60,7 +70,10 @@ export function TabContainer(props: {
   selectTab: (index: number) => void;
   closeTab: (index: number) => void;
   selectedTab: number;
+  hidden: boolean;
 }) {
+  const [hovering, setHovering] = React.useState(false);
+
   React.useEffect(() => {
     const handler = (event: any) => {
       if (event.ctrlKey && event.shiftKey && event.key === "Tab") {
@@ -80,20 +93,36 @@ export function TabContainer(props: {
     return () => window.removeEventListener("keydown", handler);
   }, [props]);
 
+  const pointerMoved = usePointerMovedSinceMount();
+
+  console.log("hover", hovering);
+
   return (
-    <div className="flex-1 mb-1">
-      <div className="flex flex-row">
-        {props.tabs.map((tab, index) => (
-          <TabElem
-            key={index}
-            selected={index === props.selectedTab}
-            onClick={() => props.selectTab(index)}
-            onClose={() => props.closeTab(index)}
-            tab={tab}
-          />
-        ))}
+    <div
+      className="w-full"
+      onMouseOver={() => {
+        setHovering(true);
+      }}
+      onMouseOut={() => setHovering(false)}
+    >
+      <div
+        className={`flex-1 mb-1 ${
+          props.hidden && !hovering ? "invisible" : ""
+        }`}
+      >
+        <div className={`flex flex-row `}>
+          {props.tabs.map((tab, index) => (
+            <TabElem
+              key={index}
+              selected={index === props.selectedTab}
+              onClick={() => props.selectTab(index)}
+              onClose={() => props.closeTab(index)}
+              tab={tab}
+            />
+          ))}
+        </div>
+        <hr className="border-asbrown-100" />
       </div>
-      <hr className="border-asbrown-100" />
     </div>
   );
 }

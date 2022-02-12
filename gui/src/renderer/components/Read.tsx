@@ -6,7 +6,19 @@
 import * as React from "react";
 import { Message } from "../types";
 
-function Read({ message }: { message: Message }) {
+function Read({ message, onClose }: { message: Message; onClose: () => void }) {
+  React.useEffect(() => {
+    const handler = (event: any) => {
+      if (event.key === "Escape") {
+        console.log(event.key);
+        event.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
   return (
     <div className="flex place-content-center w-full mt-8 text-sm">
       <div className="place-self-center flex flex-col w-full max-w-3xl bg-white p-2 px-4">

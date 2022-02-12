@@ -98,19 +98,6 @@ function MessageList(props: {
           />
         </div>
       </div>
-      {/* <div className="flex place-content-center w-full mt-8">
-        <div className="place-self-center flex flex-col w-full max-w-3xl">
-          <div className="grid grid-cols-1 gap-2">
-            {messages.map((message, index) => (
-              <MessageBlurb
-                key={index}
-                message={message}
-                onClick={() => props.readCallback(message)}
-              />
-            ))}
-          </div>
-        </div>
-      </div> */}
       {messages.length === 0 && (
         <NoMessages explanation={noMessageExplanation} />
       )}

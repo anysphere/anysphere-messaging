@@ -156,11 +156,25 @@ function Main() {
       );
       break;
     case TabType.Read:
-      selectedComponent = <Read message={tabs[selectedTab].data} />;
+      selectedComponent = (
+        <Read
+          message={tabs[selectedTab].data}
+          onClose={() => {
+            closeTab(selectedTab);
+          }}
+        />
+      );
       break;
     case TabType.Write:
       selectedComponent = (
-        <Write send={send} edit={editWrite} data={tabs[selectedTab].data} />
+        <Write
+          send={send}
+          edit={editWrite}
+          data={tabs[selectedTab].data}
+          onClose={() => {
+            closeTab(selectedTab);
+          }}
+        />
       );
       break;
     default:
@@ -277,6 +291,10 @@ function Main() {
           selectTab={setSelectedTab}
           closeTab={closeTab}
           selectedTab={selectedTab}
+          hidden={
+            tabs[selectedTab].type === TabType.Write ||
+            tabs[selectedTab].type === TabType.Read
+          }
         />
         <button
           className="unselectable px-2 rounded-md bg-asbrown-100 text-asbrown-light "
