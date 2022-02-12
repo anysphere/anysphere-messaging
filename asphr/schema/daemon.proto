@@ -27,6 +27,10 @@ service Daemon {
     rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {}
 
     rpc GetAllMessages(GetAllMessagesRequest) returns (GetAllMessagesResponse) {}
+    
+    rpc GetOutboxMessages(GetOutboxMessagesRequest) returns (GetOutboxMessagesResponse) {}
+
+    rpc GetSentMessages(GetSentMessagesRequest) returns (GetSentMessagesResponse) {}
 
     rpc GetNewMessages(GetNewMessagesRequest) returns (GetNewMessagesResponse) {}
 
@@ -97,6 +101,20 @@ message SendMessageResponse {
 message GetAllMessagesRequest {}
 
 message GetAllMessagesResponse {
+    bool success = 1;
+    repeated MessageInfo messages = 2;
+}
+
+message GetOutboxMessagesRequest {}
+
+message GetOutboxMessagesResponse {
+    bool success = 1;
+    repeated MessageInfo messages = 2;
+}
+
+message GetSentMessagesRequest {}
+
+message GetSentMessagesResponse {
     bool success = 1;
     repeated MessageInfo messages = 2;
 }
