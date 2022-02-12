@@ -28,6 +28,8 @@ const defaultTabs: Tab[] = [
 
 function Main() {
   const [tabs, setTabs] = React.useState<Tab[]>(defaultTabs);
+  const [previousSelectedTab, setPreviousSelectedTab] =
+    React.useState<number>(0);
   const [selectedTab, setSelectedTab] = React.useState<number>(0);
   const [modal, setModal] = React.useState<JSX.Element | null>(null);
 
@@ -35,6 +37,7 @@ function Main() {
     (message: Message, mode: string) => {
       for (let i = 0; i < tabs.length; i++) {
         if (tabs[i].type === TabType.Read && tabs[i].data.id === message.id) {
+          setPreviousSelectedTab(selectedTab);
           setSelectedTab(i);
           return;
         }
@@ -48,9 +51,11 @@ function Main() {
         unclosable: false,
       };
       setTabs([...tabs, readTab]);
+      console.log("selectedTabHI", selectedTab);
+      setPreviousSelectedTab(selectedTab);
       setSelectedTab(readTab.id);
     },
-    [tabs]
+    [tabs, selectedTab, previousSelectedTab]
   );
 
   const editWrite = React.useCallback(
@@ -84,10 +89,16 @@ function Main() {
           newTabs.push(tabs[i]);
         }
       }
-      setSelectedTab(0);
+      console.log("previousSelectedTab", previousSelectedTab);
+      if (previousSelectedTab < tabs.length) {
+        setSelectedTab(previousSelectedTab);
+      } else {
+        setSelectedTab(0);
+      }
+      setPreviousSelectedTab(selectedTab);
       setTabs(newTabs);
     },
-    [tabs, selectedTab]
+    [tabs, selectedTab, previousSelectedTab]
   );
 
   const writeMessage = React.useCallback(() => {
@@ -103,8 +114,9 @@ function Main() {
       unclosable: false,
     };
     setTabs([...tabs, writeTab]);
+    setPreviousSelectedTab(selectedTab);
     setSelectedTab(tabs.length);
-  }, [tabs]);
+  }, [tabs, selectedTab, previousSelectedTab]);
 
   const closeModal = React.useCallback(() => {
     setModal(null);
@@ -192,14 +204,21 @@ function Main() {
         }
       }
       if (index === selectedTab) {
-        setSelectedTab(0);
+        console.log("previousSelectedTab", previousSelectedTab);
+        if (previousSelectedTab < tabs.length) {
+          setSelectedTab(previousSelectedTab);
+        } else {
+          setSelectedTab(0);
+        }
+        setPreviousSelectedTab(selectedTab);
       }
       if (index < selectedTab) {
+        setPreviousSelectedTab(selectedTab);
         setSelectedTab(selectedTab - 1);
       }
       setTabs(newTabs);
     },
-    [tabs, selectedTab, setTabs, setSelectedTab]
+    [tabs, selectedTab, setTabs, setSelectedTab, previousSelectedTab]
   );
 
   React.useEffect(() => {
@@ -251,6 +270,7 @@ function Main() {
       shortcut: ["g", "t"],
       keywords: "next tab",
       perform: () => {
+        setPreviousSelectedTab(selectedTab);
         setSelectedTab((selectedTab + 1) % tabs.length);
       },
     },
@@ -288,12 +308,16 @@ function Main() {
       <div className="flex flex-row gap-2 fixed w-full pt-2 px-2">
         <TabContainer
           tabs={tabs}
-          selectTab={setSelectedTab}
+          selectTab={(t) => {
+            setPreviousSelectedTab(selectedTab);
+            setSelectedTab(t);
+          }}
           closeTab={closeTab}
           selectedTab={selectedTab}
           hidden={
-            tabs[selectedTab].type === TabType.Write ||
-            tabs[selectedTab].type === TabType.Read
+            false &&
+            (tabs[selectedTab].type === TabType.Write ||
+              tabs[selectedTab].type === TabType.Read)
           }
         />
         <button
