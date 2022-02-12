@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Command } from "./Command";
 
 export type ActionId = string;
 
@@ -39,13 +40,14 @@ export class ActionImpl implements Action {
   icon: Action["icon"];
   subtitle: Action["subtitle"];
   parent?: Action["parent"];
+  // TODO(sualeh, urgent): remove this.
   /**
    * @deprecated use action.command.perform
    */
   perform: Action["perform"];
 
   // TODO: fix
-  // command?: Command;
+  command?: Command;
 
   ancestors: ActionImpl[] = [];
   children: ActionImpl[] = [];
@@ -55,19 +57,17 @@ export class ActionImpl implements Action {
     this.id = action.id;
     this.name = action.name;
     this.keywords = extendKeywords(action);
+
+    const perform = action.perform;
+
     //   const perform = action.perform;
-    //   this.command =
-    //     perform &&
-    //     new Command(
-    //       {
-    //         perform: () => perform(this),
-    //       },
-    //       {
-    //         history: options.history,
-    //       }
-    //     );
+    this.command =
+      perform &&
+      new Command({
+        perform: () => perform(this),
+      });
     // Backwards compatibility
-    //   this.perform = this.command?.perform;
+    this.perform = this.command?.perform;
 
     if (action.parent) {
       const parentActionImpl = options.store[action.parent];

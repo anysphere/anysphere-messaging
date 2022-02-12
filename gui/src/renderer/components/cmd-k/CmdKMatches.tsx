@@ -17,6 +17,9 @@ export function useMatches() {
     rootActionId: state.currentRootActionId,
   }));
 
+  /* If the rootActionId is not set, then the rootResults will be an array of all the actions that have
+  no parent. If the rootActionId is set, then the rootResults will be an array of all the actions that
+  have the rootActionId as their parent. */
   const rootResults = React.useMemo(() => {
     return Object.keys(actions).reduce((acc, actionId) => {
       const action = actions[actionId];
@@ -32,6 +35,8 @@ export function useMatches() {
     }, [] as ActionImpl[]);
   }, [actions, rootActionId]);
 
+  /* "The useCallback hook is used to memoize a function that returns a value. 
+  The memoized function will only be re-evaluated if one of the dependencies has changed." */
   const getDeepResults = React.useCallback((actions: ActionImpl[]) => {
     return (function collectChildren(
       actions: ActionImpl[],

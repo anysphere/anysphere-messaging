@@ -44,7 +44,7 @@ export function CmdKSearch(
   return (
     <div className="flex flex-row">
       <input
-        className="focus:outline-none flex-grow pl-2"
+        className="focus:outline-none flex-grow pl-2 mb-2"
         ref={ownRef}
         autoFocus
         autoComplete="off"
