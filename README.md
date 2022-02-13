@@ -2,6 +2,8 @@
 
 The world's first completely private messenger. For freedom.
 
+Clone: `git clone --recurse-submodules git@github.com:anysphere/anysphere`
+
 # Testing
 
 ```
