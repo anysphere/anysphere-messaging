@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 import * as React from "react";
 import { matchSorter } from "match-sorter";
 
@@ -98,7 +103,7 @@ export function useMatches() {
   );
 }
 
-function useInternalMatches(filtered: ActionImpl[], search: string) {
+function useInternalMatches(filtered: T[], search: string) {
   const value = React.useMemo(
     () => ({
       filtered,

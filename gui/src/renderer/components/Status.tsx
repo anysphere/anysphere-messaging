@@ -1,6 +1,7 @@
-// TODO: there should be some sort of status manager
-// a global setStatus should exist, probably through some context
-// should be an enum of acceptable statuses, global list
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
 
 import * as React from "react";
 

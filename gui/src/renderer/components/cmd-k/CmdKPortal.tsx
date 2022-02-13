@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 import { NONAME } from "dns";
 import * as React from "react";
 import Modal from "../Modal";
