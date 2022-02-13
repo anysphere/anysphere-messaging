@@ -115,7 +115,7 @@ export function SelectableList<T>(props: SelectableListProps<T>) {
     });
   }, [activeIndex, scrollToIndex]);
 
-  const execute = React.useCallback((item: RenderParams["item"]) => {
+  const execute = React.useCallback((item: RenderParams<T>["item"]) => {
     if (typeof item === "string") return;
     if (item.action) {
       item.action();
