@@ -60,7 +60,10 @@ function MultiSelect(props: {
   let selectBox = undefined;
   if (props.focused) {
     selectBox = (
-      <div className="mt-1" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="mt-1 max-h-32 overflow-scroll"
+        onClick={(e) => e.stopPropagation()}
+      >
         <SelectableList
           items={selectableOptions}
           searchable={true}
