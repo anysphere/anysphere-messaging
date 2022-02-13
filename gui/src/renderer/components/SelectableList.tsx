@@ -3,7 +3,7 @@ import { useVirtual } from "react-virtual";
 
 import { usePointerMovedSinceMount } from "../utils";
 
-interface ListItem<T> {
+export interface ListItem<T> {
   id: string;
   data: T;
   action: (() => void) | null;
@@ -15,14 +15,14 @@ interface RenderParams<T, TT = ListItem<T> | string> {
   active: boolean;
 }
 
-interface SelectableListProps<T> {
-  items: ListItem<T>[];
+interface SelectableListProps<T, TT = ListItem<T> | string> {
+  items: TT[];
   onRender: (params: RenderParams<T>) => React.ReactElement;
   globalAction: () => void;
   searchable: boolean;
 }
 
-export function SelectableList(props: SelectableListProps<T>) {
+export function SelectableList<T>(props: SelectableListProps<T>) {
   const activeRef = React.useRef<HTMLDivElement>(null);
   const parentRef = React.useRef(null);
 
