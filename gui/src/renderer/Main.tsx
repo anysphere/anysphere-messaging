@@ -100,7 +100,7 @@ function Main() {
         if (s) {
           console.log("SEND SUCCESS");
           statusState.setStatus({
-            message: "Message sent!",
+            message: `Message sent to ${to}!`,
             action: () => {},
             actionName: null,
           });
@@ -109,7 +109,7 @@ function Main() {
         } else {
           console.log("SEND FAILURE");
           statusState.setStatus({
-            message: "Message failed to send!",
+            message: `Message to ${to} failed to send.`,
             action: () => {},
             actionName: null,
           });

@@ -14,7 +14,6 @@ type MultiSelectData = {
 
 type WriteData = {
   content: string;
-  to: string;
   multiSelectState: MultiSelectData;
   focus: "content" | "to";
 };
@@ -112,7 +111,7 @@ function Write(props: {
   onClose: () => void;
 }) {
   const content = props.data.content;
-  const to = props.data.to;
+  const to = props.data.multiSelectState.text;
 
   const [friends, setFriends] = React.useState<Friend[]>([]);
 
@@ -127,6 +126,7 @@ function Write(props: {
   const send = React.useCallback(() => {
     if (to === "") {
       console.log("not sending! need to select whom to send to");
+      return;
     }
     props.send(content, to);
   }, [content, to]);
