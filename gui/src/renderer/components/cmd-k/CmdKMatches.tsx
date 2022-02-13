@@ -103,7 +103,7 @@ export function useMatches() {
   );
 }
 
-function useInternalMatches(filtered: T[], search: string) {
+function useInternalMatches(filtered: ActionImpl[], search: string) {
   const value = React.useMemo(
     () => ({
       filtered,
