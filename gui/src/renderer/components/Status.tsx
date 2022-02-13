@@ -51,6 +51,9 @@ export function StatusHandler(props: { children: React.ReactNode }) {
 
   const setVisible = React.useCallback(() => {
     setDisplay(true);
+    setTimeout(() => {
+      setDisplay(false);
+    }, 3000);
   }, [setDisplay]);
 
   return (
