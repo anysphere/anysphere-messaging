@@ -128,6 +128,21 @@ export function InitFriendModal({
   onPasteKey: (_: string) => void;
 }) {
   const [theirkey, setTheirkey] = React.useState<string>("");
+
+  const submitPaste = React.useCallback(() => {
+    onPasteKey(theirkey);
+  }, [onPasteKey, theirkey]);
+
+  React.useEffect(() => {
+    const handler = (event: any) => {
+      if (event.key === "Enter") {
+        submitPaste();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [submitPaste]);
+
   return (
     <Modal onClose={onClose}>
       <div className="grid">
@@ -169,7 +184,7 @@ export function InitFriendModal({
             />
             <button
               className="unselectable px-2 py-0 rounded-md bg-asbrown-100 text-asbrown-light"
-              onClick={() => onPasteKey(theirkey)}
+              onClick={submitPaste}
             >
               <div className="codicon codicon-check"></div>
             </button>

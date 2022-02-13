@@ -53,7 +53,7 @@ export function StatusHandler(props: { children: React.ReactNode }) {
     setDisplay(true);
     setTimeout(() => {
       setDisplay(false);
-    }, 3000);
+    }, 10000);
   }, [setDisplay]);
 
   return (

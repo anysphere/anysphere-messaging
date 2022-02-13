@@ -65,7 +65,6 @@ function Main() {
         unclosable: false,
       };
       setTabs([...tabs, readTab]);
-      console.log("selectedTabHI", selectedTab);
       setPreviousSelectedTab(selectedTab);
       setSelectedTab(readTab.id);
     },
@@ -98,23 +97,19 @@ function Main() {
     (content: string, to: string) => {
       (window as any).send(content, to).then((s: boolean) => {
         if (s) {
-          console.log("SEND SUCCESS");
           statusState.setStatus({
             message: `Message sent to ${to}!`,
             action: () => {},
             actionName: null,
           });
           statusState.setVisible();
-          // setStatus("Message sent!");
         } else {
-          console.log("SEND FAILURE");
           statusState.setStatus({
             message: `Message to ${to} failed to send.`,
             action: () => {},
             actionName: null,
           });
           statusState.setVisible();
-          // setStatus("Message failed to send!");
         }
       });
       let newTabs = [];
@@ -175,7 +170,25 @@ function Main() {
               friend={friend}
               friendKey={key}
               onPasteKey={(key: string) => {
-                (window as any).addFriend(friend, key);
+                (window as any)
+                  .addFriend(friend, key)
+                  .then((successOrError: any) => {
+                    if (successOrError === true) {
+                      statusState.setStatus({
+                        message: `Added ${friend}!`,
+                        action: () => {},
+                        actionName: null,
+                      });
+                      statusState.setVisible();
+                    } else {
+                      statusState.setStatus({
+                        message: `Friend ${friend} not added: ${successOrError}`,
+                        action: () => {},
+                        actionName: null,
+                      });
+                      statusState.setVisible();
+                    }
+                  });
                 closeModal();
               }}
             />
