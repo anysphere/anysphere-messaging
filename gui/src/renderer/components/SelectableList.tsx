@@ -79,13 +79,11 @@ export function SelectableList<T>(props: SelectableListProps<T>) {
         event.key === "ArrowUp" ||
         ((event.ctrlKey || !props.searchable) && event.key === "k")
       ) {
-        event.preventDefault();
         setActiveIndex(previousIndex);
       } else if (
         event.key === "ArrowDown" ||
         ((event.ctrlKey || !props.searchable) && event.key === "j")
       ) {
-        event.preventDefault();
         setActiveIndex(nextIndex);
       } else if (event.key === "Enter") {
         event.preventDefault();
