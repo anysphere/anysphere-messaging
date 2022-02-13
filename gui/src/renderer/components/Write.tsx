@@ -24,6 +24,7 @@ function MultiSelect(props: {
   multiSelectState: MultiSelectData;
   onSelect: (state: MultiSelectData) => void;
   onEdit: (state: MultiSelectData) => void;
+  onClick: () => void;
   focused: boolean;
   className: string;
 }) {
@@ -40,7 +41,7 @@ function MultiSelect(props: {
   let selectBox = undefined;
   if (props.focused) {
     selectBox = (
-      <div className="mt-1">
+      <div className="mt-1" onClick={(e) => e.stopPropagation()}>
         <SelectableList
           items={filteredOptions.map((friend) => {
             return {
@@ -82,7 +83,7 @@ function MultiSelect(props: {
   }, [props.focused, setInputRef]);
 
   return (
-    <div className={props.className}>
+    <div className={`${props.className}`} onClick={props.onClick}>
       <div className="grid pl-2">
         <input
           type="text"
@@ -179,11 +180,23 @@ function Write(props: {
               }
               multiSelectState={props.data.multiSelectState}
               focused={props.data.focus === "to"}
+              onClick={() => {
+                props.edit({
+                  ...props.data,
+                  focus: "to",
+                });
+              }}
             />
           </div>
         </div>
         <hr className="border-asbrown-100" />
         <textarea
+          onClick={() => {
+            props.edit({
+              ...props.data,
+              focus: "content",
+            });
+          }}
           className="whitespace-pre-wrap resize-none w-full focus:outline-none h-full grow h-96 pt-4 text-sm"
           value={content}
           onChange={(e) =>
