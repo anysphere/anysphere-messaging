@@ -6,7 +6,7 @@
 import * as React from "react";
 import { Friend } from "../types";
 import { useSearch, useFocus } from "../utils";
-import { SelectableList } from "./SelectableList";
+import { SelectableList, ListItem } from "./SelectableList";
 
 type MultiSelectData = {
   text: string;
@@ -33,33 +33,43 @@ function MultiSelect(props: {
     ["name"]
   );
 
-  const [inputRef, setInputRef] = useFocus();
+  let selectableOptions: (ListItem<string> | string)[] = filteredOptions.map(
+    (friend) => {
+      return {
+        id: friend.name,
+        action: () => {
+          console.log("action!");
+          props.onSelect({
+            ...props.multiSelectState,
+            text: friend.name,
+          });
+        },
+        data: friend.name,
+      };
+    }
+  );
 
-  console.log(filteredOptions);
+  if (selectableOptions.length === 0) {
+    selectableOptions.push(
+      `No friends matching ${props.multiSelectState.text}`
+    );
+  }
+
+  const [inputRef, setInputRef] = useFocus();
 
   let selectBox = undefined;
   if (props.focused) {
     selectBox = (
       <div className="mt-1" onClick={(e) => e.stopPropagation()}>
         <SelectableList
-          items={filteredOptions.map((friend) => {
-            return {
-              id: friend.name,
-              action: () => {
-                console.log("action!");
-                props.onSelect({
-                  ...props.multiSelectState,
-                  text: friend.name,
-                });
-              },
-              data: friend.name,
-            };
-          })}
+          items={selectableOptions}
           searchable={true}
           globalAction={() => {}}
           onRender={({ item, active }) =>
             typeof item === "string" ? (
-              <div className="unselectable">{item}</div>
+              <div className="unselectable text-asbrown-300 text-xs">
+                {item}
+              </div>
             ) : (
               <div
                 className={`text-sm px-2 py-1 mx-auto border-l-4 ${
