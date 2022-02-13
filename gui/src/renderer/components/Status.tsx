@@ -11,70 +11,66 @@ interface StatusProps {
 }
 
 interface StatusInterface {
-  setStatus: (status: string) => void;
+  status: StatusProps;
+  setStatus: (status: StatusProps) => void;
+  display: boolean;
+  setVisible: () => void;
 }
 
 export const StatusContext = React.createContext<StatusInterface>(
   {} as StatusInterface
 );
 
-export function Status(props: StatusProps) {
-  const [visible, setVisible] = React.useState(true);
-
-  const onClick = React.useCallback(() => {
-    setVisible(false);
-    props.action();
-  }, [props.action]);
-
+export function Status(props: { status: StatusProps; onClose: () => void }) {
   return (
     <div
-      className={`fixed top-0 left-0 right-0 bottom-0 bg-black opacity-50 z-50 ${
-        visible ? "" : "hidden"
-      }`}
+      className={`flex gap-1 flex-row fixed bottom-5 left-4 text-sm bg-asbrown-100 text-asbrown-light px-2 py-2 unselectable rounded-md`}
     >
-      <div
-        className={`fixed top-0 left-0 right-0 bottom-0 flex items-center justify-center ${
-          visible ? "" : "hidden"
-        }`}
-      >
+      <div className="pl-1">{props.status.message}</div>
+      <div className={`place-content-center grid`}>
         <div
-          className={`bg-white rounded-lg shadow-lg p-4 ${
-            props.actionName === null ? "" : "flex"
-          }`}
-        >
-          <div className="flex-1">
-            <div className="text-center">{props.message}</div>
-          </div>
-          {props.actionName !== null && (
-            <div className="flex-none">
-              <button className="btn btn-primary" onClick={onClick}>
-                {props.actionName}
-              </button>
-            </div>
-          )}
-        </div>
+          className="codicon codicon-close"
+          onClick={(event) => {
+            props.onClose();
+            event.stopPropagation();
+          }}
+        ></div>
       </div>
     </div>
   );
 }
 
 export function StatusHandler(props: { children: React.ReactNode }) {
-  const [status, setStatus] = React.useState<StatusProps | null>(null);
+  const [status, setStatus] = React.useState<StatusProps>({
+    message: "",
+    action: () => {},
+    actionName: null,
+  });
 
-  const handleStatus = React.useCallback((status: StatusProps) => {
-    setStatus(status);
-  }, []);
+  const [display, setDisplay] = React.useState(false);
+
+  const setVisible = React.useCallback(() => {
+    setDisplay(true);
+  }, [setDisplay]);
 
   return (
     <div>
-      {status && (
+      {display && (
         <Status
-          message={status.message}
-          action={status.action}
-          actionName={status.actionName}
+          status={status}
+          onClose={() => {
+            setDisplay(false);
+          }}
         />
       )}
-      <StatusContext.Provider value={{ handleStatus }}>
+      <StatusContext.Provider
+        value={{
+          status,
+          setStatus,
+          display,
+          setVisible,
+        }}
+      >
         {props.children}
       </StatusContext.Provider>
     </div>

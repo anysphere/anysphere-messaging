@@ -21,14 +21,13 @@ import { CmdKSearch } from "./components/cmd-k/CmdKSearch";
 import { CmdKResultRenderer } from "./components/cmd-k/CmdKResultRenderer";
 import { KBarOptions } from "./components/cmd-k/types";
 import { StatusHandler, StatusContext } from "./components/Status";
-import { ProgressPlugin } from "webpack";
 
 const defaultTabs: Tab[] = [
   { type: TabType.New, name: "New", data: null, unclosable: true },
   { type: TabType.All, name: "All", data: null, unclosable: true },
 ];
 
-function StatusMain() {
+function MainWrapper() {
   return (
     <StatusHandler>
       <Main />
@@ -42,6 +41,11 @@ function Main() {
     React.useState<number>(0);
   const [selectedTab, setSelectedTab] = React.useState<number>(0);
   const [modal, setModal] = React.useState<JSX.Element | null>(null);
+
+  const statusState = React.useContext(StatusContext);
+  console.log("statusState");
+  console.log(statusState);
+  console.log("endstatusState");
 
   const readMessage = React.useCallback(
     (message: Message, mode: string) => {
@@ -95,11 +99,21 @@ function Main() {
       (window as any).send(content, to).then((s: boolean) => {
         if (s) {
           console.log("SEND SUCCESS");
-          console.log(setStatus);
+          statusState.setStatus({
+            message: "Message sent!",
+            action: () => {},
+            actionName: null,
+          });
+          statusState.setVisible();
           // setStatus("Message sent!");
         } else {
           console.log("SEND FAILURE");
-          console.log(setStatus);
+          statusState.setStatus({
+            message: "Message failed to send!",
+            action: () => {},
+            actionName: null,
+          });
+          statusState.setVisible();
           // setStatus("Message failed to send!");
         }
       });
@@ -375,4 +389,4 @@ function Main() {
   );
 }
 
-export default StatusMain;
+export default MainWrapper;
