@@ -6,7 +6,7 @@
 import * as React from "react";
 import { Friend } from "../types";
 import { useSearch, useFocus } from "../utils";
-import { SelectableList } from "./SelectableList";
+import { SelectableList, ListItem } from "./SelectableList";
 
 type MultiSelectData = {
   text: string;
@@ -14,7 +14,6 @@ type MultiSelectData = {
 
 type WriteData = {
   content: string;
-  to: string;
   multiSelectState: MultiSelectData;
   focus: "content" | "to";
 };
@@ -24,6 +23,7 @@ function MultiSelect(props: {
   multiSelectState: MultiSelectData;
   onSelect: (state: MultiSelectData) => void;
   onEdit: (state: MultiSelectData) => void;
+  onClick: () => void;
   focused: boolean;
   className: string;
 }) {
@@ -33,33 +33,46 @@ function MultiSelect(props: {
     ["name"]
   );
 
-  const [inputRef, setInputRef] = useFocus();
+  let selectableOptions: (ListItem<string> | string)[] = filteredOptions.map(
+    (friend) => {
+      return {
+        id: friend.name,
+        action: () => {
+          console.log("action!");
+          props.onSelect({
+            ...props.multiSelectState,
+            text: friend.name,
+          });
+        },
+        data: friend.name,
+      };
+    }
+  );
 
-  console.log(filteredOptions);
+  if (selectableOptions.length === 0) {
+    selectableOptions.push(
+      `No friends matching ${props.multiSelectState.text}`
+    );
+  }
+
+  const [inputRef, setInputRef] = useFocus();
 
   let selectBox = undefined;
   if (props.focused) {
     selectBox = (
-      <div className="mt-1">
+      <div
+        className="mt-1 max-h-32 overflow-scroll"
+        onClick={(e) => e.stopPropagation()}
+      >
         <SelectableList
-          items={filteredOptions.map((friend) => {
-            return {
-              id: friend.name,
-              action: () => {
-                console.log("action!");
-                props.onSelect({
-                  ...props.multiSelectState,
-                  text: friend.name,
-                });
-              },
-              data: friend.name,
-            };
-          })}
+          items={selectableOptions}
           searchable={true}
           globalAction={() => {}}
           onRender={({ item, active }) =>
             typeof item === "string" ? (
-              <div className="unselectable">{item}</div>
+              <div className="unselectable text-asbrown-300 text-xs">
+                {item}
+              </div>
             ) : (
               <div
                 className={`text-sm px-2 py-1 mx-auto border-l-4 ${
@@ -82,7 +95,7 @@ function MultiSelect(props: {
   }, [props.focused, setInputRef]);
 
   return (
-    <div className={props.className}>
+    <div className={`${props.className}`} onClick={props.onClick}>
       <div className="grid pl-2">
         <input
           type="text"
@@ -111,7 +124,7 @@ function Write(props: {
   onClose: () => void;
 }) {
   const content = props.data.content;
-  const to = props.data.to;
+  const to = props.data.multiSelectState.text;
 
   const [friends, setFriends] = React.useState<Friend[]>([]);
 
@@ -126,6 +139,7 @@ function Write(props: {
   const send = React.useCallback(() => {
     if (to === "") {
       console.log("not sending! need to select whom to send to");
+      return;
     }
     props.send(content, to);
   }, [content, to]);
@@ -166,7 +180,7 @@ function Write(props: {
             </div>
             <MultiSelect
               className="flex-1"
-              options={friends}
+              options={friends.filter((friend) => friend.status === "added")}
               onEdit={(state: MultiSelectData) =>
                 props.edit({ ...props.data, multiSelectState: state })
               }
@@ -179,11 +193,23 @@ function Write(props: {
               }
               multiSelectState={props.data.multiSelectState}
               focused={props.data.focus === "to"}
+              onClick={() => {
+                props.edit({
+                  ...props.data,
+                  focus: "to",
+                });
+              }}
             />
           </div>
         </div>
         <hr className="border-asbrown-100" />
         <textarea
+          onClick={() => {
+            props.edit({
+              ...props.data,
+              focus: "content",
+            });
+          }}
           className="whitespace-pre-wrap resize-none w-full focus:outline-none h-full grow h-96 pt-4 text-sm"
           value={content}
           onChange={(e) =>

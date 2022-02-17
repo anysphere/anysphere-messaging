@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 interface CommandOptions {}
 
 export class Command {
@@ -6,7 +11,7 @@ export class Command {
   constructor(command: { perform: Command["perform"] }) {
     this.perform = () => {
       const negate = command.perform();
-      // no need for history if non negatable   
+      // no need for history if non negatable
       if (typeof negate !== "function") return;
       // return if no history enabled
 

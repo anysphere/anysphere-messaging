@@ -1,5 +1,7 @@
 # Anysphere Client
 
+This repository, along with [anysphere/asphr](https://github.com/anysphere/asphr), contains all client-side code run by Anysphere! Feel free to poke around. If you have any questions or concerns, please email us at `founders@anysphere.co`.
+
 ## Build
 
 Clone anysphere/asphr and anysphere/client and put them in a directory side-by-side. Then, in the `client` directory, run:

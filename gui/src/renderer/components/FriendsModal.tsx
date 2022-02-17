@@ -24,6 +24,25 @@ function FriendsModal({
     });
   }, []);
 
+  const addFriend = React.useCallback(() => {
+    if (friendname === "") {
+      console.log("ERR");
+    } else {
+      onAddFriend(friendname);
+    }
+  }, [onAddFriend, friendname]);
+
+  React.useEffect(() => {
+    const handler = (event: any) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        addFriend();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [addFriend]);
+
   return (
     <Modal onClose={onClose}>
       <div className="grid">
@@ -31,7 +50,7 @@ function FriendsModal({
         <hr className="border-asbrown-100" />
         <div className={`mt-1 ${selected === 0 ? "bg-asbeige" : ""}`}>
           <div className="p-2 flex flex-row gap-2">
-            <div className="unselectable text-sm">Add friend:</div>
+            <div className="unselectable text-sm">Add contact:</div>
             <input
               autoFocus={selected === 0}
               type="text"
@@ -39,21 +58,20 @@ function FriendsModal({
               onChange={(e) => {
                 setFriendname(e.target.value);
               }}
+              placeholder="What you would like to call them?"
               className="bg-red-100/[0] focus:border-none focus:border-red-500 flex-grow
               focus:outline-none text-sm
-              focus:ring-0"
+              focus:ring-0
+              placeholder:text-asbrown-200"
             />
             <button
               className="unselectable px-2 rounded-md bg-asbrown-100 text-asbrown-light "
-              onClick={() => onAddFriend(friendname)}
+              onClick={addFriend}
               disabled={friendname.length === 0}
             >
               <div className="codicon codicon-arrow-right"></div>
             </button>
           </div>
-        </div>
-        <div className="text-asbrown-300 unselectable text-xs text-center pt-1">
-          (First enter their name. Next, you'll get a secret key.)
         </div>
         <div className="text-asbrown-light unselectable text-xs pt-2">
           Pending invitations
@@ -110,6 +128,21 @@ export function InitFriendModal({
   onPasteKey: (_: string) => void;
 }) {
   const [theirkey, setTheirkey] = React.useState<string>("");
+
+  const submitPaste = React.useCallback(() => {
+    onPasteKey(theirkey);
+  }, [onPasteKey, theirkey]);
+
+  React.useEffect(() => {
+    const handler = (event: any) => {
+      if (event.key === "Enter") {
+        submitPaste();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [submitPaste]);
+
   return (
     <Modal onClose={onClose}>
       <div className="grid">
@@ -134,7 +167,9 @@ export function InitFriendModal({
           </div>
         </div>
         <div className="grid">
-          <div className="text-sm unselectable">2. Paste their key below.</div>
+          <div className="text-sm unselectable">
+            2. Ask {friend} to add you as a friend and send you their key.
+          </div>
           <div className="flex flex-row my-2 gap-1 justify-center mx-9">
             <input
               autoFocus
@@ -143,12 +178,13 @@ export function InitFriendModal({
               onChange={(e) => {
                 setTheirkey(e.target.value);
               }}
-              className="bg-red-100/[0] px-2 font-mono focus:outline-none
+              placeholder="Paste their key here"
+              className="bg-red-100/[0] px-2 placeholder:text-asbrown-200 font-mono focus:outline-none
               focus:ring-0 border-b-2 flex-grow border-asbrown-100"
             />
             <button
               className="unselectable px-2 py-0 rounded-md bg-asbrown-100 text-asbrown-light"
-              onClick={() => onPasteKey(theirkey)}
+              onClick={submitPaste}
             >
               <div className="codicon codicon-check"></div>
             </button>

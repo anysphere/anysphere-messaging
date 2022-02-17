@@ -1,9 +1,14 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 import * as React from "react";
 import { useVirtual } from "react-virtual";
 
 import { usePointerMovedSinceMount } from "../utils";
 
-interface ListItem<T> {
+export interface ListItem<T> {
   id: string;
   data: T;
   action: (() => void) | null;
@@ -15,14 +20,14 @@ interface RenderParams<T, TT = ListItem<T> | string> {
   active: boolean;
 }
 
-interface SelectableListProps<T> {
-  items: ListItem<T>[];
+interface SelectableListProps<T, TT = ListItem<T> | string> {
+  items: TT[];
   onRender: (params: RenderParams<T>) => React.ReactElement;
   globalAction: () => void;
   searchable: boolean;
 }
 
-export function SelectableList(props: SelectableListProps<T>) {
+export function SelectableList<T>(props: SelectableListProps<T>) {
   const activeRef = React.useRef<HTMLDivElement>(null);
   const parentRef = React.useRef(null);
 
@@ -79,13 +84,11 @@ export function SelectableList(props: SelectableListProps<T>) {
         event.key === "ArrowUp" ||
         ((event.ctrlKey || !props.searchable) && event.key === "k")
       ) {
-        event.preventDefault();
         setActiveIndex(previousIndex);
       } else if (
         event.key === "ArrowDown" ||
         ((event.ctrlKey || !props.searchable) && event.key === "j")
       ) {
-        event.preventDefault();
         setActiveIndex(nextIndex);
       } else if (event.key === "Enter") {
         event.preventDefault();
@@ -112,7 +115,7 @@ export function SelectableList(props: SelectableListProps<T>) {
     });
   }, [activeIndex, scrollToIndex]);
 
-  const execute = React.useCallback((item: RenderParams["item"]) => {
+  const execute = React.useCallback((item: RenderParams<T>["item"]) => {
     if (typeof item === "string") return;
     if (item.action) {
       item.action();

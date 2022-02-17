@@ -152,8 +152,10 @@ contextBridge.exposeInMainWorld(
     const addFriend = promisify(daemonClient.addFriend).bind(daemonClient);
     try {
       const response = await addFriend(request);
+      return true;
     } catch (e) {
       console.log(`error in addFriend: ${e}`);
+      return e;
     }
   }
 );

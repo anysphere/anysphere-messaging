@@ -20,11 +20,20 @@ import { CmdKPortal } from "./components/cmd-k/CmdKPortal";
 import { CmdKSearch } from "./components/cmd-k/CmdKSearch";
 import { CmdKResultRenderer } from "./components/cmd-k/CmdKResultRenderer";
 import { KBarOptions } from "./components/cmd-k/types";
+import { StatusHandler, StatusContext } from "./components/Status";
 
 const defaultTabs: Tab[] = [
   { type: TabType.New, name: "New", data: null, unclosable: true },
   { type: TabType.All, name: "All", data: null, unclosable: true },
 ];
+
+function MainWrapper() {
+  return (
+    <StatusHandler>
+      <Main />
+    </StatusHandler>
+  );
+}
 
 function Main() {
   const [tabs, setTabs] = React.useState<Tab[]>(defaultTabs);
@@ -32,6 +41,11 @@ function Main() {
     React.useState<number>(0);
   const [selectedTab, setSelectedTab] = React.useState<number>(0);
   const [modal, setModal] = React.useState<JSX.Element | null>(null);
+
+  const statusState = React.useContext(StatusContext);
+  console.log("statusState");
+  console.log(statusState);
+  console.log("endstatusState");
 
   const readMessage = React.useCallback(
     (message: Message, mode: string) => {
@@ -51,7 +65,6 @@ function Main() {
         unclosable: false,
       };
       setTabs([...tabs, readTab]);
-      console.log("selectedTabHI", selectedTab);
       setPreviousSelectedTab(selectedTab);
       setSelectedTab(readTab.id);
     },
@@ -78,9 +91,27 @@ function Main() {
     [tabs, selectedTab]
   );
 
+  const { setStatus } = React.useContext(StatusContext);
+
   const send = React.useCallback(
     (content: string, to: string) => {
-      (window as any).send(content, to);
+      (window as any).send(content, to).then((s: boolean) => {
+        if (s) {
+          statusState.setStatus({
+            message: `Message sent to ${to}!`,
+            action: () => {},
+            actionName: null,
+          });
+          statusState.setVisible();
+        } else {
+          statusState.setStatus({
+            message: `Message to ${to} failed to send.`,
+            action: () => {},
+            actionName: null,
+          });
+          statusState.setVisible();
+        }
+      });
       let newTabs = [];
       for (let i = 0; i < tabs.length; i++) {
         if (i === selectedTab) {
@@ -98,7 +129,7 @@ function Main() {
       setPreviousSelectedTab(selectedTab);
       setTabs(newTabs);
     },
-    [tabs, selectedTab, previousSelectedTab]
+    [tabs, selectedTab, previousSelectedTab, setStatus]
   );
 
   const writeMessage = React.useCallback(() => {
@@ -139,7 +170,25 @@ function Main() {
               friend={friend}
               friendKey={key}
               onPasteKey={(key: string) => {
-                (window as any).addFriend(friend, key);
+                (window as any)
+                  .addFriend(friend, key)
+                  .then((successOrError: any) => {
+                    if (successOrError === true) {
+                      statusState.setStatus({
+                        message: `Added ${friend}!`,
+                        action: () => {},
+                        actionName: null,
+                      });
+                      statusState.setVisible();
+                    } else {
+                      statusState.setStatus({
+                        message: `Friend ${friend} not added: ${successOrError}`,
+                        action: () => {},
+                        actionName: null,
+                      });
+                      statusState.setVisible();
+                    }
+                  });
                 closeModal();
               }}
             />
@@ -353,4 +402,4 @@ function Main() {
   );
 }
 
-export default Main;
+export default MainWrapper;
