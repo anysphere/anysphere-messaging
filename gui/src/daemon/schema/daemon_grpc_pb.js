@@ -115,6 +115,50 @@ function deserialize_asphrdaemon_GetNewMessagesResponse(buffer_arg) {
   return schema_daemon_pb.GetNewMessagesResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_asphrdaemon_GetOutboxMessagesRequest(arg) {
+  if (!(arg instanceof schema_daemon_pb.GetOutboxMessagesRequest)) {
+    throw new Error('Expected argument of type asphrdaemon.GetOutboxMessagesRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_GetOutboxMessagesRequest(buffer_arg) {
+  return schema_daemon_pb.GetOutboxMessagesRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_asphrdaemon_GetOutboxMessagesResponse(arg) {
+  if (!(arg instanceof schema_daemon_pb.GetOutboxMessagesResponse)) {
+    throw new Error('Expected argument of type asphrdaemon.GetOutboxMessagesResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_GetOutboxMessagesResponse(buffer_arg) {
+  return schema_daemon_pb.GetOutboxMessagesResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_asphrdaemon_GetSentMessagesRequest(arg) {
+  if (!(arg instanceof schema_daemon_pb.GetSentMessagesRequest)) {
+    throw new Error('Expected argument of type asphrdaemon.GetSentMessagesRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_GetSentMessagesRequest(buffer_arg) {
+  return schema_daemon_pb.GetSentMessagesRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_asphrdaemon_GetSentMessagesResponse(arg) {
+  if (!(arg instanceof schema_daemon_pb.GetSentMessagesResponse)) {
+    throw new Error('Expected argument of type asphrdaemon.GetSentMessagesResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_GetSentMessagesResponse(buffer_arg) {
+  return schema_daemon_pb.GetSentMessagesResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_asphrdaemon_GetStatusRequest(arg) {
   if (!(arg instanceof schema_daemon_pb.GetStatusRequest)) {
     throw new Error('Expected argument of type asphrdaemon.GetStatusRequest');
@@ -325,6 +369,28 @@ var DaemonService = exports.DaemonService = {
     requestDeserialize: deserialize_asphrdaemon_GetAllMessagesRequest,
     responseSerialize: serialize_asphrdaemon_GetAllMessagesResponse,
     responseDeserialize: deserialize_asphrdaemon_GetAllMessagesResponse,
+  },
+  getOutboxMessages: {
+    path: '/asphrdaemon.Daemon/GetOutboxMessages',
+    requestStream: false,
+    responseStream: false,
+    requestType: schema_daemon_pb.GetOutboxMessagesRequest,
+    responseType: schema_daemon_pb.GetOutboxMessagesResponse,
+    requestSerialize: serialize_asphrdaemon_GetOutboxMessagesRequest,
+    requestDeserialize: deserialize_asphrdaemon_GetOutboxMessagesRequest,
+    responseSerialize: serialize_asphrdaemon_GetOutboxMessagesResponse,
+    responseDeserialize: deserialize_asphrdaemon_GetOutboxMessagesResponse,
+  },
+  getSentMessages: {
+    path: '/asphrdaemon.Daemon/GetSentMessages',
+    requestStream: false,
+    responseStream: false,
+    requestType: schema_daemon_pb.GetSentMessagesRequest,
+    responseType: schema_daemon_pb.GetSentMessagesResponse,
+    requestSerialize: serialize_asphrdaemon_GetSentMessagesRequest,
+    requestDeserialize: deserialize_asphrdaemon_GetSentMessagesRequest,
+    responseSerialize: serialize_asphrdaemon_GetSentMessagesResponse,
+    responseDeserialize: deserialize_asphrdaemon_GetSentMessagesResponse,
   },
   getNewMessages: {
     path: '/asphrdaemon.Daemon/GetNewMessages',
