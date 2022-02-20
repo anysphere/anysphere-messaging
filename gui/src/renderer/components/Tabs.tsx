@@ -11,6 +11,7 @@ export interface Tab {
   name: string;
   data: any;
   unclosable: boolean;
+  id: string;
 }
 
 export enum TabType {
@@ -67,9 +68,11 @@ export function TabElem({
 
 export function TabContainer(props: {
   tabs: Tab[];
-  selectTab: (index: number) => void;
-  closeTab: (index: number) => void;
-  selectedTab: number;
+  selectTab: (id: string) => void;
+  closeTab: (id: string) => void;
+  nextTab: () => void;
+  previousTab: () => void;
+  selectedTab: Tab;
   hidden: boolean;
 }) {
   const [hovering, setHovering] = React.useState(false);
@@ -78,24 +81,20 @@ export function TabContainer(props: {
     const handler = (event: any) => {
       if (event.ctrlKey && event.shiftKey && event.key === "Tab") {
         event.preventDefault();
-        props.selectTab(
-          (props.selectedTab - 1 + props.tabs.length) % props.tabs.length
-        );
+        props.previousTab();
       } else if (event.ctrlKey && event.key === "Tab") {
         event.preventDefault();
-        props.selectTab((props.selectedTab + 1) % props.tabs.length);
+        props.nextTab();
       } else if (event.metaKey && event.key === "w") {
         event.preventDefault();
-        props.closeTab(props.selectedTab);
+        props.closeTab(props.selectedTab.id);
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [props]);
+  }, [props.previousTab, props.nextTab, props.closeTab, props.selectedTab]);
 
   const pointerMoved = usePointerMovedSinceMount();
-
-  console.log("hover", hovering);
 
   return (
     <div
@@ -114,9 +113,9 @@ export function TabContainer(props: {
           {props.tabs.map((tab, index) => (
             <TabElem
               key={index}
-              selected={index === props.selectedTab}
-              onClick={() => props.selectTab(index)}
-              onClose={() => props.closeTab(index)}
+              selected={tab.id === props.selectedTab.id}
+              onClick={() => props.selectTab(tab.id)}
+              onClose={() => props.closeTab(tab.id)}
               tab={tab}
             />
           ))}
@@ -125,4 +124,106 @@ export function TabContainer(props: {
       </div>
     </div>
   );
+}
+// returns: pushTab(tab), closeTab(id), nextTab(), previousTab(), switchTab(id), selectedTab
+export function useTabs(
+  initial: Tab[]
+): [
+  Tab,
+  Tab[],
+  (tab: Tab) => void,
+  (id: string) => void,
+  () => void,
+  () => void,
+  (id: string) => void,
+  (tab: Tab) => void
+] {
+  const defaultTab = initial[0];
+  const [tabs, setTabs] = React.useState<Tab[]>(initial);
+  const [previousSelectedTab, setPreviousSelectedTab] = React.useState<string>(
+    defaultTab.id
+  );
+  const [selectedTab, setSelectedTab] = React.useState<string>(defaultTab.id);
+
+  const pushTab = React.useCallback(
+    (tab: Tab) => {
+      setTabs((tabs) => [...tabs, tab]);
+      setSelectedTab((selectedTab) => {
+        setPreviousSelectedTab(selectedTab);
+        return tab.id;
+      });
+    },
+    [selectedTab]
+  );
+
+  const closeTab = React.useCallback(
+    (id: string) => {
+      setTabs((tabs) => {
+        const newTabs = tabs.filter((tab) => tab.id !== id);
+
+        setSelectedTab((selectedTab) => {
+          if (selectedTab === id) {
+            if (
+              newTabs.filter((tab) => tab.id === previousSelectedTab).length > 0
+            ) {
+              return previousSelectedTab;
+            } else {
+              return defaultTab.id;
+            }
+          } else {
+            return selectedTab;
+          }
+        });
+
+        return newTabs;
+      });
+    },
+    [selectedTab, previousSelectedTab]
+  );
+
+  const nextTab = React.useCallback(() => {
+    setSelectedTab((selectedTab) => {
+      setPreviousSelectedTab(selectedTab);
+      const index = tabs.findIndex((tab) => tab.id === selectedTab);
+      return tabs[(index + 1) % tabs.length].id;
+    });
+  }, [tabs, selectedTab]);
+
+  const previousTab = React.useCallback(() => {
+    setSelectedTab((selectedTab) => {
+      setPreviousSelectedTab(selectedTab);
+      const index = tabs.findIndex((tab) => tab.id === selectedTab);
+      return tabs[(index - 1 + tabs.length) % tabs.length].id;
+    });
+  }, [tabs, selectedTab]);
+
+  const switchTab = React.useCallback((id: string) => {
+    setSelectedTab((selectedTab) => {
+      setPreviousSelectedTab(selectedTab);
+      return id;
+    });
+  }, []);
+
+  const selectedActualTab = React.useMemo(() => {
+    const tab = tabs.find((tab) => tab.id === selectedTab);
+    return tab ? tab : defaultTab;
+  }, [tabs, selectedTab]);
+
+  const updateTab = React.useCallback(
+    (tab: Tab) => {
+      setTabs((tabs) => tabs.map((tabb) => (tabb.id === tab.id ? tab : tabb)));
+    },
+    [tabs]
+  );
+
+  return [
+    selectedActualTab,
+    tabs,
+    pushTab,
+    closeTab,
+    nextTab,
+    previousTab,
+    switchTab,
+    updateTab,
+  ];
 }
