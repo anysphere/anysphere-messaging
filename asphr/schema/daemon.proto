@@ -147,6 +147,7 @@ message GetStatusRequest {}
 
 message GetStatusResponse {
     bool registered = 1;
+    string release_hash = 2;
 }
 
 message KillRequest {}
