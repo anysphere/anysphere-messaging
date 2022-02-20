@@ -3,7 +3,7 @@ image:
 tasks:
   - name: Prepare Bazel
     before: "./gitpod-init.sh"
-    init: git submodule update --init --recursive --force asphr client && ./build-all.sh
+    init: ./setupgit.sh && ./build-all.sh
 ports:
   - port: 5900
     onOpen: ignore
