@@ -28,3 +28,5 @@ RUN sudo apt-get install apt-transport-https ca-certificates gnupg -y && \
 
 # install aws
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && sudo ./aws/install
+
+ENV PATH "$PATH:/workspace/anysphere/githooks/bin"
