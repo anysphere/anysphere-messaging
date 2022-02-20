@@ -33,7 +33,8 @@ int main(int argc, char** argv) {
                      binary_name, " (get-friends | friends)\n",
                      // TODO: explain that -a is optional.
                      binary_name, " (inbox | i) [-a | -all]\n", binary_name,
-                     " socket {address}\n");
+                     " socket {address}\n", binary_name, " kill\n", binary_name,
+                     " status\n");
 
   CommandLine cmd_line{argc, argv, help};
 
@@ -185,6 +186,21 @@ int main(int argc, char** argv) {
     kFriends_map_ = status.value();
     for (auto& [name, friend_] : kFriends_map_) {
       cout << name << endl;
+    }
+  } else if (command == "status") {
+    grpc::ClientContext context;
+    asphrdaemon::GetStatusRequest request;
+    asphrdaemon::GetStatusResponse response;
+
+    grpc::Status status = stub->GetStatus(&context, request, &response);
+
+    if (!status.ok()) {
+      cout << "get status failed: " << status.error_message() << endl;
+      return 0;
+    } else {
+      cout << "Registered: " << (response.registered() ? "true" : "false")
+           << endl;
+      cout << "Release commit hash: " << response.release_hash() << endl;
     }
   } else if (command == "kill") {
     grpc::ClientContext context;
