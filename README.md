@@ -2,7 +2,18 @@
 
 The world's first completely private messenger. For freedom.
 
-Clone: `git clone --recurse-submodules git@github.com:anysphere/anysphere`
+Clone: `git clone --recurse-submodules git@github.com:anysphere/anysphere && cd anysphere && ./setupgit.sh`
+
+# Git
+
+I recommend using the following git aliases:
+1. `git ll` for recursive pulling
+2. `git pp` for recursive pushing
+3. `git ss` for recursive status
+4. `git cc` for recursive committing
+5. `git ca` for recursive committing all
+
+To get these working, you need to run `./setupgit.sh` and follow its instructions.
 
 # Testing
 
