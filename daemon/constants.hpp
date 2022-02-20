@@ -20,6 +20,8 @@ constexpr auto DEFAULT_ROUND_DELAY_SECONDS = 60;
 
 constexpr auto DEFAULT_SERVER_ADDRESS = "server1.anysphere.co:443";
 
+constexpr auto RELEASE_COMMIT_HASH = "32622be70c454ef4fc64517444727226d4df983b";
+
 // this is copied from amazon-roots.pem
 // ideally we would do some kind of compile-time read file operation here, but
 // that seems to not exist

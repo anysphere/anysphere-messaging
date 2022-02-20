@@ -394,6 +394,7 @@ auto DaemonRpc::GetStatus(ServerContext* context,
   cout << "GetStatus() called" << endl;
 
   getStatusResponse->set_registered(config->has_registered());
+  getStatusResponse->set_release_hash(RELEASE_COMMIT_HASH);
 
   return Status::OK;
 }
