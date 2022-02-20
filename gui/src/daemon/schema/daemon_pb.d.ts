@@ -328,6 +328,90 @@ export namespace GetAllMessagesResponse {
   }
 }
 
+export class GetOutboxMessagesRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetOutboxMessagesRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetOutboxMessagesRequest): GetOutboxMessagesRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetOutboxMessagesRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetOutboxMessagesRequest;
+  static deserializeBinaryFromReader(message: GetOutboxMessagesRequest, reader: jspb.BinaryReader): GetOutboxMessagesRequest;
+}
+
+export namespace GetOutboxMessagesRequest {
+  export type AsObject = {
+  }
+}
+
+export class GetOutboxMessagesResponse extends jspb.Message {
+  getSuccess(): boolean;
+  setSuccess(value: boolean): void;
+
+  clearMessagesList(): void;
+  getMessagesList(): Array<MessageInfo>;
+  setMessagesList(value: Array<MessageInfo>): void;
+  addMessages(value?: MessageInfo, index?: number): MessageInfo;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetOutboxMessagesResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetOutboxMessagesResponse): GetOutboxMessagesResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetOutboxMessagesResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetOutboxMessagesResponse;
+  static deserializeBinaryFromReader(message: GetOutboxMessagesResponse, reader: jspb.BinaryReader): GetOutboxMessagesResponse;
+}
+
+export namespace GetOutboxMessagesResponse {
+  export type AsObject = {
+    success: boolean,
+    messagesList: Array<MessageInfo.AsObject>,
+  }
+}
+
+export class GetSentMessagesRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetSentMessagesRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetSentMessagesRequest): GetSentMessagesRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetSentMessagesRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetSentMessagesRequest;
+  static deserializeBinaryFromReader(message: GetSentMessagesRequest, reader: jspb.BinaryReader): GetSentMessagesRequest;
+}
+
+export namespace GetSentMessagesRequest {
+  export type AsObject = {
+  }
+}
+
+export class GetSentMessagesResponse extends jspb.Message {
+  getSuccess(): boolean;
+  setSuccess(value: boolean): void;
+
+  clearMessagesList(): void;
+  getMessagesList(): Array<MessageInfo>;
+  setMessagesList(value: Array<MessageInfo>): void;
+  addMessages(value?: MessageInfo, index?: number): MessageInfo;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetSentMessagesResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetSentMessagesResponse): GetSentMessagesResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetSentMessagesResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetSentMessagesResponse;
+  static deserializeBinaryFromReader(message: GetSentMessagesResponse, reader: jspb.BinaryReader): GetSentMessagesResponse;
+}
+
+export namespace GetSentMessagesResponse {
+  export type AsObject = {
+    success: boolean,
+    messagesList: Array<MessageInfo.AsObject>,
+  }
+}
+
 export class MessageInfo extends jspb.Message {
   getId(): string;
   setId(value: string): void;
@@ -460,6 +544,9 @@ export class GetStatusResponse extends jspb.Message {
   getRegistered(): boolean;
   setRegistered(value: boolean): void;
 
+  getReleaseHash(): string;
+  setReleaseHash(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetStatusResponse.AsObject;
   static toObject(includeInstance: boolean, msg: GetStatusResponse): GetStatusResponse.AsObject;
@@ -473,6 +560,7 @@ export class GetStatusResponse extends jspb.Message {
 export namespace GetStatusResponse {
   export type AsObject = {
     registered: boolean,
+    releaseHash: string,
   }
 }
 
