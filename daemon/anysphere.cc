@@ -84,7 +84,6 @@ int main(int argc, char** argv) {
   shared_ptr<asphrserver::Server::Stub> stub =
       asphrserver::Server::NewStub(channel);
 
-  // TODO: VERIFY AND MAKE SURE CRYPTO, CONFIG, STUB ARE ALL THREADSAFE!!!!!
   Transmitter transmitter(crypto, config, stub);
 
   // set up the daemon rpc server
