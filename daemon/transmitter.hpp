@@ -11,6 +11,14 @@
 #include "inbox.hpp"
 #include "outbox.hpp"
 
+/**
+ * @brief Transmitter manages sending and receiving messages.
+ *
+ * It owns an Inbox and an Outbox, and gets a shared_ptr to the Config and the
+ * Msgstore.
+ *
+ * It is NOT threadsafe.
+ */
 class Transmitter {
  public:
   Transmitter(const Crypto crypto, shared_ptr<Config> config,

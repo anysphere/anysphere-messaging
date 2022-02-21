@@ -185,6 +185,10 @@ auto Inbox::receive_message(FastPIRClient& client, Config& config,
   if (message.id() == friend_info.last_receive_id + 1) {
     auto new_friend_info = friend_info;
     new_friend_info.last_receive_id = message.id();
+    // TODO: update the last_receive_id atomically with adding the message to
+    // the inbox. in particular, we need to guard this update as well as the
+    // later inbox update with a lock on the config (not inbox because it is not
+    // threadsafe).
     config.update_friend(new_friend_info);
     // friend_info has been updated!
     auto friend_info_status = config.get_friend(friend_info.name);
