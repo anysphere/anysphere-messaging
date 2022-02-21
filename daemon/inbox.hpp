@@ -22,10 +22,12 @@ class Inbox {
 
   auto save() noexcept(false) -> void;
 
+  // returns the ACKs that should be sent from the current user to their index
   auto get_encrypted_acks(const vector<Friend>& friends, const Crypto& crypto,
                           const Friend& dummyMe)
       -> asphr::StatusOr<pir_value_t>;
 
+  // receives the ack value for a particular friend, parses it, and
   // modifies friend_info to store the latest ack id!
   auto update_ack_from_friend(Config& config, pir_value_t& pir_acks,
                               const Friend& friend_info, const Crypto& crypto)
