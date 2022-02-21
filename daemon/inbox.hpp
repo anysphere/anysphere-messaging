@@ -15,6 +15,12 @@ struct InboxMessage {
   uint32_t id;
 };
 
+/**
+ * @brief Inbox stores only messages for which all parts haven't been received
+ * yet.
+ *
+ * It is NOT threadsafe.
+ */
 class Inbox {
  public:
   Inbox(const string& file_address);

@@ -32,7 +32,12 @@ struct MessageToSend {
   static auto from_json(const asphr::json& j) -> MessageToSend;
 };
 
-// Outbox is ONLY concerned with outgoing messages.
+/**
+ * @brief Outbox stores message chunks that have not been received by their
+ * recipients yet.
+ *
+ * It is NOT threadsafe.
+ */
 class Outbox {
  public:
   Outbox(const string& file_address);
