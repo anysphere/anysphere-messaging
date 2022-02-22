@@ -40,7 +40,6 @@ Status DaemonRpc::RegisterUser(ServerContext* context,
 
   if (status.ok()) {
     cout << "register success" << endl;
-    registerUserResponse->set_success(true);
 
     const auto authentication_token = reply.authentication_token();
     auto alloc_repeated = reply.allocation();
@@ -62,7 +61,6 @@ Status DaemonRpc::RegisterUser(ServerContext* context,
 
   } else {
     cout << status.error_code() << ": " << status.error_message() << endl;
-    registerUserResponse->set_success(false);
     return Status(grpc::StatusCode::UNAVAILABLE, status.error_message());
   }
 
@@ -85,8 +83,6 @@ Status DaemonRpc::GetFriendList(
     new_friend->set_enabled(s.enabled);
   }
 
-  getFriendListResponse->set_success(true);
-
   return Status::OK;
 }
 
@@ -98,13 +94,11 @@ Status DaemonRpc::GenerateFriendKey(
 
   if (!config->has_registered()) {
     cout << "need to register first!" << endl;
-    generateFriendKeyResponse->set_success(false);
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
   if (!config->has_space_for_friends()) {
     cout << "no more allocation" << endl;
-    generateFriendKeyResponse->set_success(false);
     return Status(grpc::StatusCode::INVALID_ARGUMENT, "no more allocation");
   }
 
@@ -112,7 +106,6 @@ Status DaemonRpc::GenerateFriendKey(
       config->get_friend(generateFriendKeyRequest->name());
   if (friend_info_status.ok()) {
     cout << "friend already exists" << endl;
-    generateFriendKeyResponse->set_success(false);
     return Status(grpc::StatusCode::ALREADY_EXISTS, "friend already exists");
   }
 
@@ -129,7 +122,6 @@ Status DaemonRpc::GenerateFriendKey(
   config->add_friend(friend_info);
 
   generateFriendKeyResponse->set_key(friend_key);
-  generateFriendKeyResponse->set_success(true);
   return Status::OK;
 }
 
@@ -148,7 +140,6 @@ Status DaemonRpc::AddFriend(ServerContext* context,
 
   if (!friend_info_status.ok()) {
     cout << "friend not found; call generatefriendkey first!" << endl;
-    addFriendResponse->set_success(false);
     return Status(grpc::StatusCode::INVALID_ARGUMENT,
                   "friend not found; call generatefriendkey first!");
   }
@@ -158,7 +149,6 @@ Status DaemonRpc::AddFriend(ServerContext* context,
   auto decoded_friend_key = crypto.decode_friend_key(addFriendRequest->key());
   if (!decoded_friend_key.ok()) {
     cout << "invalid friend key" << endl;
-    addFriendResponse->set_success(false);
     return Status(grpc::StatusCode::INVALID_ARGUMENT, "invalid friend key");
   }
 
@@ -174,7 +164,6 @@ Status DaemonRpc::AddFriend(ServerContext* context,
 
   config->update_friend(friend_info);
 
-  addFriendResponse->set_success(true);
   return Status::OK;
 }
 
@@ -192,7 +181,6 @@ Status DaemonRpc::RemoveFriend(ServerContext* context,
 
   if (!friend_info_status.ok()) {
     cout << "friend not found" << endl;
-    removeFriendResponse->set_success(false);
     return Status(grpc::StatusCode::INVALID_ARGUMENT, "friend not found");
   }
 
@@ -201,11 +189,9 @@ Status DaemonRpc::RemoveFriend(ServerContext* context,
 
   if (!status.ok()) {
     cout << "remove friend failed" << endl;
-    removeFriendResponse->set_success(false);
     return Status(grpc::StatusCode::INVALID_ARGUMENT, "remove friend failed");
   }
 
-  removeFriendResponse->set_success(true);
   return Status::OK;
 }
 
@@ -223,7 +209,6 @@ Status DaemonRpc::SendMessage(ServerContext* context,
 
   if (!friend_info_status.ok()) {
     cout << "friend not found" << endl;
-    sendMessageResponse->set_success(false);
     return Status(grpc::StatusCode::INVALID_ARGUMENT, "friend not found");
   }
 
@@ -231,7 +216,6 @@ Status DaemonRpc::SendMessage(ServerContext* context,
 
   if (!friend_info.enabled) {
     cout << "friend disabled" << endl;
-    sendMessageResponse->set_success(false);
     return Status(grpc::StatusCode::INVALID_ARGUMENT, "friend disabled");
   }
 
@@ -241,11 +225,9 @@ Status DaemonRpc::SendMessage(ServerContext* context,
                                   "MESSAGE", friend_info.name);
   if (!status.ok()) {
     cout << "write message to file failed" << endl;
-    sendMessageResponse->set_success(false);
     return Status(grpc::StatusCode::UNKNOWN, "write message failed");
   }
 
-  sendMessageResponse->set_success(true);
   return Status::OK;
 }
 
@@ -260,45 +242,25 @@ Status DaemonRpc::GetAllMessages(
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  auto messages = get_entries(config->receive_file_address());
+  auto messages = msgstore->get_all_incoming_messages_sorted();
 
-  // sort messages
-  std::sort(messages.begin(), messages.end(), [](const json& a, const json& b) {
-    auto timestamp_str = a.at("timestamp").get<string>();
-    Time a_time;
-    string err;
-    absl::ParseTime(absl::RFC3339_full, timestamp_str, &a_time, &err);
-
-    auto timestamp_str2 = b.at("timestamp").get<string>();
-    Time b_time;
-    absl::ParseTime(absl::RFC3339_full, timestamp_str2, &b_time, &err);
-
-    // convert timestamp into time_t
-    return a_time > b_time;
-  });
-
-  for (auto& message_json : messages) {
-    auto id = message_id(message_json);
-
+  for (auto& m : messages) {
     auto message_info = getAllMessagesResponse->add_messages();
 
-    message_info->set_id(id);
-    message_info->set_sender(message_json.at("from").get<string>());
-    message_info->set_message(message_json.at("message").get<string>());
+    message_info->set_id(m.id);
+    message_info->set_sender(m.from);
+    message_info->set_message(m.message);
 
-    auto timestamp_str = message_json.at("timestamp").get<string>();
-
-    // convert timestamp using TimeUtil::FromString
+    // TODO: do this conversion not through strings....
+    auto timestamp_str = absl::FormatTime(m.timestamp);
     auto timestamp = message_info->mutable_timestamp();
     auto success = TimeUtil::FromString(timestamp_str, timestamp);
     if (!success) {
       cout << "invalid timestamp" << endl;
-      getAllMessagesResponse->set_success(false);
       return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
     }
   }
 
-  getAllMessagesResponse->set_success(true);
   return Status::OK;
 }
 
@@ -313,54 +275,25 @@ Status DaemonRpc::GetNewMessages(
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  auto messages = get_entries(config->receive_file_address());
+  auto messages = msgstore->get_new_incoming_messages_sorted();
 
-  auto seen_messages = get_entries(config->seen_file_address());
-
-  auto seen_set = std::unordered_set<string>();
-  for (auto& seen_message : seen_messages) {
-    seen_set.insert(seen_message.at("id").get<string>());
-  }
-
-  // sort messages
-  std::sort(messages.begin(), messages.end(), [](const json& a, const json& b) {
-    auto timestamp_str = a.at("timestamp").get<string>();
-    Time a_time;
-    string err;
-    absl::ParseTime(absl::RFC3339_full, timestamp_str, &a_time, &err);
-
-    auto timestamp_str2 = b.at("timestamp").get<string>();
-    Time b_time;
-    absl::ParseTime(absl::RFC3339_full, timestamp_str2, &b_time, &err);
-
-    // convert timestamp into time_t
-    return a_time > b_time;
-  });
-
-  for (auto& message_json : messages) {
-    auto id = message_id(message_json);
-    if (seen_set.contains(id)) {
-      continue;
-    }
-
+  for (auto& m : messages) {
     auto message_info = getNewMessagesResponse->add_messages();
-    message_info->set_id(id);
-    message_info->set_sender(message_json.at("from").get<string>());
-    message_info->set_message(message_json.at("message").get<string>());
 
-    auto timestamp_str = message_json.at("timestamp").get<string>();
+    message_info->set_id(m.id);
+    message_info->set_sender(m.from);
+    message_info->set_message(m.message);
 
-    // convert timestamp using TimeUtil::FromString
+    // TODO: do this conversion not through strings....
+    auto timestamp_str = absl::FormatTime(m.timestamp);
     auto timestamp = message_info->mutable_timestamp();
     auto success = TimeUtil::FromString(timestamp_str, timestamp);
     if (!success) {
       cout << "invalid timestamp" << endl;
-      getNewMessagesResponse->set_success(false);
       return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
     }
   }
 
-  getNewMessagesResponse->set_success(true);
   return Status::OK;
 }
 
@@ -376,13 +309,10 @@ Status DaemonRpc::MessageSeen(ServerContext* context,
 
   auto message_id = messageSeenRequest->id();
 
-  auto file = std::ofstream(config->seen_file_address(), std::ios_base::app);
-  json jmsg = {{"id", message_id}};
-  if (file.is_open()) {
-    file << std::setw(4) << jmsg.dump() << std::endl;
-    file.close();
-  } else {
-    return Status(grpc::StatusCode::UNKNOWN, "file is not open");
+  auto status = msgstore->mark_message_as_seen(message_id);
+  if (!status.ok()) {
+    cout << "mark message as seen failed" << endl;
+    return Status(grpc::StatusCode::UNKNOWN, "mark message as seen failed");
   }
 
   return Status::OK;
@@ -397,11 +327,6 @@ auto DaemonRpc::GetStatus(ServerContext* context,
   getStatusResponse->set_release_hash(RELEASE_COMMIT_HASH);
 
   return Status::OK;
-}
-
-auto DaemonRpc::message_id(const asphr::json& message_json) -> string {
-  return asphr::StrCat("from:", message_json.at("from").get<string>(), ":",
-                       message_json.at("id").get<uint32_t>());
 }
 
 auto DaemonRpc::Kill(ServerContext* context, const KillRequest* killRequest,

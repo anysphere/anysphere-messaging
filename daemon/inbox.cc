@@ -152,8 +152,6 @@ auto Inbox::receive_message(FastPIRClient& client, Config& config,
   friend_info = friend_info_status.value();
   // we do not want to break if this wasn't successful. it is ok if it
   // isn't!!!
-  cout << "acks successful or not (expect fail often): " << success_acks
-       << endl;
 
   auto answer = reply.pir_answer();
   auto answer_obj = client.answer_from_string(answer);
