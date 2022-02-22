@@ -11,15 +11,16 @@
 
 struct MessageToSend {
   Friend to;
-  uint32_t id;
+  uint32_t sequence_number;
   string msg;
   bool chunked;
   uint32_t num_chunks;
   uint32_t chunks_start_id;
+  string full_message_id;
 
   auto to_proto() -> asphrclient::Message {
     asphrclient::Message message;
-    message.set_id(id);
+    message.set_id(sequence_number);
     message.set_msg(msg);
     if (chunked) {
       message.set_num_chunks(num_chunks);
@@ -65,6 +66,8 @@ class Outbox {
   // ID, such that the first element has the lowest ID, i.e., is the first that
   // should be sent
   std::unordered_map<string, std::vector<MessageToSend>> outbox;
+  // stores the IDs of the messages currently in the outbox
+  std::unordered_set<string> outbox_ids;
 
   auto check_rep() const noexcept -> void;
 };

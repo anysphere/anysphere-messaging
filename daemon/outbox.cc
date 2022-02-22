@@ -10,22 +10,24 @@
 auto MessageToSend::from_json(const asphr::json& json) -> MessageToSend {
   MessageToSend message;
   message.to = Friend::from_json(json.at("to"));
-  message.id = json.at("id").get<uint32_t>();
+  message.sequence_number = json.at("sequence_number").get<uint32_t>();
   message.msg = json.at("msg").get<string>();
   message.chunked = json.at("chunked").get<bool>();
   message.num_chunks = json.at("num_chunks").get<uint32_t>();
   message.chunks_start_id = json.at("chunks_start_id").get<uint32_t>();
+  message.full_message_id = json.at("full_message_id").get<string>();
   return message;
 }
 
 auto MessageToSend::to_json() -> asphr::json {
   return asphr::json{
       {"to", to.to_json()},
-      {"id", id},
+      {"sequence_number", sequence_number},
       {"msg", msg},
       {"chunked", chunked},
       {"num_chunks", num_chunks},
       {"chunks_start_id", chunks_start_id},
+      {"full_message_id", full_message_id},
   };
 }
 
@@ -81,9 +83,15 @@ auto Outbox::save() noexcept(false) -> void {
   check_rep();
 }
 
-auto Outbox::add(const string& message, const Friend& friend_info) noexcept
-    -> void {
+auto Outbox::add(const string& id, const string& message,
+                 const Friend& friend_info) noexcept -> void {
   check_rep();
+
+  if (outbox_ids.contains(id)) {
+    // don't add the id if it already exists
+    return;
+  }
+
   // chunk! and add.
   vector<string> chunked_message;
   for (size_t i = 0; i < message.size(); i += GUARANTEED_SINGLE_MESSAGE_SIZE) {
@@ -92,22 +100,23 @@ auto Outbox::add(const string& message, const Friend& friend_info) noexcept
   }
   uint32_t last_send_id = friend_info.latest_ack_id;
   if (outbox.contains(friend_info.name)) {
-    last_send_id = outbox.at(friend_info.name).back().id;
+    last_send_id = outbox.at(friend_info.name).back().sequence_number;
   }
   uint32_t chunks_start_id;
   for (size_t i = 0; i < chunked_message.size(); i++) {
-    auto id = last_send_id + 1;
-    last_send_id = id;
+    auto sequence_number = last_send_id + 1;
+    last_send_id = sequence_number;
     if (i == 0) {
-      chunks_start_id = id;
+      chunks_start_id = sequence_number;
     }
 
     auto msgToSend = MessageToSend{friend_info,
-                                   id,
+                                   sequence_number,
                                    chunked_message.at(i),
                                    chunked_message.size() > 1,
                                    (uint32_t)chunked_message.size(),
-                                   chunks_start_id};
+                                   chunks_start_id,
+                                   id};
 
     if (outbox.contains(friend_info.name)) {
       outbox[friend_info.name].push_back(msgToSend);
@@ -136,7 +145,7 @@ auto Outbox::message_to_send(const Config& config, const Friend& dummyMe)
       cout << friend_name
            << ": friend_info.latest_ack_id=" << friend_info.latest_ack_id
            << endl;
-      if (messages.at(i).id <= friend_info.latest_ack_id) {
+      if (messages.at(i).sequence_number <= friend_info.latest_ack_id) {
         remove_num++;
         recently_acked_friends.push_back(friend_name);
       } else {
@@ -157,11 +166,12 @@ auto Outbox::message_to_send(const Config& config, const Friend& dummyMe)
 
   if (outbox.size() == 0) {
     return MessageToSend{.to = dummyMe,
-                         .id = 0,
+                         .sequence_number = 0,
                          .msg = "fake message",
                          .chunked = false,
                          .num_chunks = 0,
-                         .chunks_start_id = 0};
+                         .chunks_start_id = 0,
+                         .full_message_id = "fake:message:id"};
   }
 
   // now choose a message to send!!
@@ -181,15 +191,23 @@ auto Outbox::message_to_send(const Config& config, const Friend& dummyMe)
 }
 
 auto Outbox::check_rep() const noexcept -> void {
+  std::unordered_set<string> outbox_ids_set;
+
   assert(saved_file_address.size() > 0);
   for (auto& [friend_name, messages] : outbox) {
     for (auto& message : messages) {
       assert(message.to.name == friend_name);
+      outbox_ids_set.insert(message.full_message_id);
     }
     uint32_t prevMessageId = 0;
     for (auto& message : messages) {
-      assert(message.id > prevMessageId);
-      prevMessageId = message.id;
+      assert(message.sequence_number > prevMessageId);
+      prevMessageId = message.sequence_number;
     }
+  }
+
+  assert(outbox_ids.size() == outbox_ids_set.size());
+  for (auto& id : outbox_ids) {
+    assert(outbox_ids_set.contains(id));
   }
 }

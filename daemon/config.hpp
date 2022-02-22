@@ -92,6 +92,12 @@ class Config {
   std::filesystem::path data_dir;
   // me is used whenever we need to encrypt dummy data!
   Friend dummyMe;
+  // TODO: remove this lock! instead, all data should always be saved to and
+  // read from sqlite, which will let us use one big global lock for all data,
+  // which is critical for data integrity. performance shouldn't be a problem,
+  // but if it ever is, most things can be cached in memory, except the things
+  // that need to be atomic with the Msgstore. this very much feels like
+  // premature optimization, though.
   mutable std::mutex config_mtx;
 
   mutable std::mutex kill_mtx;

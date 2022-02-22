@@ -68,10 +68,12 @@ class Friend {
   int ack_index;
   bool enabled;
   // latest_ack is the latest ID that was ACKed by the friend
-  // any message with ID > latest_ack_id MUST be retried
+  // any message with ID > latest_ack_id MUST be retried. note that
+  // this refers to ID in the sequence number space, not the message ID space.
   uint32_t latest_ack_id;
   // last_receive_id is the value that should be ACKed. we acknowledge that we
-  // have received all IDs up to and including this value.
+  // have received all IDs up to and including this value. Note that this refers
+  // to ID in the sequence_number space, not the message ID space.
   uint32_t last_receive_id;
 
   auto to_json() -> asphr::json;
