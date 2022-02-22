@@ -54,8 +54,8 @@ class Msgstore {
   auto get_undelivered_outgoing_messages() -> vector<OutgoingMessage>;
 
  private:
-  // TODO: does this need to be a recursive mutex, say, if we want to support
-  // transactions?
+  // TODO: remove this mutex! eventually, all data should only ever be read and
+  // written to the database on every call, and never stored in memory.
   mutable std::mutex msgstore_mtx;
 
   auto message_id(bool from, const string& person, int sequence_number)
