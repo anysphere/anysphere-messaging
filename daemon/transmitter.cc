@@ -10,10 +10,12 @@
 // TODO: make an actual directory structure here! do not just do giant .ndjson
 // files
 Transmitter::Transmitter(const Crypto crypto, shared_ptr<Config> config,
-                         shared_ptr<asphrserver::Server::Stub> stub)
+                         shared_ptr<asphrserver::Server::Stub> stub,
+                         shared_ptr<Msgstore> msgstore)
     : crypto(crypto),
       config(config),
       stub(stub),
+      msgstore(msgstore),
       inbox(config->data_dir_address() / "inbox.json"),
       outbox(config->data_dir_address() / "outbox.json") {
   check_rep();
@@ -76,26 +78,17 @@ auto Transmitter::retrieve_messages() -> void {
   if (status.ok()) {
     cout << "received message!!!" << endl;
 
+    // TODO: inbox.receive_message and msgstore->add_incoming_message need to be
+    // atomic!!!
+    // TODO: msgstore should mark a message as delivered here possibly,
+    // depending on the ACKs.
     auto message_opt =
         inbox.receive_message(client, *config, reply, friend_info, crypto,
                               previous_success_receive_friend);
     if (message_opt.has_value()) {
       auto message = message_opt.value();
-      cout << "actual message: " << message.message << endl;
-      auto file =
-          std::ofstream(config->receive_file_address(), std::ios_base::app);
-
-      auto time = absl::FormatTime(absl::Now(), absl::UTCTimeZone());
-      json jmsg = {{"from", message.friend_name},
-                   {"timestamp", time},
-                   {"id", message.id},
-                   {"message", message.message},
-                   {"type", "MESSAGE_RECEIVED"}};
-      if (file.is_open()) {
-        file << std::setw(4) << jmsg.dump() << std::endl;
-        cout << jmsg.dump() << endl;
-        file.close();
-      }
+      msgstore->add_incoming_message(message.id, message.friend_name,
+                                     message.message);
     } else {
       cout << "no message received" << endl;
     }
@@ -112,27 +105,25 @@ auto Transmitter::send_messages() -> void {
     return;
   }
 
-  auto new_entries =
-      get_new_entries(config->send_file_address(), last_ui_timestamp);
-  last_ui_timestamp = absl::Now();
+  auto undelivered_messages = msgstore->get_undelivered_outgoing_messages();
 
   auto authentication_token = config->registration_info().authentication_token;
 
-  std::unordered_map<string, string> friend_to_message;
-
-  for (auto& entry : new_entries) {
-    auto to = entry.at("to").get<string>();
-    const auto friend_info_status = config->get_friend(to);
+  for (auto& undelivered_msg : undelivered_messages) {
+    const auto friend_info_status = config->get_friend(undelivered_msg.to);
     if (!friend_info_status.ok()) {
-      std::cerr << "FriendHashTable does not contain " << to
+      std::cerr << "FriendHashTable does not contain " << undelivered_msg.to
                 << "; ignoring message" << endl;
       continue;
     }
     const auto friend_info = friend_info_status.value();
-    outbox.add(entry.at("message").get<string>(), friend_info);
+    outbox.add(undelivered_msg.id, undelivered_msg.message, friend_info);
   }
 
   auto messageToSend = outbox.message_to_send(*config, config->dummy_me());
+  // TODO: update status in msgstore for this message so it can be shown in the
+  // UI that now we're trying to send this
+
   // always send to the 0th index. currently we only support one index per
   // person!! in the future, this may change, so please don't assert that the
   // length is 1.

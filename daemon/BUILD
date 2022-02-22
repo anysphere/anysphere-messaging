@@ -16,12 +16,14 @@ cc_library(
         "config.cc",
         "crypto.cc",
         "friend.cc",
+        "msgstore.cc",
     ],
     hdrs = [
         "config.hpp",
         "constants.hpp",
         "crypto.hpp",
         "friend.hpp",
+        "msgstore.hpp",
     ],
     linkstatic = True,
     deps = [

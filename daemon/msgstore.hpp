@@ -1,20 +1,22 @@
 #include "asphr/asphr.hpp"
 
-// TODO: should these be the same or separate?
-struct IncomingMessage {
+struct BaseMessage {
   // id is a unique identifier among all messages on this device
   string id;
-  string from;
   string message;
-  absl::Time timestamp;
+};
+struct IncomingMessage : BaseMessage {
+  string from;
+  // received_timestamp is the time at which the message was received, by us. it
+  // is NOT when the message was sent.
+  absl::Time received_timestamp;
   bool seen;
 };
-struct OutgoingMessage {
-  // id is a unique identifier among all messages on this device
-  string id;
+struct OutgoingMessage : BaseMessage {
   string to;
-  string message;
-  absl::Time timestamp;
+  // written_timestamp is the time at which the message was written, NOT when it
+  // was sent or delivered or read.
+  absl::Time written_timestamp;
   bool delivered;
 };
 
@@ -37,18 +39,25 @@ class Msgstore {
   // add_incoming_message adds a message that was received to the Msgstore.
   // call this only in a transaction with removing all of the message chunks
   // from the Inbox.
-  auto add_incoming_message(const string& id, const string& from,
+  auto add_incoming_message(int sequence_number, const string& from,
                             const string& message) -> void;
+  auto mark_message_as_seen(const string& id) -> asphr::Status;
 
   // TODO: we want some kind of message querying interface here..... maybe we
   // should just expose the raw SQL??? otherwise we kinda need to invent our own
   // querying system that we then parse into SQL which seems a little
   // over-engineered. get_incoming_message returns all messages that have been
   // received
-  auto get_incoming_messages() -> vector<IncomingMessage>;
+  auto get_all_incoming_messages_sorted() -> vector<IncomingMessage>;
+  auto get_new_incoming_messages_sorted() -> vector<IncomingMessage>;
+
+  auto get_undelivered_outgoing_messages() -> vector<OutgoingMessage>;
 
  private:
   // TODO: does this need to be a recursive mutex, say, if we want to support
   // transactions?
   mutable std::mutex msgstore_mtx;
+
+  auto message_id(bool from, const string& person, int sequence_number)
+      -> string;
 };

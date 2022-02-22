@@ -9,6 +9,7 @@
 #include "config.hpp"
 #include "crypto.hpp"
 #include "inbox.hpp"
+#include "msgstore.hpp"
 #include "outbox.hpp"
 
 /**
@@ -22,7 +23,8 @@
 class Transmitter {
  public:
   Transmitter(const Crypto crypto, shared_ptr<Config> config,
-              shared_ptr<asphrserver::Server::Stub> stub);
+              shared_ptr<asphrserver::Server::Stub> stub,
+              shared_ptr<Msgstore> msgstore);
 
   auto retrieve_messages() -> void;
 
@@ -32,6 +34,8 @@ class Transmitter {
   const Crypto crypto;
   shared_ptr<Config> config;
   shared_ptr<asphrserver::Server::Stub> stub;
+
+  shared_ptr<Msgstore> msgstore;
 
   Inbox inbox;
   Outbox outbox;

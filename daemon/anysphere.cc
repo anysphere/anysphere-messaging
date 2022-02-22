@@ -63,6 +63,8 @@ int main(int argc, char** argv) {
     server_address = config->server_address();
   }
 
+  auto msgstore = make_shared<Msgstore>();
+
   const Crypto crypto;
 
   // remove the socket file first
@@ -84,10 +86,10 @@ int main(int argc, char** argv) {
   shared_ptr<asphrserver::Server::Stub> stub =
       asphrserver::Server::NewStub(channel);
 
-  Transmitter transmitter(crypto, config, stub);
+  Transmitter transmitter(crypto, config, stub, msgstore);
 
   // set up the daemon rpc server
-  auto daemon = DaemonRpc(crypto, config, stub);
+  auto daemon = DaemonRpc(crypto, config, stub, msgstore);
   grpc::ServerBuilder builder;
   builder.AddListeningPort(socket_address, grpc::InsecureServerCredentials());
   builder.RegisterService(&daemon);
