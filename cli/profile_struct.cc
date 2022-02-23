@@ -18,8 +18,6 @@ void Profile::add(unique_ptr<asphrdaemon::Daemon::Stub>& stub) {
 
   if (!status.ok()) {
     cout << "register user failed: " << status.error_message() << endl;
-  } else if (!reply.success()) {
-    cout << "register user failed from the daemon." << endl;
   } else {
     cout << "Registered as " << name_ << endl;
   }
@@ -39,10 +37,6 @@ auto Profile::get_friends(unique_ptr<asphrdaemon::Daemon::Stub>& stub)
     cout << "get friends failed: " << status.error_message() << endl;
     return asphr::Status(absl::StatusCode::kUnknown,
                          "get friends failed: " + status.error_message());
-  } else if (!reply.success()) {
-    cout << "get friends failed from the daemon." << endl;
-    return asphr::Status(absl::StatusCode::kUnknown,
-                         "get friends failed from the daemon.");
   }
 
   Friend::FriendMap friends_map;
@@ -69,8 +63,6 @@ void Beta_Profile::add(unique_ptr<asphrdaemon::Daemon::Stub>& stub) {
 
   if (!status.ok()) {
     cout << "register user failed: " << status.error_message() << endl;
-  } else if (!reply.success()) {
-    cout << "register user failed from the daemon." << endl;
   } else {
     cout << "Registered as " << profile_.name() << endl;
   }

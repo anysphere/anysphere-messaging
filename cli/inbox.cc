@@ -25,15 +25,15 @@ void Inbox::update(unique_ptr<asphrdaemon::Daemon::Stub>& stub,
 
   grpc::Status status = stub->GetAllMessages(&context, request, &response);
 
-  if (!status.ok() || !response.success()) {
+  if (!status.ok()) {
     cout << "get all messages failed: " << status.error_message() << endl;
   } else {
     for (auto& message : response.messages()) {
-      auto time_proto = message.timestamp();
+      auto time_proto = message.received_timestamp();
       absl::Time time = absl::FromUnixSeconds(time_proto.seconds());
 
       new_messages.emplace_back(
-          time, Message{message.message(), me, message.sender()});
+          time, Message{message.m().message(), me, message.from()});
     }
   }
 

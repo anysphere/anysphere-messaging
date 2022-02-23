@@ -46,11 +46,12 @@ auto read_outbox_json(const string& file_address) -> asphr::json {
   return json;
 }
 
-Outbox::Outbox(const string& file_address)
-    : Outbox(read_outbox_json(file_address), file_address) {}
+Outbox::Outbox(const string& file_address, shared_ptr<Msgstore> msgstore)
+    : Outbox(read_outbox_json(file_address), file_address, msgstore) {}
 
-Outbox::Outbox(const asphr::json& serialized_json, const string& file_address)
-    : saved_file_address(file_address) {
+Outbox::Outbox(const asphr::json& serialized_json, const string& file_address,
+               shared_ptr<Msgstore> msgstore)
+    : msgstore(msgstore), saved_file_address(file_address) {
   for (auto& messageJson : serialized_json.at("outbox")) {
     auto message = MessageToSend::from_json(messageJson);
     if (outbox.contains(message.to.name)) {
@@ -63,7 +64,7 @@ Outbox::Outbox(const asphr::json& serialized_json, const string& file_address)
   for (auto& [friend_name, messages] : outbox) {
     std::sort(messages.begin(), messages.end(),
               [](const MessageToSend& a, const MessageToSend& b) {
-                return a.id < b.id;
+                return a.sequence_number < b.sequence_number;
               });
   }
 
@@ -72,7 +73,7 @@ Outbox::Outbox(const asphr::json& serialized_json, const string& file_address)
 
 auto Outbox::save() noexcept(false) -> void {
   check_rep();
-  asphr::json j = {"outbox", {}};
+  asphr::json j = {{"outbox", {}}};
   for (auto& [friend_name, messages] : outbox) {
     for (auto& message : messages) {
       j.at("outbox").push_back(message.to_json());
@@ -150,6 +151,18 @@ auto Outbox::message_to_send(const Config& config, const Friend& dummyMe)
         recently_acked_friends.push_back(friend_name);
       } else {
         break;
+      }
+    }
+    // mark messages as delivered!
+    for (size_t i = 0; i < static_cast<size_t>(remove_num); i++) {
+      if (i == messages.size() - 1 || messages.at(i).full_message_id !=
+                                          messages.at(i + 1).full_message_id) {
+        auto status =
+            msgstore->deliver_outgoing_message(messages.at(i).full_message_id);
+        if (!status.ok()) {
+          cout << "failed to mark message as delivered: " << status << endl;
+        }
+        outbox_ids.erase(messages.at(i).full_message_id);
       }
     }
     messages.erase(messages.begin(), messages.begin() + remove_num);

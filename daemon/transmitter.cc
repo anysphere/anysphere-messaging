@@ -17,7 +17,7 @@ Transmitter::Transmitter(const Crypto crypto, shared_ptr<Config> config,
       stub(stub),
       msgstore(msgstore),
       inbox(config->data_dir_address() / "inbox.json"),
-      outbox(config->data_dir_address() / "outbox.json") {
+      outbox(config->data_dir_address() / "outbox.json", msgstore) {
   check_rep();
 }
 
@@ -81,7 +81,8 @@ auto Transmitter::retrieve_messages() -> void {
     // TODO: inbox.receive_message and msgstore->add_incoming_message need to be
     // atomic!!!
     // TODO: msgstore should mark a message as delivered here possibly,
-    // depending on the ACKs.
+    // depending on the ACKs. EDIT: this is currently done in outbox which seems
+    // fine
     auto message_opt =
         inbox.receive_message(client, *config, reply, friend_info, crypto,
                               previous_success_receive_friend);
@@ -105,7 +106,8 @@ auto Transmitter::send_messages() -> void {
     return;
   }
 
-  auto undelivered_messages = msgstore->get_undelivered_outgoing_messages();
+  auto undelivered_messages =
+      msgstore->get_undelivered_outgoing_messages_sorted();
 
   auto authentication_token = config->registration_info().authentication_token;
 

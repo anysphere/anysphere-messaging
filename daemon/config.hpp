@@ -55,11 +55,8 @@ class Config {
                    const vector<int>& allocation) -> void;
   auto registration_info() -> RegistrationInfo;
 
-  // TODO: transition to .md files stored with metadata, rather than the giant
-  // .ndjson files.
-  auto receive_file_address() -> std::filesystem::path;
-  auto send_file_address() -> std::filesystem::path;
-  auto seen_file_address() -> std::filesystem::path;
+  // TODO: transition to sqlite
+  auto msgstore_address() -> std::filesystem::path;
   auto data_dir_address() -> std::filesystem::path;
   auto server_address() -> std::string;
 
