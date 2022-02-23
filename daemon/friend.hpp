@@ -19,6 +19,7 @@ class Friend {
         ack_index(0),
         enabled(false),
         latest_ack_id(0),
+        latest_send_id(0),
         last_receive_id(0) {
     auto rng = std::default_random_engine{};
 
@@ -43,7 +44,8 @@ class Friend {
   }
   Friend(const string& name, const int read_index, const string& read_key,
          const string& write_key, const int ack_index, const bool enabled,
-         const uint32_t latest_ack_id, const uint32_t last_receive_id)
+         const uint32_t latest_ack_id, const uint32_t latest_send_id,
+         const uint32_t last_receive_id)
       : name(name),
         read_index(read_index),
         read_key(read_key),
@@ -51,6 +53,7 @@ class Friend {
         ack_index(ack_index),
         enabled(enabled),
         latest_ack_id(latest_ack_id),
+        latest_send_id(latest_send_id),
         last_receive_id(last_receive_id) {
     check_rep();
   }
@@ -71,6 +74,11 @@ class Friend {
   // any message with ID > latest_ack_id MUST be retried. note that
   // this refers to ID in the sequence number space, not the message ID space.
   uint32_t latest_ack_id;
+  // latest_send_id is the latest full message ID that was sent to the friend
+  // note that this is not a chunked ID, but the full message ID
+  // hence, it might be that latest_ack_id > latest_send_id, even if that seems
+  // weird
+  uint32_t latest_send_id;
   // last_receive_id is the value that should be ACKed. we acknowledge that we
   // have received all IDs up to and including this value. Note that this refers
   // to ID in the sequence_number space, not the message ID space.

@@ -38,7 +38,7 @@ Inbox::Inbox(const asphr::json& serialized_json, const string& file_address)
 
 auto Inbox::save() noexcept(false) -> void {
   check_rep();
-  asphr::json j = {"inprogress", {}};
+  asphr::json j = {{"inprogress", {}}};
   for (const auto& inbox_item : inbox) {
     auto friend_name = inbox_item.first.first;
     auto chunk_start_id = inbox_item.first.second;
@@ -143,6 +143,7 @@ auto Inbox::receive_message(FastPIRClient& client, Config& config,
   // now check to see what we can do with this! update the friend ACK info
   auto success_acks =
       update_ack_from_friend(config, decoded_acks, friend_info, crypto);
+  cout << "success acks: " << (success_acks ? "true" : "false") << endl;
   // friend_info may have been updated!
   auto friend_info_status = config.get_friend(friend_info.name);
   if (!friend_info_status.ok()) {

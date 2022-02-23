@@ -7,6 +7,7 @@
 
 #include "asphr/asphr.hpp"
 #include "config.hpp"
+#include "msgstore.hpp"
 #include "schema/message.pb.h"
 
 struct MessageToSend {
@@ -41,8 +42,9 @@ struct MessageToSend {
  */
 class Outbox {
  public:
-  Outbox(const string& file_address);
-  Outbox(const asphr::json& serialized_json, const string& file_address);
+  Outbox(const string& file_address, shared_ptr<Msgstore> msgstore);
+  Outbox(const asphr::json& serialized_json, const string& file_address,
+         shared_ptr<Msgstore> msgstore);
 
   auto save() noexcept(false) -> void;
 
@@ -61,6 +63,8 @@ class Outbox {
       -> MessageToSend;
 
  private:
+  shared_ptr<Msgstore> msgstore;
+
   const string saved_file_address;
   // stores a mapping from friend -> message to send. the vector is sorted by
   // ID, such that the first element has the lowest ID, i.e., is the first that

@@ -6,7 +6,6 @@
 #include "daemon_rpc.hpp"
 
 #include "google/protobuf/util/time_util.h"
-#include "utils.hpp"
 
 using namespace asphrdaemon;
 
@@ -221,8 +220,7 @@ Status DaemonRpc::SendMessage(ServerContext* context,
 
   auto message = sendMessageRequest->message();
 
-  auto status = write_msg_to_file(config->send_file_address(), message,
-                                  "MESSAGE", friend_info.name);
+  auto status = msgstore->add_outgoing_message(friend_info.name, message);
   if (!status.ok()) {
     cout << "write message to file failed" << endl;
     return Status(grpc::StatusCode::UNKNOWN, "write message failed");
@@ -247,13 +245,14 @@ Status DaemonRpc::GetAllMessages(
   for (auto& m : messages) {
     auto message_info = getAllMessagesResponse->add_messages();
 
-    message_info->set_id(m.id);
-    message_info->set_sender(m.from);
-    message_info->set_message(m.message);
+    auto baseMessage = message_info->mutable_m();
+    baseMessage->set_id(m.id);
+    baseMessage->set_message(m.message);
+    message_info->set_from(m.from);
 
     // TODO: do this conversion not through strings....
-    auto timestamp_str = absl::FormatTime(m.timestamp);
-    auto timestamp = message_info->mutable_timestamp();
+    auto timestamp_str = absl::FormatTime(m.received_timestamp);
+    auto timestamp = message_info->mutable_received_timestamp();
     auto success = TimeUtil::FromString(timestamp_str, timestamp);
     if (!success) {
       cout << "invalid timestamp" << endl;
@@ -280,13 +279,84 @@ Status DaemonRpc::GetNewMessages(
   for (auto& m : messages) {
     auto message_info = getNewMessagesResponse->add_messages();
 
-    message_info->set_id(m.id);
-    message_info->set_sender(m.from);
-    message_info->set_message(m.message);
+    auto baseMessage = message_info->mutable_m();
+    baseMessage->set_id(m.id);
+    baseMessage->set_message(m.message);
+    message_info->set_from(m.from);
 
     // TODO: do this conversion not through strings....
-    auto timestamp_str = absl::FormatTime(m.timestamp);
-    auto timestamp = message_info->mutable_timestamp();
+    auto timestamp_str = absl::FormatTime(m.received_timestamp);
+    auto timestamp = message_info->mutable_received_timestamp();
+    auto success = TimeUtil::FromString(timestamp_str, timestamp);
+    if (!success) {
+      cout << "invalid timestamp" << endl;
+      return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+    }
+  }
+
+  return Status::OK;
+}
+
+Status DaemonRpc::GetOutboxMessages(
+    ServerContext* context,
+    const GetOutboxMessagesRequest* getOutboxMessagesRequest,
+    GetOutboxMessagesResponse* getOutboxMessagesResponse) {
+  using TimeUtil = google::protobuf::util::TimeUtil;
+  cout << "GetOutboxMessages() called" << endl;
+
+  if (!config->has_registered()) {
+    cout << "need to register first!" << endl;
+    return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
+  }
+
+  auto messages = msgstore->get_undelivered_outgoing_messages_sorted();
+
+  for (auto& m : messages) {
+    auto message_info = getOutboxMessagesResponse->add_messages();
+
+    auto baseMessage = message_info->mutable_m();
+    baseMessage->set_id(m.id);
+    baseMessage->set_message(m.message);
+    message_info->set_to(m.to);
+    message_info->set_delivered(m.delivered);
+
+    auto timestamp_str = absl::FormatTime(m.written_timestamp);
+    auto timestamp = message_info->mutable_written_timestamp();
+    auto success = TimeUtil::FromString(timestamp_str, timestamp);
+    if (!success) {
+      cout << "invalid timestamp" << endl;
+      return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+    }
+  }
+
+  return Status::OK;
+}
+
+Status DaemonRpc::GetSentMessages(
+    ServerContext* context,
+    const GetSentMessagesRequest* getSentMessagesRequest,
+    GetSentMessagesResponse* getSentMessagesResponse) {
+  using TimeUtil = google::protobuf::util::TimeUtil;
+  cout << "GetSentMessages() called" << endl;
+
+  if (!config->has_registered()) {
+    cout << "need to register first!" << endl;
+    return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
+  }
+
+  auto messages = msgstore->get_delivered_outgoing_messages_sorted();
+
+  for (auto& m : messages) {
+    auto message_info = getSentMessagesResponse->add_messages();
+
+    auto baseMessage = message_info->mutable_m();
+    baseMessage->set_id(m.id);
+    baseMessage->set_message(m.message);
+    message_info->set_to(m.to);
+    message_info->set_delivered(m.delivered);
+
+    auto timestamp_str = absl::FormatTime(m.written_timestamp);
+    auto timestamp = message_info->mutable_written_timestamp();
     auto success = TimeUtil::FromString(timestamp_str, timestamp);
     if (!success) {
       cout << "invalid timestamp" << endl;

@@ -17,8 +17,7 @@ void Message::send(unique_ptr<asphrdaemon::Daemon::Stub>& stub) {
 
   grpc::Status status = stub->SendMessage(&context, request, &reply);
 
-  // TODO(sualeh): do you need to check the status?
-  if (!status.ok() || !reply.success()) {
+  if (!status.ok()) {
     cout << "send message failed: " << status.error_message() << endl;
   } else {
     cout << "message sent" << endl;

@@ -16,6 +16,7 @@ auto Friend::to_json() -> asphr::json {
                      {"ack_index", ack_index},
                      {"enabled", enabled},
                      {"latest_ack_id", latest_ack_id},
+                     {"latest_send_id", latest_send_id},
                      {"last_receive_id", last_receive_id}};
 }
 
@@ -28,6 +29,7 @@ auto Friend::from_json(const asphr::json& j) -> Friend {
   f.ack_index = j.at("ack_index").get<int>();
   f.enabled = j.at("enabled").get<bool>();
   f.latest_ack_id = j.at("latest_ack_id").get<uint32_t>();
+  f.latest_send_id = j.at("latest_send_id").get<uint32_t>();
   f.last_receive_id = j.at("last_receive_id").get<uint32_t>();
   f.check_rep();
   return f;

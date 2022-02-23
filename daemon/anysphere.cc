@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
     server_address = config->server_address();
   }
 
-  auto msgstore = make_shared<Msgstore>();
+  auto msgstore = make_shared<Msgstore>(config->msgstore_address(), config);
 
   const Crypto crypto;
 

@@ -49,7 +49,6 @@ cc_library(
     name = "daemon_lib",
     srcs = [
         "daemon_rpc.cc",
-        "utils.hpp",
     ],
     hdrs = [
         "daemon_rpc.hpp",

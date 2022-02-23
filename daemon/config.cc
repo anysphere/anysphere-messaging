@@ -293,14 +293,8 @@ auto Config::update_friend(const Friend& f) -> void {
   check_rep();
 }
 
-auto Config::receive_file_address() -> std::filesystem::path {
-  return data_dir / "receive.ndjson";
-}
-auto Config::send_file_address() -> std::filesystem::path {
-  return data_dir / "send.ndjson";
-}
-auto Config::seen_file_address() -> std::filesystem::path {
-  return data_dir / "seen.ndjson";
+auto Config::msgstore_address() -> std::filesystem::path {
+  return data_dir / "msgstore.json";
 }
 auto Config::data_dir_address() -> std::filesystem::path { return data_dir; }
 
@@ -406,7 +400,7 @@ auto Config::initialize_dummy_me() -> void {
       dummy_friend_keypair.first);
 
   dummyMe = Friend("dummyMe", 0, dummy_read_write_keys.first,
-                   dummy_read_write_keys.second, 0, false, 0, 0);
+                   dummy_read_write_keys.second, 0, false, 0, 0, 0);
 
   save();
 }
