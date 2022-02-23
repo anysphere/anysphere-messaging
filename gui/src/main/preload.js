@@ -277,9 +277,7 @@ contextBridge.exposeInMainWorld("register", async (username, accessKey) => {
   const register = promisify(daemonClient.registerUser).bind(daemonClient);
   try {
     const response = await register(request);
-    if (response.getSuccess()) {
-      return true;
-    }
+    return true;
   } catch (e) {
     console.log(`error in register: ${e}`);
   }
