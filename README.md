@@ -18,6 +18,10 @@ bazel test //...
 
 to test.
 
+## Develop GUI.
+
+Checkout [the GUI Readme](gui/README.md)!
+
 ## Package
 
 ```
