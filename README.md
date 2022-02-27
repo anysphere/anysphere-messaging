@@ -13,6 +13,8 @@ I recommend using the following git aliases:
 4. `git cc` for recursive committing
 5. `git ca` for recursive committing all
 
+(look in the `githooks` folder for an exhaustive list of these)
+
 To get these working, you need to run `./setupgit.sh` and follow its instructions.
 
 # Testing
