@@ -6,6 +6,7 @@
 #include "google/protobuf/util/time_util.h"
 #include "server/pir/fast_pir/fastpir.hpp"
 #include "server/src/server_rpc.hpp"
+#include "test_helpers.hpp"
 
 /**
  * TODO: have a multiple rounds test.
@@ -15,28 +16,6 @@
  **/
 
 using namespace asphrdaemon;
-
-auto gen_crypto() -> Crypto {
-  Crypto crypto;
-  return crypto;
-}
-
-auto gen_config(string tmp_dir, string tmp_file) -> shared_ptr<Config> {
-  json config_json = {{"has_registered", false},
-                      {"friends", {}},
-                      {"data_dir", tmp_dir},
-                      {"server_address", "unused"}};
-  auto config = make_shared<Config>(config_json, tmp_file);
-  return config;
-}
-
-auto gen_server_rpc() {
-  FastPIR pir;
-  FastPIR pir_acks;
-  AccountManagerInMemory account_manager;
-  return ServerRpc(std::move(pir), std::move(pir_acks),
-                   std::move(account_manager));
-}
 
 namespace asphr::testing {
 namespace {
@@ -116,13 +95,14 @@ TEST_F(DaemonRpcTest, GetFriendListUnauthenticated) {
   ResetStub();
   auto crypto = gen_crypto();
   auto config = gen_config(string(generateTempDir()), generateTempFile());
-  DaemonRpc rpc(crypto, config, stub_);
+  auto msgstore = gen_msgstore(config);
+  DaemonRpc rpc(crypto, config, stub_, msgstore);
 
   {
     GetFriendListRequest request;
     GetFriendListResponse response;
-    rpc.GetFriendList(nullptr, &request, &response);
-    EXPECT_FALSE(response.success());
+    auto status = rpc.GetFriendList(nullptr, &request, &response);
+    EXPECT_FALSE(status.ok());
   }
 };
 
@@ -130,7 +110,8 @@ TEST_F(DaemonRpcTest, KillDaemon) {
   ResetStub();
   auto crypto = gen_crypto();
   auto config = gen_config(string(generateTempDir()), generateTempFile());
-  DaemonRpc rpc(crypto, config, stub_);
+  auto msgstore = gen_msgstore(config);
+  DaemonRpc rpc(crypto, config, stub_, msgstore);
 
   auto killed = config->wait_until_killed_or_seconds(0);
   EXPECT_FALSE(killed);
@@ -151,16 +132,17 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfig) {
 
   {
     auto crypto = gen_crypto();
-    auto config = gen_config(string(generateTempDir()), config_file_address);
-    DaemonRpc rpc(crypto, config, stub_);
+    auto config = gen_config(string(generateTempDir()), generateTempFile());
+    auto msgstore = gen_msgstore(config);
+    DaemonRpc rpc(crypto, config, stub_, msgstore);
 
     {
       RegisterUserRequest request;
       request.set_name("test");
       request.set_beta_key("asphr_magic");
       RegisterUserResponse response;
-      rpc.RegisterUser(nullptr, &request, &response);
-      EXPECT_TRUE(response.success());
+      auto status = rpc.RegisterUser(nullptr, &request, &response);
+      EXPECT_TRUE(status.ok());
     }
   }
 
@@ -168,13 +150,14 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfig) {
     // re-create config from the file!
     auto config = make_shared<Config>(config_file_address);
     auto crypto = gen_crypto();
-    DaemonRpc rpc(crypto, config, stub_);
+    auto msgstore = gen_msgstore(config);
+    DaemonRpc rpc(crypto, config, stub_, msgstore);
 
     {
       GetFriendListRequest request;
       GetFriendListResponse response;
-      rpc.GetFriendList(nullptr, &request, &response);
-      EXPECT_TRUE(response.success());
+      auto status = rpc.GetFriendList(nullptr, &request, &response);
+      EXPECT_TRUE(status.ok());
       EXPECT_EQ(response.friend_infos_size(), 0);
     }
   }
@@ -187,10 +170,12 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceiveHalfFriend) {
   {
     auto crypto1 = gen_crypto();
     auto config1 = gen_config(string(generateTempDir()), config_file_address);
-    DaemonRpc rpc1(crypto1, config1, stub_);
+    auto msgstore1 = gen_msgstore(config1);
+    DaemonRpc rpc1(crypto1, config1, stub_, msgstore1);
     auto crypto2 = gen_crypto();
     auto config2 = gen_config(string(generateTempDir()), generateTempFile());
-    DaemonRpc rpc2(crypto2, config2, stub_);
+    auto msgstore2 = gen_msgstore(config2);
+    DaemonRpc rpc2(crypto2, config2, stub_, msgstore2);
 
     {
       RegisterUserRequest request;
@@ -211,8 +196,8 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceiveHalfFriend) {
       GenerateFriendKeyRequest request;
       request.set_name("user2");
       GenerateFriendKeyResponse response;
-      rpc1.GenerateFriendKey(nullptr, &request, &response);
-      EXPECT_TRUE(response.success());
+      auto status = rpc1.GenerateFriendKey(nullptr, &request, &response);
+      EXPECT_TRUE(status.ok());
       EXPECT_GT(response.key().size(), 0);
     }
 
@@ -220,8 +205,8 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceiveHalfFriend) {
       GenerateFriendKeyRequest request;
       request.set_name("user1");
       GenerateFriendKeyResponse response;
-      rpc2.GenerateFriendKey(nullptr, &request, &response);
-      EXPECT_TRUE(response.success());
+      auto status = rpc2.GenerateFriendKey(nullptr, &request, &response);
+      EXPECT_TRUE(status.ok());
       EXPECT_GT(response.key().size(), 0);
     }
   }
@@ -230,7 +215,8 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceiveHalfFriend) {
     // re-create config from the file!
     auto config = make_shared<Config>(config_file_address);
     auto crypto = gen_crypto();
-    Transmitter t(crypto, config, stub_);
+    auto msgstore = gen_msgstore(config);
+    Transmitter t(crypto, config, stub_, msgstore);
 
     t.retrieve_messages();
     t.send_messages();
@@ -248,10 +234,12 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceive) {
   {
     auto crypto1 = gen_crypto();
     auto config1 = gen_config(string(generateTempDir()), config_file_address1);
-    DaemonRpc rpc1(crypto1, config1, stub_);
+    auto msgstore1 = gen_msgstore(config1);
+    DaemonRpc rpc1(crypto1, config1, stub_, msgstore1);
     auto crypto2 = gen_crypto();
     auto config2 = gen_config(string(generateTempDir()), config_file_address2);
-    DaemonRpc rpc2(crypto2, config2, stub_);
+    auto msgstore2 = gen_msgstore(config2);
+    DaemonRpc rpc2(crypto2, config2, stub_, msgstore2);
 
     {
       RegisterUserRequest request;
@@ -275,8 +263,8 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceive) {
       GenerateFriendKeyRequest request;
       request.set_name("user2");
       GenerateFriendKeyResponse response;
-      rpc1.GenerateFriendKey(nullptr, &request, &response);
-      EXPECT_TRUE(response.success());
+      auto status = rpc1.GenerateFriendKey(nullptr, &request, &response);
+      EXPECT_TRUE(status.ok());
       EXPECT_GT(response.key().size(), 0);
       user1_key = response.key();
     }
@@ -285,8 +273,8 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceive) {
       GenerateFriendKeyRequest request;
       request.set_name("user1");
       GenerateFriendKeyResponse response;
-      rpc2.GenerateFriendKey(nullptr, &request, &response);
-      EXPECT_TRUE(response.success());
+      auto status = rpc2.GenerateFriendKey(nullptr, &request, &response);
+      EXPECT_TRUE(status.ok());
       EXPECT_GT(response.key().size(), 0);
       user2_key = response.key();
     }
@@ -299,8 +287,8 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceive) {
       request.set_name("user2");
       request.set_key(user2_key);
       AddFriendResponse response;
-      rpc1.AddFriend(nullptr, &request, &response);
-      EXPECT_TRUE(response.success());
+      auto status = rpc1.AddFriend(nullptr, &request, &response);
+      EXPECT_TRUE(status.ok());
     }
 
     {
@@ -308,8 +296,8 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceive) {
       request.set_name("user1");
       request.set_key(user1_key);
       AddFriendResponse response;
-      rpc2.AddFriend(nullptr, &request, &response);
-      EXPECT_TRUE(response.success());
+      auto status = rpc2.AddFriend(nullptr, &request, &response);
+      EXPECT_TRUE(status.ok());
     }
   }
 
@@ -317,21 +305,23 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceive) {
     // re-create config from the file!
     auto crypto1 = gen_crypto();
     auto config1 = make_shared<Config>(config_file_address1);
-    DaemonRpc rpc1(crypto1, config1, stub_);
-    Transmitter t1(crypto1, config1, stub_);
+    auto msgstore1 = gen_msgstore(config1);
+    DaemonRpc rpc1(crypto1, config1, stub_, msgstore1);
+    Transmitter t1(crypto1, config1, stub_, msgstore1);
 
     auto crypto2 = gen_crypto();
     auto config2 = make_shared<Config>(config_file_address2);
-    DaemonRpc rpc2(crypto2, config2, stub_);
-    Transmitter t2(crypto2, config2, stub_);
+    auto msgstore2 = gen_msgstore(config2);
+    DaemonRpc rpc2(crypto2, config2, stub_, msgstore2);
+    Transmitter t2(crypto2, config2, stub_, msgstore2);
 
     {
       SendMessageRequest request;
       request.set_name("user2");
       request.set_message("hello from 1 to 2");
       asphrdaemon::SendMessageResponse response;
-      rpc1.SendMessage(nullptr, &request, &response);
-      EXPECT_TRUE(response.success());
+      auto status = rpc1.SendMessage(nullptr, &request, &response);
+      EXPECT_TRUE(status.ok());
     }
 
     {
@@ -339,8 +329,8 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceive) {
       request.set_name("user1");
       request.set_message("hello from 2 to 1");
       asphrdaemon::SendMessageResponse response;
-      rpc2.SendMessage(nullptr, &request, &response);
-      EXPECT_TRUE(response.success());
+      auto status = rpc2.SendMessage(nullptr, &request, &response);
+      EXPECT_TRUE(status.ok());
     }
 
     {
@@ -357,21 +347,21 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceive) {
     {
       GetAllMessagesRequest request;
       GetAllMessagesResponse response;
-      rpc1.GetAllMessages(nullptr, &request, &response);
-      EXPECT_TRUE(response.success());
+      auto status = rpc1.GetAllMessages(nullptr, &request, &response);
+      EXPECT_TRUE(status.ok());
       EXPECT_EQ(response.messages_size(), 1);
-      EXPECT_EQ(response.messages(0).sender(), "user2");
-      EXPECT_EQ(response.messages(0).message(), "hello from 2 to 1");
+      EXPECT_EQ(response.messages(0).from(), "user2");
+      EXPECT_EQ(response.messages(0).m().message(), "hello from 2 to 1");
     }
 
     {
       GetAllMessagesRequest request;
       GetAllMessagesResponse response;
-      rpc2.GetAllMessages(nullptr, &request, &response);
-      EXPECT_TRUE(response.success());
+      auto status = rpc2.GetAllMessages(nullptr, &request, &response);
+      EXPECT_TRUE(status.ok());
       EXPECT_EQ(response.messages_size(), 1);
-      EXPECT_EQ(response.messages(0).sender(), "user1");
-      EXPECT_EQ(response.messages(0).message(), "hello from 1 to 2");
+      EXPECT_EQ(response.messages(0).from(), "user1");
+      EXPECT_EQ(response.messages(0).m().message(), "hello from 1 to 2");
     }
   }
 }
@@ -380,15 +370,16 @@ TEST_F(DaemonRpcTest, Register) {
   ResetStub();
   auto crypto = gen_crypto();
   auto config = gen_config(string(generateTempDir()), generateTempFile());
-  DaemonRpc rpc(crypto, config, stub_);
+  auto msgstore = gen_msgstore(config);
+  DaemonRpc rpc(crypto, config, stub_, msgstore);
 
   {
     RegisterUserRequest request;
     request.set_name("test");
     request.set_beta_key("asphr_magic");
     RegisterUserResponse response;
-    rpc.RegisterUser(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc.RegisterUser(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 };
 
@@ -396,7 +387,8 @@ TEST_F(DaemonRpcTest, GetFriendList) {
   ResetStub();
   auto crypto = gen_crypto();
   auto config = gen_config(string(generateTempDir()), generateTempFile());
-  DaemonRpc rpc(crypto, config, stub_);
+  auto msgstore = gen_msgstore(config);
+  DaemonRpc rpc(crypto, config, stub_, msgstore);
 
   {
     RegisterUserRequest request;
@@ -409,8 +401,8 @@ TEST_F(DaemonRpcTest, GetFriendList) {
   {
     GetFriendListRequest request;
     GetFriendListResponse response;
-    rpc.GetFriendList(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc.GetFriendList(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.friend_infos_size(), 0);
   }
 };
@@ -419,7 +411,8 @@ TEST_F(DaemonRpcTest, GenerateFriendKey) {
   ResetStub();
   auto crypto = gen_crypto();
   auto config = gen_config(string(generateTempDir()), generateTempFile());
-  DaemonRpc rpc(crypto, config, stub_);
+  auto msgstore = gen_msgstore(config);
+  DaemonRpc rpc(crypto, config, stub_, msgstore);
 
   {
     RegisterUserRequest request;
@@ -433,8 +426,8 @@ TEST_F(DaemonRpcTest, GenerateFriendKey) {
     GenerateFriendKeyRequest request;
     request.set_name("friend_name");
     GenerateFriendKeyResponse response;
-    rpc.GenerateFriendKey(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_GT(response.key().size(), 0);
   }
 };
@@ -444,10 +437,12 @@ TEST_F(DaemonRpcTest, AddFriend) {
 
   auto crypto1 = gen_crypto();
   auto config1 = gen_config(string(generateTempDir()), generateTempFile());
-  DaemonRpc rpc1(crypto1, config1, stub_);
+  auto msgstore1 = gen_msgstore(config1);
+  DaemonRpc rpc1(crypto1, config1, stub_, msgstore1);
   auto crypto2 = gen_crypto();
   auto config2 = gen_config(string(generateTempDir()), generateTempFile());
-  DaemonRpc rpc2(crypto2, config2, stub_);
+  auto msgstore2 = gen_msgstore(config2);
+  DaemonRpc rpc2(crypto2, config2, stub_, msgstore2);
 
   {
     RegisterUserRequest request;
@@ -471,8 +466,8 @@ TEST_F(DaemonRpcTest, AddFriend) {
     GenerateFriendKeyRequest request;
     request.set_name("user2");
     GenerateFriendKeyResponse response;
-    rpc1.GenerateFriendKey(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_GT(response.key().size(), 0);
     user1_key = response.key();
   }
@@ -481,8 +476,8 @@ TEST_F(DaemonRpcTest, AddFriend) {
     GenerateFriendKeyRequest request;
     request.set_name("user1");
     GenerateFriendKeyResponse response;
-    rpc2.GenerateFriendKey(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_GT(response.key().size(), 0);
     user2_key = response.key();
   }
@@ -495,8 +490,8 @@ TEST_F(DaemonRpcTest, AddFriend) {
     request.set_name("user2");
     request.set_key(user2_key);
     AddFriendResponse response;
-    rpc1.AddFriend(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   {
@@ -504,8 +499,8 @@ TEST_F(DaemonRpcTest, AddFriend) {
     request.set_name("user1");
     request.set_key(user1_key);
     AddFriendResponse response;
-    rpc2.AddFriend(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 };
 
@@ -514,10 +509,12 @@ TEST_F(DaemonRpcTest, AddFriendAndCheckFriendList) {
 
   auto crypto1 = gen_crypto();
   auto config1 = gen_config(string(generateTempDir()), generateTempFile());
-  DaemonRpc rpc1(crypto1, config1, stub_);
+  auto msgstore1 = gen_msgstore(config1);
+  DaemonRpc rpc1(crypto1, config1, stub_, msgstore1);
   auto crypto2 = gen_crypto();
   auto config2 = gen_config(string(generateTempDir()), generateTempFile());
-  DaemonRpc rpc2(crypto2, config2, stub_);
+  auto msgstore2 = gen_msgstore(config2);
+  DaemonRpc rpc2(crypto2, config2, stub_, msgstore2);
 
   {
     RegisterUserRequest request;
@@ -537,8 +534,8 @@ TEST_F(DaemonRpcTest, AddFriendAndCheckFriendList) {
   {
     GetFriendListRequest request;
     GetFriendListResponse response;
-    rpc1.GetFriendList(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.GetFriendList(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.friend_infos_size(), 0);
   }
 
@@ -549,8 +546,8 @@ TEST_F(DaemonRpcTest, AddFriendAndCheckFriendList) {
     GenerateFriendKeyRequest request;
     request.set_name("user2");
     GenerateFriendKeyResponse response;
-    rpc1.GenerateFriendKey(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_GT(response.key().size(), 0);
     user1_key = response.key();
   }
@@ -559,8 +556,8 @@ TEST_F(DaemonRpcTest, AddFriendAndCheckFriendList) {
     GenerateFriendKeyRequest request;
     request.set_name("user1");
     GenerateFriendKeyResponse response;
-    rpc2.GenerateFriendKey(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_GT(response.key().size(), 0);
     user2_key = response.key();
   }
@@ -568,8 +565,8 @@ TEST_F(DaemonRpcTest, AddFriendAndCheckFriendList) {
   {
     GetFriendListRequest request;
     GetFriendListResponse response;
-    rpc1.GetFriendList(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.GetFriendList(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.friend_infos_size(), 1);
     EXPECT_EQ(response.friend_infos(0).name(), "user2");
     EXPECT_EQ(response.friend_infos(0).enabled(), false);
@@ -583,8 +580,8 @@ TEST_F(DaemonRpcTest, AddFriendAndCheckFriendList) {
     request.set_name("user2");
     request.set_key(user2_key);
     AddFriendResponse response;
-    rpc1.AddFriend(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   {
@@ -592,15 +589,15 @@ TEST_F(DaemonRpcTest, AddFriendAndCheckFriendList) {
     request.set_name("user1");
     request.set_key(user1_key);
     AddFriendResponse response;
-    rpc2.AddFriend(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   {
     GetFriendListRequest request;
     GetFriendListResponse response;
-    rpc1.GetFriendList(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.GetFriendList(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.friend_infos_size(), 1);
     EXPECT_EQ(response.friend_infos(0).name(), "user2");
     EXPECT_EQ(response.friend_infos(0).enabled(), true);
@@ -612,12 +609,14 @@ TEST_F(DaemonRpcTest, SendMessage) {
 
   auto crypto1 = gen_crypto();
   auto config1 = gen_config(string(generateTempDir()), generateTempFile());
-  DaemonRpc rpc1(crypto1, config1, stub_);
-  Transmitter t1(crypto1, config1, stub_);
+  auto msgstore1 = gen_msgstore(config1);
+  DaemonRpc rpc1(crypto1, config1, stub_, msgstore1);
+  Transmitter t1(crypto1, config1, stub_, msgstore1);
   auto crypto2 = gen_crypto();
   auto config2 = gen_config(string(generateTempDir()), generateTempFile());
-  DaemonRpc rpc2(crypto2, config2, stub_);
-  Transmitter t2(crypto2, config2, stub_);
+  auto msgstore2 = gen_msgstore(config2);
+  DaemonRpc rpc2(crypto2, config2, stub_, msgstore2);
+  Transmitter t2(crypto2, config2, stub_, msgstore2);
 
   {
     RegisterUserRequest request;
@@ -641,8 +640,8 @@ TEST_F(DaemonRpcTest, SendMessage) {
     GenerateFriendKeyRequest request;
     request.set_name("user2");
     GenerateFriendKeyResponse response;
-    rpc1.GenerateFriendKey(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_GT(response.key().size(), 0);
     user1_key = response.key();
   }
@@ -651,8 +650,8 @@ TEST_F(DaemonRpcTest, SendMessage) {
     GenerateFriendKeyRequest request;
     request.set_name("user1");
     GenerateFriendKeyResponse response;
-    rpc2.GenerateFriendKey(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_GT(response.key().size(), 0);
     user2_key = response.key();
   }
@@ -665,8 +664,8 @@ TEST_F(DaemonRpcTest, SendMessage) {
     request.set_name("user2");
     request.set_key(user2_key);
     AddFriendResponse response;
-    rpc1.AddFriend(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   {
@@ -674,8 +673,8 @@ TEST_F(DaemonRpcTest, SendMessage) {
     request.set_name("user1");
     request.set_key(user1_key);
     AddFriendResponse response;
-    rpc2.AddFriend(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   {
@@ -683,8 +682,8 @@ TEST_F(DaemonRpcTest, SendMessage) {
     request.set_name("user2");
     request.set_message("hello from 1 to 2");
     asphrdaemon::SendMessageResponse response;
-    rpc1.SendMessage(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.SendMessage(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   {
@@ -692,8 +691,8 @@ TEST_F(DaemonRpcTest, SendMessage) {
     request.set_name("user1");
     request.set_message("hello from 2 to 1");
     asphrdaemon::SendMessageResponse response;
-    rpc2.SendMessage(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.SendMessage(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   {
@@ -710,21 +709,21 @@ TEST_F(DaemonRpcTest, SendMessage) {
   {
     GetAllMessagesRequest request;
     GetAllMessagesResponse response;
-    rpc1.GetAllMessages(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 1);
-    EXPECT_EQ(response.messages(0).sender(), "user2");
-    EXPECT_EQ(response.messages(0).message(), "hello from 2 to 1");
+    EXPECT_EQ(response.messages(0).from(), "user2");
+    EXPECT_EQ(response.messages(0).m().message(), "hello from 2 to 1");
   }
 
   {
     GetAllMessagesRequest request;
     GetAllMessagesResponse response;
-    rpc2.GetAllMessages(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 1);
-    EXPECT_EQ(response.messages(0).sender(), "user1");
-    EXPECT_EQ(response.messages(0).message(), "hello from 1 to 2");
+    EXPECT_EQ(response.messages(0).from(), "user1");
+    EXPECT_EQ(response.messages(0).m().message(), "hello from 1 to 2");
   }
 };
 
@@ -734,12 +733,14 @@ TEST_F(DaemonRpcTest, SendMultipleMessages) {
 
   auto crypto1 = gen_crypto();
   auto config1 = gen_config(string(generateTempDir()), generateTempFile());
-  DaemonRpc rpc1(crypto1, config1, stub_);
-  Transmitter t1(crypto1, config1, stub_);
+  auto msgstore1 = gen_msgstore(config1);
+  DaemonRpc rpc1(crypto1, config1, stub_, msgstore1);
+  Transmitter t1(crypto1, config1, stub_, msgstore1);
   auto crypto2 = gen_crypto();
   auto config2 = gen_config(string(generateTempDir()), generateTempFile());
-  DaemonRpc rpc2(crypto2, config2, stub_);
-  Transmitter t2(crypto2, config2, stub_);
+  auto msgstore2 = gen_msgstore(config2);
+  DaemonRpc rpc2(crypto2, config2, stub_, msgstore2);
+  Transmitter t2(crypto2, config2, stub_, msgstore2);
 
   {
     RegisterUserRequest request;
@@ -763,8 +764,8 @@ TEST_F(DaemonRpcTest, SendMultipleMessages) {
     GenerateFriendKeyRequest request;
     request.set_name("user2");
     GenerateFriendKeyResponse response;
-    rpc1.GenerateFriendKey(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_GT(response.key().size(), 0);
     user1_key = response.key();
   }
@@ -773,8 +774,8 @@ TEST_F(DaemonRpcTest, SendMultipleMessages) {
     GenerateFriendKeyRequest request;
     request.set_name("user1");
     GenerateFriendKeyResponse response;
-    rpc2.GenerateFriendKey(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_GT(response.key().size(), 0);
     user2_key = response.key();
   }
@@ -787,8 +788,8 @@ TEST_F(DaemonRpcTest, SendMultipleMessages) {
     request.set_name("user2");
     request.set_key(user2_key);
     AddFriendResponse response;
-    rpc1.AddFriend(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   {
@@ -796,8 +797,8 @@ TEST_F(DaemonRpcTest, SendMultipleMessages) {
     request.set_name("user1");
     request.set_key(user1_key);
     AddFriendResponse response;
-    rpc2.AddFriend(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   {
@@ -805,8 +806,8 @@ TEST_F(DaemonRpcTest, SendMultipleMessages) {
     request.set_name("user2");
     request.set_message("hello from 1 to 2");
     asphrdaemon::SendMessageResponse response;
-    rpc1.SendMessage(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.SendMessage(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   {
@@ -814,8 +815,8 @@ TEST_F(DaemonRpcTest, SendMultipleMessages) {
     request.set_name("user2");
     request.set_message("hello from 1 to 2, again!!!! :0");
     asphrdaemon::SendMessageResponse response;
-    rpc1.SendMessage(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.SendMessage(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   // retrieve-send is how messages are propagated!
@@ -829,8 +830,8 @@ TEST_F(DaemonRpcTest, SendMultipleMessages) {
   {
     GetAllMessagesRequest request;
     GetAllMessagesResponse response;
-    rpc1.GetAllMessages(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 0);
   }
 
@@ -838,11 +839,11 @@ TEST_F(DaemonRpcTest, SendMultipleMessages) {
   {
     GetAllMessagesRequest request;
     GetAllMessagesResponse response;
-    rpc2.GetAllMessages(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 1);
-    EXPECT_EQ(response.messages(0).sender(), "user1");
-    EXPECT_EQ(response.messages(0).message(), "hello from 1 to 2");
+    EXPECT_EQ(response.messages(0).from(), "user1");
+    EXPECT_EQ(response.messages(0).m().message(), "hello from 1 to 2");
   }
 
   // 2 has sent the ACK for the first message, so 1 should safely send the next
@@ -856,26 +857,28 @@ TEST_F(DaemonRpcTest, SendMultipleMessages) {
   {
     GetAllMessagesRequest request;
     GetAllMessagesResponse response;
-    rpc1.GetAllMessages(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 0);
   }
 
   {
     GetAllMessagesRequest request;
     GetAllMessagesResponse response;
-    rpc2.GetAllMessages(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 2);
-    EXPECT_EQ(response.messages(0).sender(), "user1");
-    cout << "message 1: " << response.messages(0).message() << endl;
+    EXPECT_EQ(response.messages(0).from(), "user1");
+    cout << "message 1: " << response.messages(0).m().message() << endl;
 
     cout << "message 1 time: "
-         << TimeUtil::ToString(response.messages(0).timestamp()) << endl;
-    cout << "message 2: " << response.messages(1).message() << endl;
+         << TimeUtil::ToString(response.messages(0).received_timestamp())
+         << endl;
+    cout << "message 2: " << response.messages(1).m().message() << endl;
     cout << "message 2 time: "
-         << TimeUtil::ToString(response.messages(1).timestamp()) << endl;
-    EXPECT_EQ(response.messages(0).message(),
+         << TimeUtil::ToString(response.messages(1).received_timestamp())
+         << endl;
+    EXPECT_EQ(response.messages(0).m().message(),
               "hello from 1 to 2, again!!!! :0");
   }
 };
@@ -886,12 +889,14 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
 
   auto crypto1 = gen_crypto();
   auto config1 = gen_config(string(generateTempDir()), generateTempFile());
-  DaemonRpc rpc1(crypto1, config1, stub_);
-  Transmitter t1(crypto1, config1, stub_);
+  auto msgstore1 = gen_msgstore(config1);
+  DaemonRpc rpc1(crypto1, config1, stub_, msgstore1);
+  Transmitter t1(crypto1, config1, stub_, msgstore1);
   auto crypto2 = gen_crypto();
   auto config2 = gen_config(string(generateTempDir()), generateTempFile());
-  DaemonRpc rpc2(crypto2, config2, stub_);
-  Transmitter t2(crypto2, config2, stub_);
+  auto msgstore2 = gen_msgstore(config2);
+  DaemonRpc rpc2(crypto2, config2, stub_, msgstore2);
+  Transmitter t2(crypto2, config2, stub_, msgstore2);
 
   {
     RegisterUserRequest request;
@@ -915,8 +920,8 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
     GenerateFriendKeyRequest request;
     request.set_name("user2");
     GenerateFriendKeyResponse response;
-    rpc1.GenerateFriendKey(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_GT(response.key().size(), 0);
     user1_key = response.key();
   }
@@ -925,8 +930,8 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
     GenerateFriendKeyRequest request;
     request.set_name("user1");
     GenerateFriendKeyResponse response;
-    rpc2.GenerateFriendKey(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_GT(response.key().size(), 0);
     user2_key = response.key();
   }
@@ -939,8 +944,8 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
     request.set_name("user2");
     request.set_key(user2_key);
     AddFriendResponse response;
-    rpc1.AddFriend(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   {
@@ -948,8 +953,8 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
     request.set_name("user1");
     request.set_key(user1_key);
     AddFriendResponse response;
-    rpc2.AddFriend(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   {
@@ -957,8 +962,8 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
     request.set_name("user2");
     request.set_message("hello from 1 to 2");
     asphrdaemon::SendMessageResponse response;
-    rpc1.SendMessage(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.SendMessage(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   {
@@ -966,8 +971,8 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
     request.set_name("user2");
     request.set_message("hello from 1 to 2, again!!!! :0");
     asphrdaemon::SendMessageResponse response;
-    rpc1.SendMessage(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.SendMessage(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   {
@@ -975,8 +980,8 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
     request.set_name("user1");
     request.set_message("hello from 2 to 1");
     asphrdaemon::SendMessageResponse response;
-    rpc2.SendMessage(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.SendMessage(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   // retrieve-send is how messages are propagated!
@@ -990,8 +995,8 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
   {
     GetAllMessagesRequest request;
     GetAllMessagesResponse response;
-    rpc1.GetAllMessages(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 0);
   }
 
@@ -999,11 +1004,11 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
   {
     GetAllMessagesRequest request;
     GetAllMessagesResponse response;
-    rpc2.GetAllMessages(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 1);
-    EXPECT_EQ(response.messages(0).sender(), "user1");
-    EXPECT_EQ(response.messages(0).message(), "hello from 1 to 2");
+    EXPECT_EQ(response.messages(0).from(), "user1");
+    EXPECT_EQ(response.messages(0).m().message(), "hello from 1 to 2");
   }
 
   // 2 has sent the ACK for the first message, so 1 should safely send the next
@@ -1018,28 +1023,30 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
   {
     GetAllMessagesRequest request;
     GetAllMessagesResponse response;
-    rpc1.GetAllMessages(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 1);
-    EXPECT_EQ(response.messages(0).sender(), "user2");
-    EXPECT_EQ(response.messages(0).message(), "hello from 2 to 1");
+    EXPECT_EQ(response.messages(0).from(), "user2");
+    EXPECT_EQ(response.messages(0).m().message(), "hello from 2 to 1");
   }
 
   {
     GetAllMessagesRequest request;
     GetAllMessagesResponse response;
-    rpc2.GetAllMessages(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 2);
-    EXPECT_EQ(response.messages(0).sender(), "user1");
-    cout << "message 1: " << response.messages(0).message() << endl;
+    EXPECT_EQ(response.messages(0).from(), "user1");
+    cout << "message 1: " << response.messages(0).m().message() << endl;
 
     cout << "message 1 time: "
-         << TimeUtil::ToString(response.messages(0).timestamp()) << endl;
-    cout << "message 2: " << response.messages(1).message() << endl;
+         << TimeUtil::ToString(response.messages(0).received_timestamp())
+         << endl;
+    cout << "message 2: " << response.messages(1).m().message() << endl;
     cout << "message 2 time: "
-         << TimeUtil::ToString(response.messages(1).timestamp()) << endl;
-    EXPECT_EQ(response.messages(0).message(),
+         << TimeUtil::ToString(response.messages(1).received_timestamp())
+         << endl;
+    EXPECT_EQ(response.messages(0).m().message(),
               "hello from 1 to 2, again!!!! :0");
   }
 };
@@ -1049,12 +1056,14 @@ TEST_F(DaemonRpcTest, SeenMessage) {
 
   auto crypto1 = gen_crypto();
   auto config1 = gen_config(string(generateTempDir()), generateTempFile());
-  DaemonRpc rpc1(crypto1, config1, stub_);
-  Transmitter t1(crypto1, config1, stub_);
+  auto msgstore1 = gen_msgstore(config1);
+  DaemonRpc rpc1(crypto1, config1, stub_, msgstore1);
+  Transmitter t1(crypto1, config1, stub_, msgstore1);
   auto crypto2 = gen_crypto();
   auto config2 = gen_config(string(generateTempDir()), generateTempFile());
-  DaemonRpc rpc2(crypto2, config2, stub_);
-  Transmitter t2(crypto2, config2, stub_);
+  auto msgstore2 = gen_msgstore(config2);
+  DaemonRpc rpc2(crypto2, config2, stub_, msgstore2);
+  Transmitter t2(crypto2, config2, stub_, msgstore2);
 
   {
     RegisterUserRequest request;
@@ -1078,8 +1087,8 @@ TEST_F(DaemonRpcTest, SeenMessage) {
     GenerateFriendKeyRequest request;
     request.set_name("user2");
     GenerateFriendKeyResponse response;
-    rpc1.GenerateFriendKey(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_GT(response.key().size(), 0);
     user1_key = response.key();
   }
@@ -1088,8 +1097,8 @@ TEST_F(DaemonRpcTest, SeenMessage) {
     GenerateFriendKeyRequest request;
     request.set_name("user1");
     GenerateFriendKeyResponse response;
-    rpc2.GenerateFriendKey(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.GenerateFriendKey(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_GT(response.key().size(), 0);
     user2_key = response.key();
   }
@@ -1102,8 +1111,8 @@ TEST_F(DaemonRpcTest, SeenMessage) {
     request.set_name("user2");
     request.set_key(user2_key);
     AddFriendResponse response;
-    rpc1.AddFriend(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   {
@@ -1111,8 +1120,8 @@ TEST_F(DaemonRpcTest, SeenMessage) {
     request.set_name("user1");
     request.set_key(user1_key);
     AddFriendResponse response;
-    rpc2.AddFriend(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.AddFriend(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   {
@@ -1120,8 +1129,8 @@ TEST_F(DaemonRpcTest, SeenMessage) {
     request.set_name("user2");
     request.set_message("hello from 1 to 2");
     asphrdaemon::SendMessageResponse response;
-    rpc1.SendMessage(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.SendMessage(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   {
@@ -1129,8 +1138,8 @@ TEST_F(DaemonRpcTest, SeenMessage) {
     request.set_name("user2");
     request.set_message("hello from 1 to 2, again!!!! :0");
     asphrdaemon::SendMessageResponse response;
-    rpc1.SendMessage(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.SendMessage(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
   }
 
   // retrieve-send is how messages are propagated!
@@ -1144,8 +1153,8 @@ TEST_F(DaemonRpcTest, SeenMessage) {
   {
     GetAllMessagesRequest request;
     GetAllMessagesResponse response;
-    rpc1.GetAllMessages(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 0);
   }
 
@@ -1153,11 +1162,11 @@ TEST_F(DaemonRpcTest, SeenMessage) {
   {
     GetAllMessagesRequest request;
     GetAllMessagesResponse response;
-    rpc2.GetAllMessages(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 1);
-    EXPECT_EQ(response.messages(0).sender(), "user1");
-    EXPECT_EQ(response.messages(0).message(), "hello from 1 to 2");
+    EXPECT_EQ(response.messages(0).from(), "user1");
+    EXPECT_EQ(response.messages(0).m().message(), "hello from 1 to 2");
   }
 
   // 2 has sent the ACK for the first message, so 1 should safely send the next
@@ -1171,8 +1180,8 @@ TEST_F(DaemonRpcTest, SeenMessage) {
   {
     GetAllMessagesRequest request;
     GetAllMessagesResponse response;
-    rpc1.GetAllMessages(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc1.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 0);
   }
 
@@ -1181,28 +1190,28 @@ TEST_F(DaemonRpcTest, SeenMessage) {
   {
     GetAllMessagesRequest request;
     GetAllMessagesResponse response;
-    rpc2.GetAllMessages(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 2);
-    EXPECT_EQ(response.messages(0).sender(), "user1");
-    EXPECT_EQ(response.messages(0).message(),
+    EXPECT_EQ(response.messages(0).from(), "user1");
+    EXPECT_EQ(response.messages(0).m().message(),
               "hello from 1 to 2, again!!!! :0");
-    EXPECT_EQ(response.messages(1).sender(), "user1");
-    EXPECT_EQ(response.messages(1).message(), "hello from 1 to 2");
-    first_message_id = response.messages(1).id();
+    EXPECT_EQ(response.messages(1).from(), "user1");
+    EXPECT_EQ(response.messages(1).m().message(), "hello from 1 to 2");
+    first_message_id = response.messages(1).m().id();
   }
 
   {
     GetNewMessagesRequest request;
     GetNewMessagesResponse response;
-    rpc2.GetNewMessages(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.GetNewMessages(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 2);
-    EXPECT_EQ(response.messages(0).sender(), "user1");
-    EXPECT_EQ(response.messages(0).message(),
+    EXPECT_EQ(response.messages(0).from(), "user1");
+    EXPECT_EQ(response.messages(0).m().message(),
               "hello from 1 to 2, again!!!! :0");
-    EXPECT_EQ(response.messages(1).sender(), "user1");
-    EXPECT_EQ(response.messages(1).message(), "hello from 1 to 2");
+    EXPECT_EQ(response.messages(1).from(), "user1");
+    EXPECT_EQ(response.messages(1).m().message(), "hello from 1 to 2");
   }
 
   // now see the message!
@@ -1218,24 +1227,24 @@ TEST_F(DaemonRpcTest, SeenMessage) {
   {
     GetAllMessagesRequest request;
     GetAllMessagesResponse response;
-    rpc2.GetAllMessages(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.GetAllMessages(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 2);
-    EXPECT_EQ(response.messages(0).sender(), "user1");
-    EXPECT_EQ(response.messages(0).message(),
+    EXPECT_EQ(response.messages(0).from(), "user1");
+    EXPECT_EQ(response.messages(0).m().message(),
               "hello from 1 to 2, again!!!! :0");
-    EXPECT_EQ(response.messages(1).sender(), "user1");
-    EXPECT_EQ(response.messages(1).message(), "hello from 1 to 2");
+    EXPECT_EQ(response.messages(1).from(), "user1");
+    EXPECT_EQ(response.messages(1).m().message(), "hello from 1 to 2");
   }
 
   {
     GetNewMessagesRequest request;
     GetNewMessagesResponse response;
-    rpc2.GetNewMessages(nullptr, &request, &response);
-    EXPECT_TRUE(response.success());
+    auto status = rpc2.GetNewMessages(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 1);
-    EXPECT_EQ(response.messages(0).sender(), "user1");
-    EXPECT_EQ(response.messages(0).message(),
+    EXPECT_EQ(response.messages(0).from(), "user1");
+    EXPECT_EQ(response.messages(0).m().message(),
               "hello from 1 to 2, again!!!! :0");
   }
 };
