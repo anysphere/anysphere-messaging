@@ -167,8 +167,6 @@ auto Inbox::receive_message(FastPIRClient& client, Config& config,
          << decrypted.status() << endl;
     save();
     return std::nullopt;
-  } else {
-    previous_success_receive_friend = friend_info.name;
   }
   auto& message = decrypted.value();
 
@@ -213,6 +211,8 @@ auto Inbox::receive_message(FastPIRClient& client, Config& config,
     save();
     return std::nullopt;
   }
+
+  previous_success_receive_friend = friend_info.name;
 
   if (message.num_chunks() == 0) {
     save();
