@@ -42,7 +42,7 @@ class Inbox {
   auto receive_message(FastPIRClient& client, Config& config,
                        const asphrserver::ReceiveMessageResponse& reply,
                        const Friend& friend_info_in, const Crypto& crypto,
-                       string& previous_success_receive_friend)
+                       string* previous_success_receive_friend)
       -> std::optional<InboxMessage>;
 
  private:
