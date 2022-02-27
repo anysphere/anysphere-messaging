@@ -19,6 +19,9 @@ RUN git config --global alias.c commit && git config --global alias.s status && 
 
 RUN brew install fzf && $(brew --prefix)/opt/fzf/install
 
+# default gdb version is out of date and doesn't work with newest bazel...
+RUN brew install gdb
+
 # install gcloud
 RUN sudo apt-get install apt-transport-https ca-certificates gnupg -y && \
     sudo echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
@@ -29,5 +32,5 @@ RUN sudo apt-get install apt-transport-https ca-certificates gnupg -y && \
 # install aws
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && sudo ./aws/install
 
-ENV PATH "$PATH:/workspace/anysphere/githooks/bin"
+ENV PATH "$(brew --prefix gdb)/bin:$PATH:/workspace/anysphere/githooks/bin"
 ENV ANYSPHEREROOT "/workspace/anysphere"
