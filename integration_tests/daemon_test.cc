@@ -1555,15 +1555,16 @@ TEST_F(DaemonRpcTest, OutboxPersistence) {
     }
 
     {
+      t1.retrieve_messages();
       t1.send_messages();
-      t2.send_messages();
     }
 
     {
-      t1.retrieve_messages();
-      cout << "-----------------------------" << endl;
       t2.retrieve_messages();
+      t2.send_messages();
     }
+
+    { t1.retrieve_messages(); }
 
     {
       GetAllMessagesRequest request;
@@ -1599,15 +1600,16 @@ TEST_F(DaemonRpcTest, OutboxPersistence) {
     Transmitter t2(crypto2, config2, stub_, msgstore2);
 
     {
+      t1.retrieve_messages();
       t1.send_messages();
-      t2.send_messages();
     }
 
     {
-      t1.retrieve_messages();
-      cout << "-----------------------------" << endl;
       t2.retrieve_messages();
+      t2.send_messages();
     }
+
+    { t1.retrieve_messages(); }
 
     {
       GetAllMessagesRequest request;
