@@ -54,8 +54,9 @@ Outbox::Outbox(const asphr::json& serialized_json, const string& file_address,
     : msgstore(msgstore), saved_file_address(file_address) {
   for (auto& messageJson : serialized_json.at("outbox")) {
     auto message = MessageToSend::from_json(messageJson);
+    outbox_ids.insert(message.full_message_id);
     if (outbox.contains(message.to.name)) {
-      outbox[message.to.name].push_back(message);
+      outbox.at(message.to.name).push_back(message);
     } else {
       outbox[message.to.name] = {message};
     }
@@ -67,6 +68,8 @@ Outbox::Outbox(const asphr::json& serialized_json, const string& file_address,
                 return a.sequence_number < b.sequence_number;
               });
   }
+
+  save();
 
   check_rep();
 }
@@ -126,6 +129,9 @@ auto Outbox::add(const string& id, const string& message,
       outbox[friend_info.name] = {msgToSend};
     }
   }
+
+  save();
+
   check_rep();
 }
 
@@ -179,6 +185,7 @@ auto Outbox::message_to_send(const Config& config, const Friend& dummyMe)
   check_rep();
 
   if (outbox.size() == 0) {
+    save();
     return MessageToSend{.to = dummyMe,
                          .sequence_number = 0,
                          .msg = "fake message",
@@ -193,6 +200,7 @@ auto Outbox::message_to_send(const Config& config, const Friend& dummyMe)
   for (auto& friend_name : recently_acked_friends) {
     if (outbox.contains(friend_name)) {
       auto& messages = outbox[friend_name];
+      save();
       return messages.at(0);
     }
   }
@@ -201,6 +209,7 @@ auto Outbox::message_to_send(const Config& config, const Friend& dummyMe)
   auto random_friend_number = rand() % outbox.size();
   auto random_friend = std::next(std::begin(outbox), random_friend_number);
   auto& messages = (*random_friend).second;
+  save();
   return messages.at(0);
 }
 

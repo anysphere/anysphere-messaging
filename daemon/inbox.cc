@@ -33,6 +33,8 @@ Inbox::Inbox(const asphr::json& serialized_json, const string& file_address)
     auto chunks = inbox_item.at("chunks").get<vector<string>>();
     inbox[make_pair(friend_name, chunk_start_id)] = chunks;
   }
+
+  save();
   check_rep();
 }
 
@@ -148,6 +150,7 @@ auto Inbox::receive_message(FastPIRClient& client, Config& config,
   auto friend_info_status = config.get_friend(friend_info.name);
   if (!friend_info_status.ok()) {
     // friend info has been deleted!
+    save();
     return std::nullopt;
   }
   friend_info = friend_info_status.value();
@@ -162,6 +165,7 @@ auto Inbox::receive_message(FastPIRClient& client, Config& config,
   if (!decrypted.ok()) {
     cout << "decryption failed, message was probably not for us: "
          << decrypted.status() << endl;
+    save();
     return std::nullopt;
   } else {
     previous_success_receive_friend = friend_info.name;
@@ -170,12 +174,14 @@ auto Inbox::receive_message(FastPIRClient& client, Config& config,
 
   if (message.id() == 0) {
     cout << "empty message for security" << endl;
+    save();
     return std::nullopt;
   }
 
   // if this is an old message, just return here. we've already seen it!
   if (message.id() <= friend_info.last_receive_id) {
     cout << "message is old, we've already seen it" << endl;
+    save();
     return std::nullopt;
   }
 
@@ -193,6 +199,7 @@ auto Inbox::receive_message(FastPIRClient& client, Config& config,
     auto friend_info_status = config.get_friend(friend_info.name);
     if (!friend_info_status.ok()) {
       // friend info has been deleted!
+      save();
       return std::nullopt;
     }
     friend_info = friend_info_status.value();
@@ -203,10 +210,12 @@ auto Inbox::receive_message(FastPIRClient& client, Config& config,
     // return early, because the sender needs to resend previous messages first
     // TODO: may be worth saving this and optimizing here, but it requires far
     // more accounting work on our end
+    save();
     return std::nullopt;
   }
 
   if (message.num_chunks() == 0) {
+    save();
     return InboxMessage{message.msg(), friend_info.name, message.id()};
   }
 
@@ -230,8 +239,10 @@ auto Inbox::receive_message(FastPIRClient& client, Config& config,
     }
     // remove the chunk
     inbox.erase(chunk_key);
+    save();
     return InboxMessage{msg, friend_info.name, message.id()};
   }
+  save();
   return std::nullopt;
 }
 
