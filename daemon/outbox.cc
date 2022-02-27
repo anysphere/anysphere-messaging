@@ -92,6 +92,7 @@ auto Outbox::add(const string& id, const string& message,
     // don't add the id if it already exists
     return;
   }
+  outbox_ids.insert(id);
 
   // chunk! and add.
   vector<string> chunked_message;
