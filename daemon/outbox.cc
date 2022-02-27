@@ -226,11 +226,13 @@ auto Outbox::check_rep() const noexcept -> void {
     for (auto& message : messages) {
       assert(message.sequence_number > prevMessageId);
       prevMessageId = message.sequence_number;
+      (void)prevMessageId;
     }
   }
 
   assert(outbox_ids.size() == outbox_ids_set.size());
   for (auto& id : outbox_ids) {
     assert(outbox_ids_set.contains(id));
+    (void)id;  // silence unused variable warning
   }
 }
