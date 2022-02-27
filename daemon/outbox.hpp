@@ -46,8 +46,6 @@ class Outbox {
   Outbox(const asphr::json& serialized_json, const string& file_address,
          shared_ptr<Msgstore> msgstore);
 
-  auto save() noexcept(false) -> void;
-
   // the message here can be any size! Outbox takes care of splitting it into
   // chunks.
   // if a message with the same id is already in the outbox, nothing happens
@@ -74,4 +72,5 @@ class Outbox {
   std::unordered_set<string> outbox_ids;
 
   auto check_rep() const noexcept -> void;
+  auto save() noexcept(false) -> void;
 };

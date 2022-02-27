@@ -26,8 +26,6 @@ class Inbox {
   Inbox(const string& file_address);
   Inbox(const asphr::json& serialized_json, const string& file_address);
 
-  auto save() noexcept(false) -> void;
-
   // returns the ACKs that should be sent from the current user to their index
   auto get_encrypted_acks(const vector<Friend>& friends, const Crypto& crypto,
                           const Friend& dummyMe)
@@ -55,4 +53,5 @@ class Inbox {
   std::unordered_map<K, vector<string>, K_hash> inbox;
 
   auto check_rep() const noexcept -> void;
+  auto save() noexcept(false) -> void;
 };
