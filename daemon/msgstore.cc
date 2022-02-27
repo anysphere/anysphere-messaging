@@ -208,7 +208,7 @@ auto Msgstore::get_all_incoming_messages_sorted() -> vector<IncomingMessage> {
   }
   std::sort(sorted_incoming.begin(), sorted_incoming.end(),
             [](const IncomingMessage& a, const IncomingMessage& b) {
-              return a.received_timestamp < b.received_timestamp;
+              return a.received_timestamp > b.received_timestamp;
             });
   return sorted_incoming;
 }
@@ -226,7 +226,7 @@ auto Msgstore::get_new_incoming_messages_sorted() -> vector<IncomingMessage> {
   }
   std::sort(sorted_incoming.begin(), sorted_incoming.end(),
             [](const IncomingMessage& a, const IncomingMessage& b) {
-              return a.received_timestamp < b.received_timestamp;
+              return a.received_timestamp > b.received_timestamp;
             });
   return sorted_incoming;
 }
