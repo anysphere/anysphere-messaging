@@ -45,7 +45,8 @@ class Config {
 
   auto has_space_for_friends() -> bool;
   auto num_enabled_friends() -> int;
-  auto random_enabled_friend() -> asphr::StatusOr<Friend>;
+  auto random_enabled_friend(const std::unordered_set<string>& excluded)
+      -> asphr::StatusOr<Friend>;
   auto dummy_me() -> Friend;
 
   auto has_registered() -> bool;

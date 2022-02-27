@@ -194,14 +194,15 @@ auto Config::num_enabled_friends() -> int {
   return num_enabled_friends;
 }
 
-auto Config::random_enabled_friend() -> asphr::StatusOr<Friend> {
+auto Config::random_enabled_friend(const std::unordered_set<string>& excluded)
+    -> asphr::StatusOr<Friend> {
   const std::lock_guard<std::mutex> l(config_mtx);
 
   check_rep();
 
   vector<Friend> enabled_friends;
   for (auto& friend_pair : friendTable) {
-    if (friend_pair.second.enabled) {
+    if (friend_pair.second.enabled && !excluded.contains(friend_pair.first)) {
       enabled_friends.push_back(friend_pair.second);
     }
   }
@@ -355,6 +356,7 @@ auto Config::check_rep() const -> void {
     assert(registrationInfo.allocation.size() > 0);
 
     assert(dummyMe.name == "dummyMe");
+    assert(dummyMe.dummy);
     assert(dummyMe.write_key.size() ==
            crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
     assert(dummyMe.read_key.size() ==
@@ -400,7 +402,7 @@ auto Config::initialize_dummy_me() -> void {
       dummy_friend_keypair.first);
 
   dummyMe = Friend("dummyMe", 0, dummy_read_write_keys.first,
-                   dummy_read_write_keys.second, 0, false, 0, 0, 0);
+                   dummy_read_write_keys.second, 0, false, 0, 0, 0, true);
 
   save();
 }

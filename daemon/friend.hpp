@@ -20,7 +20,8 @@ class Friend {
         enabled(false),
         latest_ack_id(0),
         latest_send_id(0),
-        last_receive_id(0) {
+        last_receive_id(0),
+        dummy(false) {
     auto rng = std::default_random_engine{};
 
     auto all_ack_indexes_not_used = asphr::unordered_set<int>{};
@@ -45,7 +46,7 @@ class Friend {
   Friend(const string& name, const int read_index, const string& read_key,
          const string& write_key, const int ack_index, const bool enabled,
          const uint32_t latest_ack_id, const uint32_t latest_send_id,
-         const uint32_t last_receive_id)
+         const uint32_t last_receive_id, bool dummy)
       : name(name),
         read_index(read_index),
         read_key(read_key),
@@ -54,7 +55,8 @@ class Friend {
         enabled(enabled),
         latest_ack_id(latest_ack_id),
         latest_send_id(latest_send_id),
-        last_receive_id(last_receive_id) {
+        last_receive_id(last_receive_id),
+        dummy(dummy) {
     check_rep();
   }
 
@@ -83,6 +85,8 @@ class Friend {
   // have received all IDs up to and including this value. Note that this refers
   // to ID in the sequence_number space, not the message ID space.
   uint32_t last_receive_id;
+  // dummy is true if the friend is a dummy friend!
+  bool dummy;
 
   auto to_json() -> asphr::json;
   static auto from_json(const asphr::json& j) -> Friend;

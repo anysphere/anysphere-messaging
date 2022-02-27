@@ -44,5 +44,9 @@ class Transmitter {
   string previous_success_receive_friend;
   Time last_ui_timestamp;
 
+  // for each index, get the PIR response for that index
+  auto batch_retrieve_pir(FastPIRClient& client, vector<pir_index_t> indices)
+      -> vector<asphr::StatusOr<asphrserver::ReceiveMessageResponse>>;
+
   auto check_rep() const noexcept -> void;
 };
