@@ -132,7 +132,7 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfig) {
 
   {
     auto crypto = gen_crypto();
-    auto config = gen_config(string(generateTempDir()), generateTempFile());
+    auto config = gen_config(string(generateTempDir()), config_file_address);
     auto msgstore = gen_msgstore(config);
     DaemonRpc rpc(crypto, config, stub_, msgstore);
 
