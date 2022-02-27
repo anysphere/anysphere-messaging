@@ -31,7 +31,10 @@ class DaemonRpcTest : public ::testing::Test {
                                std::to_string(config_file_addresses_.size()) +
                                ".json";
     char cwd[1024];
-    getcwd(cwd, sizeof(cwd));
+    auto status = getcwd(cwd, sizeof(cwd));
+    if (status == nullptr) {
+      throw std::runtime_error("getcwd() failed");
+    }
     auto address = string(cwd) + "/" + config_file_address;
     config_file_addresses_.push_back(address);
     return address;
@@ -40,7 +43,10 @@ class DaemonRpcTest : public ::testing::Test {
   auto generateTempDir() -> std::filesystem::path {
     auto tmp_dir = "TMPTMPTMP_dirs" + std::to_string(temp_dirs_.size());
     char cwd[1024];
-    getcwd(cwd, sizeof(cwd));
+    auto status = getcwd(cwd, sizeof(cwd));
+    if (status == nullptr) {
+      throw std::runtime_error("getcwd() failed");
+    }
     auto address = std::filesystem::path(cwd) / tmp_dir;
     std::filesystem::create_directory(address);
     temp_dirs_.push_back(address);

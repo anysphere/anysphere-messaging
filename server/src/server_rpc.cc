@@ -22,6 +22,7 @@ Status ServerRpc<PIR, AccountManager>::Register(
     // TODO: allocate in a loop
     auto allocation = pir.allocate();
     auto acks_allocation = pir_acks.allocate();
+    (void)acks_allocation;
     assert(allocation == acks_allocation);
     auto [auth_token, allocation_vec] = account_manager.generate_account(
         registerInfo->public_key(), allocation);
