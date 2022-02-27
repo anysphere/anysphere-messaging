@@ -1,12 +1,3 @@
 try-import %workspace%/../asphr/.bazelrc
 
-build --bes_results_url=https://app.buildbuddy.io/invocation/
-build --bes_backend=grpcs://cloud.buildbuddy.io
-build --remote_cache=grpcs://cloud.buildbuddy.io
-build --remote_timeout=3600
-
-# build --build_metadata=REPO_URL=https://github.com/anysphere/asphr
-# build --build_metadata=COMMIT_SHA=$(git rev-parse HEAD)
-# build --build_metadata=VISIBILITY=PUBLIC
-
 try-import %workspace%/../.buildbuddy.bazelrc
