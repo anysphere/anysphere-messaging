@@ -247,6 +247,7 @@ auto Crypto::encrypt_ack(uint32_t ack_id, const Friend& friend_info) const
   auto ack_id_str = reinterpret_cast<char*>(&ack_id);
   std::string plaintext(ack_id_str, 4);
   auto plaintext_len = plaintext.size();
+  (void)plaintext_len;
   assert(plaintext_len == ACKING_BYTES);
 
   unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];

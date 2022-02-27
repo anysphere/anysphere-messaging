@@ -248,8 +248,9 @@ auto Inbox::receive_message(FastPIRClient& client, Config& config,
 
 auto Inbox::check_rep() const noexcept -> void {
   assert(saved_file_address.size() > 0);
-  for (auto& [k, v] : inbox) {
+  for (auto& [_, v] : inbox) {
     // must always have more than 1 chunk — otherwise wouldn't need to chunk it!
     assert(v.size() > 1);
+    (void)v;  // silence unused variable warning
   }
 }
