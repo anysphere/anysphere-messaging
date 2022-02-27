@@ -134,7 +134,7 @@ auto Inbox::update_ack_from_friend(Config& config, pir_value_t& pir_acks,
 auto Inbox::receive_message(FastPIRClient& client, Config& config,
                             const asphrserver::ReceiveMessageResponse& reply,
                             const Friend& friend_info_in, const Crypto& crypto,
-                            string& previous_success_receive_friend)
+                            string* previous_success_receive_friend)
     -> std::optional<InboxMessage> {
   check_rep();
   Friend friend_info = friend_info_in;
@@ -212,7 +212,9 @@ auto Inbox::receive_message(FastPIRClient& client, Config& config,
     return std::nullopt;
   }
 
-  previous_success_receive_friend = friend_info.name;
+  // we have received a new message (chunk) that we haven't received before!
+  // this is a success!
+  *previous_success_receive_friend = friend_info.name;
 
   if (message.num_chunks() == 0) {
     save();

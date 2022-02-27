@@ -39,7 +39,7 @@ auto Transmitter::retrieve_messages() -> void {
     receive_friends.push_back(friend_info_status.value());
     receive_friend_names.insert(friend_info_status.value().name);
   }
-  // priority 2: the friend that we successfully received a message from the
+  // priority 2: the friend that we successfully received a new message from the
   // previous round
   if (auto friend_info_status =
           config->get_friend(previous_success_receive_friend);
@@ -91,7 +91,7 @@ auto Transmitter::retrieve_messages() -> void {
       // be atomic!!!
       auto message_opt =
           inbox.receive_message(client, *config, reply, friend_info, crypto,
-                                previous_success_receive_friend);
+                                &previous_success_receive_friend);
       if (message_opt.has_value()) {
         auto message = message_opt.value();
         msgstore->add_incoming_message(message.id, message.friend_name,
