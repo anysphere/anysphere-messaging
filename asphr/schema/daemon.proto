@@ -27,12 +27,12 @@ service Daemon {
     rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {}
 
     rpc GetAllMessages(GetAllMessagesRequest) returns (GetAllMessagesResponse) {}
+
+    rpc GetNewMessages(GetNewMessagesRequest) returns (GetNewMessagesResponse) {}
     
     rpc GetOutboxMessages(GetOutboxMessagesRequest) returns (GetOutboxMessagesResponse) {}
 
     rpc GetSentMessages(GetSentMessagesRequest) returns (GetSentMessagesResponse) {}
-
-    rpc GetNewMessages(GetNewMessagesRequest) returns (GetNewMessagesResponse) {}
 
     rpc MessageSeen(MessageSeenRequest) returns (MessageSeenResponse) {}
 
@@ -47,9 +47,7 @@ message RegisterUserRequest {
     string beta_key = 2;
 }
 
-message RegisterUserResponse {
-    bool success = 1;
-}
+message RegisterUserResponse {}
 
 message GetFriendListRequest {}
 
@@ -59,8 +57,7 @@ message FriendInfo {
 }
 
 message GetFriendListResponse {
-    bool success = 1;
-    repeated FriendInfo friend_infos = 2;
+    repeated FriendInfo friend_infos = 1;
 }
 
 message GenerateFriendKeyRequest {
@@ -69,7 +66,6 @@ message GenerateFriendKeyRequest {
 
 message GenerateFriendKeyResponse {
     string key = 1;
-    bool success = 2;
 }
 
 message AddFriendRequest {
@@ -77,64 +73,66 @@ message AddFriendRequest {
     string key = 2;
 }
 
-message AddFriendResponse {
-    bool success = 1;
-}
+message AddFriendResponse {}
 
 message RemoveFriendRequest {
     string name = 1;
 }
 
-message RemoveFriendResponse {
-    bool success = 1;
-}
+message RemoveFriendResponse {}
 
 message SendMessageRequest {
     string name = 1;
     string message = 2;
 }
 
-message SendMessageResponse {
-    bool success = 1;
+message SendMessageResponse {}
+
+message BaseMessage {
+    // this ID is NOT the same as the ID in message.proto
+    // in particular, this ID is guaranteed to be unique among ALL messages (on a given device), whereas the ID in message.proto
+    // is only unique for each <sender, recipient> pair.
+    // the format of this ID is something like (to|from):sender:sequence_number
+    string id = 1;
+    string message = 2;
+}
+
+message IncomingMessage {
+    BaseMessage m = 1;
+    string from = 2;
+    google.protobuf.Timestamp received_timestamp = 3;
+    bool seen = 4;
+}
+
+message OutgoingMessage {
+    BaseMessage m = 1;
+    string to = 2;
+    google.protobuf.Timestamp written_timestamp = 3;
+    bool delivered = 4;
 }
 
 message GetAllMessagesRequest {}
 
 message GetAllMessagesResponse {
-    bool success = 1;
-    repeated MessageInfo messages = 2;
-}
-
-message GetOutboxMessagesRequest {}
-
-message GetOutboxMessagesResponse {
-    bool success = 1;
-    repeated MessageInfo messages = 2;
-}
-
-message GetSentMessagesRequest {}
-
-message GetSentMessagesResponse {
-    bool success = 1;
-    repeated MessageInfo messages = 2;
-}
-
-message MessageInfo {
-    // this ID is NOT the same as the ID in message.proto
-    // in particular, this ID is guaranteed to be unique among ALL messages, whereas the ID in message.proto
-    // is only unique for each <sender, recipient> pair.
-    // the format of this ID is something like (to|from):sender:sequence_number
-    string id = 1;
-    string sender = 2;
-    string message = 3;
-    google.protobuf.Timestamp timestamp = 4;
+    repeated IncomingMessage messages = 1;
 }
 
 message GetNewMessagesRequest {}
 
 message GetNewMessagesResponse {
-    bool success = 1;
-    repeated MessageInfo messages = 2;
+    repeated IncomingMessage messages = 1;
+}
+
+message GetOutboxMessagesRequest {}
+
+message GetOutboxMessagesResponse {
+    repeated OutgoingMessage messages = 1;
+}
+
+message GetSentMessagesRequest {}
+
+message GetSentMessagesResponse {
+    repeated OutgoingMessage messages = 1;
 }
 
 message MessageSeenRequest {
