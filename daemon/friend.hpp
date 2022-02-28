@@ -10,7 +10,6 @@
 
 class Friend {
  public:
-  Friend() = default;
   Friend(const string& name, const vector<Friend>& friends)
       : name(name),
         read_index(0),

@@ -8,14 +8,14 @@
 #include "client_lib/client_lib.hpp"
 
 auto MessageToSend::from_json(const asphr::json& json) -> MessageToSend {
-  MessageToSend message;
-  message.to = Friend::from_json(json.at("to"));
-  message.sequence_number = json.at("sequence_number").get<uint32_t>();
-  message.msg = json.at("msg").get<string>();
-  message.chunked = json.at("chunked").get<bool>();
-  message.num_chunks = json.at("num_chunks").get<uint32_t>();
-  message.chunks_start_id = json.at("chunks_start_id").get<uint32_t>();
-  message.full_message_id = json.at("full_message_id").get<string>();
+  auto message = MessageToSend{
+      .to = Friend::from_json(json.at("to")),
+      .sequence_number = json.at("sequence_number").get<uint32_t>(),
+      .msg = json.at("msg").get<string>(),
+      .chunked = json.at("chunked").get<bool>(),
+      .num_chunks = json.at("num_chunks").get<uint32_t>(),
+      .chunks_start_id = json.at("chunks_start_id").get<uint32_t>(),
+      .full_message_id = json.at("full_message_id").get<string>()};
   return message;
 }
 

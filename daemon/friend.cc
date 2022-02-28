@@ -21,17 +21,15 @@ auto Friend::to_json() -> asphr::json {
 }
 
 auto Friend::from_json(const asphr::json& j) -> Friend {
-  Friend f;
-  f.name = j.at("name").get<string>();
-  f.read_index = j.at("read_index").get<int>();
-  asphr::Base64Unescape(j.at("write_key").get<string>(), &f.write_key);
-  asphr::Base64Unescape(j.at("read_key").get<string>(), &f.read_key);
-  f.ack_index = j.at("ack_index").get<int>();
-  f.enabled = j.at("enabled").get<bool>();
-  f.latest_ack_id = j.at("latest_ack_id").get<uint32_t>();
-  f.latest_send_id = j.at("latest_send_id").get<uint32_t>();
-  f.last_receive_id = j.at("last_receive_id").get<uint32_t>();
-  f.check_rep();
+  string read_key;
+  string write_key;
+  asphr::Base64Unescape(j.at("read_key").get<string>(), &read_key);
+  asphr::Base64Unescape(j.at("write_key").get<string>(), &write_key);
+  Friend f(j.at("name").get<string>(), j.at("read_index").get<int>(), read_key,
+           write_key, j.at("ack_index").get<int>(), j.at("enabled").get<bool>(),
+           j.at("latest_ack_id").get<uint32_t>(),
+           j.at("latest_send_id").get<uint32_t>(),
+           j.at("last_receive_id").get<uint32_t>(), false);
   return f;
 }
 
