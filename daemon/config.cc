@@ -63,7 +63,9 @@ Config::Config(const string& config_file_address)
 
 Config::Config(const asphr::json& config_json_input,
                const string& config_file_address)
-    : saved_file_address(config_file_address), db_rows_(CLIENT_DB_ROWS) {
+    : saved_file_address(config_file_address),
+      db_rows_(CLIENT_DB_ROWS),
+      dummyMe("dummyMe", 0, "", "", 0, false, 0, 0, 0, true) {
   auto config_json = config_json_input;
   if (!config_json.contains("has_registered")) {
     cout << "WARNING (invalid config file): config file does not contain "
@@ -112,7 +114,7 @@ Config::Config(const asphr::json& config_json_input,
 
   for (auto& friend_json : config_json.at("friends")) {
     Friend f = Friend::from_json(friend_json);
-    friendTable[f.name] = f;
+    friendTable.try_emplace(f.name, f);
   }
 
   data_dir = config_json.at("data_dir").get<string>();
@@ -232,7 +234,7 @@ auto Config::add_friend(const Friend& f) -> void {
   check_rep();
 
   assert(!friendTable.contains(f.name));
-  friendTable[f.name] = f;
+  friendTable.try_emplace(f.name, f);
 
   save();
   check_rep();
@@ -288,7 +290,7 @@ auto Config::update_friend(const Friend& f) -> void {
   check_rep();
 
   assert(friendTable.contains(f.name));
-  friendTable[f.name] = f;
+  friendTable.insert_or_assign(f.name, f);
   save();
 
   check_rep();
