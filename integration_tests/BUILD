@@ -11,6 +11,7 @@ cc_library(
 
 cc_test(
     name = "daemon_test",
+    size = "large",
     srcs = [
         "daemon_test.cc",
     ],
@@ -26,6 +27,7 @@ cc_test(
 
 cc_test(
     name = "multiple_friends_test",
+    size = "large",
     srcs = [
         "multiple_friends_test.cc",
     ],
