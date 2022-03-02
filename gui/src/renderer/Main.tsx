@@ -221,7 +221,7 @@ function Main() {
       if (!registered) {
         setModal(
           <RegisterModal
-            onClose={closeModal}
+            onClose={() => {}} // should not be able to close modal by clicking outside
             onRegister={(username: string, key: string) => {
               (window as any)
                 .register(username, key)
