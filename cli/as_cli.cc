@@ -215,6 +215,36 @@ int main(int argc, char** argv) {
     } else {
       cout << "Successfully killed the daemon!" << endl;
     }
+  } else if (command == "change-latency" || command == "cltcy") {
+    auto latency_seconds = cmd_line.getArgument(2);
+    if (!latency_seconds.ok()) {
+      cout << "Usage: " << binary_name << " (change-latency | cltcy) {latency}"
+           << endl;
+      cout << "Example: " << binary_name << " cltcy 10 (in seconds)" << endl;
+      cout << "Latecy is always in seconds." << endl;
+      cout << help << endl;
+      return 0;
+    }
+
+    auto latency = std::stoi(latency_seconds.value());
+
+    grpc::ClientContext context;
+    asphrdaemon::ChangeLatencyRequest request;
+    asphrdaemon::ChangeLatencyResponse response;
+
+    // safely turn the latency into an int
+    request.set_latency_seconds(latency);
+
+    grpc::Status status = stub->ChangeLatency(&context, request, &response);
+
+    if (!status.ok()) {
+      cout << "change latency failed: " << status.error_message() << endl;
+      return 0;
+    } else {
+      cout << "Successfully changed latency to " << latency << " seconds!"
+           << endl;
+    }
+
   } else {
     cout << "Unknown command: " << command << endl;
     cout << help << endl;
