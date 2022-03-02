@@ -9,3 +9,7 @@ bazel-*
 compile_commands.json
 
 .user.bazelrc
+
+# asphr and client will be clone by setupgit.sh
+client
+asphr
