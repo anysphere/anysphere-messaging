@@ -14,7 +14,7 @@ auto read_inbox_json(const string& file_address) -> asphr::json {
         std::filesystem::path(file_address).parent_path().u8string();
     std::filesystem::create_directories(dir_path);
     cout << "creating new inbox asphr::json!" << endl;
-    asphr::json j = {{"inprogress", {}}};
+    asphr::json j = {{"inprogress", asphr::json::array()}};
     std::ofstream o(file_address);
     o << std::setw(4) << j.dump(4) << std::endl;
   }
@@ -40,7 +40,7 @@ Inbox::Inbox(const asphr::json& serialized_json, const string& file_address)
 
 auto Inbox::save() noexcept(false) -> void {
   check_rep();
-  asphr::json j = {{"inprogress", {}}};
+  asphr::json j = {{"inprogress", asphr::json::array()}};
   for (const auto& inbox_item : inbox) {
     auto friend_name = inbox_item.first.first;
     auto chunk_start_id = inbox_item.first.second;

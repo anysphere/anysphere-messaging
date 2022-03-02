@@ -38,7 +38,7 @@ auto read_outbox_json(const string& file_address) -> asphr::json {
         std::filesystem::path(file_address).parent_path().u8string();
     std::filesystem::create_directories(dir_path);
     cout << "creating new outbox asphr::json!" << endl;
-    asphr::json j = {{"outbox", {}}};
+    asphr::json j = {{"outbox", asphr::json::array()}};
     std::ofstream o(file_address);
     o << std::setw(4) << j.dump(4) << std::endl;
   }
@@ -76,7 +76,7 @@ Outbox::Outbox(const asphr::json& serialized_json, const string& file_address,
 
 auto Outbox::save() noexcept(false) -> void {
   check_rep();
-  asphr::json j = {{"outbox", {}}};
+  asphr::json j = {{"outbox", asphr::json::array()}};
   for (auto& [friend_name, messages] : outbox) {
     for (auto& message : messages) {
       j.at("outbox").push_back(message.to_json());
