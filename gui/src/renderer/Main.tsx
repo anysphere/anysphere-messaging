@@ -228,6 +228,19 @@ function Main() {
                 .then((registered: boolean) => {
                   if (registered) {
                     closeModal();
+                    statusState.setStatus({
+                      message: `Registered as ${username}.`,
+                      action: () => {},
+                      actionName: null,
+                    });
+                    statusState.setVisible();
+                  } else {
+                    statusState.setStatus({
+                      message: `Unable to register. Perhaps incorrect access key?`,
+                      action: () => {},
+                      actionName: null,
+                    });
+                    statusState.setVisible();
                   }
                 });
             }}
