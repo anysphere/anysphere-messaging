@@ -96,6 +96,9 @@ Config::Config(const asphr::json& config_json_input,
     cout << "creating a new config file" << endl;
     config_json = new_config_json();
   }
+  if (config_json.contains("latency")) {
+    latency_ = config_json.at("latency").get<int>();
+  }
   if (!config_json.at("has_registered").get<bool>()) {
     has_registered_ = false;
   } else {
