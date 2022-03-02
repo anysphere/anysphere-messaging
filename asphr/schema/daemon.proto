@@ -39,6 +39,9 @@ service Daemon {
     // GetStatus returns the status of the daemon. Things like how long since the last send/receive cycle, etc.
     rpc GetStatus(GetStatusRequest) returns (GetStatusResponse) {}
 
+    rpc GetLatency(GetLatencyRequest) returns (GetLatencyResponse) {}
+    rpc ChangeLatency(ChangeLatencyRequest) returns (ChangeLatencyResponse) {}
+
     rpc Kill(KillRequest) returns (KillResponse) {}
 }
 
@@ -147,6 +150,17 @@ message GetStatusResponse {
     bool registered = 1;
     string release_hash = 2;
 }
+
+message GetLatencyRequest {}
+message GetLatencyResponse {
+    int32 latency_seconds = 1;
+}
+
+message ChangeLatencyRequest {
+    int32 latency_seconds = 1;
+}
+
+message ChangeLatencyResponse {}
 
 message KillRequest {}
 message KillResponse {}
