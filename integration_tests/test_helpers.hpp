@@ -12,7 +12,7 @@ auto gen_crypto() -> Crypto {
 
 auto gen_config(string tmp_dir, string tmp_file) -> shared_ptr<Config> {
   json config_json = {{"has_registered", false},
-                      {"friends", {}},
+                      {"friends", asphr::json::array()},
                       {"data_dir", tmp_dir},
                       {"server_address", "unused"}};
   auto config = make_shared<Config>(config_json, tmp_file);
