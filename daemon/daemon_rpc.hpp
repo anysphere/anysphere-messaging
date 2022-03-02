@@ -80,6 +80,16 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
       const asphrdaemon::GetStatusRequest* getStatusRequest,
       asphrdaemon::GetStatusResponse* getStatusResponse) override;
 
+  grpc::Status GetLatency(
+      grpc::ServerContext* context,
+      const asphrdaemon::GetLatencyRequest* getLatencyRequest,
+      asphrdaemon::GetLatencyResponse* getLatencyResponse) override;
+
+  grpc::Status ChangeLatency(
+      grpc::ServerContext* context,
+      const asphrdaemon::ChangeLatencyRequest* changeLatencyRequest,
+      asphrdaemon::ChangeLatencyResponse* changeLatencyResponse) override;
+
   grpc::Status Kill(grpc::ServerContext* context,
                     const asphrdaemon::KillRequest* killRequest,
                     asphrdaemon::KillResponse* killResponse) override;

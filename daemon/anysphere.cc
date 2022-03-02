@@ -11,11 +11,12 @@ int main(int argc, char** argv) {
   auto server_address = string("");
   auto socket_address = string("");
   auto config_file_address = string("");
-  auto round_delay = DEFAULT_ROUND_DELAY_SECONDS;
   auto tls = true;
 
   vector<string> args(argv + 1, argv + argc);
   string infname, outfname;
+
+  auto override_default_round_delay = -1;
 
   // Loop over command-line args
   for (auto i = args.begin(); i != args.end(); ++i) {
@@ -30,8 +31,9 @@ int main(int argc, char** argv) {
       std::cout
           << "  -c <config_file_address>  Address of config file (default: "
           << config_file_address << ")" << std::endl;
-      std::cout << "  -r <round_delay>  Round delay in seconds (default: "
-                << round_delay << ")" << std::endl;
+      std::cout
+          << "  -r <round_delay>  Round delay in seconds (default: 60 seconds)"
+          << std::endl;
       std::cout << "  --no-tls  Don't use TLS (default: use tls)" << std::endl;
       return 0;
     } else if (*i == "-s") {
@@ -41,7 +43,7 @@ int main(int argc, char** argv) {
     } else if (*i == "-c") {
       config_file_address = *++i;
     } else if (*i == "-r") {
-      round_delay = std::stoi(*++i);
+      override_default_round_delay = std::stoi(*++i);
     } else if (*i == "--no-tls") {
       tls = false;
     } else {
@@ -58,6 +60,14 @@ int main(int argc, char** argv) {
   }
 
   auto config = make_shared<Config>(config_file_address);
+
+  if (override_default_round_delay > 0) {
+    auto status = config->set_latency(override_default_round_delay);
+
+    if (!status.ok()) {
+      std::cerr << "Failed to set latency: " << status.message() << std::endl;
+    }
+  }
 
   if (server_address == "") {
     server_address = config->server_address();
@@ -98,7 +108,8 @@ int main(int argc, char** argv) {
   auto daemon_server = unique_ptr<grpc::Server>(builder.BuildAndStart());
 
   while (true) {
-    auto killed = config->wait_until_killed_or_seconds(round_delay);
+    auto killed =
+        config->wait_until_killed_or_seconds(config->get_latency_seconds());
     if (killed) {
       daemon_server->Shutdown();
       cout << "Daemon killed!" << endl;

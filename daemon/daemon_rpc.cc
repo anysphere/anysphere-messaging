@@ -401,6 +401,38 @@ auto DaemonRpc::GetStatus(ServerContext* context,
   return Status::OK;
 }
 
+auto DaemonRpc::GetLatency(ServerContext* context,
+                           const GetLatencyRequest* getLatencyRequest,
+                           GetLatencyResponse* getLatencyResponse) -> Status {
+  cout << "GetLatency() called" << endl;
+
+  getLatencyResponse->set_latency_seconds(config->get_latency_seconds());
+
+  return Status::OK;
+}
+
+auto DaemonRpc::ChangeLatency(
+    grpc::ServerContext* context,
+    const asphrdaemon::ChangeLatencyRequest* changeLatencyRequest,
+    asphrdaemon::ChangeLatencyResponse* changeLatencyResponse) -> Status {
+  cout << "ChangeLatency() called" << endl;
+
+  auto new_latency = changeLatencyRequest->latency_seconds();
+
+  if (new_latency <= 0) {
+    cout << "invalid latency" << endl;
+    return Status(grpc::StatusCode::INVALID_ARGUMENT, "invalid latency");
+  }
+
+  auto status = config->set_latency(new_latency);
+  if (!status.ok()) {
+    cout << "set latency failed" << endl;
+    return Status(grpc::StatusCode::RESOURCE_EXHAUSTED, "set latency failed");
+  }
+
+  return Status::OK;
+}
+
 auto DaemonRpc::Kill(ServerContext* context, const KillRequest* killRequest,
                      KillResponse* killResponse) -> Status {
   cout << "Kill() called" << endl;

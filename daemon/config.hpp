@@ -64,6 +64,9 @@ class Config {
   auto pir_client() -> FastPIRClient&;
   auto db_rows() -> size_t;
 
+  auto set_latency(int latency) -> asphr::Status;
+  auto get_latency_seconds() -> int;
+
   auto kill() -> void;
   // returns true iff killed
   auto wait_until_killed_or_seconds(int seconds) -> bool;
@@ -90,6 +93,10 @@ class Config {
   std::filesystem::path data_dir;
   // me is used whenever we need to encrypt dummy data!
   Friend dummyMe;
+
+  // latency in seconds
+  int latency_;
+
   // TODO: remove this lock! instead, all data should always be saved to and
   // read from sqlite, which will let us use one big global lock for all data,
   // which is critical for data integrity. performance shouldn't be a problem,

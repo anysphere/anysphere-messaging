@@ -65,7 +65,8 @@ Config::Config(const asphr::json& config_json_input,
                const string& config_file_address)
     : saved_file_address(config_file_address),
       db_rows_(CLIENT_DB_ROWS),
-      dummyMe("dummyMe", 0, "", "", 0, false, 0, 0, 0, true) {
+      dummyMe("dummyMe", 0, "", "", 0, false, 0, 0, 0, true),
+      latency_(DEFAULT_ROUND_DELAY_SECONDS) {
   auto config_json = config_json_input;
   if (!config_json.contains("has_registered")) {
     cout << "WARNING (invalid config file): config file does not contain "
@@ -314,6 +315,24 @@ auto Config::db_rows() -> size_t {
   return db_rows_;
 }
 
+auto Config::get_latency_seconds() -> int {
+  const std::lock_guard<std::mutex> l(config_mtx);
+
+  check_rep();
+  return latency_;
+}
+
+auto Config::set_latency(int latency) -> asphr::Status {
+  const std::lock_guard<std::mutex> l(config_mtx);
+
+  check_rep();
+  latency_ = latency;
+  save();
+  check_rep();
+
+  return absl::OkStatus();
+}
+
 auto Config::kill() -> void {
   const std::lock_guard<std::mutex> l(config_mtx);
 
@@ -348,6 +367,8 @@ auto Config::check_rep() const -> void {
   assert(data_dir != "");
   assert(db_rows_ > 0);
 
+  assert(latency_ >= 1);
+
   assert(friendTable.size() <= MAX_FRIENDS);
 
   if (has_registered_) {
@@ -380,6 +401,8 @@ auto Config::save() -> void {
   config_json["has_registered"] = has_registered_;
   config_json["data_dir"] = data_dir;
   config_json["server_address"] = server_address_;
+  config_json["latency"] = latency_;
+
   if (has_registered_) {
     config_json["registration_info"] = registrationInfo.to_json();
     config_json["pir_secret_key"] = asphr::Base64Escape(pir_secret_key);
