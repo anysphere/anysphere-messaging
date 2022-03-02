@@ -26,6 +26,21 @@ cc_test(
 )
 
 cc_test(
+    name = "daemon_fast_test",
+    srcs = [
+        "daemon_fast_test.cc",
+    ],
+    deps = [
+        ":test_helpers",
+        "//server/pir/fast_pir:server_fast_pir_lib",
+        "//server/src:as_server_lib",
+        "@client//daemon:daemon_lib",
+        "@client//daemon:transmitter_lib",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
     name = "multiple_friends_test",
     size = "large",
     srcs = [
