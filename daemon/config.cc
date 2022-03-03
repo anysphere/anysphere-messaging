@@ -429,7 +429,7 @@ auto Config::initialize_dummy_me() -> void {
       registrationInfo.public_key, registrationInfo.private_key,
       dummy_friend_keypair.first);
 
-  dummyMe = Friend("dummyMe", 0, dummy_read_write_keys.first,
+  dummyMe = Friend("dummyMe", 0, "", dummy_read_write_keys.first,
                    dummy_read_write_keys.second, 0, false, 0, 0, 0, true);
 
   save();

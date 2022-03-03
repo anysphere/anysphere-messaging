@@ -11,7 +11,6 @@ import { SelectableList, ListItem } from "./SelectableList";
 function FriendsModal({
   onClose,
   onAddFriend,
-  onOpenInitiatedFriend,
 }: {
   onClose: () => void;
   onAddFriend: (_: string) => void;
@@ -82,7 +81,9 @@ function FriendsModal({
     .filter((friend) => friend.status === "initiated")
     .map((friend, index) => ({
       id: `invitation-${index}`,
-      action: () => {},
+      action: () => {
+        onAddFriend(friend.name);
+      },
       data: {
         type: "friend",
         name: friend.name,
