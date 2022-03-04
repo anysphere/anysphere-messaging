@@ -33,7 +33,7 @@ struct RegistrationInfo {
 class Config {
  public:
   Config(const string& config_file_address);
-  Config(const asphr::json& config_json, const string& config_file_address);
+  Config(const asphr::json& config_json, string  config_file_address);
 
   // precondition: friend_info.name is not in friendTable
   auto add_friend(const Friend& friend_info) -> void;

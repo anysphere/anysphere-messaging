@@ -5,6 +5,8 @@
 
 #include "config.hpp"
 
+#include <utility>
+
 #include "client_lib/client_lib.hpp"
 #include "crypto.hpp"
 
@@ -62,8 +64,8 @@ Config::Config(const string& config_file_address)
     : Config(read_json_file(config_file_address), config_file_address) {}
 
 Config::Config(const asphr::json& config_json_input,
-               const string& config_file_address)
-    : saved_file_address(config_file_address),
+               string  config_file_address)
+    : saved_file_address(std::move(config_file_address)),
       db_rows_(CLIENT_DB_ROWS),
       dummyMe("dummyMe", 0, "", "", 0, false, 0, 0, 0, true),
       latency_(DEFAULT_ROUND_DELAY_SECONDS) {
@@ -213,7 +215,7 @@ auto Config::random_enabled_friend(const std::unordered_set<string>& excluded)
     }
   }
 
-  if (enabled_friends.size() == 0) {
+  if (enabled_friends.empty()) {
     return absl::NotFoundError("No enabled friends");
   }
 
@@ -250,8 +252,8 @@ auto Config::remove_friend(const string& name) -> absl::Status {
   check_rep();
 
   if (!friendTable.contains(name)) {
-    return absl::Status(absl::StatusCode::kInvalidArgument,
-                        "friend does not exist");
+    return {absl::StatusCode::kInvalidArgument,
+                        "friend does not exist"};
   }
   friendTable.erase(name);
 
@@ -267,7 +269,7 @@ auto Config::friends() const -> vector<Friend> {
   check_rep();
 
   vector<Friend> friends;
-  for (auto& [_, f] : friendTable) {
+  for (const auto& [_, f] : friendTable) {
     friends.push_back(f);
   }
 
@@ -366,7 +368,7 @@ auto Config::wait_until_killed_or_seconds(int seconds) -> bool {
 
 // private method; hence no check_rep, no lock
 auto Config::check_rep() const -> void {
-  assert(saved_file_address != "");
+  assert(!saved_file_address.empty());
   assert(data_dir != "");
   assert(db_rows_ > 0);
 
@@ -375,11 +377,11 @@ auto Config::check_rep() const -> void {
   assert(friendTable.size() <= MAX_FRIENDS);
 
   if (has_registered_) {
-    assert(registrationInfo.name != "");
+    assert(!registrationInfo.name.empty());
     assert(registrationInfo.public_key.size() == crypto_kx_PUBLICKEYBYTES);
     assert(registrationInfo.private_key.size() == crypto_kx_SECRETKEYBYTES);
-    assert(registrationInfo.authentication_token.size() > 0);
-    assert(registrationInfo.allocation.size() > 0);
+    assert(!registrationInfo.authentication_token.empty());
+    assert(!registrationInfo.allocation.empty());
 
     assert(dummyMe.name == "dummyMe");
     assert(dummyMe.dummy);
@@ -389,12 +391,12 @@ auto Config::check_rep() const -> void {
            crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
     assert(dummyMe.enabled == false);
 
-    assert(pir_secret_key != "");
-    assert(pir_galois_keys != "");
+    assert(!pir_secret_key.empty());
+    assert(!pir_galois_keys.empty());
     assert(pir_client_ != nullptr);
   } else {
-    assert(dummyMe.write_key.size() == 0);
-    assert(dummyMe.read_key.size() == 0);
+    assert(dummyMe.write_key.empty());
+    assert(dummyMe.read_key.empty());
   }
 }
 
