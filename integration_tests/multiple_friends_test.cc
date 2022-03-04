@@ -32,26 +32,32 @@ class MultipleFriendsTest : public ::testing::Test {
     auto config_file_address = "TMPTMPTMP_config" +
                                std::to_string(config_file_addresses_.size()) +
                                ".json";
-    char cwd[1024];
-    auto status = getcwd(cwd, sizeof(cwd));
+
+    const auto large_cwd_size = 1024;
+    std::array<char, large_cwd_size> cwd{};
+    auto* status = getcwd(cwd.data(), cwd.size());
     if (status == nullptr) {
       throw std::runtime_error("getcwd() failed");
     }
 
-    auto address = string(cwd) + "/" + config_file_address;
+    std::string cwd_str(cwd.data());
+    auto address = cwd_str + "/" + config_file_address;
     config_file_addresses_.push_back(address);
     return address;
   }
 
-  auto generateTempDir() noexcept(false) -> std::filesystem::path {
+  auto generateTempDir() -> std::filesystem::path {
     auto tmp_dir = "TMPTMPTMP_dirs" + std::to_string(temp_dirs_.size());
-    char cwd[1024];
-    auto status = getcwd(cwd, sizeof(cwd));
+
+    const auto large_cwd_size = 1024;
+    std::array<char, large_cwd_size> cwd{};
+    auto* status = getcwd(cwd.data(), cwd.size());
     if (status == nullptr) {
       throw std::runtime_error("getcwd() failed");
     }
 
-    auto address = std::filesystem::path(cwd) / tmp_dir;
+    std::string cwd_str(cwd.data());
+    auto address = std::filesystem::path(cwd_str) / tmp_dir;
     std::filesystem::create_directory(address);
     temp_dirs_.push_back(address);
     return address;
@@ -59,7 +65,7 @@ class MultipleFriendsTest : public ::testing::Test {
 
   void SetUp() override {
     // TODO(sualeh): do NOT do this. pick a good random unused port
-    int port = 43421;
+    const int port = 43421;
     server_address_ << "localhost:" << port;
     // Setup server
     grpc::ServerBuilder builder;
@@ -72,14 +78,14 @@ class MultipleFriendsTest : public ::testing::Test {
   void TearDown() override {
     server_->Shutdown();
 
-    for (auto f : config_file_addresses_) {
+    for (const auto& f : config_file_addresses_) {
       if (remove(f.c_str()) != 0) {
         cerr << "Error deleting file";
       } else {
         cout << "File successfully deleted\n";
       }
     }
-    for (auto f : temp_dirs_) {
+    for (const auto& f : temp_dirs_) {
       if (std::filesystem::remove_all(f) != 0) {
         cerr << "Error deleting file";
       } else {
@@ -94,6 +100,7 @@ class MultipleFriendsTest : public ::testing::Test {
     stub_ = asphrserver::Server::NewStub(channel);
   }
 
+ public:
   std::shared_ptr<asphrserver::Server::Stub> stub_;
   std::unique_ptr<grpc::Server> server_;
   std::ostringstream server_address_;
@@ -608,7 +615,7 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
     EXPECT_TRUE(status.ok());
   }
 
-  string long_message = "";
+  string long_message;
   for (size_t j = 0; j < GUARANTEED_SINGLE_MESSAGE_SIZE + 1; j++) {
     long_message += "a";
   }
@@ -812,7 +819,8 @@ TEST_F(MultipleFriendsTest, ReceiveMessageEvenIfOutstandingOutboxMessage) {
 
   // execute 12 rounds. this may fail!! and in that case we just want to re-run
   // the test
-  for (auto round = 0; round < 12; round++) {
+  const int kNumRounds = 12;
+  for (auto round = 0; round < kNumRounds; round++) {
     for (size_t i = 0; i < names.size(); i++) {
       // user 2 is offline!
       if (i == 1) {

@@ -1,4 +1,4 @@
-#include "fastpir.hpp"
+#include "./fastpir.hpp"
 
 auto FastPIR::set_value(pir_index_t index, pir_value_t value) noexcept -> void {
   // this assert is guaranteed by the fact that the index is a valid index
@@ -44,14 +44,14 @@ auto FastPIR::get_value_privately(pir_query_t pir_query) noexcept(false)
     seal::Ciphertext s_bottom = compressed_cols[seal_slot_count / 2];
   }
   // combine using rotations!
-  // TODO: optimize this by using the clever galois key thing
+  // TODO(unknown): optimize this by using the clever galois key thing
   for (size_t i = 0; i < SEAL_DB_COLUMNS; ++i) {
     if (i == 0 || i == seal_slot_count / 2) {
       continue;
     }
     if (i < seal_slot_count / 2) {
-      evaluator.rotate_rows_inplace(compressed_cols[i], -i,
-                                    pir_query.galois_keys);
+      evaluator.rotate_rows_inplace(
+          compressed_cols[i], -1 * static_cast<int>(i), pir_query.galois_keys);
       evaluator.add_inplace(s_top, compressed_cols[i]);
     } else {
       evaluator.rotate_rows_inplace(

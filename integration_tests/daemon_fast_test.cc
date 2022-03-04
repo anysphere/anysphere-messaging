@@ -30,31 +30,41 @@ class DaemonRpcFastTest : public ::testing::Test {
     auto config_file_address = "TMPTMPTMP_config" +
                                std::to_string(config_file_addresses_.size()) +
                                ".json";
-    char cwd[1024];
-    auto status = getcwd(cwd, sizeof(cwd));
+
+    const auto large_cwd_size = 1024;
+    std::array<char, large_cwd_size> cwd{};
+    auto* status = getcwd(cwd.data(), cwd.size());
     if (status == nullptr) {
       throw std::runtime_error("getcwd() failed");
     }
-    auto address = string(cwd) + "/" + config_file_address;
+
+    std::string cwd_str(cwd.data());
+    auto address = cwd_str + "/" + config_file_address;
     config_file_addresses_.push_back(address);
     return address;
   }
 
   auto generateTempDir() -> std::filesystem::path {
     auto tmp_dir = "TMPTMPTMP_dirs" + std::to_string(temp_dirs_.size());
-    char cwd[1024];
-    auto status = getcwd(cwd, sizeof(cwd));
+
+    const auto large_cwd_size = 1024;
+    std::array<char, large_cwd_size> cwd{};
+    auto* status = getcwd(cwd.data(), cwd.size());
     if (status == nullptr) {
       throw std::runtime_error("getcwd() failed");
     }
-    auto address = std::filesystem::path(cwd) / tmp_dir;
+
+    std::string cwd_str(cwd.data());
+    auto address = std::filesystem::path(cwd_str) / tmp_dir;
     std::filesystem::create_directory(address);
     temp_dirs_.push_back(address);
     return address;
   }
 
   void SetUp() override {
-    int port = 43427;
+    const int kRandomPort = 43427;
+
+    int port = kRandomPort;
     server_address_ << "localhost:" << port;
     // Setup server
     grpc::ServerBuilder builder;
@@ -67,14 +77,14 @@ class DaemonRpcFastTest : public ::testing::Test {
   void TearDown() override {
     server_->Shutdown();
 
-    for (auto f : config_file_addresses_) {
+    for (const auto& f : config_file_addresses_) {
       if (remove(f.c_str()) != 0) {
         cerr << "Error deleting file";
       } else {
         cout << "File successfully deleted\n";
       }
     }
-    for (auto f : temp_dirs_) {
+    for (const auto& f : temp_dirs_) {
       if (std::filesystem::remove_all(f) != 0) {
         cerr << "Error deleting file";
       } else {
@@ -89,6 +99,7 @@ class DaemonRpcFastTest : public ::testing::Test {
     stub_ = asphrserver::Server::NewStub(channel);
   }
 
+ public:
   std::shared_ptr<asphrserver::Server::Stub> stub_;
   std::unique_ptr<grpc::Server> server_;
   std::ostringstream server_address_;
@@ -131,14 +142,16 @@ TEST_F(DaemonRpcFastTest, SetLatency) {
             .ok());
     EXPECT_EQ(get_latency_response.latency_seconds(), 60);
 
-    request.set_latency_seconds(5);
+    const int kLatency = 5;
+
+    request.set_latency_seconds(kLatency);
     auto status = rpc.ChangeLatency(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
 
     EXPECT_TRUE(
         rpc.GetLatency(nullptr, &get_latency_request, &get_latency_response)
             .ok());
-    EXPECT_EQ(get_latency_response.latency_seconds(), 5);
+    EXPECT_EQ(get_latency_response.latency_seconds(), kLatency);
   }
 };
 
@@ -182,8 +195,8 @@ TEST_F(DaemonRpcFastTest, KillDaemon) {
     KillResponse response;
     rpc.Kill(nullptr, &request, &response);
   }
-
-  killed = config->wait_until_killed_or_seconds(1000);
+  const int kWaitTime = 1000;
+  killed = config->wait_until_killed_or_seconds(kWaitTime);
   EXPECT_TRUE(killed);
 }
 

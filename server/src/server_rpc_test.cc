@@ -45,7 +45,7 @@ TEST(ServerRpcTest, SendMessage) {
     EXPECT_EQ(response.public_key(), "fake_public_key");
     EXPECT_GE(response.allocation_size(), 1);
     authentication_token = response.authentication_token();
-    for (auto& i : response.allocation()) {
+    for (const auto& i : response.allocation()) {
       allocation.push_back(i);
     }
   }
@@ -53,11 +53,11 @@ TEST(ServerRpcTest, SendMessage) {
   {
     SendMessageInfo request;
     request.set_authentication_token(authentication_token);
-    string message = "";
+    string message;
     for (size_t i = 0; i < MESSAGE_SIZE; i++) {
       message += "a";
     }
-    string acks = "";
+    string acks;
     for (size_t i = 0; i < MESSAGE_SIZE; i++) {
       acks += "k";
     }
@@ -89,7 +89,7 @@ TEST(ServerRpcTest, SendMessageIncorrectSize) {
     EXPECT_EQ(response.public_key(), "fake_public_key");
     EXPECT_GE(response.allocation_size(), 1);
     authentication_token = response.authentication_token();
-    for (auto& i : response.allocation()) {
+    for (const auto& i : response.allocation()) {
       allocation.push_back(i);
     }
   }
@@ -97,11 +97,11 @@ TEST(ServerRpcTest, SendMessageIncorrectSize) {
   {
     SendMessageInfo request;
     request.set_authentication_token(authentication_token);
-    string message = "";
+    string message;
     for (size_t i = 0; i < MESSAGE_SIZE - 1; i++) {
       message += "a";
     }
-    string acks = "";
+    string acks;
     for (size_t i = 0; i < MESSAGE_SIZE; i++) {
       acks += "k";
     }
@@ -133,7 +133,7 @@ TEST(ServerRpcTest, SendMessageIncorrectSize2) {
     EXPECT_EQ(response.public_key(), "fake_public_key");
     EXPECT_GE(response.allocation_size(), 1);
     authentication_token = response.authentication_token();
-    for (auto& i : response.allocation()) {
+    for (const auto& i : response.allocation()) {
       allocation.push_back(i);
     }
   }
@@ -141,11 +141,11 @@ TEST(ServerRpcTest, SendMessageIncorrectSize2) {
   {
     SendMessageInfo request;
     request.set_authentication_token(authentication_token);
-    string message = "";
+    string message;
     for (size_t i = 0; i < MESSAGE_SIZE; i++) {
       message += "a";
     }
-    string acks = "";
+    string acks;
     for (size_t i = 0; i < MESSAGE_SIZE + 1; i++) {
       acks += "k";
     }
