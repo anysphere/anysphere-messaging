@@ -65,7 +65,7 @@ Config::Config(const asphr::json& config_json_input,
                const string& config_file_address)
     : saved_file_address(config_file_address),
       db_rows_(CLIENT_DB_ROWS),
-      dummyMe("dummyMe", 0, "", "", "", 0, false, 0, 0, 0, true),
+      dummyMe("dummyMe", 0, "add_key", "", "", 0, false, 0, 0, 0, true),
       latency_(DEFAULT_ROUND_DELAY_SECONDS) {
   auto config_json = config_json_input;
   if (!config_json.contains("has_registered")) {
@@ -429,7 +429,7 @@ auto Config::initialize_dummy_me() -> void {
       registrationInfo.public_key, registrationInfo.private_key,
       dummy_friend_keypair.first);
 
-  dummyMe = Friend("dummyMe", 0, "", dummy_read_write_keys.first,
+  dummyMe = Friend("dummyMe", 0, "add_key", dummy_read_write_keys.first,
                    dummy_read_write_keys.second, 0, false, 0, 0, 0, true);
 
   save();
