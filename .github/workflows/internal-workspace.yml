@@ -14,16 +14,28 @@ jobs:
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: Get commit branch and commit message
+        if: github.event_name == 'push'
+        run: |
+          echo "HEAD=HEAD" >> $GITHUB_ENV
+
+      - name: Get commit branch and commit message
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "HEAD=HEAD^2" >> $GITHUB_ENV
 
       - name: Get commit branch and commit message
         run: |
-          echo "COMMIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_BRANCH=$(git rev-parse --abbrev-ref $HEAD)" >> $GITHUB_ENV
           echo "COMMIT_MESSAGE<<EOF" >> $GITHUB_ENV
-          echo "$(git log --format=%B -n 1 HEAD)" >> $GITHUB_ENV
+          echo "$(git log --format=%B -n 1 $HEAD)" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
-          echo "COMMIT_AUTHOR_EMAIL=$(git log --format=%ae -n 1 HEAD)" >> $GITHUB_ENV
-          echo "COMMIT_AUTHOR_NAME=$(git log --format=%an -n 1 HEAD)" >> $GITHUB_ENV
-          echo "COMMIT_HASH=$(git log --format=%H -n 1 HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_AUTHOR_EMAIL=$(git log --format=%ae -n 1 $HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_AUTHOR_NAME=$(git log --format=%an -n 1 $HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_HASH=$(git log --format=%H -n 1 $HEAD)" >> $GITHUB_ENV
 
       - name: Checkout internal
         uses: actions/checkout@v3
