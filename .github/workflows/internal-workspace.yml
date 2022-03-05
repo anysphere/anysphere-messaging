@@ -17,7 +17,7 @@ jobs:
         with:
           repository: "anysphere/anysphere"
           ref: "arvid/ci"
-          ssh-key: ${{ secrets.ANYSPHERE_CLIENT_DEPLOY_PRIVATE_KEY }}
+          ssh-key: ${{ secrets.ANYSPHERE_ANYSPHERE_DEPLOY_PRIVATE_KEY }}
 
       - name: Update SHA
         run: |
