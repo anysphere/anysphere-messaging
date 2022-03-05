@@ -48,7 +48,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout this repo
-      - uses: actions/checkout@v3
+        uses: actions/checkout@v3
+
       - name: Get commit branch and commit message
         run: |
           echo "COMMIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
