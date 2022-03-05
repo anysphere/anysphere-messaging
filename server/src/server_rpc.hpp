@@ -15,9 +15,9 @@ template <typename PIR, typename AccountManager>
 class ServerRpc final : public asphrserver::Server::Service {
   using pir_query_t = typename PIR::pir_query_t;
   using pir_answer_t = typename PIR::pir_answer_t;
-  // TODO(sualeh): add a thread safety argument (because the methods may be
-  // called from different threads)
-  // TODO(sualeh): add representation invariant
+  // TODO: add a thread safety argument (because the methods may be called from
+  // different threads)
+  // TODO: add representation invariant
  public:
   grpc::Status Register(
       grpc::ServerContext* context,
@@ -34,7 +34,6 @@ class ServerRpc final : public asphrserver::Server::Service {
       const asphrserver::ReceiveMessageInfo* receiveMessageInfo,
       asphrserver::ReceiveMessageResponse* receiveMessageResponse) override;
 
-  // trunk-ignore(clang-tidy/bugprone-easily-swappable-parameters)
   ServerRpc(PIR&& pir, PIR&& pir_acks, AccountManager&& account_manager)
       : pir(std::move(pir)),
         pir_acks(std::move(pir_acks)),
@@ -44,8 +43,8 @@ class ServerRpc final : public asphrserver::Server::Service {
 
  private:
   PIR pir;  // stores actual messages for every user
-  // TODO(arvid): have a different size for the acks PIR, because the
-  // requirements are slightly different!
+  // TODO: have a different size for the acks PIR, because the requirements are
+  // slightly different!
   PIR pir_acks;  // stores ACKs for every user
   AccountManager account_manager;
 };

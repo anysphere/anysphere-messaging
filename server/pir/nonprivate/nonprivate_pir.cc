@@ -1,6 +1,6 @@
 #include "nonprivate_pir.hpp"
 
-NonPrivatePIR::NonPrivatePIR() = default;
+NonPrivatePIR::NonPrivatePIR() {}
 
 auto NonPrivatePIR::set_value(pir_index_t index, pir_value_t value) noexcept
     -> void {
