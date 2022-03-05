@@ -3,10 +3,14 @@
 # SPDX-License-Identifier: GPL-3.0-only
 #
 
-local_repository(
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
     name = "asphr",
-    path = "../asphr",
+    commit = "904059693a7ec14b198d8c8d2efb0562a1bf0e34",  # autoupdate anysphere/asphr
+    remote = "https://github.com/anysphere/asphr.git",
 )
+# for local builds, we add --override_repository=asphr=../asphr, which we do in setupgit.sh
 
 load("@asphr//:asphr_load.bzl", "load_asphr_repos")
 
