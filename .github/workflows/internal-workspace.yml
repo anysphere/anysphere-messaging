@@ -9,11 +9,56 @@ on:
       - main
 
 jobs:
+  # taken from https://github.community/t/accessing-commit-message-in-pull-request-event/17158/9
+  pre_ci:
+    name: Prepare CI environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v2
+        with:
+          # We need to fetch with a depth of 2 for pull_request so we can do HEAD^2
+          fetch-depth: 2
+
+        # If this workflow was triggered by a push then resolve the commit message from HEAD
+        # It is stored in output steps, to be referenced with ${{ steps.push_get_commit_message.outputs.push_commit_message }}
+      - name: "[Push] Get commit message"
+        if: github.event_name == 'push'
+        id: push_get_commit_message
+        run: echo ::set-output name=push_commit_message::$(git log --format=%B -n 1 HEAD)
+
+        # If this workflow was triggered by a pull request (open or synchronize!) then resolve the commit message from HEAD^2
+        # It is stored in output steps, to be referenced with ${{ steps.pr_get_commit_message.outputs.pr_commit_message }}
+      - name: "[Pull Request] Get commit message"
+        if: github.event_name == 'pull_request'
+        id: pr_get_commit_message
+        run: echo ::set-output name=pr_commit_message::$(git log --format=%B -n 1 HEAD^2)
+
+    # Finally we want to make the commit message available to other jobs. This can be done with job-level outputs
+    # However as we do not know whether the commit message was set in Push or Pull Request event we need to do some
+    # bash magic to resolve the one or the other
+    #
+    # For **Pull Request** events this will resolve to something like "$( [ -z "commit message pr" ] && echo "" || echo "commit message pr" )" which then resolves to just "commit message pr"
+    #
+    # For **Push** events this will resolve to something like "$( [ -z "" ] && echo "commit message push"  || echo "" )" which then resolves to just "commit message push"
+    outputs:
+      commit_message: $( [ -z "${{ steps.pr_get_commit_message.outputs.pr_commit_message }}" ] && echo "${{ steps.push_get_commit_message.outputs.push_commit_message }}" || echo "${{ steps.pr_get_commit_message.outputs.pr_commit_message }}" )
+
   update:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'skip internal-workspace')"
-
     steps:
+      - name: Checkout this repo
+      - uses: actions/checkout@v3
+      - name: Get commit branch and commit message
+        run: |
+          echo "COMMIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_MESSAGE<<EOF" >> $GITHUB_ENV
+          echo "$(git log --format=%B -n 1 HEAD)" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          echo "COMMIT_AUTHOR_EMAIL=$(git log --format=%ae -n 1 HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_AUTHOR_NAME=$(git log --format=%an -n 1 HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_HASH=$(git log --format=%H -n 1 HEAD)" >> $GITHUB_ENV
+
       - name: helppp
         run: echo ${{ github.actor.url }}
 
@@ -29,13 +74,13 @@ jobs:
           sed -i "s/commit = \"[a-z0-9]*\",  # autoupdate anysphere\/client/commit = \"$GITHUB_SHA\",  # autoupdate anysphere\/client/g" WORKSPACE
       - name: Commit
         run: |
-          git config --local user.email ${{ github.event.head_commit.author.email }}
-          git config --local user.name ${{ github.event.head_commit.author.name }}
+          git config --local user.email $COMMIT_AUTHOR_EMAIL
+          git config --local user.name $COMMIT_AUTHOR_NAME
           git add WORKSPACE
           cat <<EOF > message.txt
-          🔄 ${{ github.event.head_commit.message }}
+          🔄 $COMMIT_MESSAGE
           Update anysphere/client commit SHA
-          🔗 ${{ github.event.head_commit.url }}
+          🔗 https://github.com/anysphere/client/commit/$COMMIT_HASH
           EOF
           git commit -F message.txt -a
       - name: Push changes
