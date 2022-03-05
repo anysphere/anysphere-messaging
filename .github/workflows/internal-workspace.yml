@@ -8,6 +8,9 @@ on:
     branches:
       - main
 
+env:
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -15,13 +18,13 @@ jobs:
 
     steps:
       - name: Echo ref name
-        run: echo $GITHUB_REF_NAME
+        run: echo $BRANCH_NAME
 
       - name: Checkout internal
         uses: actions/checkout@v3
         with:
           repository: "anysphere/anysphere"
-          ref: $GITHUB_REF_NAME
+          ref: $BRANCH_NAME
           ssh-key: ${{ secrets.ANYSPHERE_ANYSPHERE_DEPLOY_PRIVATE_KEY }}
 
       - name: Update SHA
