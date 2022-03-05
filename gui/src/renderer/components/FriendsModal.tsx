@@ -141,7 +141,7 @@ function FriendsModal({
           if (item.data.type === "add") {
             return (
               <div
-                className={`p-2 flex flex-row gap-2 ${
+                className={`p-2 flex flex-row text-asbrown-dark gap-2 ${
                   active ? "bg-asbeige" : ""
                 }`}
               >
@@ -171,7 +171,11 @@ function FriendsModal({
           }
           if (item.data.type === "friend") {
             return (
-              <div className={`py-1 px-2 ${active ? "bg-asbeige" : ""}`}>
+              <div
+                className={`py-1 text-asbrown-dark px-2 ${
+                  active ? "bg-asbeige" : ""
+                }`}
+              >
                 <div className="text-sm">{item.data.name}</div>
               </div>
             );
