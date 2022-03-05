@@ -20,7 +20,7 @@ build --genrule_strategy=local
 # test --test_strategy=standalone
 
 # By default build in C++20 mode
-build --cxxopt=-std=c++2a
+build --cxxopt=-std=c++17
 
 # c++ warning flags
 build --cxxopt=-Wall
