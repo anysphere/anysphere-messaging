@@ -7,7 +7,7 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 git_repository(
     name = "asphr",
-    commit = "a7c05f323a56e6983488c5043c2b815d1da1e448",  # autoupdate anysphere/asphr
+    commit = "afb429aef46a55169d88b505d461ee15bc518bb4",  # autoupdate anysphere/asphr
     init_submodules = True,
     remote = "https://github.com/anysphere/asphr.git",
 )
