@@ -25,9 +25,6 @@ jobs:
           echo "COMMIT_AUTHOR_NAME=$(git log --format=%an -n 1 HEAD)" >> $GITHUB_ENV
           echo "COMMIT_HASH=$(git log --format=%H -n 1 HEAD)" >> $GITHUB_ENV
 
-      - name: helppp
-        run: echo ${{ github.actor.url }}
-
       - name: Checkout internal
         uses: actions/checkout@v3
         with:
