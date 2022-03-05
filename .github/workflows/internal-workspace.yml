@@ -20,7 +20,7 @@ jobs:
         with:
           repository: "anysphere/anysphere"
           ref: "main"
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update SHA
         run: |
