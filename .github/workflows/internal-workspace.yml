@@ -1,0 +1,46 @@
+name: Update Internal Workspace Commit Hash
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'skip internal-workspace')"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Checkout internal
+        uses: actions/checkout@v3
+        with:
+          repository: "anysphere/anysphere"
+          ref: "main"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update SHA
+        run: |
+          cd ../anysphere
+          sed -i "s/commit = \"[a-z0-9]*\",  # autoupdate anysphere\/client/commit = \"$GITHUB_SHA\",  # autoupdate anysphere\/client/g" WORKSPACE
+      - name: Commit
+        run: |
+          cd ../anysphere
+          git config --local user.email ${{ github.event.head_commit.author.email }}
+          git config --local user.name ${{ github.event.head_commit.author.name }}
+          git add WORKSPACE
+          cat <<EOF > message.txt
+          🔄 ${{ github.event.head_commit.message }}
+          Update anysphere/client commit SHA
+          🔗 ${{ github.event.head_commit.url }}
+          EOF
+          git commit -F message.txt -a
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          directory: ../anysphere
+          repository: anysphere/anysphere
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
