@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: "anysphere/anysphere"
-          ref: "main"
+          ref: "arvid/ci"
           ssh-key: ${{ secrets.ANYSPHERE_ANYSPHERE_DEPLOY_PRIVATE_KEY }}
 
       - name: Update SHA
