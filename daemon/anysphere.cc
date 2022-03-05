@@ -14,7 +14,8 @@ int main(int argc, char** argv) {
   auto tls = true;
 
   vector<string> args(argv + 1, argv + argc);
-  string infname, outfname;
+  string infname;
+  string outfname;
 
   auto override_default_round_delay = -1;
 
@@ -36,7 +37,7 @@ int main(int argc, char** argv) {
           << std::endl;
       std::cout << "  --no-tls  Don't use TLS (default: use tls)" << std::endl;
       return 0;
-    } else if (*i == "-s") {
+    } if (*i == "-s") {
       server_address = *++i;
     } else if (*i == "-d") {
       socket_address = *++i;
@@ -52,10 +53,10 @@ int main(int argc, char** argv) {
     }
   }
 
-  if (socket_address == "") {
+  if (socket_address.empty()) {
     socket_address = get_socket_path().string();
   }
-  if (config_file_address == "") {
+  if (config_file_address.empty()) {
     config_file_address = get_config_file_address().string();
   }
 
@@ -69,7 +70,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  if (server_address == "") {
+  if (server_address.empty()) {
     server_address = config->server_address();
   }
 
