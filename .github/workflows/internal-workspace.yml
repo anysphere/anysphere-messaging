@@ -2,11 +2,8 @@ name: Update Internal Workspace Commit Hash
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    paths-ignore:
+      - "WORKSPACE" # WORKSPACE is never transitive, so we ignore this
 
 jobs:
   update:
