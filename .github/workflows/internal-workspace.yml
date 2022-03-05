@@ -8,23 +8,17 @@ on:
     branches:
       - main
 
-env:
-  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
-
 jobs:
   update:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'skip internal-workspace')"
 
     steps:
-      - name: Echo ref name
-        run: echo $BRANCH_NAME
-
       - name: Checkout internal
         uses: actions/checkout@v3
         with:
           repository: "anysphere/anysphere"
-          ref: $BRANCH_NAME
+          ref: ${{ github.head_ref || github.ref_name }}
           ssh-key: ${{ secrets.ANYSPHERE_ANYSPHERE_DEPLOY_PRIVATE_KEY }}
 
       - name: Update SHA
