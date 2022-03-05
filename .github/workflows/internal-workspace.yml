@@ -20,7 +20,7 @@ jobs:
         with:
           repository: "anysphere/anysphere"
           ref: "main"
-          # token: ${{ secrets.GITHUB_TOKEN }}
+          ssh-key: ${{ secrets.ANYSPHERE_ANYSPHERE_DEPLOY_PRIVATE_KEY }}
 
       - name: Update SHA
         run: |
@@ -39,9 +39,6 @@ jobs:
           EOF
           git commit -F message.txt -a
       - name: Push changes
-        uses: ad-m/github-push-action@v0.6.0
-        with:
-          directory: ../anysphere
-          repository: anysphere/anysphere
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: main
+        run: |
+          cd ../anysphere
+          git push
