@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: helppp
-        run: echo ${{ toJson(github) }}
+        run: echo ${{ github.actor.url }}
 
       - name: Checkout internal
         uses: actions/checkout@v3
