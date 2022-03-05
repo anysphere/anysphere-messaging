@@ -4,7 +4,9 @@ on:
   push:
     branches:
       - main
-      - arvid/ci
+    pull_request:
+      branches:
+        - main
 
 jobs:
   update:
@@ -16,7 +18,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: "anysphere/anysphere"
-          ref: "arvid/ci"
+          ref: $GITHUB_REF_NAME
           ssh-key: ${{ secrets.ANYSPHERE_ANYSPHERE_DEPLOY_PRIVATE_KEY }}
 
       - name: Update SHA
