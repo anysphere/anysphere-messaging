@@ -42,7 +42,6 @@ export function RegisterModal({
         <div className="flex flex-row my-2 gap-1 justify-center">
           <label className="unselectable">Access key: </label>
           <input
-            autoFocus
             type="text"
             value={accesskey}
             onChange={(e) => {
