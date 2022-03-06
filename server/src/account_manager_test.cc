@@ -8,7 +8,13 @@ using std::string;
 template <typename T>
 struct AccountManagerTest : public testing::Test {};
 
-typedef Types<AccountManagerInMemory, AccountManagerPostgres> Implementations;
+
+#ifndef USE_MEMORY_DB
+using Implementations = Types<AccountManagerInMemory, AccountManagerPostgres>;
+#else
+using Implementations = Types<AccountManagerInMemory>;
+#endif
+
 
 TYPED_TEST_SUITE(AccountManagerTest, Implementations);
 

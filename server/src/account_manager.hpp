@@ -1,6 +1,9 @@
 #pragma once
 
+#ifndef USE_MEMORY_DB
 #include <pqxx/pqxx>
+#endif
+
 #include <random>
 
 #include "asphr/asphr.hpp"
@@ -57,6 +60,8 @@ class AccountManagerInMemory {
  private:
   unordered_map<string, vector<pir_index_t>> token_to_index_map;
 };
+
+#ifndef USE_MEMORY_DB
 
 class AccountManagerPostgres {
  public:
@@ -120,3 +125,5 @@ class AccountManagerPostgres {
   unordered_map<string, vector<pir_index_t>> token_to_index_map;
   unique_ptr<pqxx::connection> conn;
 };
+
+#endif

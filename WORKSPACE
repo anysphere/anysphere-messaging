@@ -2,14 +2,20 @@
 # Copyright 2022 Anysphere, Inc.
 #
 
-local_repository(
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
+
+git_repository(
     name = "asphr",
-    path = "asphr",
+    commit = "226270d62dcf67b2a5ebf7c852f491fe7b30ee82",  # autoupdate anysphere/asphr
+    init_submodules = True,
+    remote = "https://github.com/anysphere/asphr.git",
 )
+# for local builds, we add --override_repository=asphr=asphr, which we do in setupgit.sh
 
 load("@asphr//:asphr_load.bzl", "load_asphr_repos")
 
-load_asphr_repos()
+load_asphr_repos("@asphr")
 
 load("@asphr//:asphr_load2.bzl", "load_asphr_repos2")
 
@@ -19,13 +25,13 @@ load("@asphr//:asphr.bzl", "setup_asphr")
 
 setup_asphr("@asphr")
 
-local_repository(
+git_repository(
     name = "client",
-    path = "client",
+    commit = "d67546c147b73168fb4a39cef46786c9a2a0010e",  # autoupdate anysphere/client
+    init_submodules = True,
+    remote = "https://github.com/anysphere/client.git",
 )
-
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
+# for local builds, we add --override_repository=client=client, which we do in setupgit.sh
 
 # docker stuff
 http_archive(

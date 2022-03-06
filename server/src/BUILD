@@ -20,7 +20,10 @@ cc_library(
         "//conditions:default": ["USE_POSTGRES_DB"],
         ":in_memory_db": ["USE_MEMORY_DB"],
     }),
-    linkopts = ["-lpq"],
+    linkopts = select({
+        "//conditions:default": ["-lpq"],
+        ":in_memory_db": [],
+    }),
     linkstatic = True,
     deps = [
         "//server/pir/fast_pir:server_fast_pir_lib",
@@ -28,8 +31,10 @@ cc_library(
         "@asphr//asphr:asphr_lib",
         "@asphr//schema:server_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
-        "@libpqxx",
-    ],
+    ] + select({
+        "//conditions:default": ["@libpqxx"],
+        ":in_memory_db": [],
+    }),
 )
 
 cc_binary(

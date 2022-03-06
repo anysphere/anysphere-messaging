@@ -2,7 +2,7 @@
 # Copyright 2022 Anysphere, Inc.
 #
 
-load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake_variant")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
 
 package(
     default_visibility = ["//visibility:public"],
@@ -14,7 +14,7 @@ filegroup(
     visibility = ["//:__pkg__"],
 )
 
-cmake_variant(
+cmake(
     name = "libpqxx",
     build_args = [
         "--verbose",
@@ -25,12 +25,12 @@ cmake_variant(
         "PostgreSQL_INCLUDE_DIR": "/usr/include/postgresql",
         "PostgreSQL_LIBRARY": "/usr/lib/x86_64-linux-gnu/libpq.so",
     },
-    generate_args = [
-        "-G Ninja",
-    ],
+    # generate_args = [
+    #     "-G Ninja",
+    # ],
     lib_source = ":all_srcs",
     out_static_libs = [
         "libpqxx.a",
     ],
-    toolchain = "@rules_foreign_cc//toolchains:preinstalled_ninja_toolchain",
+    # toolchain = "@rules_foreign_cc//toolchains:preinstalled_ninja_toolchain",
 )
