@@ -1,0 +1,125 @@
+name: Update Internal Workspace Commit Hash
+
+on:
+  push:
+    paths-ignore:
+      - "WORKSPACE" # WORKSPACE is never transitive, so we ignore this.
+
+jobs:
+  update-anysphere:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: Get commit branch and commit message
+        if: github.event_name == 'push'
+        run: |
+          echo "HEAD=HEAD" >> "${GITHUB_ENV}"
+
+      - name: Get commit branch and commit message
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "HEAD=HEAD^2" >> "${GITHUB_ENV}"
+
+      - name: Get commit branch and commit message
+        run: |
+          echo "COMMIT_BRANCH=$(git rev-parse --abbrev-ref "${HEAD}" || true)" >> "${GITHUB_ENV}"
+          echo "hi; needed for shellcheck not to complain"
+          echo "COMMIT_MESSAGE<<EOF" >> "${GITHUB_ENV}"
+          echo "hi; needed for shellcheck not to complain"
+          (git log --format=%B -n 1 "${HEAD}" || true) >> "${GITHUB_ENV}"
+          echo "hi; needed for shellcheck not to complain"
+          echo "EOF" >> "${GITHUB_ENV}"
+          echo "hi; needed for shellcheck not to complain"
+          echo "COMMIT_AUTHOR_EMAIL=$(git log --format=%ae -n 1 "${HEAD}" || true)" >> "${GITHUB_ENV}"
+          echo "hi; needed for shellcheck not to complain"
+          echo "COMMIT_AUTHOR_NAME=$(git log --format=%an -n 1 "${HEAD}" || true)" >> "${GITHUB_ENV}"
+          echo "hi; needed for shellcheck not to complain"
+          echo "COMMIT_HASH=$(git log --format=%H -n 1 "${HEAD}" || true)" >> "${GITHUB_ENV}"
+
+      - name: Checkout internal
+        uses: actions/checkout@v3
+        with:
+          repository: "anysphere/anysphere"
+          ref: ${{ github.head_ref || github.ref_name }}
+          ssh-key: ${{ secrets.ANYSPHERE_ANYSPHERE_DEPLOY_PRIVATE_KEY }}
+
+      - name: Update SHA
+        run: |
+          sed -i "s/commit = \"[a-z0-9]*\",  # autoupdate anysphere\/asphr/commit = \"$GITHUB_SHA\",  # autoupdate anysphere\/asphr/g" WORKSPACE
+      - name: Commit
+        run: |
+          git config --local user.email "${COMMIT_AUTHOR_EMAIL}"
+          git config --local user.name "${COMMIT_AUTHOR_NAME}"
+          git add WORKSPACE
+          cat <<EOF > message.txt
+          🔄 "${COMMIT_MESSAGE}"
+          Update anysphere/asphr commit SHA
+          🔗 https://github.com/anysphere/asphr/commit/$COMMIT_HASH
+          EOF
+          git commit -F message.txt -a
+      - name: Push changes
+        run: |
+          git push
+
+  update-client:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: Get commit branch and commit message
+        if: github.event_name == 'push'
+        run: |
+          echo "HEAD=HEAD" >> "${GITHUB_ENV}"
+
+      - name: Get commit branch and commit message
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "HEAD=HEAD^2" >> "${GITHUB_ENV}"
+
+      - name: Get commit branch and commit message
+        run: |
+          echo "COMMIT_BRANCH=$(git rev-parse --abbrev-ref "${HEAD}" || true)" >> "${GITHUB_ENV}"
+          echo "hi; needed for shellcheck not to complain"
+          echo "COMMIT_MESSAGE<<EOF" >> "${GITHUB_ENV}"
+          echo "hi; needed for shellcheck not to complain"
+          (git log --format=%B -n 1 "${HEAD}" || true) >> "${GITHUB_ENV}"
+          echo "hi; needed for shellcheck not to complain"
+          echo "EOF" >> "${GITHUB_ENV}"
+          echo "hi; needed for shellcheck not to complain"
+          echo "COMMIT_AUTHOR_EMAIL=$(git log --format=%ae -n 1 "${HEAD}" || true)" >> "${GITHUB_ENV}"
+          echo "hi; needed for shellcheck not to complain"
+          echo "COMMIT_AUTHOR_NAME=$(git log --format=%an -n 1 "${HEAD}" || true)" >> "${GITHUB_ENV}"
+          echo "hi; needed for shellcheck not to complain"
+          echo "COMMIT_HASH=$(git log --format=%H -n 1 "${HEAD}" || true)" >> "${GITHUB_ENV}"
+
+      - name: Checkout internal
+        uses: actions/checkout@v3
+        with:
+          repository: "anysphere/client"
+          ref: ${{ github.head_ref || github.ref_name }}
+          ssh-key: ${{ secrets.ANYSPHERE_CLIENT_DEPLOY_PRIVATE_KEY }}
+
+      - name: Update SHA
+        run: |
+          sed -i "s/commit = \"[a-z0-9]*\",  # autoupdate anysphere\/asphr/commit = \"$GITHUB_SHA\",  # autoupdate anysphere\/asphr/g" WORKSPACE
+      - name: Commit
+        run: |
+          git config --local user.email "${COMMIT_AUTHOR_EMAIL}"
+          git config --local user.name "${COMMIT_AUTHOR_NAME}"
+          git add WORKSPACE
+          cat <<EOF > message.txt
+          🔄 "${COMMIT_MESSAGE}"
+          Update anysphere/asphr commit SHA
+          🔗 https://github.com/anysphere/asphr/commit/$COMMIT_HASH
+          EOF
+          git commit -F message.txt -a
+      - name: Push changes
+        run: |
+          git push

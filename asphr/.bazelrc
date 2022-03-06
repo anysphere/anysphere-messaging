@@ -1,3 +1,13 @@
+# REMINDER: WHEN CHANGING THIS FILE, PLEASE CHANGE ALL .BAZELRC FILES IN ALL THREE REPOS!!!!
+# (unfortunately, we cannot have a single source of truth...)
+
+build --incompatible_enable_cc_toolchain_resolution
+
+# note: each bazelrc that try-imports this one needs to try-import the buildbuddy bazelrc but using the correct relative path
+try-import %workspace%/../.buildbuddy.bazelrc
+
+# to prevent problems with CI, we cannot try-import this bazelrc from other places. instead we just copy-paste.
+
 # note: each bazelrc that try-imports this one needs to include a .user.bazelrc in its workspace directory
 try-import %workspace%/.user.bazelrc
 
@@ -7,13 +17,6 @@ build --bes_backend=grpcs://cloud.buildbuddy.io
 build --remote_cache=grpcs://cloud.buildbuddy.io
 build --remote_upload_local_results
 build --remote_timeout=3600
-
-# build --build_metadata=REPO_URL=https://github.com/anysphere/asphr
-# build --build_metadata=COMMIT_SHA=$(git rev-parse HEAD)
-# build --build_metadata=VISIBILITY=PUBLIC
-
-# note: each bazelrc that try-imports this one needs to try-import the buildbuddy bazelrc but using the correct relative path
-try-import %workspace%/../.buildbuddy.bazelrc
 
 build --genrule_strategy=local
 # test --test_strategy=standalone

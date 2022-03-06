@@ -7,8 +7,24 @@
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-def load_asphr_repos():
-    """Loads the repositories for the asphr project."""
+def load_asphr_repos(asphr_path):
+    """Loads the repositories for the asphr project.
+
+    Args:
+        asphr_path: The path to the asphr repository.
+    """
+
+    BAZEL_TOOLCHAIN_TAG = "0.6.3"
+
+    BAZEL_TOOLCHAIN_SHA = "da607faed78c4cb5a5637ef74a36fdd2286f85ca5192222c4664efec2d529bb8"
+
+    http_archive(
+        name = "com_grail_bazel_toolchain",
+        canonical_id = BAZEL_TOOLCHAIN_TAG,
+        sha256 = BAZEL_TOOLCHAIN_SHA,
+        strip_prefix = "bazel-toolchain-{tag}".format(tag = BAZEL_TOOLCHAIN_TAG),
+        url = "https://github.com/grailbio/bazel-toolchain/archive/{tag}.tar.gz".format(tag = BAZEL_TOOLCHAIN_TAG),
+    )
 
     http_archive(
         name = "rules_proto_grpc",
@@ -59,4 +75,6 @@ def load_asphr_repos():
         sha256 = "62e364a05370059f07313ec46ae4205af23deb00e41f786f3233a98098c7e636",
         strip_prefix = "rules_foreign_cc-ae4ff42901354e2da8285dac4be8329eea2ea96a",
         url = "https://github.com/bazelbuild/rules_foreign_cc/archive/ae4ff42901354e2da8285dac4be8329eea2ea96a.tar.gz",  # v 0.7.1
+        patch_args = ["-p1"],
+        patches = [asphr_path + "//:rules_foreign_cc.0.7.1.patch"],  # from https://github.com/bazelbuild/rules_foreign_cc/issues/859#issuecomment-1058361769
     )

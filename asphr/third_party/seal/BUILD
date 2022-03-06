@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 #
 
-load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake_variant")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
 
 package(
     default_visibility = ["//visibility:public"],
@@ -15,7 +15,7 @@ filegroup(
     visibility = ["//:__pkg__"],
 )
 
-cmake_variant(
+cmake(
     name = "seal",
     build_args = [
         "--verbose",
@@ -48,13 +48,13 @@ cmake_variant(
         # TODO(sualeh): turn this ON for performance, later. it is way too hard to get this right.
         "SEAL_USE_ZSTD": "ON",
     },
-    generate_args = [
-        "-G Ninja",
-    ],
+    # generate_args = [
+    #     "-G Ninja",
+    # ],
     lib_source = ":all_srcs",
     out_static_libs = [
         "libseal-3.7.a",
     ],
     tags = ["requires-network"],
-    toolchain = "@rules_foreign_cc//toolchains:preinstalled_ninja_toolchain",
+    # toolchain = "@rules_foreign_cc//toolchains:preinstalled_ninja_toolchain",
 )
