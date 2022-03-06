@@ -10,9 +10,11 @@
 
 class Friend {
  public:
-  Friend(const string& name, const vector<Friend>& friends)
+  Friend(const string& name, const vector<Friend>& friends,
+         const string add_key)
       : name(name),
         read_index(0),
+        add_key(add_key),
         read_key(""),
         write_key(""),
         ack_index(0),
@@ -42,12 +44,14 @@ class Friend {
 
     check_rep();
   }
-  Friend(const string& name, const int read_index, const string& read_key,
-         const string& write_key, const int ack_index, const bool enabled,
-         const uint32_t latest_ack_id, const uint32_t latest_send_id,
-         const uint32_t last_receive_id, bool dummy)
+  Friend(const string& name, const int read_index, const string& add_key,
+         const string& read_key, const string& write_key, const int ack_index,
+         const bool enabled, const uint32_t latest_ack_id,
+         const uint32_t latest_send_id, const uint32_t last_receive_id,
+         bool dummy)
       : name(name),
         read_index(read_index),
+        add_key(add_key),
         read_key(read_key),
         write_key(write_key),
         ack_index(ack_index),
@@ -64,6 +68,7 @@ class Friend {
 
   string name;
   pir_index_t read_index;
+  string add_key;
   string read_key;
   string write_key;
   // ack_index is the index into the acking data for this friend

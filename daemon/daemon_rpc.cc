@@ -96,16 +96,22 @@ Status DaemonRpc::GenerateFriendKey(
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  if (!config->has_space_for_friends()) {
-    cout << "no more allocation" << endl;
-    return Status(grpc::StatusCode::INVALID_ARGUMENT, "no more allocation");
-  }
-
   const auto friend_info_status =
       config->get_friend(generateFriendKeyRequest->name());
   if (friend_info_status.ok()) {
-    cout << "friend already exists" << endl;
-    return Status(grpc::StatusCode::ALREADY_EXISTS, "friend already exists");
+    const auto friend_info = friend_info_status.value();
+    if (friend_info.enabled) {
+      cout << "friend already exists" << endl;
+      return Status(grpc::StatusCode::ALREADY_EXISTS, "friend already exists");
+    } else {
+      generateFriendKeyResponse->set_key(friend_info.add_key);
+      return Status::OK;
+    }
+  }
+
+  if (!config->has_space_for_friends()) {
+    cout << "no more allocation" << endl;
+    return Status(grpc::StatusCode::INVALID_ARGUMENT, "no more allocation");
   }
 
   // note: for now, we only support the first index ever!
@@ -116,7 +122,7 @@ Status DaemonRpc::GenerateFriendKey(
       crypto.generate_friend_key(registration_info.public_key, index);
 
   auto friend_info =
-      Friend(generateFriendKeyRequest->name(), config->friends());
+      Friend(generateFriendKeyRequest->name(), config->friends(), friend_key);
 
   config->add_friend(friend_info);
 

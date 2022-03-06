@@ -25,7 +25,7 @@ export const StatusContext = React.createContext<StatusInterface>(
 export function Status(props: { status: StatusProps; onClose: () => void }) {
   return (
     <div
-      className={`flex gap-1 flex-row fixed bottom-5 left-4 text-sm bg-asbrown-100 text-asbrown-light px-2 py-2 unselectable rounded-md`}
+      className={`z-50 flex gap-1 flex-row fixed bottom-5 left-4 text-sm bg-asbrown-100 text-asbrown-light px-2 py-2 unselectable rounded-md`}
     >
       <div className="pl-1">{props.status.message}</div>
       <div className={`place-content-center grid`}>
