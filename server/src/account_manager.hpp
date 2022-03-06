@@ -18,10 +18,12 @@ using std::vector;
 constexpr int AUTHENTICATION_TOKEN_SIZE = 32;
 
 struct AccountManagerException : public std::exception {
-  const char* what() const throw() { return "Account Manager Exception"; }
+  [[nodiscard]] const char* what() const noexcept override {
+    return "Account Manager Exception";
+  }
 };
 
-// TODO: use postgres
+// TODO(arvid): use postgres
 class AccountManagerInMemory {
  public:
   AccountManagerInMemory() : AccountManagerInMemory("", "") {}
@@ -29,8 +31,8 @@ class AccountManagerInMemory {
 
   auto generate_account(const string& public_key, pir_index_t allocation)
       -> pair<string, vector<pir_index_t>> {
-    // TODO: store galois keys for rotation things!
-    // TODO: use cryptographic randomness here (not critical for privacy)
+    // TODO(arvid): store galois keys for rotation things!
+    // TODO(arvid): use cryptographic randomness here (not critical for privacy)
     string possible_characters =
         "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
     std::random_device rd;
@@ -65,7 +67,7 @@ class AccountManagerInMemory {
 
 class AccountManagerPostgres {
  public:
-  AccountManagerPostgres(string db_address, string db_password)
+  AccountManagerPostgres(const string& db_address, const string& db_password)
       : conn(make_unique<pqxx::connection>("postgresql://"
                                            "postgres:" +
                                            db_password + "@" + db_address +
@@ -73,13 +75,13 @@ class AccountManagerPostgres {
     std::cout << "Connected to " << conn->dbname() << '\n';
   }
 
-  AccountManagerPostgres(AccountManagerPostgres&& account_manager)
+  AccountManagerPostgres(AccountManagerPostgres&& account_manager) noexcept
       : conn(std::move(account_manager.conn)) {}
 
   auto generate_account(const string& public_key, pir_index_t allocation)
       -> pair<string, vector<pir_index_t>> {
     pqxx::work W{*conn};
-    // TODO: use cryptographic randomness here (not critical for privacy)
+    // TODO(arvid): use cryptographic randomness here (not critical for privacy)
     string possible_characters =
         "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
     std::random_device rd;
@@ -89,15 +91,16 @@ class AccountManagerPostgres {
     for (int i = 0; i < AUTHENTICATION_TOKEN_SIZE; ++i) {
       authentication_token += possible_characters[dis(gen)];
     }
-    // TODO: support more accounts
+    // TODO(arvid): support more accounts
     vector<pir_index_t> indices({allocation});
 
     token_to_index_map[authentication_token] = indices;
 
     // convert public_key to hex
     std::stringstream ss;
-    for (auto& c : public_key) {
-      ss << std::hex << std::setw(2) << std::setfill('0') << (int)c;
+    for (const auto& c : public_key) {
+      ss << std::hex << std::setw(2) << std::setfill('0')
+         << static_cast<int>(c);
     }
     string hex_public_key = ss.str();
 

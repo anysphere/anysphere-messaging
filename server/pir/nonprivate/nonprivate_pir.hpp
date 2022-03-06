@@ -56,7 +56,7 @@ class NonPrivatePIR {
   auto allocate() noexcept -> pir_index_t;
 
   // may throw if deserialization fails
-  auto query_from_string(const string& s) noexcept(false) -> pir_query_t;
+  static auto query_from_string(const string& s) noexcept(false) -> pir_query_t;
 
  private:
   vector<pir_value_t> db;

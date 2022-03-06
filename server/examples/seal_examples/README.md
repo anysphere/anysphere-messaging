@@ -1,1 +1,0 @@
-this file is a literal copy of https://github.com/microsoft/SEAL/tree/v3.7.2/native/examples. here because i am lazy. todo move it out when we bazelify anysphere/SEAL.

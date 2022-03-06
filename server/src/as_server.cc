@@ -1,18 +1,19 @@
-
 #include "account_manager.hpp"
 #include "server/pir/fast_pir/fastpir.hpp"
 #include "server/pir/nonprivate/nonprivate_pir.hpp"
 #include "server_rpc.hpp"
 
-// TODO: look into AsyncService; might be useful for performance
+// TODO(unknown): look into AsyncService; might be useful for performance
 
-int main(int argc, char** argv) {
+auto main(int argc, char** argv) -> int {
   std::string server_address("0.0.0.0:50051");
   std::string db_address("127.0.0.1");
   std::string db_password("password");
 
+  // trunk-ignore(clang-tidy/cppcoreguidelines-pro-bounds-pointer-arithmetic)
   vector<string> args(argv + 1, argv + argc);
-  string infname, outfname;
+  string infname;
+  string outfname;
 
   // Loop over command-line args
   for (auto i = args.begin(); i != args.end(); ++i) {
@@ -27,7 +28,8 @@ int main(int argc, char** argv) {
       std::cout << "  -p <db_password>     Password of database (default: "
                 << db_password << ")" << std::endl;
       return 0;
-    } else if (*i == "-a") {
+    }
+    if (*i == "-a") {
       server_address = *++i;
     } else if (*i == "-d") {
       db_address = *++i;
@@ -59,7 +61,7 @@ int main(int argc, char** argv) {
   grpc::ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
   builder.RegisterService(&server_rpc);
-  auto server = unique_ptr<grpc::Server>(builder.BuildAndStart());
+  auto server = static_cast<unique_ptr<grpc::Server>>(builder.BuildAndStart());
 
   cout << "Server listening on " << server_address << endl;
 
