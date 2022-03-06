@@ -17,22 +17,22 @@ jobs:
       - name: Get commit branch and commit message
         if: github.event_name == 'push'
         run: |
-          echo "HEAD=HEAD" >> $GITHUB_ENV
+          echo "HEAD=HEAD" >> "${GITHUB_ENV}"
 
       - name: Get commit branch and commit message
         if: github.event_name == 'pull_request'
         run: |
-          echo "HEAD=HEAD^2" >> $GITHUB_ENV
+          echo "HEAD=HEAD^2" >> "${GITHUB_ENV}"
 
       - name: Get commit branch and commit message
         run: |
-          echo "COMMIT_BRANCH=$(git rev-parse --abbrev-ref $HEAD)" >> $GITHUB_ENV
-          echo "COMMIT_MESSAGE<<EOF" >> $GITHUB_ENV
-          echo "$(git log --format=%B -n 1 $HEAD)" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-          echo "COMMIT_AUTHOR_EMAIL=$(git log --format=%ae -n 1 $HEAD)" >> $GITHUB_ENV
-          echo "COMMIT_AUTHOR_NAME=$(git log --format=%an -n 1 $HEAD)" >> $GITHUB_ENV
-          echo "COMMIT_HASH=$(git log --format=%H -n 1 $HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_BRANCH=$(git rev-parse --abbrev-ref "${HEAD}" || true)" >> "${GITHUB_ENV}"
+          echo "COMMIT_MESSAGE<<EOF" >> "${GITHUB_ENV}"
+          git log --format=%B -n 1 "${HEAD}" || true >> "${GITHUB_ENV}"
+          echo "EOF" >> "${GITHUB_ENV}"
+          echo "COMMIT_AUTHOR_EMAIL=$(git log --format=%ae -n 1 "${HEAD}" || true)" >> "${GITHUB_ENV}"
+          echo "COMMIT_AUTHOR_NAME=$(git log --format=%an -n 1 "${HEAD}" || true)" >> "${GITHUB_ENV}"
+          echo "COMMIT_HASH=$(git log --format=%H -n 1 "${HEAD}" || true)" >> "${GITHUB_ENV}"
 
       - name: Checkout internal
         uses: actions/checkout@v3
@@ -46,11 +46,11 @@ jobs:
           sed -i "s/commit = \"[a-z0-9]*\",  # autoupdate anysphere\/client/commit = \"$GITHUB_SHA\",  # autoupdate anysphere\/client/g" WORKSPACE
       - name: Commit
         run: |
-          git config --local user.email $COMMIT_AUTHOR_EMAIL
-          git config --local user.name $COMMIT_AUTHOR_NAME
+          git config --local user.email "${COMMIT_AUTHOR_EMAIL}"
+          git config --local user.name "${COMMIT_AUTHOR_NAME}"
           git add WORKSPACE
           cat <<EOF > message.txt
-          🔄 $COMMIT_MESSAGE
+          🔄 "${COMMIT_MESSAGE}"
           Update anysphere/client commit SHA
           🔗 https://github.com/anysphere/client/commit/$COMMIT_HASH
           EOF
