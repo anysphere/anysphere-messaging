@@ -7,6 +7,7 @@ Clone: `git clone git@github.com:anysphere/anysphere && cd anysphere && ./setupg
 # Git
 
 I recommend using the following git aliases:
+
 1. `git ll` for recursive pulling
 2. `git pp` for recursive pushing
 3. `git ss` for recursive status
@@ -16,6 +17,16 @@ I recommend using the following git aliases:
 (look in the `githooks` folder for an exhaustive list of these)
 
 To get these working, you need to run `./setupgit.sh` and follow its instructions.
+
+# Updating schema
+
+After updating the schema in `asphr/schema`, run the following on a Linux machine:
+
+```
+make update-gui-repo
+```
+
+in this directory. Then commit and push! This updates the generated schema for the gui.
 
 # Testing
 
