@@ -22,11 +22,9 @@ const Template: ComponentStory<typeof SideBar> = ({...args}) => (
 
 export const Primary = Template.bind({});
 
-const [open, setOpen] = React.useState(true);
 // More on args: https://storybook.js.org/docs/react/writing-stories/args
 Primary.args = {
   title: 'SideBar',
-  open: open,
-  setOpen: (x: boolean) => {}
-  // setOpen: (o) => setOpen(o),
+  open: true,
+  setOpen: () => {},
 };
