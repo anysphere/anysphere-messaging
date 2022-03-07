@@ -64,7 +64,7 @@ export function SelectableList<T>(props: SelectableListProps<T>) {
         oldIndex < props.items.length - 1 ? oldIndex + 1 : oldIndex;
       while (typeof props.items[nextIndex] === "string") {
         if (nextIndex === props.items.length - 1) break;
-        nextIndex -= 1;
+        nextIndex += 1;
       }
       return nextIndex;
     },
@@ -80,16 +80,24 @@ export function SelectableList<T>(props: SelectableListProps<T>) {
   // Handle keyboard up and down events.
   React.useEffect(() => {
     const handler = (event: any) => {
+      console.log(`event.keyCode: ${event.key}`);
       if (
         event.key === "ArrowUp" ||
         ((event.ctrlKey || !props.searchable) && event.key === "k")
       ) {
-        setActiveIndex(previousIndex);
+        setActiveIndex((old) => {
+          console.log("oldIndex: " + old);
+          return previousIndex(old);
+        });
       } else if (
         event.key === "ArrowDown" ||
         ((event.ctrlKey || !props.searchable) && event.key === "j")
       ) {
-        setActiveIndex(nextIndex);
+        setActiveIndex((old) => {
+          console.log("oldIndex: " + old);
+          console.log("nextIndex: " + nextIndex(old));
+          return nextIndex(old);
+        });
       } else if (event.key === "Enter") {
         event.preventDefault();
         // storing the active dom element in a ref prevents us from

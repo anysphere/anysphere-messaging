@@ -13,7 +13,7 @@ function Modal({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed top-0 left-0 right-0">
+    <div className="fixed z-10 top-0 left-0 right-0">
       <div className="backdrop-blur-sm w-screen h-screen" onClick={onClose}>
         <div className="grid w-screen h-screen">
           <div

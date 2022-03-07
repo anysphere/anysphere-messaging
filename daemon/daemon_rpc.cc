@@ -96,16 +96,22 @@ Status DaemonRpc::GenerateFriendKey(
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  if (!config->has_space_for_friends()) {
-    cout << "no more allocation" << endl;
-    return Status(grpc::StatusCode::INVALID_ARGUMENT, "no more allocation");
-  }
-
   const auto friend_info_status =
       config->get_friend(generateFriendKeyRequest->name());
   if (friend_info_status.ok()) {
-    cout << "friend already exists" << endl;
-    return Status(grpc::StatusCode::ALREADY_EXISTS, "friend already exists");
+    const auto friend_info = friend_info_status.value();
+    if (friend_info.enabled) {
+      cout << "friend already exists" << endl;
+      return Status(grpc::StatusCode::ALREADY_EXISTS, "friend already exists");
+    } else {
+      generateFriendKeyResponse->set_key(friend_info.add_key);
+      return Status::OK;
+    }
+  }
+
+  if (!config->has_space_for_friends()) {
+    cout << "no more allocation" << endl;
+    return Status(grpc::StatusCode::INVALID_ARGUMENT, "no more allocation");
   }
 
   // note: for now, we only support the first index ever!
@@ -116,7 +122,7 @@ Status DaemonRpc::GenerateFriendKey(
       crypto.generate_friend_key(registration_info.public_key, index);
 
   auto friend_info =
-      Friend(generateFriendKeyRequest->name(), config->friends());
+      Friend(generateFriendKeyRequest->name(), config->friends(), friend_key);
 
   config->add_friend(friend_info);
 
@@ -397,6 +403,38 @@ auto DaemonRpc::GetStatus(ServerContext* context,
 
   getStatusResponse->set_registered(config->has_registered());
   getStatusResponse->set_release_hash(RELEASE_COMMIT_HASH);
+
+  return Status::OK;
+}
+
+auto DaemonRpc::GetLatency(ServerContext* context,
+                           const GetLatencyRequest* getLatencyRequest,
+                           GetLatencyResponse* getLatencyResponse) -> Status {
+  cout << "GetLatency() called" << endl;
+
+  getLatencyResponse->set_latency_seconds(config->get_latency_seconds());
+
+  return Status::OK;
+}
+
+auto DaemonRpc::ChangeLatency(
+    grpc::ServerContext* context,
+    const asphrdaemon::ChangeLatencyRequest* changeLatencyRequest,
+    asphrdaemon::ChangeLatencyResponse* changeLatencyResponse) -> Status {
+  cout << "ChangeLatency() called" << endl;
+
+  auto new_latency = changeLatencyRequest->latency_seconds();
+
+  if (new_latency <= 0) {
+    cout << "invalid latency" << endl;
+    return Status(grpc::StatusCode::INVALID_ARGUMENT, "invalid latency");
+  }
+
+  auto status = config->set_latency(new_latency);
+  if (!status.ok()) {
+    cout << "set latency failed" << endl;
+    return Status(grpc::StatusCode::RESOURCE_EXHAUSTED, "set latency failed");
+  }
 
   return Status::OK;
 }

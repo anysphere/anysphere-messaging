@@ -6,6 +6,7 @@
 import * as React from "react";
 import Modal from "./Modal";
 import { Friend } from "../types";
+import { SelectableList, ListItem } from "./SelectableList";
 
 function FriendsModal({
   onClose,
@@ -28,7 +29,11 @@ function FriendsModal({
     if (friendname === "") {
       console.log("ERR");
     } else {
-      onAddFriend(friendname);
+      if (friends.find((f) => f.name === friendname && f.status === "added")) {
+        console.log("Already added friend...");
+      } else {
+        onAddFriend(friendname);
+      }
     }
   }, [onAddFriend, friendname]);
 
@@ -43,9 +48,149 @@ function FriendsModal({
     return () => window.removeEventListener("keydown", handler);
   }, [addFriend]);
 
+  let friendsList: ListItem<{
+    type: "add" | "friend" | "none";
+    name: string;
+  }>[] = friends
+    .filter((friend) => friend.status === "added")
+    .map((friend, index) => ({
+      id: `friend-${index}`,
+      action: () => {},
+      data: {
+        type: "friend",
+        name: friend.name,
+      },
+    }));
+  if (friendsList.length === 0) {
+    friendsList = [
+      {
+        id: "no-friends",
+        action: () => {},
+        data: {
+          type: "none",
+          name: "(No friends.)",
+        },
+      },
+    ];
+  }
+
+  let invitations: ListItem<{
+    type: "add" | "friend" | "none";
+    name: string;
+  }>[] = friends
+    .filter((friend) => friend.status === "initiated")
+    .map((friend, index) => ({
+      id: `invitation-${index}`,
+      action: () => {
+        onAddFriend(friend.name);
+      },
+      data: {
+        type: "friend",
+        name: friend.name,
+      },
+    }));
+  if (invitations.length === 0) {
+    invitations = [
+      {
+        id: "no-invitations",
+        action: () => {},
+        data: {
+          type: "none",
+          name: "(No pending invitations.)",
+        },
+      },
+    ];
+  }
+
+  let selectableOptions: (
+    | ListItem<{ type: "add" | "friend" | "none"; name: string }>
+    | string
+  )[] = [
+    "New",
+    {
+      id: "add-friend",
+      action: () => {},
+      data: {
+        type: "add",
+        name: "",
+      },
+    },
+    "Pending invitations",
+    ...invitations,
+    "Friends",
+    ...friendsList,
+  ];
+
   return (
     <Modal onClose={onClose}>
-      <div className="grid">
+      <SelectableList
+        items={selectableOptions}
+        searchable={true}
+        globalAction={() => {}}
+        onRender={({ item, active }) => {
+          if (typeof item === "string") {
+            return (
+              <div>
+                <div className="text-asbrown-light unselectable text-xs pt-2">
+                  {item}
+                </div>
+                <hr className="border-asbrown-100" />
+              </div>
+            );
+          }
+          if (item.data.type === "add") {
+            return (
+              <div
+                className={`p-2 flex flex-row text-asbrown-dark gap-2 ${
+                  active ? "bg-asbeige" : ""
+                }`}
+              >
+                <div className="unselectable text-sm ">Add contact:</div>
+                <input
+                  autoFocus={active}
+                  type="text"
+                  value={friendname}
+                  onChange={(e) => {
+                    setFriendname(e.target.value);
+                  }}
+                  placeholder="What you would like to call them?"
+                  className="bg-red-100/[0] focus:border-none focus:border-red-500 flex-grow
+              focus:outline-none text-sm
+              focus:ring-0
+              placeholder:text-asbrown-200"
+                />
+                <button
+                  className="unselectable px-2 rounded-md bg-asbrown-100 text-asbrown-light "
+                  onClick={addFriend}
+                  disabled={friendname.length === 0}
+                >
+                  <div className="codicon codicon-arrow-right"></div>
+                </button>
+              </div>
+            );
+          }
+          if (item.data.type === "friend") {
+            return (
+              <div
+                className={`py-1 text-asbrown-dark px-2 ${
+                  active ? "bg-asbeige" : ""
+                }`}
+              >
+                <div className="text-sm">{item.data.name}</div>
+              </div>
+            );
+          }
+          if (item.data.type === "none") {
+            return (
+              <div className="text-asbrown-300 unselectable text-xs text-center py-2">
+                {item.data.name}
+              </div>
+            );
+          }
+          return <div></div>;
+        }}
+      />
+      {/* <div className="grid">
         <div className="text-asbrown-light unselectable text-xs pt-2">New</div>
         <hr className="border-asbrown-100" />
         <div className={`mt-1 ${selected === 0 ? "bg-asbeige" : ""}`}>
@@ -111,7 +256,7 @@ function FriendsModal({
               {friend.name}
             </div>
           ))}
-      </div>
+      </div> */}
     </Modal>
   );
 }

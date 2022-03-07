@@ -14,7 +14,7 @@ auto read_inbox_json(const string& file_address) -> asphr::json {
         std::filesystem::path(file_address).parent_path().u8string();
     std::filesystem::create_directories(dir_path);
     cout << "creating new inbox asphr::json!" << endl;
-    asphr::json j = {{"inprogress", {}}};
+    asphr::json j = {{"inprogress", asphr::json::array()}};
     std::ofstream o(file_address);
     o << std::setw(4) << j.dump(4) << std::endl;
   }
@@ -40,7 +40,7 @@ Inbox::Inbox(const asphr::json& serialized_json, const string& file_address)
 
 auto Inbox::save() noexcept(false) -> void {
   check_rep();
-  asphr::json j = {{"inprogress", {}}};
+  asphr::json j = {{"inprogress", asphr::json::array()}};
   for (const auto& inbox_item : inbox) {
     auto friend_name = inbox_item.first.first;
     auto chunk_start_id = inbox_item.first.second;
@@ -134,7 +134,7 @@ auto Inbox::update_ack_from_friend(Config& config, pir_value_t& pir_acks,
 auto Inbox::receive_message(FastPIRClient& client, Config& config,
                             const asphrserver::ReceiveMessageResponse& reply,
                             const Friend& friend_info_in, const Crypto& crypto,
-                            string& previous_success_receive_friend)
+                            string* previous_success_receive_friend)
     -> std::optional<InboxMessage> {
   check_rep();
   Friend friend_info = friend_info_in;
@@ -167,8 +167,6 @@ auto Inbox::receive_message(FastPIRClient& client, Config& config,
          << decrypted.status() << endl;
     save();
     return std::nullopt;
-  } else {
-    previous_success_receive_friend = friend_info.name;
   }
   auto& message = decrypted.value();
 
@@ -213,6 +211,10 @@ auto Inbox::receive_message(FastPIRClient& client, Config& config,
     save();
     return std::nullopt;
   }
+
+  // we have received a new message (chunk) that we haven't received before!
+  // this is a success!
+  *previous_success_receive_friend = friend_info.name;
 
   if (message.num_chunks() == 0) {
     save();

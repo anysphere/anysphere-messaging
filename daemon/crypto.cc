@@ -7,7 +7,7 @@
 
 #include "constants.hpp"
 
-auto Crypto::generate_keypair() const -> std::pair<string, string> {
+auto Crypto::generate_keypair() -> std::pair<string, string> {
   unsigned char public_key[crypto_kx_PUBLICKEYBYTES];
   unsigned char secret_key[crypto_kx_SECRETKEYBYTES];
   crypto_kx_keypair(public_key, secret_key);
@@ -16,7 +16,7 @@ auto Crypto::generate_keypair() const -> std::pair<string, string> {
       string(reinterpret_cast<char*>(secret_key), crypto_kx_SECRETKEYBYTES)};
 }
 
-auto Crypto::generate_friend_key(const string& my_public_key, int index) const
+auto Crypto::generate_friend_key(const string& my_public_key, int index) 
     -> string {
   string public_key_b64;
   public_key_b64.resize(sodium_base64_ENCODED_LEN(

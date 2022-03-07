@@ -33,7 +33,7 @@ struct RegistrationInfo {
 class Config {
  public:
   Config(const string& config_file_address);
-  Config(const asphr::json& config_json, const string& config_file_address);
+  Config(const asphr::json& config_json, string  config_file_address);
 
   // precondition: friend_info.name is not in friendTable
   auto add_friend(const Friend& friend_info) -> void;
@@ -45,7 +45,8 @@ class Config {
 
   auto has_space_for_friends() -> bool;
   auto num_enabled_friends() -> int;
-  auto random_enabled_friend() -> asphr::StatusOr<Friend>;
+  auto random_enabled_friend(const std::unordered_set<string>& excluded)
+      -> asphr::StatusOr<Friend>;
   auto dummy_me() -> Friend;
 
   auto has_registered() -> bool;
@@ -62,6 +63,9 @@ class Config {
 
   auto pir_client() -> FastPIRClient&;
   auto db_rows() -> size_t;
+
+  auto set_latency(int latency) -> asphr::Status;
+  auto get_latency_seconds() -> int;
 
   auto kill() -> void;
   // returns true iff killed
@@ -89,6 +93,10 @@ class Config {
   std::filesystem::path data_dir;
   // me is used whenever we need to encrypt dummy data!
   Friend dummyMe;
+
+  // latency in seconds
+  int latency_;
+
   // TODO: remove this lock! instead, all data should always be saved to and
   // read from sqlite, which will let us use one big global lock for all data,
   // which is critical for data integrity. performance shouldn't be a problem,

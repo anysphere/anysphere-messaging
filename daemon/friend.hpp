@@ -10,17 +10,19 @@
 
 class Friend {
  public:
-  Friend() = default;
-  Friend(const string& name, const vector<Friend>& friends)
+  Friend(const string& name, const vector<Friend>& friends,
+         const string add_key)
       : name(name),
         read_index(0),
+        add_key(add_key),
         read_key(""),
         write_key(""),
         ack_index(0),
         enabled(false),
         latest_ack_id(0),
         latest_send_id(0),
-        last_receive_id(0) {
+        last_receive_id(0),
+        dummy(false) {
     auto rng = std::default_random_engine{};
 
     auto all_ack_indexes_not_used = asphr::unordered_set<int>{};
@@ -42,19 +44,22 @@ class Friend {
 
     check_rep();
   }
-  Friend(const string& name, const int read_index, const string& read_key,
-         const string& write_key, const int ack_index, const bool enabled,
-         const uint32_t latest_ack_id, const uint32_t latest_send_id,
-         const uint32_t last_receive_id)
+  Friend(const string& name, const int read_index, const string& add_key,
+         const string& read_key, const string& write_key, const int ack_index,
+         const bool enabled, const uint32_t latest_ack_id,
+         const uint32_t latest_send_id, const uint32_t last_receive_id,
+         bool dummy)
       : name(name),
         read_index(read_index),
+        add_key(add_key),
         read_key(read_key),
         write_key(write_key),
         ack_index(ack_index),
         enabled(enabled),
         latest_ack_id(latest_ack_id),
         latest_send_id(latest_send_id),
-        last_receive_id(last_receive_id) {
+        last_receive_id(last_receive_id),
+        dummy(dummy) {
     check_rep();
   }
 
@@ -63,6 +68,7 @@ class Friend {
 
   string name;
   pir_index_t read_index;
+  string add_key;
   string read_key;
   string write_key;
   // ack_index is the index into the acking data for this friend
@@ -83,6 +89,8 @@ class Friend {
   // have received all IDs up to and including this value. Note that this refers
   // to ID in the sequence_number space, not the message ID space.
   uint32_t last_receive_id;
+  // dummy is true if the friend is a dummy friend!
+  bool dummy;
 
   auto to_json() -> asphr::json;
   static auto from_json(const asphr::json& j) -> Friend;

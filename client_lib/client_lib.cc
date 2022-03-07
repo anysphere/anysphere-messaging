@@ -40,11 +40,11 @@ extern constexpr size_t GUARANTEED_SINGLE_MESSAGE_SIZE =
 auto get_base_config_dir() noexcept(false) -> std::filesystem::path {
   // on Linux and on systems where XDG_CONFIG_HOME is defined, use it.
   std::filesystem::path anysphere_home;
-  auto config_home_maybe = std::getenv("XDG_CONFIG_HOME");
-  if (!config_home_maybe) {
+  auto *config_home_maybe = std::getenv("XDG_CONFIG_HOME");
+  if (config_home_maybe == nullptr) {
     // if not defined, default to $HOME/.anysphere
-    auto home = std::getenv("HOME");
-    if (!home) {
+    auto *home = std::getenv("HOME");
+    if (home == nullptr) {
       // don't know what to do now.... there is literally nothing we can do
       // without knowing the HOME directory. crash.
       throw std::runtime_error(
@@ -84,8 +84,8 @@ auto get_gui_config_dir() noexcept(false) -> std::filesystem::path {
 // cli and gui processes.
 auto get_runtime_dir() noexcept(false) -> std::filesystem::path {
   std::filesystem::path runtime_home;
-  auto runtime_home_maybe = std::getenv("XDG_RUNTIME_DIR");
-  if (!runtime_home_maybe) {
+  auto *runtime_home_maybe = std::getenv("XDG_RUNTIME_DIR");
+  if (runtime_home_maybe == nullptr) {
     // if not defined, there is no standard directory to put this in.
     // we therefore use the base config dir / run.
     runtime_home = get_base_config_dir() / "run";
@@ -115,8 +115,8 @@ auto get_socket_path() noexcept(false) -> std::filesystem::path {
 // this is only the default location.
 auto get_default_data_dir() noexcept(false) -> std::filesystem::path {
   std::filesystem::path data_home;
-  auto data_home_maybe = std::getenv("XDG_DATA_HOME");
-  if (!data_home_maybe) {
+  auto *data_home_maybe = std::getenv("XDG_DATA_HOME");
+  if (data_home_maybe == nullptr) {
     // if not defined, we are using ~/.anysphere to store all data.
     // we therefore use the base config dir / run.
     data_home = get_base_config_dir() / "data";
@@ -135,7 +135,7 @@ auto get_default_data_dir() noexcept(false) -> std::filesystem::path {
  * @property: Nonconsuming: It does not consume the charachters, it only
  * scans them.
  */
-auto get_last_line(string filename) {
+auto get_last_line(const string& filename) {
   std::ifstream fin;
   fin.open(filename);
   if (fin.is_open()) {
@@ -172,7 +172,7 @@ auto get_last_line(string filename) {
   return string();
 }
 
-auto get_last_lines(string filename, int n) {
+auto get_last_lines(const string& filename, int n) {
   // TODO(sualeh): still a bit buggy.
   std::ifstream fin;
   fin.open(filename);
@@ -234,7 +234,7 @@ auto get_new_entries(const string& file_address, const Time& last_timestamp)
   auto file = std::ifstream(file_address);
   string line;
   while (std::getline(file, line)) {
-    if (line == "") {
+    if (line.empty()) {
       continue;
     }
     auto j = json::parse(line);
@@ -242,7 +242,7 @@ auto get_new_entries(const string& file_address, const Time& last_timestamp)
     Time jt_time;
     string err;
     absl::ParseTime(absl::RFC3339_full, jt, &jt_time, &err);
-    if (err != "") {
+    if (!err.empty()) {
       cout << "error parsing time: " << err << endl;
       continue;
     }

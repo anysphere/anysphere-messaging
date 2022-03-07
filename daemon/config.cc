@@ -5,6 +5,8 @@
 
 #include "config.hpp"
 
+#include <utility>
+
 #include "client_lib/client_lib.hpp"
 #include "crypto.hpp"
 
@@ -62,8 +64,11 @@ Config::Config(const string& config_file_address)
     : Config(read_json_file(config_file_address), config_file_address) {}
 
 Config::Config(const asphr::json& config_json_input,
-               const string& config_file_address)
-    : saved_file_address(config_file_address), db_rows_(CLIENT_DB_ROWS) {
+               string  config_file_address)
+    : saved_file_address(std::move(config_file_address)),
+      db_rows_(CLIENT_DB_ROWS),
+      dummyMe("dummyMe", 0, "add_key", "", "", 0, false, 0, 0, 0, true),
+      latency_(DEFAULT_ROUND_DELAY_SECONDS) {
   auto config_json = config_json_input;
   if (!config_json.contains("has_registered")) {
     cout << "WARNING (invalid config file): config file does not contain "
@@ -93,6 +98,9 @@ Config::Config(const asphr::json& config_json_input,
     cout << "creating a new config file" << endl;
     config_json = new_config_json();
   }
+  if (config_json.contains("latency")) {
+    latency_ = config_json.at("latency").get<int>();
+  }
   if (!config_json.at("has_registered").get<bool>()) {
     has_registered_ = false;
   } else {
@@ -112,7 +120,7 @@ Config::Config(const asphr::json& config_json_input,
 
   for (auto& friend_json : config_json.at("friends")) {
     Friend f = Friend::from_json(friend_json);
-    friendTable[f.name] = f;
+    friendTable.try_emplace(f.name, f);
   }
 
   data_dir = config_json.at("data_dir").get<string>();
@@ -194,19 +202,20 @@ auto Config::num_enabled_friends() -> int {
   return num_enabled_friends;
 }
 
-auto Config::random_enabled_friend() -> asphr::StatusOr<Friend> {
+auto Config::random_enabled_friend(const std::unordered_set<string>& excluded)
+    -> asphr::StatusOr<Friend> {
   const std::lock_guard<std::mutex> l(config_mtx);
 
   check_rep();
 
   vector<Friend> enabled_friends;
   for (auto& friend_pair : friendTable) {
-    if (friend_pair.second.enabled) {
+    if (friend_pair.second.enabled && !excluded.contains(friend_pair.first)) {
       enabled_friends.push_back(friend_pair.second);
     }
   }
 
-  if (enabled_friends.size() == 0) {
+  if (enabled_friends.empty()) {
     return absl::NotFoundError("No enabled friends");
   }
 
@@ -231,7 +240,7 @@ auto Config::add_friend(const Friend& f) -> void {
   check_rep();
 
   assert(!friendTable.contains(f.name));
-  friendTable[f.name] = f;
+  friendTable.try_emplace(f.name, f);
 
   save();
   check_rep();
@@ -243,8 +252,8 @@ auto Config::remove_friend(const string& name) -> absl::Status {
   check_rep();
 
   if (!friendTable.contains(name)) {
-    return absl::Status(absl::StatusCode::kInvalidArgument,
-                        "friend does not exist");
+    return {absl::StatusCode::kInvalidArgument,
+                        "friend does not exist"};
   }
   friendTable.erase(name);
 
@@ -260,7 +269,7 @@ auto Config::friends() const -> vector<Friend> {
   check_rep();
 
   vector<Friend> friends;
-  for (auto& [_, f] : friendTable) {
+  for (const auto& [_, f] : friendTable) {
     friends.push_back(f);
   }
 
@@ -287,7 +296,7 @@ auto Config::update_friend(const Friend& f) -> void {
   check_rep();
 
   assert(friendTable.contains(f.name));
-  friendTable[f.name] = f;
+  friendTable.insert_or_assign(f.name, f);
   save();
 
   check_rep();
@@ -309,6 +318,24 @@ auto Config::db_rows() -> size_t {
   const std::lock_guard<std::mutex> l(config_mtx);
 
   return db_rows_;
+}
+
+auto Config::get_latency_seconds() -> int {
+  const std::lock_guard<std::mutex> l(config_mtx);
+
+  check_rep();
+  return latency_;
+}
+
+auto Config::set_latency(int latency) -> asphr::Status {
+  const std::lock_guard<std::mutex> l(config_mtx);
+
+  check_rep();
+  latency_ = latency;
+  save();
+  check_rep();
+
+  return absl::OkStatus();
 }
 
 auto Config::kill() -> void {
@@ -341,32 +368,35 @@ auto Config::wait_until_killed_or_seconds(int seconds) -> bool {
 
 // private method; hence no check_rep, no lock
 auto Config::check_rep() const -> void {
-  assert(saved_file_address != "");
+  assert(!saved_file_address.empty());
   assert(data_dir != "");
   assert(db_rows_ > 0);
+
+  assert(latency_ >= 1);
 
   assert(friendTable.size() <= MAX_FRIENDS);
 
   if (has_registered_) {
-    assert(registrationInfo.name != "");
+    assert(!registrationInfo.name.empty());
     assert(registrationInfo.public_key.size() == crypto_kx_PUBLICKEYBYTES);
     assert(registrationInfo.private_key.size() == crypto_kx_SECRETKEYBYTES);
-    assert(registrationInfo.authentication_token.size() > 0);
-    assert(registrationInfo.allocation.size() > 0);
+    assert(!registrationInfo.authentication_token.empty());
+    assert(!registrationInfo.allocation.empty());
 
     assert(dummyMe.name == "dummyMe");
+    assert(dummyMe.dummy);
     assert(dummyMe.write_key.size() ==
            crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
     assert(dummyMe.read_key.size() ==
            crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
     assert(dummyMe.enabled == false);
 
-    assert(pir_secret_key != "");
-    assert(pir_galois_keys != "");
+    assert(!pir_secret_key.empty());
+    assert(!pir_galois_keys.empty());
     assert(pir_client_ != nullptr);
   } else {
-    assert(dummyMe.write_key.size() == 0);
-    assert(dummyMe.read_key.size() == 0);
+    assert(dummyMe.write_key.empty());
+    assert(dummyMe.read_key.empty());
   }
 }
 
@@ -376,6 +406,8 @@ auto Config::save() -> void {
   config_json["has_registered"] = has_registered_;
   config_json["data_dir"] = data_dir;
   config_json["server_address"] = server_address_;
+  config_json["latency"] = latency_;
+
   if (has_registered_) {
     config_json["registration_info"] = registrationInfo.to_json();
     config_json["pir_secret_key"] = asphr::Base64Escape(pir_secret_key);
@@ -399,8 +431,8 @@ auto Config::initialize_dummy_me() -> void {
       registrationInfo.public_key, registrationInfo.private_key,
       dummy_friend_keypair.first);
 
-  dummyMe = Friend("dummyMe", 0, dummy_read_write_keys.first,
-                   dummy_read_write_keys.second, 0, false, 0, 0, 0);
+  dummyMe = Friend("dummyMe", 0, "add_key", dummy_read_write_keys.first,
+                   dummy_read_write_keys.second, 0, false, 0, 0, 0, true);
 
   save();
 }

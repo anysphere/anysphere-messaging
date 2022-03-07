@@ -8,14 +8,14 @@
 #include "client_lib/client_lib.hpp"
 
 auto MessageToSend::from_json(const asphr::json& json) -> MessageToSend {
-  MessageToSend message;
-  message.to = Friend::from_json(json.at("to"));
-  message.sequence_number = json.at("sequence_number").get<uint32_t>();
-  message.msg = json.at("msg").get<string>();
-  message.chunked = json.at("chunked").get<bool>();
-  message.num_chunks = json.at("num_chunks").get<uint32_t>();
-  message.chunks_start_id = json.at("chunks_start_id").get<uint32_t>();
-  message.full_message_id = json.at("full_message_id").get<string>();
+  auto message = MessageToSend{
+      .to = Friend::from_json(json.at("to")),
+      .sequence_number = json.at("sequence_number").get<uint32_t>(),
+      .msg = json.at("msg").get<string>(),
+      .chunked = json.at("chunked").get<bool>(),
+      .num_chunks = json.at("num_chunks").get<uint32_t>(),
+      .chunks_start_id = json.at("chunks_start_id").get<uint32_t>(),
+      .full_message_id = json.at("full_message_id").get<string>()};
   return message;
 }
 
@@ -38,7 +38,7 @@ auto read_outbox_json(const string& file_address) -> asphr::json {
         std::filesystem::path(file_address).parent_path().u8string();
     std::filesystem::create_directories(dir_path);
     cout << "creating new outbox asphr::json!" << endl;
-    asphr::json j = {{"outbox", {}}};
+    asphr::json j = {{"outbox", asphr::json::array()}};
     std::ofstream o(file_address);
     o << std::setw(4) << j.dump(4) << std::endl;
   }
@@ -76,7 +76,7 @@ Outbox::Outbox(const asphr::json& serialized_json, const string& file_address,
 
 auto Outbox::save() noexcept(false) -> void {
   check_rep();
-  asphr::json j = {{"outbox", {}}};
+  asphr::json j = {{"outbox", asphr::json::array()}};
   for (auto& [friend_name, messages] : outbox) {
     for (auto& message : messages) {
       j.at("outbox").push_back(message.to_json());

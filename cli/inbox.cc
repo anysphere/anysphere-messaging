@@ -16,7 +16,7 @@ void Inbox::update(vector<pair<absl::Time, Message>>& new_messages) {
 }
 
 void Inbox::update(unique_ptr<asphrdaemon::Daemon::Stub>& stub,
-                   const string me) {
+                   const string& me) {
   vector<pair<absl::Time, Message>> new_messages;
 
   grpc::ClientContext context;
@@ -28,7 +28,7 @@ void Inbox::update(unique_ptr<asphrdaemon::Daemon::Stub>& stub,
   if (!status.ok()) {
     cout << "get all messages failed: " << status.error_message() << endl;
   } else {
-    for (auto& message : response.messages()) {
+    for (const auto& message : response.messages()) {
       auto time_proto = message.received_timestamp();
       absl::Time time = absl::FromUnixSeconds(time_proto.seconds());
 

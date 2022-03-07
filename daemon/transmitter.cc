@@ -29,73 +29,83 @@ auto Transmitter::retrieve_messages() -> void {
   }
 
   auto& client = config->pir_client();
-  asphrserver::ReceiveMessageInfo request;
 
-  // choose a friend to receive from!!
+  // choose RECEIVE_FRIENDS_PER_ROUND friends to receive from!!
   // priority 1: the friend that we just sent a message to
-  // priority 2: the friend that we successfully received a message from the
-  // previous round priority 3: random!
-  Friend friend_info;
-  bool dummy = false;
+  vector<Friend> receive_friends;
+  std::unordered_set<string> receive_friend_names;
   if (auto friend_info_status = config->get_friend(just_sent_friend);
       friend_info_status.ok()) {
-    friend_info = friend_info_status.value();
-  } else if (auto friend_info_status =
-                 config->get_friend(previous_success_receive_friend);
-             friend_info_status.ok()) {
-    friend_info = friend_info_status.value();
-  } else if (auto friend_info_status = config->random_enabled_friend();
-             friend_info_status.ok()) {
+    receive_friends.push_back(friend_info_status.value());
+    receive_friend_names.insert(friend_info_status.value().name);
+  }
+  // priority 2: the friend that we successfully received a new message from the
+  // previous round
+  if (auto friend_info_status =
+          config->get_friend(previous_success_receive_friend);
+      friend_info_status.ok() &&
+      previous_success_receive_friend != just_sent_friend) {
+    receive_friends.push_back(friend_info_status.value());
+    receive_friend_names.insert(friend_info_status.value().name);
+  }
+  // priority 3: random!
+  auto receive_friends_old_size = receive_friends.size();
+  for (size_t i = 0; i < RECEIVE_FRIENDS_PER_ROUND - receive_friends_old_size;
+       i++) {
     // note: we do not need cryptographic randomness here. randomness is only
     // for liveness
-    friend_info = friend_info_status.value();
-  } else {
-    friend_info = config->dummy_me();
-    dummy = true;
+    auto friend_info_status =
+        config->random_enabled_friend(receive_friend_names);
+    if (friend_info_status.ok()) {
+      receive_friends.push_back(friend_info_status.value());
+      assert(!receive_friend_names.contains(friend_info_status.value().name));
+      receive_friend_names.insert(friend_info_status.value().name);
+    } else {
+      // dummy if no friends left :')
+      receive_friends.push_back(config->dummy_me());
+      receive_friend_names.insert(config->dummy_me().name);
+    }
   }
+  assert(receive_friends.size() == RECEIVE_FRIENDS_PER_ROUND);
 
-  auto query = client.query(friend_info.read_index, config->db_rows());
+  auto receive_friend_indices = vector<pir_index_t>(RECEIVE_FRIENDS_PER_ROUND);
+  for (auto i = 0; i < RECEIVE_FRIENDS_PER_ROUND; i++) {
+    receive_friend_indices.at(i) = receive_friends.at(i).read_index;
+  }
+  auto pir_replies = batch_retrieve_pir(client, receive_friend_indices);
 
-  auto serialized_query = query.serialize_to_string();
-
-  request.set_pir_query(serialized_query);
-
-  asphrserver::ReceiveMessageResponse reply;
-  grpc::ClientContext context;
-
-  grpc::Status status = stub->ReceiveMessage(&context, request, &reply);
+  assert(pir_replies.size() == RECEIVE_FRIENDS_PER_ROUND);
 
   previous_success_receive_friend = "";
 
   check_rep();
 
-  // if dummy, we do not actually care about the answer.
-  // we still do the rpc to not leak information.
-  if (dummy) {
-    return;
-  }
-
-  if (status.ok()) {
-    cout << "received message!!!" << endl;
-
-    // TODO: inbox.receive_message and msgstore->add_incoming_message need to be
-    // atomic!!!
-    // TODO: msgstore should mark a message as delivered here possibly,
-    // depending on the ACKs. EDIT: this is currently done in outbox which seems
-    // fine
-    auto message_opt =
-        inbox.receive_message(client, *config, reply, friend_info, crypto,
-                              previous_success_receive_friend);
-    if (message_opt.has_value()) {
-      auto message = message_opt.value();
-      msgstore->add_incoming_message(message.id, message.friend_name,
-                                     message.message);
-    } else {
-      cout << "no message received" << endl;
+  for (auto i = 0; i < RECEIVE_FRIENDS_PER_ROUND; i++) {
+    auto& friend_info = receive_friends.at(i);
+    if (friend_info.dummy) {
+      continue;
     }
-  } else {
-    cout << status.error_code() << ": " << status.error_message() << endl;
+    if (pir_replies.at(i).ok()) {
+      auto& reply = pir_replies.at(i).value();
+      // TODO: inbox.receive_message and msgstore->add_incoming_message need to
+      // be atomic!!!
+      auto message_opt =
+          inbox.receive_message(client, *config, reply, friend_info, crypto,
+                                &previous_success_receive_friend);
+      if (message_opt.has_value()) {
+        auto message = message_opt.value();
+        msgstore->add_incoming_message(message.id, message.friend_name,
+                                       message.message);
+      } else {
+        cout << "no message received from " << friend_info.name << endl;
+      }
+    } else {
+      cout << "could not retrieve message from " << friend_info.name << endl;
+      cout << pir_replies.at(i).status().code() << ": "
+           << pir_replies.at(i).status().message() << endl;
+    }
   }
+
   check_rep();
 }
 
@@ -187,6 +197,37 @@ auto Transmitter::send_messages() -> void {
               << " details:" << status.error_details() << std::endl;
   }
   check_rep();
+}
+
+auto Transmitter::batch_retrieve_pir(FastPIRClient& client,
+                                     vector<pir_index_t> indices)
+    -> vector<asphr::StatusOr<asphrserver::ReceiveMessageResponse>> {
+  // TODO: use batch PIR here!!! we don't want to do this many PIR requests
+  vector<asphr::StatusOr<asphrserver::ReceiveMessageResponse>> pir_replies;
+
+  for (auto& index : indices) {
+    asphrserver::ReceiveMessageInfo request;
+
+    auto query = client.query(index, config->db_rows());
+
+    auto serialized_query = query.serialize_to_string();
+
+    request.set_pir_query(serialized_query);
+
+    asphrserver::ReceiveMessageResponse reply;
+    grpc::ClientContext context;
+
+    grpc::Status status = stub->ReceiveMessage(&context, request, &reply);
+
+    if (status.ok()) {
+      pir_replies.push_back(reply);
+    } else {
+      pir_replies.push_back(absl::UnknownError(
+          "ReceiveMessage RPC failed with error: " + status.error_message()));
+    }
+  }
+
+  return pir_replies;
 }
 
 auto Transmitter::check_rep() const noexcept -> void {

@@ -18,9 +18,8 @@ auto Friend::generate_key(unique_ptr<asphrdaemon::Daemon::Stub>& stub)
   if (!status.ok()) {
     cout << "generate friend key failed: " << status.error_message() << endl;
     return absl::UnknownError("generate friend key failed");
-  } else {
-    return response.key();
-  }
+  }     return response.key();
+ 
 }
 
 auto Friend::add(unique_ptr<asphrdaemon::Daemon::Stub>& stub, const string& key)
@@ -39,9 +38,8 @@ auto Friend::add(unique_ptr<asphrdaemon::Daemon::Stub>& stub, const string& key)
   if (!status.ok()) {
     cout << "add friend failed: " << status.error_message() << endl;
     return absl::UnknownError("add friend failed");
-  } else {
-    return absl::OkStatus();
-  }
+  }     return absl::OkStatus();
+ 
 }
 
 bool Friend::complete() const { return !name_is_empty(); }
