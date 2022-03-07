@@ -80,7 +80,7 @@ function RegisterModalForm({
             </a>
             .
           </div>
-          <div className="text-xs text-asbrown-dark pt-1">
+          <div className="text-xs text-asbrown-dark pt-1 unselectable">
             <b>
               Please remember that this is an alpha product. While we think that
               our current implementation meets our privacy guarantees, we may
@@ -124,7 +124,7 @@ function RegisterModalForm({
               Register
             </button>
           </div>
-          <div className="text-xs text-asbrown-dark pt-1 text-center">
+          <div className="text-xs text-asbrown-dark pt-1 text-center unselectable">
             By clicking Register, you agree to our{" "}
             <a
               className="hover:underline"
