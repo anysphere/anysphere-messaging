@@ -31,7 +31,7 @@ export function RegisterModal({
           <div className="grid items-center w-full h-full">
             <div className="grid justify-items-center gap-8">
               <img className="h-12" src={anyspherelogo} alt="Anysphere logo." />
-              <h1 className="font-['Lora'] text-center text-3xl">
+              <h1 className="font-['Lora'] text-center text-3xl text-asbrown-dark">
                 Welcome to{" "}
                 <span className="animate-slideunderline decoration-2 underline underline-offset-4">
                   complete privacy
@@ -39,7 +39,7 @@ export function RegisterModal({
                 .
               </h1>
               <button
-                className="animate-revealsimple mt-4 mx-auto text-asbrown-200"
+                className="animate-revealsimple mt-4 mx-auto text-asbrown-light opacity-80"
                 onClick={() => setScreen(RegisterScreen.Form)}
               >
                 Get started ›
