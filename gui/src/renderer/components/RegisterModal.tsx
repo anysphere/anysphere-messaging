@@ -5,8 +5,61 @@
 
 import * as React from "react";
 import Modal from "./Modal";
+import anyspherelogo from "../../../assets/anysphere-logo.svg";
+
+enum RegisterScreen {
+  Welcome,
+  Form,
+}
 
 export function RegisterModal({
+  onClose,
+  onRegister,
+}: {
+  onClose: () => void;
+  onRegister: (username: string, key: string) => void;
+}) {
+  const [screen, setScreen] = React.useState<RegisterScreen>(
+    RegisterScreen.Welcome
+  );
+
+  let component;
+  switch (screen) {
+    case RegisterScreen.Welcome:
+      component = (
+        <Modal onClose={onClose}>
+          <div className="grid items-center w-full h-full">
+            <div className="grid justify-items-center gap-8">
+              <img className="h-12" src={anyspherelogo} alt="Anysphere logo." />
+              <h1 className="font-['Lora'] text-center text-3xl">
+                Welcome to{" "}
+                <span className="animate-slideunderline decoration-2 underline underline-offset-4">
+                  complete privacy
+                </span>
+                .
+              </h1>
+              <button
+                className="animate-revealsimple mt-4 mx-auto text-asbrown-200"
+                onClick={() => setScreen(RegisterScreen.Form)}
+              >
+                Get started ›
+              </button>
+            </div>
+          </div>
+        </Modal>
+      );
+      break;
+    case RegisterScreen.Form:
+      component = (
+        <RegisterModalForm onClose={onClose} onRegister={onRegister} />
+      );
+      break;
+  }
+
+  return component;
+}
+
+function RegisterModalForm({
   onClose,
   onRegister,
 }: {

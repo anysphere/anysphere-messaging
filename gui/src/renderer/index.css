@@ -18,3 +18,8 @@
 
 /* include codicons css */
 @import "../../node_modules/@vscode/codicons/dist/codicon.css";
+
+@font-face {
+  font-family: "Lora";
+  src: url(../../assets/fonts/Lora-Regular.ttf) format("truetype");
+}
