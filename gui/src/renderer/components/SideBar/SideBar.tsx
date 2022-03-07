@@ -15,6 +15,13 @@ export interface SideBarItemProps {
   onClick: () => void;
 }
 
+export interface InternalSideBarProps {
+  title: string;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  children: React.ReactNode;
+}
+
 export function SideBarItem(props: SideBarItemProps) {
   let active = props.active;
   return (
@@ -35,7 +42,7 @@ export function HeadlessSlideOver({
   setOpen,
   title,
   children,
-}: SideBarProps) {
+}: InternalSideBarProps) {
   return (
     <Transition.Root show={open} as={React.Fragment}>
       <Dialog
@@ -146,7 +153,7 @@ export function SideBar(props: SideBarProps) {
     <HeadlessSlideOver
       open={props.open}
       setOpen={props.setOpen}
-      title="SideBar"
+      title={props.title}
     >
       <SelectableList
         items={selectableOption}

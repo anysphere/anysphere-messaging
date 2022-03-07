@@ -20,6 +20,7 @@ import { CmdKSearch } from "./components/cmd-k/CmdKSearch";
 import { CmdKResultRenderer } from "./components/cmd-k/CmdKResultRenderer";
 import { KBarOptions } from "./components/cmd-k/types";
 import { StatusHandler, StatusContext } from "./components/Status";
+import { SideBar } from "./components/SideBar/SideBar";
 
 const defaultTabs: Tab[] = [
   { type: TabType.New, name: "New", data: null, unclosable: true, id: "new" },
@@ -249,6 +250,11 @@ function Main() {
       }
     });
   }, []);
+
+  // Sidebar options
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+
+  // CmdK options and shortcuts
   const CmdKActions = [
     {
       id: "friend",
@@ -285,6 +291,16 @@ function Main() {
     //   shortcut: ["s"],
     //   keywords: "settings",
     // },
+    {
+      id: "sidebar",
+      name: "Toggle Sidebar",
+      // shortcuts are "m" and the left button
+      shortcut: ["m"],
+      keywords: "sidebar, side, menu, sent, outbox",
+      perform: () => {
+        setSidebarOpen(!sidebarOpen);
+      },
+    },
     {
       id: "help",
       name: "Help",
@@ -353,6 +369,12 @@ function Main() {
           </div>
         </CmdKPortal>
       </CmdK>
+
+      <SideBar
+        title="Welcome to Private Messaging!"
+        open={sidebarOpen}
+        setOpen={setSidebarOpen}
+      ></SideBar>
     </div>
   );
 }

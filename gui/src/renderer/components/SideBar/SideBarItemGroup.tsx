@@ -1,5 +1,3 @@
-import * as React from "react";
-
 export function SideBarItemGroup(props: { title: string }) {
   return (
     <div className="md-4">
