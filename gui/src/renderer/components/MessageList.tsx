@@ -60,8 +60,16 @@ function MessageList(props: {
       (window as any).getNewMessages().then((messages: Message[]) => {
         setMessages(messages);
       });
-    } else {
+    } else if (props.messages === "all") {
       (window as any).getAllMessages().then((messages: Message[]) => {
+        setMessages(messages);
+      });
+    } else if (props.messages === "outbox") {
+      (window as any).getOutboxMessages().then((messages: Message[]) => {
+        setMessages(messages);
+      });
+    } else if (props.messages === "sent") {
+      (window as any).getSentMessages().then((messages: Message[]) => {
         setMessages(messages);
       });
     }

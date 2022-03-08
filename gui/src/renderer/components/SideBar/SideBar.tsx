@@ -123,7 +123,9 @@ export function SideBar(props: SideBarProps) {
     // Inbox
     {
       id: "inbox",
-      action: props.sideBarCallback(SideBarButton.INBOX),
+      action: () => {
+        props.sideBarCallback(SideBarButton.INBOX);
+      },
       data: {
         type: "item",
         name: "Inbox",
@@ -132,7 +134,9 @@ export function SideBar(props: SideBarProps) {
     // "Outbox",
     {
       id: "outbox",
-      action: props.sideBarCallback(SideBarButton.OUTBOX),
+      action: () => {
+        props.sideBarCallback(SideBarButton.OUTBOX);
+      },
       data: {
         type: "item",
         name: "Outbox",
@@ -141,7 +145,9 @@ export function SideBar(props: SideBarProps) {
     // "Sent",
     {
       id: "sent",
-      action: props.sideBarCallback(SideBarButton.SENT),
+      action: () => {
+        props.sideBarCallback(SideBarButton.SENT);
+      },
       data: {
         type: "item",
         name: "Sent",

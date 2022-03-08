@@ -12,5 +12,5 @@ export interface SideBarProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   // return a function
-  sideBarCallback: (b: SideBarButton) => (() => void);
+  sideBarCallback: (b: SideBarButton) => void;
 }

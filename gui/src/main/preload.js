@@ -208,6 +208,90 @@ contextBridge.exposeInMainWorld("getAllMessages", async () => {
   }
 });
 
+contextBridge.exposeInMainWorld("getOutboxMessages", async () => {
+  if (FAKE_DATA) {
+    return [
+      {
+        id: "1",
+        from: "SuAlEh",
+        to: "me",
+        message: "hello!\n\nthis is a test message\n\nnot the best,\nSuAlEh",
+        timestamp: new Date(),
+      },
+      {
+        id: "2",
+        from: "HI",
+        to: "me",
+        message: "HIHI",
+        timestamp: new Date(),
+      },
+      {
+        id: "3",
+        from: "Bob",
+        to: "me",
+        message: "hi this is my second message",
+        timestamp: new Date(),
+      },
+      {
+        id: "4",
+        from: "Bob",
+        to: "me",
+        message: "hi this is my first message",
+        timestamp: new Date(),
+      },
+    ];
+  }
+  const request = new daemonM.GetOutboxMessagesRequest();
+  const getAllMessages = promisify(daemonClient.getOutboxMessages).bind(
+    daemonClient
+  );
+  try {
+    const response = await getOutboxMessages(request);
+    const lm = response.getMessagesList();
+    const l = lm.map(convertProtobufMessageToTypedMessage);
+    return l;
+  } catch (e) {
+    console.log(`error in getSentMessages: ${e}`);
+    return [];
+  }
+});
+
+contextBridge.exposeInMainWorld("getSentMessages", async () => {
+  if (FAKE_DATA) {
+    return [
+      {
+        id: "1",
+        from: "SuAlEh",
+        to: "me",
+        message:
+          "Send send!\n\nthis is a test message\n\nnot the best,\nSuAlEh",
+        timestamp: new Date(),
+      },
+      {
+        id: "2",
+        from: "sent happy happy",
+        to: "me",
+        message: "HIHI",
+        timestamp: new Date(),
+      },
+    ];
+  }
+  const request = new daemonM.GetSentMessagesRequest();
+  const getAllMessages = promisify(daemonClient.getSentMessages).bind(
+    daemonClient
+  );
+  try {
+    const response = await getSentMessages(request);
+    const lm = response.getMessagesList();
+    const l = lm.map(convertProtobufMessageToTypedMessage);
+    return l;
+  } catch (e) {
+    console.log(`error in getSentMessages: ${e}`);
+    return [];
+  }
+});
+
+
 contextBridge.exposeInMainWorld("getFriendList", async () => {
   if (FAKE_DATA) {
     return [

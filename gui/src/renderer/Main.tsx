@@ -192,6 +192,22 @@ function Main() {
         />
       );
       break;
+    case TabType.Outbox:
+      selectedComponent = (
+        <MessageList
+          readCallback={(m: Message) => readMessage(m, "outbox")}
+          messages="outbox"
+        />
+      );
+      break;
+    case TabType.Sent:
+      selectedComponent = (
+        <MessageList
+          readCallback={(m: Message) => readMessage(m, "sent")}
+          messages="sent"
+        />
+      );
+      break;
     case TabType.Read:
       selectedComponent = (
         <Read
@@ -252,26 +268,51 @@ function Main() {
     });
   }, []);
 
+  const openOutbox = React.useCallback(() => {
+    for (let i = 0; i < tabs.length; i++) {
+      if (tabs[i].type === TabType.Outbox) {
+        switchTab(tabs[i].id);
+        return;
+      }
+    }
+    const outboxTab = {
+      type: TabType.Outbox,
+      name: "Outbox",
+      id: "outbox",
+      data: null,
+      unclosable: false,
+    };
+    pushTab(outboxTab);
+  }, [switchTab, tabs, pushTab]);
+
+  const openSent = React.useCallback(() => {
+    for (let i = 0; i < tabs.length; i++) {
+      if (tabs[i].type === TabType.Sent) {
+        switchTab(tabs[i].id);
+        return;
+      }
+    }
+    const sentTab = {
+      type: TabType.Sent,
+      name: "Sent",
+      id: "sent",
+      data: null,
+      unclosable: false,
+    };
+    pushTab(sentTab);
+  }, [switchTab, tabs, pushTab]);
+
   // Sidebar options
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const sideBarCallback = (b: SideBarButton) => {
+    setSidebarOpen(false);
     switch (b) {
       case SideBarButton.INBOX:
-        return React.useCallback(() => {
-          switchTab(tabs[0].id);
-          // TODO(sualeh): the sidebar should handle this itself. 
-          setSidebarOpen(false);
-        }, [switchTab, tabs, setSidebarOpen]);
+        return switchTab(tabs[0].id);
       case SideBarButton.OUTBOX:
-        return React.useCallback(() => {
-          switchTab(tabs[1].id);
-          setSidebarOpen(false);
-        }, [switchTab, tabs, setSidebarOpen]);
+        return openOutbox();
       case SideBarButton.SENT:
-        return React.useCallback(() => {
-          switchTab(tabs[2].id);
-          setSidebarOpen(false);
-        }, [switchTab, tabs, setSidebarOpen]);
+        return openSent();
       default:
         return React.useCallback(() => {}, []);
         break;
