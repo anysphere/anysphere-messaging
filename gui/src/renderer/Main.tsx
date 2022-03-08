@@ -21,6 +21,7 @@ import { CmdKResultRenderer } from "./components/cmd-k/CmdKResultRenderer";
 import { KBarOptions } from "./components/cmd-k/types";
 import { StatusHandler, StatusContext } from "./components/Status";
 import { SideBar } from "./components/SideBar/SideBar";
+import { SideBarButton } from "./components/SideBar/SideBarProps";
 
 const defaultTabs: Tab[] = [
   { type: TabType.New, name: "New", data: null, unclosable: true, id: "new" },
@@ -253,6 +254,29 @@ function Main() {
 
   // Sidebar options
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const sideBarCallback = (b: SideBarButton) => {
+    switch (b) {
+      case SideBarButton.INBOX:
+        return React.useCallback(() => {
+          switchTab(tabs[0].id);
+          // TODO(sualeh): the sidebar should handle this itself. 
+          setSidebarOpen(false);
+        }, [switchTab, tabs, setSidebarOpen]);
+      case SideBarButton.OUTBOX:
+        return React.useCallback(() => {
+          switchTab(tabs[1].id);
+          setSidebarOpen(false);
+        }, [switchTab, tabs, setSidebarOpen]);
+      case SideBarButton.SENT:
+        return React.useCallback(() => {
+          switchTab(tabs[2].id);
+          setSidebarOpen(false);
+        }, [switchTab, tabs, setSidebarOpen]);
+      default:
+        return React.useCallback(() => {}, []);
+        break;
+    }
+  };
 
   // CmdK options and shortcuts
   const CmdKActions = [
@@ -374,6 +398,7 @@ function Main() {
         title="Welcome to Private Messaging!"
         open={sidebarOpen}
         setOpen={setSidebarOpen}
+        sideBarCallback={sideBarCallback}
       ></SideBar>
     </div>
   );

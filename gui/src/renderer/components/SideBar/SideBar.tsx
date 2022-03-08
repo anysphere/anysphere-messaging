@@ -1,6 +1,6 @@
 import * as React from "react";
 import { SideBarItemGroup } from "./SideBarItemGroup";
-import { SideBarProps } from "./SideBarProps";
+import { SideBarButton, SideBarProps } from "./SideBarProps";
 
 import { SelectableList, ListItem } from "../SelectableList";
 
@@ -55,10 +55,10 @@ export function HeadlessSlideOver({
         <div className="absolute inset-0 overflow-hidden">
           <Transition.Child
             as={React.Fragment}
-            enter="ease-in-out duration-500"
+            enter="ease-in-out duration-120"
             enterFrom="opacity-0"
             enterTo="opacity-100"
-            leave="ease-in-out duration-500"
+            leave="ease-in-out duration-100"
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
@@ -67,20 +67,20 @@ export function HeadlessSlideOver({
           <div className="fixed inset-y-0 left-0 pr-8 max-w-full flex">
             <Transition.Child
               as={React.Fragment}
-              enter="transform transition ease-in-out duration-500 sm:duration-700"
+              enter="transform transition ease-in-out duration-120"
               enterFrom="-translate-x-full"
               enterTo="translate-x-0"
-              leave="transform transition ease-in-out duration-500 sm:duration-700"
+              leave="transform transition ease-in-out duration-100"
               leaveFrom="translate-x-0"
               leaveTo="-translate-x-full"
             >
               <div className="relative w-screen max-w-md">
                 <Transition.Child
                   as={React.Fragment}
-                  enter="ease-in-out duration-500"
+                  enter="ease-in-out duration-120"
                   enterFrom="opacity-0"
                   enterTo="opacity-100"
-                  leave="ease-in-out duration-500"
+                  leave="ease-in-out duration-100"
                   leaveFrom="opacity-100"
                   leaveTo="opacity-0"
                 >
@@ -123,7 +123,7 @@ export function SideBar(props: SideBarProps) {
     // Inbox
     {
       id: "inbox",
-      action: () => {},
+      action: props.sideBarCallback(SideBarButton.INBOX),
       data: {
         type: "item",
         name: "Inbox",
@@ -132,7 +132,7 @@ export function SideBar(props: SideBarProps) {
     // "Outbox",
     {
       id: "outbox",
-      action: () => {},
+      action: props.sideBarCallback(SideBarButton.OUTBOX),
       data: {
         type: "item",
         name: "Outbox",
@@ -141,7 +141,7 @@ export function SideBar(props: SideBarProps) {
     // "Sent",
     {
       id: "sent",
-      action: () => {},
+      action: props.sideBarCallback(SideBarButton.SENT),
       data: {
         type: "item",
         name: "Sent",
