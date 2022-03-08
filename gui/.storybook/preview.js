@@ -1,4 +1,3 @@
-
 import "../src/renderer/index.css";
 
 export const parameters = {
@@ -9,4 +8,4 @@ export const parameters = {
       date: /Date$/,
     },
   },
-}
+};

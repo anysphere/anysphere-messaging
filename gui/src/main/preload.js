@@ -291,7 +291,6 @@ contextBridge.exposeInMainWorld("getSentMessages", async () => {
   }
 });
 
-
 contextBridge.exposeInMainWorld("getFriendList", async () => {
   if (FAKE_DATA) {
     return [

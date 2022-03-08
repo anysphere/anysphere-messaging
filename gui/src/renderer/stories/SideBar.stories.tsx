@@ -1,7 +1,7 @@
-import React from 'react';
-import { ComponentStory, ComponentMeta } from '@storybook/react';
+import React from "react";
+import { ComponentStory, ComponentMeta } from "@storybook/react";
 
-import { SideBar } from '../components/SideBar/SideBar';
+import { SideBar } from "../components/SideBar/SideBar";
 import { SideBarButton } from "../components/SideBar/SideBarProps";
 
 // More on default export: https://storybook.js.org/docs/react/writing-stories/introduction#default-export
