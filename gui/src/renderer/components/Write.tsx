@@ -210,7 +210,7 @@ function Write(props: {
               focus: "content",
             });
           }}
-          className="whitespace-pre-wrap resize-none w-full focus:outline-none h-full grow h-96 pt-4 text-sm"
+          className="whitespace-pre-wrap resize-none w-full focus:outline-none h-full grow pt-4 text-sm"
           value={content}
           onChange={(e) =>
             props.edit({

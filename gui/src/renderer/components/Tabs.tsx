@@ -4,7 +4,7 @@
 //
 
 import * as React from "react";
-import { usePointerMovedSinceMount } from "../utils";
+// import { usePointerMovedSinceMount } from "../utils";
 
 export interface Tab {
   type: TabType;
@@ -96,7 +96,7 @@ export function TabContainer(props: {
     return () => window.removeEventListener("keydown", handler);
   }, [props.previousTab, props.nextTab, props.closeTab, props.selectedTab]);
 
-  const pointerMoved = usePointerMovedSinceMount();
+  // const pointerMoved = usePointerMovedSinceMount();
 
   return (
     <div

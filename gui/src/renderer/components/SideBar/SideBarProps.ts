@@ -1,5 +1,3 @@
-import * as React from "react";
-
 // This enum is used to hold the names of different buttons
 export enum SideBarButton {
   INBOX = "INBOX",
