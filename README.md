@@ -53,31 +53,36 @@ Let `.env` contain the environment variables specified by `helpers/scripts/packa
 Build:
 
 ```
-bazel build //client/... --host_javabase=@local_jdk//:jdk
+bazel build //...
 ```
 
 Run normal daemon:
 
 ```
-./bazel-bin/client/daemon/daemon
+./bazel-bin/daemon/daemon
 ```
 
 Run daemon 2:
+Open a new terminal and run
 
 ```
-rm -rf ~/.anysphere2 && mkdir ~/.anysphere2 && ./bazel-bin/client/daemon/daemon -d "$HOME/.anysphere2/anysphere.sock" -c "$HOME/.anysphere2/config.json"
+export XDG_CONFIG_HOME=$HOME/.anysphere2/data
+export XDG_RUNTIME_DIR=$HOME/.anysphere2/run    
+rm -rf ~/.anysphere2 && mkdir ~/.anysphere2 && ./bazel-bin/daemon/daemon -d "$HOME/.anysphere2/anysphere.sock" -c "$HOME/.anysphere2/config.json"
 ```
 
-Next, run
+Next, in a third terminal, run
 
 ```
-./bazel-bin/client/cli/asphr
+./bazel-bin/cli/asphr
 ```
 
-to connect to daemon 1, and
+to connect to daemon 1, and in a fourth terminal, run
 
 ```
-./bazel-bin/client/cli/asphr socket unix:///Users/arvid/.anysphere2/anysphere.sock
+export XDG_CONFIG_HOME=$HOME/.anysphere2/data
+export XDG_RUNTIME_DIR=$HOME/.anysphere2/run
+./bazel-bin/cli/asphr [command]
 ```
 
 to connect to daemon 2.
