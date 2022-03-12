@@ -9,4 +9,4 @@ actions:
         branches:
           - "main"
     bazel_commands:
-      - "test //..."
+      - "test //... --config=remote"
