@@ -219,7 +219,7 @@ auto Config::random_enabled_friend(const std::unordered_set<string>& excluded)
     return absl::NotFoundError("No enabled friends");
   }
 
-  auto random_index = rand() % enabled_friends.size();
+  auto random_index = absl::Uniform(rand_bitgen_, 0u, enabled_friends.size());
 
   check_rep();
 

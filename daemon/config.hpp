@@ -103,11 +103,15 @@ class Config {
   // but if it ever is, most things can be cached in memory, except the things
   // that need to be atomic with the Msgstore. this very much feels like
   // premature optimization, though.
+  // TODO: when this lock is removed, figure out what to do with rand_bitgen_
   mutable std::mutex config_mtx;
 
   mutable std::mutex kill_mtx;
   std::condition_variable kill_cv;
   bool kill_ = false;
+
+  // randomness source! NOT threadsafe, which is fine because we use monitor pattern
+  absl::BitGen rand_bitgen_;
 
   auto check_rep() const -> void;
   auto initialize_dummy_me() -> void;
