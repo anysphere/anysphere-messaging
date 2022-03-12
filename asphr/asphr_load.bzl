@@ -14,6 +14,18 @@ def load_asphr_repos(asphr_path):
         asphr_path: The path to the asphr repository.
     """
 
+    BAZEL_TOOLCHAIN_TAG = "0.6.3"
+
+    BAZEL_TOOLCHAIN_SHA = "da607faed78c4cb5a5637ef74a36fdd2286f85ca5192222c4664efec2d529bb8"
+
+    http_archive(
+        name = "com_grail_bazel_toolchain",
+        canonical_id = BAZEL_TOOLCHAIN_TAG,
+        sha256 = BAZEL_TOOLCHAIN_SHA,
+        strip_prefix = "bazel-toolchain-{tag}".format(tag = BAZEL_TOOLCHAIN_TAG),
+        url = "https://github.com/grailbio/bazel-toolchain/archive/{tag}.tar.gz".format(tag = BAZEL_TOOLCHAIN_TAG),
+    )
+
     http_archive(
         name = "rules_proto_grpc",
         sha256 = "507e38c8d95c7efa4f3b1c0595a8e8f139c885cb41a76cab7e20e4e67ae87731",
