@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug intergration/daemon_test test",
+            "name": "Debug intergration/daemon_test",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bazel-bin/integration_tests/daemon_test",
@@ -29,7 +29,81 @@
             "miDebuggerPath": "gdb"
         },
         {
-            "name": "Debug intergration/multiple_friends_test test",
+            "name": "Debug all bazel tests",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/home/linuxbrew/.linuxbrew/bin/bazel",
+            "args": [
+                "test",
+                "//...",
+                "-c dbg"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "debugBuild",
+            "miDebuggerPath": "gdb"
+        },
+        {
+            "name": "Debug intergration/daemon_friends_test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-bin/integration_tests/daemon_friends_test",
+            "args": [
+                "--gtest_break_on_failure",
+                "--gtest_catch_exceptions=0"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "debugBuild",
+            "miDebuggerPath": "gdb"
+        },
+        {
+            "name": "Debug intergration/daemon_friends_test many times",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-bin/integration_tests/daemon_friends_test",
+            "args": [
+                "--gtest_break_on_failure",
+                "--gtest_catch_exceptions=0",
+                "--gtest_repeat=100"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "debugBuild",
+            "miDebuggerPath": "gdb"
+        },
+        {
+            "name": "Debug intergration/multiple_friends_test",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bazel-bin/integration_tests/multiple_friends_test",

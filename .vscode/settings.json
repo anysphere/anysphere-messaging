@@ -114,11 +114,20 @@
     "span": "cpp",
     "gsl_byte": "cpp",
     "*.inc": "cpp",
-    "filesystem": "cpp"
+    "filesystem": "cpp",
+    "ranges": "cpp"
   },
   "C_Cpp.codeAnalysis.clangTidy.enabled": true,
   "C_Cpp.codeAnalysis.runAutomatically": false,
   "C_Cpp.errorSquiggles": "Enabled",
   "cmake.configureOnOpen": false,
-  "git.ignoreLimitWarning": true
+  "git.ignoreLimitWarning": true,
+  "search.useIgnoreFiles": false,
+  "search.exclude": {
+    "**/bazel-*": true,
+    "**/bazel-anysphere": true,
+    "**/third_party": true,
+    "bazel-anysphere": true,
+    "bazel-anysphere/**": true
+  }
 }

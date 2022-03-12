@@ -1,11 +1,4 @@
-#include <gtest/gtest.h>
-
-#include "asphr/asphr.hpp"
-#include "daemon/daemon_rpc.hpp"
-#include "daemon/transmitter.hpp"
-#include "server/pir/fast_pir/fastpir.hpp"
-#include "server/src/server_rpc.hpp"
-#include "test_helpers.hpp"
+#include "daemon_setup.hpp"
 
 using namespace asphrdaemon;
 
@@ -22,91 +15,7 @@ using namespace asphrdaemon;
 namespace asphr::testing {
 namespace {
 
-class MultipleFriendsTest : public ::testing::Test {
-  using ServerRpc = ServerRpc<FastPIR, AccountManagerInMemory>;
-
- protected:
-  MultipleFriendsTest() : service_(gen_server_rpc()) {}
-
-  auto generateTempFile() -> string {
-    auto config_file_address = "TMPTMPTMP_config" +
-                               std::to_string(config_file_addresses_.size()) +
-                               ".json";
-
-    const auto large_cwd_size = 1024;
-    std::array<char, large_cwd_size> cwd{};
-    auto* status = getcwd(cwd.data(), cwd.size());
-    if (status == nullptr) {
-      throw std::runtime_error("getcwd() failed");
-    }
-
-    std::string cwd_str(cwd.data());
-    auto address = cwd_str + "/" + config_file_address;
-    config_file_addresses_.push_back(address);
-    return address;
-  }
-
-  auto generateTempDir() -> std::filesystem::path {
-    auto tmp_dir = "TMPTMPTMP_dirs" + std::to_string(temp_dirs_.size());
-
-    const auto large_cwd_size = 1024;
-    std::array<char, large_cwd_size> cwd{};
-    auto* status = getcwd(cwd.data(), cwd.size());
-    if (status == nullptr) {
-      throw std::runtime_error("getcwd() failed");
-    }
-
-    std::string cwd_str(cwd.data());
-    auto address = std::filesystem::path(cwd_str) / tmp_dir;
-    std::filesystem::create_directory(address);
-    temp_dirs_.push_back(address);
-    return address;
-  }
-
-  void SetUp() override {
-    // TODO(sualeh): do NOT do this. pick a good random unused port
-    const int port = 43421;
-    server_address_ << "localhost:" << port;
-    // Setup server
-    grpc::ServerBuilder builder;
-    builder.AddListeningPort(server_address_.str(),
-                             grpc::InsecureServerCredentials());
-    builder.RegisterService(&service_);
-    server_ = builder.BuildAndStart();
-  }
-
-  void TearDown() override {
-    server_->Shutdown();
-
-    for (const auto& f : config_file_addresses_) {
-      if (remove(f.c_str()) != 0) {
-        cerr << "Error deleting file";
-      } else {
-        cout << "File successfully deleted\n";
-      }
-    }
-    for (const auto& f : temp_dirs_) {
-      if (std::filesystem::remove_all(f) != 0) {
-        cerr << "Error deleting file";
-      } else {
-        cout << "File successfully deleted\n";
-      }
-    }
-  }
-
-  void ResetStub() {
-    std::shared_ptr<grpc::Channel> channel = grpc::CreateChannel(
-        server_address_.str(), grpc::InsecureChannelCredentials());
-    stub_ = asphrserver::Server::NewStub(channel);
-  }
-
- public:
-  std::shared_ptr<asphrserver::Server::Stub> stub_;
-  std::unique_ptr<grpc::Server> server_;
-  std::ostringstream server_address_;
-  ServerRpc service_;
-  vector<string> config_file_addresses_;
-  vector<std::filesystem::path> temp_dirs_;
+class MultipleFriendsTest : public DaemonRpcTest {
 };
 
 TEST_F(MultipleFriendsTest, SendThreeMessages) {

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "asphr/asphr.hpp"
 #include "daemon/daemon_rpc.hpp"
 #include "daemon/transmitter.hpp"
