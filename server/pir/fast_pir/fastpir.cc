@@ -75,6 +75,17 @@ auto FastPIR::allocate() noexcept -> pir_index_t {
   return new_index;
 }
 
+auto FastPIR::allocate_to_max(pir_index_t max_index) noexcept -> void {
+  assert(db_rows == 0);
+  db_rows = max_index + 1;
+  db.resize(db_rows * MESSAGE_SIZE);
+  // TODO: performance-optimize this. it is not in the critical path tho, so not super important. but affects uptime
+  for (pir_index_t i = 0; i <= max_index; i++) {
+    update_seal_db(i);
+  }
+  check_rep();
+}
+
 auto FastPIR::update_seal_db(pir_index_t index) -> void {
   seal_db_rows = CEIL_DIV(db_rows, seal_slot_count);
   seal_db.resize(seal_db_rows * SEAL_DB_COLUMNS);

@@ -29,6 +29,7 @@ class FastPIR {
       -> pir_answer_t;
 
   auto allocate() noexcept -> pir_index_t;
+  auto allocate_to_max(pir_index_t max_index) noexcept -> void;
 
   // throws if deserialization fails
   auto query_from_string(const string& s) const noexcept(false) -> pir_query_t {

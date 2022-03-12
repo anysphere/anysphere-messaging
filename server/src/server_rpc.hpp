@@ -35,12 +35,21 @@ class ServerRpc final : public asphrserver::Server::Service {
       asphrserver::ReceiveMessageResponse* receiveMessageResponse) override;
 
   // trunk-ignore(clang-tidy/bugprone-easily-swappable-parameters)
-  ServerRpc(PIR&& pir, PIR&& pir_acks, AccountManager&& account_manager)
-      : pir(std::move(pir)),
-        pir_acks(std::move(pir_acks)),
-        account_manager(std::move(account_manager)) {}
+  ServerRpc(PIR&& pir_arg, PIR&& pir_acks_arg, AccountManager&& account_manager_arg)
+      : pir(std::move(pir_arg)),
+        pir_acks(std::move(pir_acks_arg)),
+        account_manager(std::move(account_manager_arg)) {
+            auto pir_indices = account_manager.get_all_pir_indices();
+            if (pir_indices.size() > 0) {
+                auto max_pir = *std::max_element(pir_indices.begin(), pir_indices.end());
+                pir.allocate_to_max(max_pir);
+                pir_acks.allocate_to_max(max_pir);
+            }
+        }
 
   auto get_seal_slot_count() const { return pir.get_seal_slot_count(); }
+
+  auto account_manager_FOR_TESTING_ONLY() { return account_manager; }
 
  private:
   PIR pir;  // stores actual messages for every user

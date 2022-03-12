@@ -45,4 +45,6 @@ start a postgres container:
 
 `make run` in `database`.
 
+Test: `bazel test //... --define postgres_tests=true`
+
 TODO: transition this make into bazel but bazel is hard.

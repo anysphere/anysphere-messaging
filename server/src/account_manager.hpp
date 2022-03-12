@@ -59,6 +59,16 @@ class AccountManagerInMemory {
     return false;
   }
 
+  auto get_all_pir_indices() -> vector<pir_index_t> {
+    vector<pir_index_t> indices;
+    for (auto& token_indices : token_to_index_map) {
+      for (auto index : token_indices.second) {
+        indices.push_back(index);
+      }
+    }
+    return indices;
+  }
+
  private:
   unordered_map<string, vector<pir_index_t>> token_to_index_map;
 };
@@ -94,8 +104,6 @@ class AccountManagerPostgres {
     // TODO(arvid): support more accounts
     vector<pir_index_t> indices({allocation});
 
-    token_to_index_map[authentication_token] = indices;
-
     // convert public_key to hex
     std::stringstream ss;
     for (const auto& c : public_key) {
@@ -124,8 +132,18 @@ class AccountManagerPostgres {
     return result.size() == 1 && result[0][0].as<pir_index_t>() == index;
   }
 
+  auto get_all_pir_indices() -> vector<pir_index_t> {
+    pqxx::work W{*conn};
+    auto result = W.exec("SELECT pir_index FROM accounts");
+    W.commit();
+    vector<pir_index_t> indices;
+    for (auto row : result) {
+      indices.push_back(row[0].as<pir_index_t>());
+    }
+    return indices;
+  }
+
  private:
-  unordered_map<string, vector<pir_index_t>> token_to_index_map;
   unique_ptr<pqxx::connection> conn;
 };
 

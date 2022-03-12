@@ -8,7 +8,7 @@ using std::string;
 template <typename T>
 struct AccountManagerTest : public testing::Test {};
 
-#ifndef USE_MEMORY_DB
+#ifdef ENABLE_POSTGRES_TESTS
 using Implementations = Types<AccountManagerInMemory, AccountManagerPostgres>;
 #else
 using Implementations = Types<AccountManagerInMemory>;
@@ -17,7 +17,7 @@ using Implementations = Types<AccountManagerInMemory>;
 TYPED_TEST_SUITE(AccountManagerTest, Implementations);
 
 // this should pass iff postgres is running! (hence disabled)
-TYPED_TEST(AccountManagerTest, DISABLED_Basic) {
+TYPED_TEST(AccountManagerTest, Basic) {
   string db_address = "127.0.0.1";
   string db_password = "password";
   TypeParam account_manager(db_address, db_password);
@@ -44,7 +44,7 @@ TYPED_TEST(AccountManagerTest, DISABLED_Basic) {
   EXPECT_FALSE(account_manager.valid_index_access("public_ke", index));
 }
 
-TYPED_TEST(AccountManagerTest, DISABLED_RealPublicKey) {
+TYPED_TEST(AccountManagerTest, RealPublicKey) {
   string db_address = "127.0.0.1";
   string db_password = "password";
   TypeParam account_manager(db_address, db_password);
@@ -79,4 +79,24 @@ TYPED_TEST(AccountManagerTest, DISABLED_RealPublicKey) {
 
   EXPECT_FALSE(account_manager.valid_index_access("public_key1", index));
   EXPECT_FALSE(account_manager.valid_index_access("public_ke", index));
+}
+
+TYPED_TEST(AccountManagerTest, Indices) {
+  string db_address = "127.0.0.1";
+  string db_password = "password";
+  TypeParam account_manager(db_address, db_password);
+
+  const auto* public_key = "public_key";
+  auto [auth_token, allocation] =
+      account_manager.generate_account(public_key, 123);
+  auto [auth_token2, allocation2] =
+      account_manager.generate_account(public_key, 4324);
+
+  auto pir_indices = account_manager.get_all_pir_indices();
+  auto pir_indices_set = std::set<int>(pir_indices.begin(), pir_indices.end());
+  // we don't assert anything about the size because if in Postgres, we will
+  // have persisted many indices over the years EXPECT_EQ(pir_indices.size(),
+  // 2);
+  EXPECT_TRUE(pir_indices_set.contains(123));
+  EXPECT_TRUE(pir_indices_set.contains(4324));
 }

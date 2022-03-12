@@ -115,7 +115,9 @@
     "gsl_byte": "cpp",
     "*.inc": "cpp",
     "filesystem": "cpp",
-    "ranges": "cpp"
+    "ranges": "cpp",
+    "__functional_03": "cpp",
+    "hash_map": "cpp"
   },
   "C_Cpp.codeAnalysis.clangTidy.enabled": true,
   "C_Cpp.codeAnalysis.runAutomatically": false,

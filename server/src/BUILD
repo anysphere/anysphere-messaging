@@ -47,18 +47,27 @@ cc_binary(
     ],
 )
 
+cc_test(
+    name = "test",
+    srcs = glob(["**/*_test.cc"]),
+    defines = select({
+        "//conditions:default": [],
+        ":postgres_tests": ["ENABLE_POSTGRES_TESTS"],
+    }),
+    deps = [
+        ":as_server_lib",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
 config_setting(
     name = "in_memory_db",
     values = {"define": "memdb=true"},
 )
 
-cc_test(
-    name = "test",
-    srcs = glob(["**/*_test.cc"]),
-    deps = [
-        ":as_server_lib",
-        "@com_google_googletest//:gtest_main",
-    ],
+config_setting(
+    name = "postgres_tests",
+    values = {"define": "postgres_tests=true"},
 )
 
 # container_image(
