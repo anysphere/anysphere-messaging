@@ -16,6 +16,8 @@ try-import %workspace%/.buildbuddy.bazelrc
 # below copied from asphr
 # to prevent problems with CI, we cannot try-import this bazelrc from other places. instead we just copy-paste.
 
+build --incompatible_enable_cc_toolchain_resolution
+
 # note: each bazelrc that try-imports this one needs to include a .user.bazelrc in its workspace directory
 try-import %workspace%/.user.bazelrc
 
