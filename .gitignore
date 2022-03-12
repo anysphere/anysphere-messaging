@@ -1,3 +1,5 @@
 bazel-*
 
 .user.bazelrc
+
+.DS_Store

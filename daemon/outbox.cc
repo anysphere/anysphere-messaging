@@ -206,7 +206,7 @@ auto Outbox::message_to_send(const Config& config, const Friend& dummyMe)
   }
   cout << "outbox size is " << outbox.size() << endl;
   // if not returned yet, choose a random friend from the outbox
-  auto random_friend_number = rand() % outbox.size();
+  auto random_friend_number = absl::Uniform(rand_bitgen_, 0u, outbox.size());
   auto random_friend = std::next(std::begin(outbox), random_friend_number);
   auto& messages = (*random_friend).second;
   save();

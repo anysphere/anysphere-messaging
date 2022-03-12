@@ -71,6 +71,8 @@ class Outbox {
   // stores the IDs of the messages currently in the outbox
   std::unordered_set<string> outbox_ids;
 
+  absl::BitGen rand_bitgen_;
+
   auto check_rep() const noexcept -> void;
   auto save() noexcept(false) -> void;
 };
