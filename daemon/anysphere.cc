@@ -37,7 +37,8 @@ int main(int argc, char** argv) {
           << std::endl;
       std::cout << "  --no-tls  Don't use TLS (default: use tls)" << std::endl;
       return 0;
-    } if (*i == "-s") {
+    }
+    if (*i == "-s") {
       server_address = *++i;
     } else if (*i == "-d") {
       socket_address = *++i;
