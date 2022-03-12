@@ -242,7 +242,7 @@ contextBridge.exposeInMainWorld("getOutboxMessages", async () => {
     ];
   }
   const request = new daemonM.GetOutboxMessagesRequest();
-  const getAllMessages = promisify(daemonClient.getOutboxMessages).bind(
+  const getOutboxMessages = promisify(daemonClient.getOutboxMessages).bind(
     daemonClient
   );
   try {
@@ -251,7 +251,7 @@ contextBridge.exposeInMainWorld("getOutboxMessages", async () => {
     const l = lm.map(convertProtobufMessageToTypedMessage);
     return l;
   } catch (e) {
-    console.log(`error in getSentMessages: ${e}`);
+    console.log(`error in getOutboxMessages: ${e}`);
     return [];
   }
 });
@@ -277,7 +277,7 @@ contextBridge.exposeInMainWorld("getSentMessages", async () => {
     ];
   }
   const request = new daemonM.GetSentMessagesRequest();
-  const getAllMessages = promisify(daemonClient.getSentMessages).bind(
+  const getSentMessages = promisify(daemonClient.getSentMessages).bind(
     daemonClient
   );
   try {

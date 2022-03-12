@@ -96,7 +96,7 @@ export function TabContainer(props: {
     return () => window.removeEventListener("keydown", handler);
   }, [props.previousTab, props.nextTab, props.closeTab, props.selectedTab]);
 
-  // const pointerMoved = usePointerMovedSinceMount();
+  // const pointerMoved = usePointerMovedSinceMount(); // commented out because used in code that auto-hides the tab bar, which we ended up deciding against for the moment
 
   return (
     <div
