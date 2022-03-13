@@ -15,7 +15,6 @@ function FriendsModal({
   onClose: () => void;
   onAddFriend: (_: string) => void;
 }) {
-  //  const [selected, setSelected] = React.useState<number>(0);
   const [friendname, setFriendname] = React.useState<string>("");
   const [friends, setFriends] = React.useState<Friend[]>([]);
 

@@ -308,7 +308,7 @@ function Main() {
     setSidebarOpen(false);
     switch (b) {
       case SideBarButton.INBOX:
-        return switchTab(tabs[0].id);
+        return switchTab("all");
       case SideBarButton.OUTBOX:
         return openOutbox();
       case SideBarButton.SENT:
