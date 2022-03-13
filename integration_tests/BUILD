@@ -103,10 +103,39 @@ cc_test(
 )
 
 cc_test(
-    name = "multiple_friends_test",
-    size = "large",
+    name = "long_messages_test",
     srcs = [
-        "multiple_friends_test.cc",
+        "multiple_friends_tests/long_messages_test.cc",
+    ],
+    deps = [
+        ":daemon_setup",
+    ],
+)
+
+cc_test(
+    name = "multiple_messages_test",
+    srcs = [
+        "multiple_friends_tests/multiple_messages_test.cc",
+    ],
+    deps = [
+        ":daemon_setup",
+    ],
+)
+
+cc_test(
+    name = "three_messages_test",
+    srcs = [
+        "multiple_friends_tests/three_messages_test.cc",
+    ],
+    deps = [
+        ":daemon_setup",
+    ],
+)
+
+cc_test(
+    name = "outstanding_outbox_test",
+    srcs = [
+        "multiple_friends_tests/outstanding_outbox_test.cc",
     ],
     deps = [
         ":daemon_setup",
