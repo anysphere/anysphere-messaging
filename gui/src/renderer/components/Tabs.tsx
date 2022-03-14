@@ -4,7 +4,7 @@
 //
 
 import * as React from "react";
-import { usePointerMovedSinceMount } from "../utils";
+// import { usePointerMovedSinceMount } from "../utils";
 
 export interface Tab {
   type: TabType;
@@ -19,6 +19,8 @@ export enum TabType {
   All = "all",
   Read = "read",
   Write = "write",
+  Outbox = "outbox",
+  Sent = "sent",
 }
 
 export function TabElem({
@@ -94,7 +96,7 @@ export function TabContainer(props: {
     return () => window.removeEventListener("keydown", handler);
   }, [props.previousTab, props.nextTab, props.closeTab, props.selectedTab]);
 
-  const pointerMoved = usePointerMovedSinceMount();
+  // const pointerMoved = usePointerMovedSinceMount(); // commented out because used in code that auto-hides the tab bar, which we ended up deciding against for the moment
 
   return (
     <div

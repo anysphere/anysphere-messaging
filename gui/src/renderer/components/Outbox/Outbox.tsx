@@ -4,9 +4,9 @@
 //
 
 import * as React from "react";
-import { Message } from "../types";
-import { truncate, formatTime } from "../utils";
-import { SelectableList } from "./SelectableList";
+import { Message } from "../../types";
+import { truncate, formatTime } from "../../utils";
+import { SelectableList } from "../SelectableList";
 
 function MessageBlurb({
   message,
@@ -49,7 +49,7 @@ function NoMessages({ explanation }: { explanation: string }) {
   );
 }
 
-function MessageList(props: {
+export default function OutboxMessageList(props: {
   messages: string;
   readCallback: (message: Message) => void;
 }) {
@@ -60,23 +60,15 @@ function MessageList(props: {
       (window as any).getNewMessages().then((messages: Message[]) => {
         setMessages(messages);
       });
-    } else if (props.messages === "all") {
+    } else {
       (window as any).getAllMessages().then((messages: Message[]) => {
-        setMessages(messages);
-      });
-    } else if (props.messages === "outbox") {
-      (window as any).getOutboxMessages().then((messages: Message[]) => {
-        setMessages(messages);
-      });
-    } else if (props.messages === "sent") {
-      (window as any).getSentMessages().then((messages: Message[]) => {
         setMessages(messages);
       });
     }
   }, [props.messages]);
 
   const noMessageExplanation =
-    props.messages === "new" ? "No new messages." : "No messages.";
+    props.messages === "new" ? "Nothing in Outbox." : "No messages.";
 
   return (
     <div>
@@ -112,5 +104,3 @@ function MessageList(props: {
     </div>
   );
 }
-
-export default MessageList;
