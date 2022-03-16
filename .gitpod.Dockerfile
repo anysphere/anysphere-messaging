@@ -33,10 +33,6 @@ RUN brew install gdb
 # now we remove a number of unnecessary packages
 RUN rm -r ~/.cargo ~/.rustup ~/.sdkman ~/go-packages
 
-# now we make trunk put all its cache in the workspace so it gets saved and kept
-RUN mkdir -p /workspace/trunk && mkdir /workspace/trunk/cli
-RUN ln -s /workspace/trunk ~/.cache/trunk
-
 # install gcloud
 # RUN sudo apt-get install apt-transport-https ca-certificates gnupg -y && \
 #     sudo echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
