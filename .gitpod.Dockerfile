@@ -34,7 +34,7 @@ RUN brew install gdb
 RUN rm -r ~/.cargo ~/.rustup ~/.sdkman ~/go-packages
 
 # now we make trunk put all its cache in the workspace so it gets saved and kept
-RUN mkdir -p /workspace/trunk/cli
+RUN mkdir -p /workspace/trunk && mkdir /workspace/trunk/cli
 RUN ln -s /workspace/trunk ~/.cache/trunk
 
 # install gcloud
