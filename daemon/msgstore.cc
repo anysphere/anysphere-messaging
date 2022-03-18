@@ -172,7 +172,8 @@ auto Msgstore::add_incoming_message(int sequence_number, const string& from,
 
   const auto id = message_id(true, from, sequence_number);
 
-  IncomingMessage incoming_message{{id, message}, from, absl::Now(), false, mono_index};
+  IncomingMessage incoming_message{
+      {id, message}, from, absl::Now(), false, mono_index};
   incoming.push_back(incoming_message);
 
   save();
@@ -207,7 +208,8 @@ auto Msgstore::mark_message_as_seen(const string& id) -> asphr::Status {
   return absl::NotFoundError("id not found");
 }
 
-auto Msgstore::get_incoming_message_by_id(const string& id) -> asphr::StatusOr<IncomingMessage> {
+auto Msgstore::get_incoming_message_by_id(const string& id)
+    -> asphr::StatusOr<IncomingMessage> {
   const std::lock_guard<std::mutex> l(msgstore_mtx);
 
   check_rep();
