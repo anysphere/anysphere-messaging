@@ -270,6 +270,56 @@ Status DaemonRpc::GetAllMessages(
   return Status::OK;
 }
 
+Status DaemonRpc::GetAllMessagesStreamed(
+    ServerContext* context, 
+    const GetAllMessagesRequest* request,
+    ServerWriter<GetAllMessagesResponse>* writer) {
+  using TimeUtil = google::protobuf::util::TimeUtil;
+  cout << "GetAllMessagesStreamed() called" << endl;
+
+  if (!config->has_registered()) {
+    cout << "need to register first!" << endl;
+    return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
+  }
+
+  // TODO: MAKE THIS A NON-DUMMY IMPLEMENTATION THAT ACTUALLY SENDS
+  // NEW MESSAGES
+
+  auto messages = msgstore->get_all_incoming_messages_sorted();
+
+  GetAllMessagesResponse response;
+
+  for (auto& m : messages) {
+    auto message_info = response.add_messages();
+
+    auto baseMessage = message_info->mutable_m();
+    baseMessage->set_id(m.id);
+    baseMessage->set_message(m.message);
+    message_info->set_from(m.from);
+    message_info->set_seen(m.seen);
+
+    // TODO: do this conversion not through strings....
+    auto timestamp_str = absl::FormatTime(m.received_timestamp);
+    auto timestamp = message_info->mutable_received_timestamp();
+    auto success = TimeUtil::FromString(timestamp_str, timestamp);
+    if (!success) {
+      cout << "invalid timestamp" << endl;
+      return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+    }
+  }
+
+  writer->Write(response);
+
+  // keep the connection open forever
+  // TODO: send new messages here
+  while (!context->IsCancelled()) {
+    cout << "not cancelled! connection still alive" << endl;
+    absl::SleepFor(absl::Seconds(1));
+  }
+
+  return Status::OK;
+}
+
 Status DaemonRpc::GetNewMessages(
     ServerContext* context, const GetNewMessagesRequest* getNewMessagesRequest,
     GetNewMessagesResponse* getNewMessagesResponse) {
