@@ -58,7 +58,8 @@ auto read_msgstore_json(const string& file_address) -> asphr::json {
         std::filesystem::path(file_address).parent_path().u8string();
     std::filesystem::create_directories(dir_path);
     cout << "creating new msgstore asphr::json!" << endl;
-    asphr::json j = {{"incoming", {}}, {"outgoing", {}}};
+    asphr::json j = {{"incoming", asphr::json::array()},
+                     {"outgoing", asphr::json::array()}};
     std::ofstream o(file_address);
     o << std::setw(4) << j.dump(4) << std::endl;
   }
