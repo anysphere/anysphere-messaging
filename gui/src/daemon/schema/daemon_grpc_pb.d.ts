@@ -14,11 +14,14 @@ interface IDaemonService extends grpc.ServiceDefinition<grpc.UntypedServiceImple
   removeFriend: grpc.MethodDefinition<schema_daemon_pb.RemoveFriendRequest, schema_daemon_pb.RemoveFriendResponse>;
   sendMessage: grpc.MethodDefinition<schema_daemon_pb.SendMessageRequest, schema_daemon_pb.SendMessageResponse>;
   getAllMessages: grpc.MethodDefinition<schema_daemon_pb.GetAllMessagesRequest, schema_daemon_pb.GetAllMessagesResponse>;
+  getAllMessagesStreamed: grpc.MethodDefinition<schema_daemon_pb.GetAllMessagesRequest, schema_daemon_pb.GetAllMessagesResponse>;
   getNewMessages: grpc.MethodDefinition<schema_daemon_pb.GetNewMessagesRequest, schema_daemon_pb.GetNewMessagesResponse>;
   getOutboxMessages: grpc.MethodDefinition<schema_daemon_pb.GetOutboxMessagesRequest, schema_daemon_pb.GetOutboxMessagesResponse>;
   getSentMessages: grpc.MethodDefinition<schema_daemon_pb.GetSentMessagesRequest, schema_daemon_pb.GetSentMessagesResponse>;
   messageSeen: grpc.MethodDefinition<schema_daemon_pb.MessageSeenRequest, schema_daemon_pb.MessageSeenResponse>;
   getStatus: grpc.MethodDefinition<schema_daemon_pb.GetStatusRequest, schema_daemon_pb.GetStatusResponse>;
+  getLatency: grpc.MethodDefinition<schema_daemon_pb.GetLatencyRequest, schema_daemon_pb.GetLatencyResponse>;
+  changeLatency: grpc.MethodDefinition<schema_daemon_pb.ChangeLatencyRequest, schema_daemon_pb.ChangeLatencyResponse>;
   kill: grpc.MethodDefinition<schema_daemon_pb.KillRequest, schema_daemon_pb.KillResponse>;
 }
 
@@ -32,11 +35,14 @@ export interface IDaemonServer extends grpc.UntypedServiceImplementation {
   removeFriend: grpc.handleUnaryCall<schema_daemon_pb.RemoveFriendRequest, schema_daemon_pb.RemoveFriendResponse>;
   sendMessage: grpc.handleUnaryCall<schema_daemon_pb.SendMessageRequest, schema_daemon_pb.SendMessageResponse>;
   getAllMessages: grpc.handleUnaryCall<schema_daemon_pb.GetAllMessagesRequest, schema_daemon_pb.GetAllMessagesResponse>;
+  getAllMessagesStreamed: grpc.handleServerStreamingCall<schema_daemon_pb.GetAllMessagesRequest, schema_daemon_pb.GetAllMessagesResponse>;
   getNewMessages: grpc.handleUnaryCall<schema_daemon_pb.GetNewMessagesRequest, schema_daemon_pb.GetNewMessagesResponse>;
   getOutboxMessages: grpc.handleUnaryCall<schema_daemon_pb.GetOutboxMessagesRequest, schema_daemon_pb.GetOutboxMessagesResponse>;
   getSentMessages: grpc.handleUnaryCall<schema_daemon_pb.GetSentMessagesRequest, schema_daemon_pb.GetSentMessagesResponse>;
   messageSeen: grpc.handleUnaryCall<schema_daemon_pb.MessageSeenRequest, schema_daemon_pb.MessageSeenResponse>;
   getStatus: grpc.handleUnaryCall<schema_daemon_pb.GetStatusRequest, schema_daemon_pb.GetStatusResponse>;
+  getLatency: grpc.handleUnaryCall<schema_daemon_pb.GetLatencyRequest, schema_daemon_pb.GetLatencyResponse>;
+  changeLatency: grpc.handleUnaryCall<schema_daemon_pb.ChangeLatencyRequest, schema_daemon_pb.ChangeLatencyResponse>;
   kill: grpc.handleUnaryCall<schema_daemon_pb.KillRequest, schema_daemon_pb.KillResponse>;
 }
 
@@ -63,6 +69,8 @@ export class DaemonClient extends grpc.Client {
   getAllMessages(argument: schema_daemon_pb.GetAllMessagesRequest, callback: grpc.requestCallback<schema_daemon_pb.GetAllMessagesResponse>): grpc.ClientUnaryCall;
   getAllMessages(argument: schema_daemon_pb.GetAllMessagesRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetAllMessagesResponse>): grpc.ClientUnaryCall;
   getAllMessages(argument: schema_daemon_pb.GetAllMessagesRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetAllMessagesResponse>): grpc.ClientUnaryCall;
+  getAllMessagesStreamed(argument: schema_daemon_pb.GetAllMessagesRequest, metadataOrOptions?: grpc.Metadata | grpc.CallOptions | null): grpc.ClientReadableStream<schema_daemon_pb.GetAllMessagesResponse>;
+  getAllMessagesStreamed(argument: schema_daemon_pb.GetAllMessagesRequest, metadata?: grpc.Metadata | null, options?: grpc.CallOptions | null): grpc.ClientReadableStream<schema_daemon_pb.GetAllMessagesResponse>;
   getNewMessages(argument: schema_daemon_pb.GetNewMessagesRequest, callback: grpc.requestCallback<schema_daemon_pb.GetNewMessagesResponse>): grpc.ClientUnaryCall;
   getNewMessages(argument: schema_daemon_pb.GetNewMessagesRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetNewMessagesResponse>): grpc.ClientUnaryCall;
   getNewMessages(argument: schema_daemon_pb.GetNewMessagesRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetNewMessagesResponse>): grpc.ClientUnaryCall;
@@ -78,6 +86,12 @@ export class DaemonClient extends grpc.Client {
   getStatus(argument: schema_daemon_pb.GetStatusRequest, callback: grpc.requestCallback<schema_daemon_pb.GetStatusResponse>): grpc.ClientUnaryCall;
   getStatus(argument: schema_daemon_pb.GetStatusRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetStatusResponse>): grpc.ClientUnaryCall;
   getStatus(argument: schema_daemon_pb.GetStatusRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetStatusResponse>): grpc.ClientUnaryCall;
+  getLatency(argument: schema_daemon_pb.GetLatencyRequest, callback: grpc.requestCallback<schema_daemon_pb.GetLatencyResponse>): grpc.ClientUnaryCall;
+  getLatency(argument: schema_daemon_pb.GetLatencyRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetLatencyResponse>): grpc.ClientUnaryCall;
+  getLatency(argument: schema_daemon_pb.GetLatencyRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetLatencyResponse>): grpc.ClientUnaryCall;
+  changeLatency(argument: schema_daemon_pb.ChangeLatencyRequest, callback: grpc.requestCallback<schema_daemon_pb.ChangeLatencyResponse>): grpc.ClientUnaryCall;
+  changeLatency(argument: schema_daemon_pb.ChangeLatencyRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.ChangeLatencyResponse>): grpc.ClientUnaryCall;
+  changeLatency(argument: schema_daemon_pb.ChangeLatencyRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.ChangeLatencyResponse>): grpc.ClientUnaryCall;
   kill(argument: schema_daemon_pb.KillRequest, callback: grpc.requestCallback<schema_daemon_pb.KillResponse>): grpc.ClientUnaryCall;
   kill(argument: schema_daemon_pb.KillRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.KillResponse>): grpc.ClientUnaryCall;
   kill(argument: schema_daemon_pb.KillRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.KillResponse>): grpc.ClientUnaryCall;

@@ -27,6 +27,28 @@ function deserialize_asphrdaemon_AddFriendResponse(buffer_arg) {
   return schema_daemon_pb.AddFriendResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_asphrdaemon_ChangeLatencyRequest(arg) {
+  if (!(arg instanceof schema_daemon_pb.ChangeLatencyRequest)) {
+    throw new Error('Expected argument of type asphrdaemon.ChangeLatencyRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_ChangeLatencyRequest(buffer_arg) {
+  return schema_daemon_pb.ChangeLatencyRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_asphrdaemon_ChangeLatencyResponse(arg) {
+  if (!(arg instanceof schema_daemon_pb.ChangeLatencyResponse)) {
+    throw new Error('Expected argument of type asphrdaemon.ChangeLatencyResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_ChangeLatencyResponse(buffer_arg) {
+  return schema_daemon_pb.ChangeLatencyResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_asphrdaemon_GenerateFriendKeyRequest(arg) {
   if (!(arg instanceof schema_daemon_pb.GenerateFriendKeyRequest)) {
     throw new Error('Expected argument of type asphrdaemon.GenerateFriendKeyRequest');
@@ -91,6 +113,28 @@ function serialize_asphrdaemon_GetFriendListResponse(arg) {
 
 function deserialize_asphrdaemon_GetFriendListResponse(buffer_arg) {
   return schema_daemon_pb.GetFriendListResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_asphrdaemon_GetLatencyRequest(arg) {
+  if (!(arg instanceof schema_daemon_pb.GetLatencyRequest)) {
+    throw new Error('Expected argument of type asphrdaemon.GetLatencyRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_GetLatencyRequest(buffer_arg) {
+  return schema_daemon_pb.GetLatencyRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_asphrdaemon_GetLatencyResponse(arg) {
+  if (!(arg instanceof schema_daemon_pb.GetLatencyResponse)) {
+    throw new Error('Expected argument of type asphrdaemon.GetLatencyResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_GetLatencyResponse(buffer_arg) {
+  return schema_daemon_pb.GetLatencyResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_asphrdaemon_GetNewMessagesRequest(arg) {
@@ -370,6 +414,17 @@ var DaemonService = exports.DaemonService = {
     responseSerialize: serialize_asphrdaemon_GetAllMessagesResponse,
     responseDeserialize: deserialize_asphrdaemon_GetAllMessagesResponse,
   },
+  getAllMessagesStreamed: {
+    path: '/asphrdaemon.Daemon/GetAllMessagesStreamed',
+    requestStream: false,
+    responseStream: true,
+    requestType: schema_daemon_pb.GetAllMessagesRequest,
+    responseType: schema_daemon_pb.GetAllMessagesResponse,
+    requestSerialize: serialize_asphrdaemon_GetAllMessagesRequest,
+    requestDeserialize: deserialize_asphrdaemon_GetAllMessagesRequest,
+    responseSerialize: serialize_asphrdaemon_GetAllMessagesResponse,
+    responseDeserialize: deserialize_asphrdaemon_GetAllMessagesResponse,
+  },
   getNewMessages: {
     path: '/asphrdaemon.Daemon/GetNewMessages',
     requestStream: false,
@@ -424,6 +479,28 @@ var DaemonService = exports.DaemonService = {
     requestDeserialize: deserialize_asphrdaemon_GetStatusRequest,
     responseSerialize: serialize_asphrdaemon_GetStatusResponse,
     responseDeserialize: deserialize_asphrdaemon_GetStatusResponse,
+  },
+  getLatency: {
+    path: '/asphrdaemon.Daemon/GetLatency',
+    requestStream: false,
+    responseStream: false,
+    requestType: schema_daemon_pb.GetLatencyRequest,
+    responseType: schema_daemon_pb.GetLatencyResponse,
+    requestSerialize: serialize_asphrdaemon_GetLatencyRequest,
+    requestDeserialize: deserialize_asphrdaemon_GetLatencyRequest,
+    responseSerialize: serialize_asphrdaemon_GetLatencyResponse,
+    responseDeserialize: deserialize_asphrdaemon_GetLatencyResponse,
+  },
+  changeLatency: {
+    path: '/asphrdaemon.Daemon/ChangeLatency',
+    requestStream: false,
+    responseStream: false,
+    requestType: schema_daemon_pb.ChangeLatencyRequest,
+    responseType: schema_daemon_pb.ChangeLatencyResponse,
+    requestSerialize: serialize_asphrdaemon_ChangeLatencyRequest,
+    requestDeserialize: deserialize_asphrdaemon_ChangeLatencyRequest,
+    responseSerialize: serialize_asphrdaemon_ChangeLatencyResponse,
+    responseDeserialize: deserialize_asphrdaemon_ChangeLatencyResponse,
   },
   kill: {
     path: '/asphrdaemon.Daemon/Kill',
