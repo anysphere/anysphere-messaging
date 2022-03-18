@@ -7,6 +7,7 @@ auto IncomingMessage::to_json() const -> asphr::json {
       {"message", message},
       {"from", from},
       {"received_timestamp", absl::FormatTime(received_timestamp)},
+      {"mono_index", mono_index},
       {"seen", seen},
   };
 }
@@ -23,6 +24,7 @@ auto IncomingMessage::from_json(const asphr::json& j) -> IncomingMessage {
     throw std::runtime_error("error parsing time: " + err);
   }
   msg.seen = j.at("seen").get<bool>();
+  msg.mono_index = j.at("mono_index").get<int>();
   return msg;
 }
 
@@ -59,7 +61,8 @@ auto read_msgstore_json(const string& file_address) -> asphr::json {
     std::filesystem::create_directories(dir_path);
     cout << "creating new msgstore asphr::json!" << endl;
     asphr::json j = {{"incoming", asphr::json::array()},
-                     {"outgoing", asphr::json::array()}};
+                     {"outgoing", asphr::json::array()},
+                     {"last_mono_index", 0}};
     std::ofstream o(file_address);
     o << std::setw(4) << j.dump(4) << std::endl;
   }
@@ -72,7 +75,7 @@ Msgstore::Msgstore(const string& file_address, shared_ptr<Config> config)
 
 Msgstore::Msgstore(const asphr::json& serialized_json,
                    const string& file_address, shared_ptr<Config> config)
-    : saved_file_address(file_address), config(config) {
+    : last_mono_index(0), saved_file_address(file_address), config(config) {
   for (auto& messageJson : serialized_json.at("incoming")) {
     auto message = IncomingMessage::from_json(messageJson);
     incoming.push_back(message);
@@ -80,6 +83,9 @@ Msgstore::Msgstore(const asphr::json& serialized_json,
   for (auto& messageJson : serialized_json.at("outgoing")) {
     auto message = OutgoingMessage::from_json(messageJson);
     outgoing.push_back(message);
+  }
+  if (serialized_json.contains("last_mono_index")) {
+    last_mono_index = serialized_json.at("last_mono_index").get<int>();
   }
 
   check_rep();
@@ -162,13 +168,22 @@ auto Msgstore::add_incoming_message(int sequence_number, const string& from,
 
   check_rep();
 
+  auto mono_index = last_mono_index + 1;
+
   const auto id = message_id(true, from, sequence_number);
 
-  IncomingMessage incoming_message{{id, message}, from, absl::Now(), false};
+  IncomingMessage incoming_message{{id, message}, from, absl::Now(), false, mono_index};
   incoming.push_back(incoming_message);
 
   save();
   check_rep();
+
+  // only after everything is committed (i.e. saved), we can notify the add_cv
+  {
+    std::lock_guard<std::mutex> l(add_cv_mtx);
+    last_mono_index = mono_index;
+    add_cv.notify_all();
+  }
 }
 
 auto Msgstore::mark_message_as_seen(const string& id) -> asphr::Status {
@@ -186,6 +201,20 @@ auto Msgstore::mark_message_as_seen(const string& id) -> asphr::Status {
       save();
       check_rep();
       return absl::OkStatus();
+    }
+  }
+
+  return absl::NotFoundError("id not found");
+}
+
+auto Msgstore::get_incoming_message_by_id(const string& id) -> asphr::StatusOr<IncomingMessage> {
+  const std::lock_guard<std::mutex> l(msgstore_mtx);
+
+  check_rep();
+
+  for (auto& m : incoming) {
+    if (m.id == id) {
+      return m;
     }
   }
 
@@ -213,6 +242,27 @@ auto Msgstore::get_all_incoming_messages_sorted() -> vector<IncomingMessage> {
             });
   return sorted_incoming;
 }
+
+auto Msgstore::get_incoming_messages_sorted_after(int after_mono_index)
+    -> vector<IncomingMessage> {
+  const std::lock_guard<std::mutex> l(msgstore_mtx);
+
+  check_rep();
+
+  vector<IncomingMessage> sorted_incoming;
+  sorted_incoming.reserve(incoming.size());
+  for (auto& m : incoming) {
+    if (m.mono_index > after_mono_index) {
+      sorted_incoming.push_back(m);
+    }
+  }
+  std::sort(sorted_incoming.begin(), sorted_incoming.end(),
+            [](const IncomingMessage& a, const IncomingMessage& b) {
+              return a.received_timestamp > b.received_timestamp;
+            });
+  return sorted_incoming;
+}
+
 auto Msgstore::get_new_incoming_messages_sorted() -> vector<IncomingMessage> {
   const std::lock_guard<std::mutex> l(msgstore_mtx);
 

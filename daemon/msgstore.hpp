@@ -14,6 +14,11 @@ struct IncomingMessage : BaseMessage {
   // is NOT when the message was sent.
   absl::Time received_timestamp;
   bool seen;
+  // mono_index is a monotonically increasing index for each message,
+  // in the order they were *added to the msgstore*. note that this is
+  // not necessarily the same order as the timestamps the messages were
+  // received in
+  int mono_index;
 
   auto to_json() const -> asphr::json;
   static auto from_json(const asphr::json& j) -> IncomingMessage;
@@ -58,6 +63,9 @@ class Msgstore {
                             const string& message) -> void;
   auto mark_message_as_seen(const string& id) -> asphr::Status;
 
+  auto get_incoming_message_by_id(const string& id)
+      -> asphr::StatusOr<IncomingMessage>;
+
   // TODO: we want some kind of message querying interface here..... maybe we
   // should just expose the raw SQL??? otherwise we kinda need to invent our own
   // querying system that we then parse into SQL which seems a little
@@ -65,9 +73,19 @@ class Msgstore {
   // received
   auto get_all_incoming_messages_sorted() -> vector<IncomingMessage>;
   auto get_new_incoming_messages_sorted() -> vector<IncomingMessage>;
+  // i.e., calling this with v[0].mono_index if v was previous response will
+  // result in non-overlap
+  auto get_incoming_messages_sorted_after(int after_mono_index)
+      -> vector<IncomingMessage>;
 
   auto get_undelivered_outgoing_messages_sorted() -> vector<OutgoingMessage>;
   auto get_delivered_outgoing_messages_sorted() -> vector<OutgoingMessage>;
+
+  // the following three are for notifying someone when an incoming message has
+  // been added
+  std::mutex add_cv_mtx;
+  std::condition_variable add_cv;
+  int last_mono_index;
 
  private:
   // TODO: remove this mutex! eventually, all data should only ever be read and

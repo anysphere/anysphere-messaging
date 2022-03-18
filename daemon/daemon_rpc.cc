@@ -271,6 +271,8 @@ Status DaemonRpc::GetAllMessages(
   return Status::OK;
 }
 
+// WARNING: this method is subtle. please take a moment to understand
+// what's going on before modifying it.
 Status DaemonRpc::GetAllMessagesStreamed(
     ServerContext* context, const GetAllMessagesRequest* request,
     ServerWriter<GetAllMessagesResponse>* writer) {
@@ -282,50 +284,85 @@ Status DaemonRpc::GetAllMessagesStreamed(
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  // TODO: MAKE THIS A NON-DUMMY IMPLEMENTATION THAT ACTUALLY SENDS
-  // NEW MESSAGES
-
-  auto messages = msgstore->get_all_incoming_messages_sorted();
-
-  GetAllMessagesResponse response;
-
-  for (auto& m : messages) {
-    auto message_info = response.add_messages();
-
-    auto baseMessage = message_info->mutable_m();
-    baseMessage->set_id(m.id);
-    baseMessage->set_message(m.message);
-    message_info->set_from(m.from);
-    message_info->set_seen(m.seen);
-
-    // TODO: do this conversion not through strings....
-    auto timestamp_str = absl::FormatTime(m.received_timestamp);
-    auto timestamp = message_info->mutable_received_timestamp();
-    auto success = TimeUtil::FromString(timestamp_str, timestamp);
-    if (!success) {
-      cout << "invalid timestamp" << endl;
-      return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
-    }
+  // the messages may not be added in the right order. so what we do is
+  // we wait until the last_mono_index has changed, and then get all messages
+  // from that point on.
+  // this needs to happen before we get all the messages below.
+  //
+  // the caller will always get *each message AT LEAST once*, in the order of the
+  // mono index. *this may or may not correspond to the timestamp order.*
+  // the at least is because the mono index may be increasing while we're getting
+  // messages.
+  int last_mono_index;
+  {
+    std::lock_guard<std::mutex> l(msgstore->add_cv_mtx);
+    last_mono_index = msgstore->last_mono_index;
   }
 
-  writer->Write(response);
+  {
+    auto messages = msgstore->get_all_incoming_messages_sorted();
 
-  // keep the connection open forever
-  // TODO: send new messages here
-  int i = 1230;
-  while (!context->IsCancelled()) {
-    cout << "not cancelled! connection still alive" << endl;
-    absl::SleepFor(absl::Seconds(1));
     GetAllMessagesResponse response;
-    auto message_info = response.add_messages();
 
-    auto baseMessage = message_info->mutable_m();
-    baseMessage->set_id(StrCat("id:", i++));
-    baseMessage->set_message(StrCat("garbage ", i));
-    message_info->set_from("no one");
-    message_info->set_seen(true);
+    for (auto& m : messages) {
+      auto message_info = response.add_messages();
+
+      auto baseMessage = message_info->mutable_m();
+      baseMessage->set_id(m.id);
+      baseMessage->set_message(m.message);
+      message_info->set_from(m.from);
+      message_info->set_seen(m.seen);
+
+      // TODO: do this conversion not through strings....
+      auto timestamp_str = absl::FormatTime(m.received_timestamp);
+      auto timestamp = message_info->mutable_received_timestamp();
+      auto success = TimeUtil::FromString(timestamp_str, timestamp);
+      if (!success) {
+        cout << "invalid timestamp" << endl;
+        return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+      }
+    }
 
     writer->Write(response);
+  }
+
+  // keep the connection open forever
+  while (!context->IsCancelled()) {
+    int last_mono_index_here;
+    {
+      std::unique_lock<std::mutex> l(msgstore->add_cv_mtx);
+      msgstore->add_cv.wait_for(l, std::chrono::seconds(60 * 60), [&] {
+        return msgstore->last_mono_index != last_mono_index;
+      });
+      last_mono_index_here = msgstore->last_mono_index;
+    }
+
+    auto messages = msgstore->get_incoming_messages_sorted_after(last_mono_index);
+
+    GetAllMessagesResponse response;
+
+    for (auto& m : messages) {
+      auto message_info = response.add_messages();
+
+      auto baseMessage = message_info->mutable_m();
+      baseMessage->set_id(m.id);
+      baseMessage->set_message(m.message);
+      message_info->set_from(m.from);
+      message_info->set_seen(m.seen);
+
+      // TODO: do this conversion not through strings....
+      auto timestamp_str = absl::FormatTime(m.received_timestamp);
+      auto timestamp = message_info->mutable_received_timestamp();
+      auto success = TimeUtil::FromString(timestamp_str, timestamp);
+      if (!success) {
+        cout << "invalid timestamp" << endl;
+        return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+      }
+    }
+
+    writer->Write(response);
+
+    last_mono_index = last_mono_index_here;
   }
 
   return Status::OK;
