@@ -20,6 +20,8 @@ import { CmdKSearch } from "./components/cmd-k/CmdKSearch";
 import { CmdKResultRenderer } from "./components/cmd-k/CmdKResultRenderer";
 import { KBarOptions } from "./components/cmd-k/types";
 import { StatusHandler, StatusContext } from "./components/Status";
+import { SideBar } from "./components/SideBar/SideBar";
+import { SideBarButton } from "./components/SideBar/SideBarProps";
 
 const defaultTabs: Tab[] = [
   { type: TabType.New, name: "New", data: null, unclosable: true, id: "new" },
@@ -190,6 +192,22 @@ function Main() {
         />
       );
       break;
+    case TabType.Outbox:
+      selectedComponent = (
+        <MessageList
+          readCallback={(m: Message) => readMessage(m, "outbox")}
+          messages="outbox"
+        />
+      );
+      break;
+    case TabType.Sent:
+      selectedComponent = (
+        <MessageList
+          readCallback={(m: Message) => readMessage(m, "sent")}
+          messages="sent"
+        />
+      );
+      break;
     case TabType.Read:
       selectedComponent = (
         <Read
@@ -249,6 +267,59 @@ function Main() {
       }
     });
   }, []);
+
+  const openOutbox = React.useCallback(() => {
+    for (let i = 0; i < tabs.length; i++) {
+      if (tabs[i].type === TabType.Outbox) {
+        switchTab(tabs[i].id);
+        return;
+      }
+    }
+    const outboxTab = {
+      type: TabType.Outbox,
+      name: "Outbox",
+      id: "outbox",
+      data: null,
+      unclosable: false,
+    };
+    pushTab(outboxTab);
+  }, [switchTab, tabs, pushTab]);
+
+  const openSent = React.useCallback(() => {
+    for (let i = 0; i < tabs.length; i++) {
+      if (tabs[i].type === TabType.Sent) {
+        switchTab(tabs[i].id);
+        return;
+      }
+    }
+    const sentTab = {
+      type: TabType.Sent,
+      name: "Sent",
+      id: "sent",
+      data: null,
+      unclosable: false,
+    };
+    pushTab(sentTab);
+  }, [switchTab, tabs, pushTab]);
+
+  // Sidebar options
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const sideBarCallback = (b: SideBarButton) => {
+    setSidebarOpen(false);
+    switch (b) {
+      case SideBarButton.INBOX:
+        return switchTab("all");
+      case SideBarButton.OUTBOX:
+        return openOutbox();
+      case SideBarButton.SENT:
+        return openSent();
+      default:
+        return React.useCallback(() => {}, []);
+        break;
+    }
+  };
+
+  // CmdK options and shortcuts
   const CmdKActions = [
     {
       id: "friend",
@@ -285,6 +356,16 @@ function Main() {
     //   shortcut: ["s"],
     //   keywords: "settings",
     // },
+    {
+      id: "sidebar",
+      name: "Toggle Sidebar",
+      // shortcuts are "m" and the left button
+      shortcut: ["m"],
+      keywords: "sidebar, side, menu, sent, outbox",
+      perform: () => {
+        setSidebarOpen(!sidebarOpen);
+      },
+    },
     {
       id: "help",
       name: "Help",
@@ -353,6 +434,13 @@ function Main() {
           </div>
         </CmdKPortal>
       </CmdK>
+
+      <SideBar
+        title="Welcome to Private Messaging!"
+        open={sidebarOpen}
+        setOpen={setSidebarOpen}
+        sideBarCallback={sideBarCallback}
+      ></SideBar>
     </div>
   );
 }
