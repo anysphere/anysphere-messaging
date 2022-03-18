@@ -51,38 +51,28 @@ Let `.env` contain the environment variables specified by `helpers/scripts/packa
 ## Manual test
 
 Build:
-
 ```
 bazel build //...
 ```
 
-Run normal daemon:
+In one terminal, run normal daemon:
 
 ```
 ./bazel-bin/daemon/daemon
 ```
 
-Run daemon 2:
-Open a new terminal and run
+In a new terminal, run a second daemon:
 
 ```
-export XDG_CONFIG_HOME=$HOME/.anysphere2/data
-export XDG_RUNTIME_DIR=$HOME/.anysphere2/run    
-rm -rf ~/.anysphere2 && mkdir ~/.anysphere2 && ./bazel-bin/daemon/daemon -d "$HOME/.anysphere2/anysphere.sock" -c "$HOME/.anysphere2/config.json"
+./wrap2.sh ./bazel-bin/daemon/daemon
 ```
 
-Next, in a third terminal, run
-
+To connect to daemon 1, run:
 ```
-./bazel-bin/cli/asphr
-```
-
-to connect to daemon 1, and in a fourth terminal, run
-
-```
-export XDG_CONFIG_HOME=$HOME/.anysphere2/data
-export XDG_RUNTIME_DIR=$HOME/.anysphere2/run
 ./bazel-bin/cli/asphr [command]
 ```
 
-to connect to daemon 2.
+To connect to daemon 2, run:
+```
+./wrap2.sh ./bazel-bin/cli/asphr [command]
+```

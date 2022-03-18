@@ -69,15 +69,16 @@ contextBridge.exposeInMainWorld("copyToClipboard", async (s) => {
 });
 
 function convertProtobufMessageToTypedMessage(m) {
-  console.log("seconds", m.getTimestamp().getSeconds());
+  console.log("seconds", m.getReceivedTimestamp().getSeconds());
   var d = new Date(
-    m.getTimestamp().getSeconds() * 1e3 + m.getTimestamp().getNanos() / 1e6
+    m.getReceivedTimestamp().getSeconds() * 1e3 +
+      m.getReceivedTimestamp().getNanos() / 1e6
   );
   return {
-    id: m.getId(),
-    from: m.getSender(),
+    id: m.getM().getId(),
+    from: m.getFrom(),
     to: "me",
-    message: m.getMessage(),
+    message: m.getM().getMessage(),
     timestamp: d,
   };
 }
