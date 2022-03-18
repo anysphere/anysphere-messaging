@@ -45,5 +45,5 @@ Primary.args = {
   title: "SideBar",
   open: true,
   setOpen: () => {},
-  // sideBarCallback,
+  sideBarCallback,
 };
