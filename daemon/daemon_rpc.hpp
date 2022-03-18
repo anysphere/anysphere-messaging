@@ -57,8 +57,7 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
   grpc::Status GetAllMessagesStreamed(
       grpc::ServerContext* context,
       const asphrdaemon::GetAllMessagesRequest* request,
-      grpc::ServerWriter<asphrdaemon::GetAllMessagesResponse>* writer)
-      override;
+      grpc::ServerWriter<asphrdaemon::GetAllMessagesResponse>* writer) override;
 
   grpc::Status GetNewMessages(
       grpc::ServerContext* context,

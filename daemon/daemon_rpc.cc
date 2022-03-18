@@ -10,6 +10,7 @@
 using namespace asphrdaemon;
 
 using grpc::ServerContext;
+using grpc::ServerWriter;
 using grpc::Status;
 
 Status DaemonRpc::RegisterUser(ServerContext* context,
@@ -271,8 +272,7 @@ Status DaemonRpc::GetAllMessages(
 }
 
 Status DaemonRpc::GetAllMessagesStreamed(
-    ServerContext* context, 
-    const GetAllMessagesRequest* request,
+    ServerContext* context, const GetAllMessagesRequest* request,
     ServerWriter<GetAllMessagesResponse>* writer) {
   using TimeUtil = google::protobuf::util::TimeUtil;
   cout << "GetAllMessagesStreamed() called" << endl;
@@ -312,9 +312,20 @@ Status DaemonRpc::GetAllMessagesStreamed(
 
   // keep the connection open forever
   // TODO: send new messages here
+  int i = 1230;
   while (!context->IsCancelled()) {
     cout << "not cancelled! connection still alive" << endl;
     absl::SleepFor(absl::Seconds(1));
+    GetAllMessagesResponse response;
+    auto message_info = response.add_messages();
+
+    auto baseMessage = message_info->mutable_m();
+    baseMessage->set_id(StrCat("id:", i++));
+    baseMessage->set_message(StrCat("garbage ", i));
+    message_info->set_from("no one");
+    message_info->set_seen(true);
+
+    writer->Write(response);
   }
 
   return Status::OK;
