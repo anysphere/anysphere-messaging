@@ -93,7 +93,8 @@ Msgstore::Msgstore(const asphr::json& serialized_json,
 
 auto Msgstore::save() noexcept(false) -> void {
   check_rep();
-  asphr::json j = {{"incoming", {}}, {"outgoing", {}}};
+  asphr::json j = {{"incoming", asphr::json::array()},
+                   {"outgoing", asphr::json::array()}};
   for (auto& m : incoming) {
     j.at("incoming").push_back(m.to_json());
   }
