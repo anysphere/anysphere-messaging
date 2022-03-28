@@ -61,9 +61,15 @@ function MessageList(props: {
         setMessages(messages);
       });
     } else if (props.messages === "all") {
-      (window as any).getAllMessages().then((messages: Message[]) => {
-        setMessages(messages);
-      });
+      // (window as any).getAllMessages().then((messages: Message[]) => {
+      //   setMessages(messages);
+      // });
+      let cancel = (window as any).getAllMessagesStreamed(
+        (messages: Message[]) => {
+          setMessages((prev: Message[]) => prev.concat(messages));
+        }
+      );
+      return cancel;
     } else if (props.messages === "outbox") {
       (window as any).getOutboxMessages().then((messages: Message[]) => {
         setMessages(messages);

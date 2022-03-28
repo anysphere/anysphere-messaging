@@ -100,6 +100,7 @@ auto Msgstore::save() noexcept(false) -> void {
   for (auto& m : outgoing) {
     j.at("outgoing").push_back(m.to_json());
   }
+  j.at("last_mono_index") = last_mono_index;
   std::ofstream o(saved_file_address);
   o << std::setw(4) << j.dump(4) << std::endl;
   check_rep();
