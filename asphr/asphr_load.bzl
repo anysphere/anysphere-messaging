@@ -78,3 +78,18 @@ def load_asphr_repos(asphr_path):
         patch_args = ["-p1"],
         patches = [asphr_path + "//:rules_foreign_cc.0.7.1.patch"],  # from https://github.com/bazelbuild/rules_foreign_cc/issues/859#issuecomment-1058361769
     )
+
+    _RULES_BOOST_COMMIT = "ef58870fe00ecb8047cd34324b8c21221387d5fc"
+
+    http_archive(
+        name = "com_github_nelhage_rules_boost",
+        sha256 = "1557e4e1f2d009f14919dbf49b167f6616136d0cef1ca1cfada6ce0d4e3d6146",
+        strip_prefix = "rules_boost-%s" % _RULES_BOOST_COMMIT,
+        urls = [
+            "https://github.com/nelhage/rules_boost/archive/%s.tar.gz" % _RULES_BOOST_COMMIT,
+        ],
+        patch_args = ["-p1"],
+        patches = [asphr_path + "//:rules_boost.patch"], # issue: https://github.com/nelhage/rules_boost/issues/160 (on certain linux distros, clang cannot find backtrace.h. see https://www.boost.org/doc/libs/1_71_0/doc/html/stacktrace/configuration_and_build.html#stacktrace.configuration_and_build.f3)
+    )
+
+

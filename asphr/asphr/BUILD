@@ -11,6 +11,7 @@ cc_library(
     linkstatic = True,
     visibility = ["//visibility:public"],
     deps = [
+        ":assert",
         ":utils",
         "//third_party/json",
         "@com_google_absl//absl/hash",
@@ -43,4 +44,32 @@ cc_test(
         ":utils",
         "@com_google_googletest//:gtest_main",
     ],
+)
+
+cc_library(
+    name = "assert",
+    hdrs = [
+        "assert.hpp",
+    ],
+    linkstatic = True,
+    deps = select({
+        ":opt_build": [],
+        "//conditions:default": ["@boost//:stacktrace"],
+    }),
+)
+
+cc_binary(
+    name = "assert_manual_test",
+    srcs = ["assert_manual_test.cc"],
+    linkstatic = True,
+    deps = [
+        ":assert",
+    ],
+)
+
+config_setting(
+    name = "opt_build",
+    values = {
+        "compilation_mode": "opt"
+    }
 )

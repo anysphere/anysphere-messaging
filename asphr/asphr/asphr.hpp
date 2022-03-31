@@ -31,6 +31,7 @@
 #include "absl/strings/str_split.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
+#include "assert.hpp"
 #include "third_party/json/nlohmann_json.h"
 #include "utils.hpp"
 

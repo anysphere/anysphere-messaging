@@ -1,0 +1,14 @@
+diff --git a/BUILD.boost b/BUILD.boost
+index 93e03f9..804ff26 100644
+--- a/BUILD.boost
++++ b/BUILD.boost
+@@ -1826,7 +1826,8 @@ BOOST_STACKTRACE_SOURCES = selects.with_or({
+         "libs/stacktrace/src/backtrace.cpp",
+     ],
+     ":linux_x86_64": [
+-        "libs/stacktrace/src/backtrace.cpp",
++        "libs/stacktrace/src/basic.cpp",
++        # "libs/stacktrace/src/backtrace.cpp",
+     ],
+     ("@platforms//os:osx", "@platforms//os:ios", "@platforms//os:watchos", "@platforms//os:tvos"): [
+         "libs/stacktrace/src/addr2line.cpp",
