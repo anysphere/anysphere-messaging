@@ -288,13 +288,29 @@ auto Config::get_friend(const string& name) const -> absl::StatusOr<Friend> {
   return friendTable.at(name);
 }
 
-auto Config::update_friend(const Friend& f) -> void {
+auto Config::update_friend(const string& name, const FriendUpdate& fs) -> void {
   const std::lock_guard<std::mutex> l(config_mtx);
 
   check_rep();
 
-  assert(friendTable.contains(f.name));
-  friendTable.insert_or_assign(f.name, f);
+  assert(friendTable.contains(name));
+
+  auto old_friend = friendTable.at(name);
+
+  auto new_friend =
+      Friend(name, fs.read_index.value_or(old_friend.read_index),
+             fs.add_key.value_or(old_friend.add_key),
+             fs.read_key.value_or(old_friend.read_key),
+             fs.write_key.value_or(old_friend.write_key),
+             fs.ack_index.value_or(old_friend.ack_index),
+             fs.enabled.value_or(old_friend.enabled),
+             fs.latest_ack_id.value_or(old_friend.latest_ack_id),
+             fs.latest_send_id.value_or(old_friend.latest_send_id),
+             fs.last_receive_id.value_or(old_friend.last_receive_id),
+             fs.dummy.value_or(old_friend.dummy));
+
+  friendTable.insert_or_assign(name, new_friend);
+
   save();
 
   check_rep();

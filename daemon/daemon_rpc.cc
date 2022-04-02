@@ -150,8 +150,6 @@ Status DaemonRpc::AddFriend(ServerContext* context,
                   "friend not found; call generatefriendkey first!");
   }
 
-  auto friend_info = friend_info_status.value();
-
   auto decoded_friend_key = crypto.decode_friend_key(addFriendRequest->key());
   if (!decoded_friend_key.ok()) {
     cout << "invalid friend key" << endl;
@@ -163,12 +161,11 @@ Status DaemonRpc::AddFriend(ServerContext* context,
   auto [read_key, write_key] = crypto.derive_read_write_keys(
       config->registration_info().public_key,
       config->registration_info().private_key, friend_public_key);
-  friend_info.read_key = read_key;
-  friend_info.write_key = write_key;
-  friend_info.read_index = read_index;
-  friend_info.enabled = true;
 
-  config->update_friend(friend_info);
+  config->update_friend(addFriendRequest->name(), {.read_key = read_key,
+                                                   .write_key = write_key,
+                                                   .read_index = read_index,
+                                                   .enabled = true});
 
   return Status::OK;
 }

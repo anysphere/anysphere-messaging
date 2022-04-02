@@ -122,12 +122,12 @@ auto Msgstore::add_outgoing_message(const string& to, const string& message)
               << "; ignoring message" << endl;
     return f_status.status();
   }
+  auto friend_info = f_status.value();
 
-  const auto id = message_id(false, to, f_status.value().latest_send_id);
+  const auto id = message_id(false, to, friend_info.latest_send_id);
 
-  auto new_friend = f_status.value();
-  new_friend.latest_send_id++;
-  config->update_friend(new_friend);
+  config->update_friend(friend_info.name,
+                        {.latest_send_id = friend_info.latest_send_id + 1});
 
   OutgoingMessage outgoing_message{{id, message}, to, absl::Now(), false};
   outgoing.push_back(outgoing_message);

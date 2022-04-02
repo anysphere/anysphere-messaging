@@ -114,11 +114,9 @@ auto Inbox::update_ack_from_friend(Config& config, pir_value_t& pir_acks,
       continue;
     }
     if (ack.value() >= friend_info.latest_ack_id) {
-      auto new_friend_info = friend_info;
-      new_friend_info.latest_ack_id = ack.value();
-      config.update_friend(new_friend_info);
-      cout << "updating friend " << new_friend_info.name << " with ack id "
-           << new_friend_info.latest_ack_id << endl;
+      config.update_friend(friend_info.name, {.latest_ack_id = ack.value()});
+      cout << "updating friend " << friend_info.name << " with ack id "
+           << ack.value() << endl;
     } else {
       cout << "something weird is going on.... ACKing is older than latest ack "
               "id. look into this"
@@ -186,13 +184,11 @@ auto Inbox::receive_message(FastPIRClient& client, Config& config,
   // only ACK this message if it is exactly the next ID we expect. otherwise, we
   // still need to await more messages
   if (message.id() == friend_info.last_receive_id + 1) {
-    auto new_friend_info = friend_info;
-    new_friend_info.last_receive_id = message.id();
     // TODO: update the last_receive_id atomically with adding the message to
     // the inbox. in particular, we need to guard this update as well as the
     // later inbox update with a lock on the config (not inbox because it is not
     // threadsafe).
-    config.update_friend(new_friend_info);
+    config.update_friend(friend_info.name, {.last_receive_id = message.id()});
     // friend_info has been updated!
     auto friend_info_status = config.get_friend(friend_info.name);
     if (!friend_info_status.ok()) {
