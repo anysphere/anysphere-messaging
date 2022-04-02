@@ -301,7 +301,7 @@ auto Msgstore::get_undelivered_outgoing_messages_sorted()
   }
   std::sort(undelivered_outgoing.begin(), undelivered_outgoing.end(),
             [](const OutgoingMessage& a, const OutgoingMessage& b) {
-              return a.written_timestamp < b.written_timestamp;
+              return a.written_timestamp > b.written_timestamp;
             });
   return undelivered_outgoing;
 }
@@ -321,7 +321,7 @@ auto Msgstore::get_delivered_outgoing_messages_sorted()
   }
   std::sort(delivered_outgoing.begin(), delivered_outgoing.end(),
             [](const OutgoingMessage& a, const OutgoingMessage& b) {
-              return a.written_timestamp < b.written_timestamp;
+              return a.written_timestamp > b.written_timestamp;
             });
   return delivered_outgoing;
 }

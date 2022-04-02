@@ -9,6 +9,7 @@ export type Message = {
   to: string;
   message: string;
   timestamp: Date;
+  type: "outgoing" | "incoming";
 };
 
 export type Friend = {

@@ -27,7 +27,9 @@ function MessageBlurb({
       } border-l-4 px-4 py-4 rounded-sm my-2`}
     >
       <div className="flex flex-row gap-5">
-        <div className="text-asbrown-dark text-sm">{message.from}</div>
+        <div className="text-asbrown-dark text-sm">
+          {message.type === "incoming" ? message.from : `To: ${message.to}`}
+        </div>
         <div className="text-asbrown-300 text-sm">
           {truncate(message.message, 70)}
         </div>
