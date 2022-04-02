@@ -113,10 +113,12 @@ auto Inbox::update_ack_from_friend(Config& config, pir_value_t& pir_acks,
     if (!ack.ok()) {
       continue;
     }
-    if (ack.value() >= friend_info.latest_ack_id) {
+    if (ack.value() > friend_info.latest_ack_id) {
       config.update_friend(friend_info.name, {.latest_ack_id = ack.value()});
       cout << "updating friend " << friend_info.name << " with ack id "
            << ack.value() << endl;
+    } else if (ack.value() == friend_info.latest_ack_id) {
+      // everything is fine :)))
     } else {
       cout << "something weird is going on.... ACKing is older than latest ack "
               "id. look into this"
