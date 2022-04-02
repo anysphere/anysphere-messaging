@@ -17,7 +17,6 @@ function MessageBlurb({
 }) {
   let timestamp_string = "";
   try {
-    console.log(message.timestamp);
     timestamp_string = formatTime(message.timestamp);
   } catch {}
 

@@ -211,7 +211,7 @@ contextBridge.exposeInMainWorld("getAllMessages", async () => {
   }
 });
 
-contextBridge.exposeInMainWorld("getAllMessagesStreamed", async (f) => {
+contextBridge.exposeInMainWorld("getAllMessagesStreamed", (f) => {
   const request = new daemonM.GetMessagesRequest();
   request.setFilter(daemonM.GetMessagesRequest.Filter.ALL);
   var call = daemonClient.getMessagesStreamed(request);
@@ -237,10 +237,13 @@ contextBridge.exposeInMainWorld("getAllMessagesStreamed", async (f) => {
     // process status
     console.log("getAllMessagesStreamed status", status);
   });
-  return call.cancel;
+  return () => {
+    console.log("cancelling grpc!");
+    call.cancel();
+  };
 });
 
-contextBridge.exposeInMainWorld("getNewMessagesStreamed", async (f) => {
+contextBridge.exposeInMainWorld("getNewMessagesStreamed", (f) => {
   const request = new daemonM.GetMessagesRequest();
   request.setFilter(daemonM.GetMessagesRequest.Filter.NEW);
   var call = daemonClient.getMessagesStreamed(request);
@@ -266,7 +269,10 @@ contextBridge.exposeInMainWorld("getNewMessagesStreamed", async (f) => {
     // process status
     console.log("getNewMessagesStreamed status", status);
   });
-  return call.cancel;
+  return () => {
+    console.log("cancelling grpc!");
+    call.cancel();
+  };
 });
 
 contextBridge.exposeInMainWorld("getOutboxMessages", async () => {

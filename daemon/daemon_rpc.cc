@@ -360,6 +360,9 @@ Status DaemonRpc::GetMessagesStreamed(
       msgstore->add_cv.wait_for(l, std::chrono::seconds(60 * 60), [&] {
         return msgstore->last_mono_index != last_mono_index;
       });
+      if (msgstore->last_mono_index == last_mono_index) {
+        continue;  // continue the loop to check if we are cancelled
+      }
       last_mono_index_here = msgstore->last_mono_index;
     }
 
