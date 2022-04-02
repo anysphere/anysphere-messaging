@@ -61,12 +61,23 @@ function MessageList(props: {
         setMessages(messages);
       });
     } else if (props.messages === "all") {
-      // (window as any).getAllMessages().then((messages: Message[]) => {
-      //   setMessages(messages);
-      // });
       let cancel = (window as any).getAllMessagesStreamed(
         (messages: Message[]) => {
-          setMessages((prev: Message[]) => prev.concat(messages));
+          setMessages((prev: Message[]) => {
+            // merge new messages with old messages, and sort them by timestamp
+            let new_messages = messages.concat(prev);
+            new_messages.sort((a, b) => {
+              // sort based on timestamp
+              if (a.timestamp > b.timestamp) {
+                return -1;
+              } else if (a.timestamp < b.timestamp) {
+                return 1;
+              } else {
+                return 0;
+              }
+            });
+            return new_messages;
+          });
         }
       );
       return cancel;
