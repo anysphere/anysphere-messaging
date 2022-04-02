@@ -118,6 +118,9 @@ auto Transmitter::send_messages() -> void {
 
   auto undelivered_messages =
       msgstore->get_undelivered_outgoing_messages_sorted();
+  // we want to send messages in chronological order, not reverse chronological
+  // order hence, we need to reverse this array
+  std::reverse(undelivered_messages.begin(), undelivered_messages.end());
 
   auto authentication_token = config->registration_info().authentication_token;
 

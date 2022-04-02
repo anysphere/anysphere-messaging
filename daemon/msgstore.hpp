@@ -78,6 +78,7 @@ class Msgstore {
   auto get_incoming_messages_sorted_after(int after_mono_index)
       -> vector<IncomingMessage>;
 
+  // sorted means newest to oldest
   auto get_undelivered_outgoing_messages_sorted() -> vector<OutgoingMessage>;
   auto get_delivered_outgoing_messages_sorted() -> vector<OutgoingMessage>;
 
