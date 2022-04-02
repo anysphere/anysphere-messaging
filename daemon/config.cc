@@ -452,5 +452,7 @@ auto Config::initialize_dummy_me() -> void {
                    dummy_read_write_keys.second, 0, false, 0, 0, 0, true);
 
   // don't save at the end because initialize_dummy_me is called before other
-  // things are initialized. no check-rep either.
+  // things are initialized, so if we saved here we would save an invalid
+  // config. that's why we also don't have a check-rep here: check-rep is not
+  // guaranteed to pass!
 }
