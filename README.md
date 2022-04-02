@@ -51,6 +51,7 @@ Let `.env` contain the environment variables specified by `helpers/scripts/packa
 ## Manual test
 
 Build:
+
 ```
 bazel build //...
 ```
@@ -68,11 +69,13 @@ In a new terminal, run a second daemon:
 ```
 
 To connect to daemon 1, run:
+
 ```
 ./bazel-bin/cli/asphr [command]
 ```
 
 To connect to daemon 2, run:
+
 ```
 ./wrap2.sh ./bazel-bin/cli/asphr [command]
 ```
