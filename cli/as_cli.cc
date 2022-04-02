@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
     cout << "Anysphere CLI." << endl << endl;
     cout << help << endl;
     return 0;
-  };
+  }
 
   auto command = command_status.value();
 

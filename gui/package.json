@@ -1,7 +1,7 @@
 {
   "name": "anysphere",
   "scripts": {
-    "update": "cd ../../asphr && bazel build //schema:daemon_js_grpc && cd ../client/gui && rm -rf src/daemon && cp -r ../../asphr/bazel-bin/schema/daemon_js_grpc_pb src/daemon",
+    "update": "cd ../../asphr && bazel build //schema:daemon_js_grpc && cd ../client/gui && rm -rf src/daemon && cp -r ../../asphr/bazel-bin/schema/daemon_js_grpc_pb src/daemon && for f in src/daemon/**/*; echo -e \"// @generated\n\n$(cat ${f})\" > ${f}; done;",
     "build-binaries-mac-arm64": "rm -rf binaries && bazel build //:asphr-release -c opt && mkdir binaries && cp $(bazel info output_path)/darwin_arm64-opt/bin/cli/asphr binaries/anysphere && cp $(bazel info output_path)/darwin_arm64-opt/bin/daemon/daemon binaries/anysphered",
     "build-binaries-mac-x86_64": "rm -rf binaries && arch --x86_64 /usr/local/bin/bazel build //:asphr-release -c opt && mkdir binaries && cp $(bazel info output_path)/darwin-opt/bin/cli/asphr binaries/anysphere && cp $(bazel info output_path)/darwin-opt/bin/daemon/daemon binaries/anysphered",
     "build": "concurrently \"npm run build:main\" \"npm run build:renderer\"",

@@ -270,7 +270,7 @@ Status DaemonRpc::GetMessages(
     message_info->set_from(m.from);
     message_info->set_seen(m.seen);
 
-    // TODO: do this conversion not through strings....
+    // TODO(arvid): do this conversion not through strings....
     auto timestamp_str = absl::FormatTime(m.received_timestamp);
     auto timestamp = message_info->mutable_received_timestamp();
     auto success = TimeUtil::FromString(timestamp_str, timestamp);
@@ -339,7 +339,7 @@ Status DaemonRpc::GetMessagesStreamed(
       message_info->set_from(m.from);
       message_info->set_seen(m.seen);
 
-      // TODO: do this conversion not through strings....
+      // TODO(arvid): do this conversion not through strings....
       auto timestamp_str = absl::FormatTime(m.received_timestamp);
       auto timestamp = message_info->mutable_received_timestamp();
       auto success = TimeUtil::FromString(timestamp_str, timestamp);
@@ -385,7 +385,7 @@ Status DaemonRpc::GetMessagesStreamed(
       message_info->set_from(m.from);
       message_info->set_seen(m.seen);
 
-      // TODO: do this conversion not through strings....
+      // TODO(arvid): do this conversion not through strings....
       auto timestamp_str = absl::FormatTime(m.received_timestamp);
       auto timestamp = message_info->mutable_received_timestamp();
       auto success = TimeUtil::FromString(timestamp_str, timestamp);
