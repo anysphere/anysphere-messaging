@@ -6,13 +6,13 @@ This repository, along with [anysphere/asphr](https://github.com/anysphere/asphr
 
 Clone anysphere/asphr and anysphere/client and put them in a directory side-by-side. Then, in the `client` directory, run:
 
-```
+```bash
 bazel build //...
 ```
 
 to build, and
 
-```
+```bash
 bazel test //...
 ```
 
@@ -24,7 +24,7 @@ Checkout [the GUI Readme](gui/README.md)!
 
 ## Package
 
-```
+```bash
 npm run package-mac
 ```
 
@@ -32,13 +32,13 @@ Make sure you have Xcode installed.
 
 To enable notarization, first run
 
-```
+```bash
 security find-identity -p basic -v
 ```
 
 to see the developer certificates (there should be Developer ID Application and Developer ID Installer). Make note of the ten character code at the end: this is the teamId. Then run
 
-```
+```bash
 xcrun notarytool store-credentials --apple-id "name@example.com" --team-id "ABCD123456" --keychain ~/Library/Keychains/login.keychain-db
 ```
 
@@ -52,25 +52,25 @@ Let `.env` contain the environment variables specified by `helpers/scripts/packa
 
 Build:
 
-```
+```bash
 bazel build //...
 ```
 
 In one terminal, run normal daemon:
 
-```
+```bash
 ./bazel-bin/daemon/daemon
 ```
 
 In a new terminal, run a second daemon:
 
-```
+```bash
 ./wrap2.sh ./bazel-bin/daemon/daemon
 ```
 
 To connect to daemon 1, run:
 
-```
+```bash
 ./bazel-bin/cli/asphr [command]
 ```
 
