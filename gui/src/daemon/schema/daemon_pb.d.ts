@@ -569,6 +569,9 @@ export class GetStatusResponse extends jspb.Message {
   getReleaseHash(): string;
   setReleaseHash(value: string): void;
 
+  getLatencySeconds(): number;
+  setLatencySeconds(value: number): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetStatusResponse.AsObject;
   static toObject(includeInstance: boolean, msg: GetStatusResponse): GetStatusResponse.AsObject;
@@ -583,6 +586,7 @@ export namespace GetStatusResponse {
   export type AsObject = {
     registered: boolean,
     releaseHash: string,
+    latencySeconds: number,
   }
 }
 

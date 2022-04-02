@@ -4553,7 +4553,8 @@ proto.asphrdaemon.GetStatusResponse.prototype.toObject = function(opt_includeIns
 proto.asphrdaemon.GetStatusResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
     registered: jspb.Message.getBooleanFieldWithDefault(msg, 1, false),
-    releaseHash: jspb.Message.getFieldWithDefault(msg, 2, "")
+    releaseHash: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    latencySeconds: jspb.Message.getFieldWithDefault(msg, 3, 0)
   };
 
   if (includeInstance) {
@@ -4598,6 +4599,10 @@ proto.asphrdaemon.GetStatusResponse.deserializeBinaryFromReader = function(msg, 
       var value = /** @type {string} */ (reader.readString());
       msg.setReleaseHash(value);
       break;
+    case 3:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setLatencySeconds(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -4641,6 +4646,13 @@ proto.asphrdaemon.GetStatusResponse.serializeBinaryToWriter = function(message, 
       f
     );
   }
+  f = message.getLatencySeconds();
+  if (f !== 0) {
+    writer.writeInt32(
+      3,
+      f
+    );
+  }
 };
 
 
@@ -4677,6 +4689,24 @@ proto.asphrdaemon.GetStatusResponse.prototype.getReleaseHash = function() {
  */
 proto.asphrdaemon.GetStatusResponse.prototype.setReleaseHash = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional int32 latency_seconds = 3;
+ * @return {number}
+ */
+proto.asphrdaemon.GetStatusResponse.prototype.getLatencySeconds = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.asphrdaemon.GetStatusResponse} returns this
+ */
+proto.asphrdaemon.GetStatusResponse.prototype.setLatencySeconds = function(value) {
+  return jspb.Message.setProto3IntField(this, 3, value);
 };
 
 
