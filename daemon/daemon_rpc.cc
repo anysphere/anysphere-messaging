@@ -502,6 +502,7 @@ auto DaemonRpc::GetStatus(ServerContext* context,
 
   getStatusResponse->set_registered(config->has_registered());
   getStatusResponse->set_release_hash(RELEASE_COMMIT_HASH);
+  getStatusResponse->set_latency_seconds(config->get_latency_seconds());
 
   return Status::OK;
 }

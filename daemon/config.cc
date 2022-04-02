@@ -63,8 +63,7 @@ auto Config::server_address() -> std::string {
 Config::Config(const string& config_file_address)
     : Config(read_json_file(config_file_address), config_file_address) {}
 
-Config::Config(const asphr::json& config_json_input,
-               string  config_file_address)
+Config::Config(const asphr::json& config_json_input, string config_file_address)
     : saved_file_address(std::move(config_file_address)),
       db_rows_(CLIENT_DB_ROWS),
       dummyMe("dummyMe", 0, "add_key", "", "", 0, false, 0, 0, 0, true),
@@ -252,8 +251,7 @@ auto Config::remove_friend(const string& name) -> absl::Status {
   check_rep();
 
   if (!friendTable.contains(name)) {
-    return {absl::StatusCode::kInvalidArgument,
-                        "friend does not exist"};
+    return {absl::StatusCode::kInvalidArgument, "friend does not exist"};
   }
   friendTable.erase(name);
 
@@ -369,7 +367,7 @@ auto Config::wait_until_killed_or_seconds(int seconds) -> bool {
 // private method; hence no check_rep, no lock
 auto Config::check_rep() const -> void {
   assert(!saved_file_address.empty());
-  assert(data_dir != "");
+  ASPHR_ASSERT_NEQ(data_dir, "");
   assert(db_rows_ > 0);
 
   assert(latency_ >= 1);
@@ -402,6 +400,9 @@ auto Config::check_rep() const -> void {
 
 // private method; hence, no check_rep, no lock
 auto Config::save() -> void {
+  // only save if rep is ok!
+  check_rep();
+
   asphr::json config_json;
   config_json["has_registered"] = has_registered_;
   config_json["data_dir"] = data_dir;
@@ -434,5 +435,6 @@ auto Config::initialize_dummy_me() -> void {
   dummyMe = Friend("dummyMe", 0, "add_key", dummy_read_write_keys.first,
                    dummy_read_write_keys.second, 0, false, 0, 0, 0, true);
 
-  save();
+  // don't save at the end because initialize_dummy_me is called before other
+  // things are initialized. no check-rep either.
 }

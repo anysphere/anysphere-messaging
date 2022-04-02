@@ -344,5 +344,7 @@ auto Msgstore::check_rep() const -> void {
   for (const auto& m : outgoing) {
     ids.insert(m.id);
   }
-  assert(ids.size() == incoming.size() + outgoing.size());
+  ASPHR_ASSERT_EQ_MSG(ids.size(), incoming.size() + outgoing.size(),
+                      "incoming size: " << incoming.size() << " outgoing size: "
+                                        << outgoing.size());
 }

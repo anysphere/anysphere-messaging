@@ -19,22 +19,22 @@ int main(int argc, char** argv) {
 
   static Friend::FriendMap kFriends_map_;
 
-  auto *const binary_name = argv[0];
+  auto* const binary_name = argv[0];
 
-  auto help = StrCat("Usage: \n",
-                     // register
-                     binary_name, " register: {name}\n",
-                     // init-friend
-                     binary_name, " init-friend: {name}\n",
-                     // TODO(unknown): add-friend must have an init-friend before
-                     binary_name, " add-friend: {name} {key}\n",
-                     // TODO(unknown): explain the options better.
-                     binary_name, " (s | m | send | msg | message) {name}\n",
-                     binary_name, " (get-friends | friends)\n",
-                     // TODO(unknown): explain that -a is optional.
-                     binary_name, " (inbox | i) [-a | -all]\n", binary_name,
-                     " socket {address}\n", binary_name, " kill\n", binary_name,
-                     " status\n");
+  auto help = StrCat(
+      "Usage: \n",
+      // register
+      binary_name, " register: {name}\n",
+      // init-friend
+      binary_name, " init-friend: {name}\n",
+      // TODO(unknown): add-friend must have an init-friend before
+      binary_name, " add-friend: {name} {key}\n",
+      // TODO(unknown): explain the options better.
+      binary_name, " (s | m | send | msg | message) {name}\n", binary_name,
+      " (get-friends | friends)\n",
+      // TODO(unknown): explain that -a is optional.
+      binary_name, " (inbox | i) [-a | -all]\n", binary_name,
+      " socket {address}\n", binary_name, " kill\n", binary_name, " status\n");
 
   CommandLine cmd_line{argc, argv, help};
 
@@ -197,10 +197,13 @@ int main(int argc, char** argv) {
     if (!status.ok()) {
       cout << "get status failed: " << status.error_message() << endl;
       return 0;
-    }       cout << "Registered: " << (response.registered() ? "true" : "false")
-           << endl;
-      cout << "Release commit hash: " << response.release_hash() << endl;
-   
+    }
+
+    cout << "Registered: " << (response.registered() ? "true" : "false")
+         << endl;
+    cout << "Release commit hash: " << response.release_hash() << endl;
+    cout << "Latency: " << response.latency_seconds() << endl;
+
   } else if (command == "kill") {
     grpc::ClientContext context;
     asphrdaemon::KillRequest request;
@@ -211,8 +214,9 @@ int main(int argc, char** argv) {
     if (!status.ok()) {
       cout << "kill failed: " << status.error_message() << endl;
       return 0;
-    }       cout << "Successfully killed the daemon!" << endl;
-   
+    }
+    cout << "Successfully killed the daemon!" << endl;
+
   } else if (command == "change-latency" || command == "cltcy") {
     auto latency_seconds = cmd_line.getArgument(2);
     if (!latency_seconds.ok()) {
@@ -238,9 +242,9 @@ int main(int argc, char** argv) {
     if (!status.ok()) {
       cout << "change latency failed: " << status.error_message() << endl;
       return 0;
-    }       cout << "Successfully changed latency to " << latency << " seconds!"
-           << endl;
-   
+    }
+    cout << "Successfully changed latency to " << latency << " seconds!"
+         << endl;
 
   } else {
     cout << "Unknown command: " << command << endl;
