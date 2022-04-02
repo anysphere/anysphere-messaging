@@ -358,77 +358,50 @@ export namespace OutgoingMessage {
   }
 }
 
-export class GetAllMessagesRequest extends jspb.Message {
+export class GetMessagesRequest extends jspb.Message {
+  getFilter(): GetMessagesRequest.FilterMap[keyof GetMessagesRequest.FilterMap];
+  setFilter(value: GetMessagesRequest.FilterMap[keyof GetMessagesRequest.FilterMap]): void;
+
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): GetAllMessagesRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: GetAllMessagesRequest): GetAllMessagesRequest.AsObject;
+  toObject(includeInstance?: boolean): GetMessagesRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetMessagesRequest): GetMessagesRequest.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: GetAllMessagesRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): GetAllMessagesRequest;
-  static deserializeBinaryFromReader(message: GetAllMessagesRequest, reader: jspb.BinaryReader): GetAllMessagesRequest;
+  static serializeBinaryToWriter(message: GetMessagesRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetMessagesRequest;
+  static deserializeBinaryFromReader(message: GetMessagesRequest, reader: jspb.BinaryReader): GetMessagesRequest;
 }
 
-export namespace GetAllMessagesRequest {
+export namespace GetMessagesRequest {
   export type AsObject = {
+    filter: GetMessagesRequest.FilterMap[keyof GetMessagesRequest.FilterMap],
   }
+
+  export interface FilterMap {
+    ALL: 0;
+    NEW: 1;
+  }
+
+  export const Filter: FilterMap;
 }
 
-export class GetAllMessagesResponse extends jspb.Message {
+export class GetMessagesResponse extends jspb.Message {
   clearMessagesList(): void;
   getMessagesList(): Array<IncomingMessage>;
   setMessagesList(value: Array<IncomingMessage>): void;
   addMessages(value?: IncomingMessage, index?: number): IncomingMessage;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): GetAllMessagesResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: GetAllMessagesResponse): GetAllMessagesResponse.AsObject;
+  toObject(includeInstance?: boolean): GetMessagesResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetMessagesResponse): GetMessagesResponse.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: GetAllMessagesResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): GetAllMessagesResponse;
-  static deserializeBinaryFromReader(message: GetAllMessagesResponse, reader: jspb.BinaryReader): GetAllMessagesResponse;
+  static serializeBinaryToWriter(message: GetMessagesResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetMessagesResponse;
+  static deserializeBinaryFromReader(message: GetMessagesResponse, reader: jspb.BinaryReader): GetMessagesResponse;
 }
 
-export namespace GetAllMessagesResponse {
-  export type AsObject = {
-    messagesList: Array<IncomingMessage.AsObject>,
-  }
-}
-
-export class GetNewMessagesRequest extends jspb.Message {
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): GetNewMessagesRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: GetNewMessagesRequest): GetNewMessagesRequest.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: GetNewMessagesRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): GetNewMessagesRequest;
-  static deserializeBinaryFromReader(message: GetNewMessagesRequest, reader: jspb.BinaryReader): GetNewMessagesRequest;
-}
-
-export namespace GetNewMessagesRequest {
-  export type AsObject = {
-  }
-}
-
-export class GetNewMessagesResponse extends jspb.Message {
-  clearMessagesList(): void;
-  getMessagesList(): Array<IncomingMessage>;
-  setMessagesList(value: Array<IncomingMessage>): void;
-  addMessages(value?: IncomingMessage, index?: number): IncomingMessage;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): GetNewMessagesResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: GetNewMessagesResponse): GetNewMessagesResponse.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: GetNewMessagesResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): GetNewMessagesResponse;
-  static deserializeBinaryFromReader(message: GetNewMessagesResponse, reader: jspb.BinaryReader): GetNewMessagesResponse;
-}
-
-export namespace GetNewMessagesResponse {
+export namespace GetMessagesResponse {
   export type AsObject = {
     messagesList: Array<IncomingMessage.AsObject>,
   }
