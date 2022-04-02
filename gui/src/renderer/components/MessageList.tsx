@@ -61,6 +61,7 @@ function MessageList(props: {
         setMessages(messages);
       });
     } else if (props.messages === "all") {
+      setMessages([]);
       let cancel = (window as any).getAllMessagesStreamed(
         (messages: Message[]) => {
           setMessages((prev: Message[]) => {

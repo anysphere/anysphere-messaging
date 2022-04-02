@@ -286,10 +286,8 @@ Status DaemonRpc::GetAllMessagesStreamed(
   // from that point on.
   // this needs to happen before we get all the messages below.
   //
-  // the caller will always get *each message AT LEAST once*, in the order of
+  // the caller will always get *each message EXACTLY ONCE*, in the order of
   // the mono index. *this may or may not correspond to the timestamp order.*
-  // the at least is because the mono index may be increasing while we're
-  // getting messages.
   int last_mono_index;
   {
     std::lock_guard<std::mutex> l(msgstore->add_cv_mtx);
@@ -302,6 +300,10 @@ Status DaemonRpc::GetAllMessagesStreamed(
     GetAllMessagesResponse response;
 
     for (auto& m : messages) {
+      // let last_mono_index be the maximum
+      last_mono_index =
+          m.mono_index > last_mono_index ? m.mono_index : last_mono_index;
+
       auto message_info = response.add_messages();
 
       auto baseMessage = message_info->mutable_m();
@@ -340,6 +342,11 @@ Status DaemonRpc::GetAllMessagesStreamed(
     GetAllMessagesResponse response;
 
     for (auto& m : messages) {
+      // let last_mono_index_here be the maximum
+      last_mono_index_here = m.mono_index > last_mono_index_here
+                                 ? m.mono_index
+                                 : last_mono_index_here;
+
       auto message_info = response.add_messages();
 
       auto baseMessage = message_info->mutable_m();
