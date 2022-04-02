@@ -7,8 +7,6 @@
 
 #include "google/protobuf/util/time_util.h"
 
-using namespace asphrdaemon;
-
 using grpc::ServerContext;
 using grpc::ServerWriter;
 using grpc::Status;
@@ -233,21 +231,32 @@ Status DaemonRpc::SendMessage(ServerContext* context,
   return Status::OK;
 }
 
-Status DaemonRpc::GetAllMessages(
-    ServerContext* context, const GetAllMessagesRequest* getAllMessagesRequest,
-    GetAllMessagesResponse* getAllMessagesResponse) {
+Status DaemonRpc::GetMessages(ServerContext* context,
+                              const GetMessagesRequest* getMessagesRequest,
+                              GetMessagesResponse* getMessagesResponse) {
   using TimeUtil = google::protobuf::util::TimeUtil;
-  cout << "GetAllMessages() called" << endl;
+  cout << "GetMessages() called" << endl;
 
   if (!config->has_registered()) {
     cout << "need to register first!" << endl;
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  auto messages = msgstore->get_all_incoming_messages_sorted();
+  auto filter = getMessagesRequest->filter();
+
+  vector<IncomingMessage> messages;
+
+  if (filter == GetMessagesRequest::Filter::ALL) {
+    messages = msgstore->get_all_incoming_messages_sorted();
+  } else if (filter == GetMessagesRequest::Filter::NEW) {
+    messages = msgstore->get_new_incoming_messages_sorted();
+  } else {
+    cout << "filter: INVALID" << endl;
+    return Status(grpc::StatusCode::INVALID_ARGUMENT, "invalid filter");
+  }
 
   for (auto& m : messages) {
-    auto message_info = getAllMessagesResponse->add_messages();
+    auto message_info = getMessagesResponse->add_messages();
 
     auto baseMessage = message_info->mutable_m();
     baseMessage->set_id(m.id);
@@ -270,16 +279,18 @@ Status DaemonRpc::GetAllMessages(
 
 // WARNING: this method is subtle. please take a moment to understand
 // what's going on before modifying it.
-Status DaemonRpc::GetAllMessagesStreamed(
-    ServerContext* context, const GetAllMessagesRequest* request,
-    ServerWriter<GetAllMessagesResponse>* writer) {
+Status DaemonRpc::GetMessagesStreamed(
+    ServerContext* context, const GetMessagesRequest* request,
+    ServerWriter<GetMessagesResponse>* writer) {
   using TimeUtil = google::protobuf::util::TimeUtil;
-  cout << "GetAllMessagesStreamed() called" << endl;
+  cout << "GetMessagesStreamed() called" << endl;
 
   if (!config->has_registered()) {
     cout << "need to register first!" << endl;
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
+
+  auto filter = getMessagesRequest->filter();
 
   // the messages may not be added in the right order. so what we do is
   // we wait until the last_mono_index has changed, and then get all messages
@@ -295,9 +306,18 @@ Status DaemonRpc::GetAllMessagesStreamed(
   }
 
   {
-    auto messages = msgstore->get_all_incoming_messages_sorted();
+    vector<IncomingMessage> messages;
 
-    GetAllMessagesResponse response;
+    if (filter == GetMessagesRequest::Filter::ALL) {
+      messages = msgstore->get_all_incoming_messages_sorted();
+    } else if (filter == GetMessagesRequest::Filter::NEW) {
+      messages = msgstore->get_new_incoming_messages_sorted();
+    } else {
+      cout << "filter: INVALID" << endl;
+      return Status(grpc::StatusCode::INVALID_ARGUMENT, "invalid filter");
+    }
+
+    GetMessagesResponse response;
 
     for (auto& m : messages) {
       // let last_mono_index be the maximum
@@ -339,7 +359,7 @@ Status DaemonRpc::GetAllMessagesStreamed(
     auto messages =
         msgstore->get_incoming_messages_sorted_after(last_mono_index);
 
-    GetAllMessagesResponse response;
+    GetMessagesResponse response;
 
     for (auto& m : messages) {
       // let last_mono_index_here be the maximum
@@ -368,41 +388,6 @@ Status DaemonRpc::GetAllMessagesStreamed(
     writer->Write(response);
 
     last_mono_index = last_mono_index_here;
-  }
-
-  return Status::OK;
-}
-
-Status DaemonRpc::GetNewMessages(
-    ServerContext* context, const GetNewMessagesRequest* getNewMessagesRequest,
-    GetNewMessagesResponse* getNewMessagesResponse) {
-  using TimeUtil = google::protobuf::util::TimeUtil;
-  cout << "GetNewMessages() called" << endl;
-
-  if (!config->has_registered()) {
-    cout << "need to register first!" << endl;
-    return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
-  }
-
-  auto messages = msgstore->get_new_incoming_messages_sorted();
-
-  for (auto& m : messages) {
-    auto message_info = getNewMessagesResponse->add_messages();
-
-    auto baseMessage = message_info->mutable_m();
-    baseMessage->set_id(m.id);
-    baseMessage->set_message(m.message);
-    message_info->set_from(m.from);
-    message_info->set_seen(m.seen);
-
-    // TODO: do this conversion not through strings....
-    auto timestamp_str = absl::FormatTime(m.received_timestamp);
-    auto timestamp = message_info->mutable_received_timestamp();
-    auto success = TimeUtil::FromString(timestamp_str, timestamp);
-    if (!success) {
-      cout << "invalid timestamp" << endl;
-      return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
-    }
   }
 
   return Status::OK;

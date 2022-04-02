@@ -210,7 +210,7 @@ contextBridge.exposeInMainWorld("getAllMessages", async () => {
 });
 
 contextBridge.exposeInMainWorld("getAllMessagesStreamed", async (f) => {
-  const request = new daemonM.GetAllMessagesRequest();
+  const request = new daemonM.GetMessagesRequest();
   var call = daemonClient.getAllMessagesStreamed(request);
   call.on("data", function (r) {
     try {
