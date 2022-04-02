@@ -57,9 +57,27 @@ function MessageList(props: {
 
   React.useEffect(() => {
     if (props.messages === "new") {
-      (window as any).getNewMessages().then((messages: Message[]) => {
-        setMessages(messages);
-      });
+      setMessages([]);
+      let cancel = (window as any).getNewMessagesStreamed(
+        (messages: Message[]) => {
+          setMessages((prev: Message[]) => {
+            // merge new messages with old messages, and sort them by timestamp
+            let new_messages = messages.concat(prev);
+            new_messages.sort((a, b) => {
+              // sort based on timestamp
+              if (a.timestamp > b.timestamp) {
+                return -1;
+              } else if (a.timestamp < b.timestamp) {
+                return 1;
+              } else {
+                return 0;
+              }
+            });
+            return new_messages;
+          });
+        }
+      );
+      return cancel;
     } else if (props.messages === "all") {
       setMessages([]);
       let cancel = (window as any).getAllMessagesStreamed(
