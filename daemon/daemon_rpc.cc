@@ -163,9 +163,9 @@ Status DaemonRpc::AddFriend(
       config->registration_info().public_key,
       config->registration_info().private_key, friend_public_key);
 
-  config->update_friend(addFriendRequest->name(), {.read_key = read_key,
+  config->update_friend(addFriendRequest->name(), {.read_index = read_index,
+                                                   .read_key = read_key,
                                                    .write_key = write_key,
-                                                   .read_index = read_index,
                                                    .enabled = true});
 
   return Status::OK;
