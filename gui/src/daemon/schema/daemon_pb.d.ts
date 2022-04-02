@@ -1,3 +1,5 @@
+// @generated
+
 // package: asphrdaemon
 // file: schema/daemon.proto
 
@@ -635,78 +637,6 @@ export namespace ChangeLatencyResponse {
   }
 }
 
-export class GetLatencyRequest extends jspb.Message {
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): GetLatencyRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: GetLatencyRequest): GetLatencyRequest.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: GetLatencyRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): GetLatencyRequest;
-  static deserializeBinaryFromReader(message: GetLatencyRequest, reader: jspb.BinaryReader): GetLatencyRequest;
-}
-
-export namespace GetLatencyRequest {
-  export type AsObject = {
-  }
-}
-
-export class GetLatencyResponse extends jspb.Message {
-  getLatencySeconds(): number;
-  setLatencySeconds(value: number): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): GetLatencyResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: GetLatencyResponse): GetLatencyResponse.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: GetLatencyResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): GetLatencyResponse;
-  static deserializeBinaryFromReader(message: GetLatencyResponse, reader: jspb.BinaryReader): GetLatencyResponse;
-}
-
-export namespace GetLatencyResponse {
-  export type AsObject = {
-    latencySeconds: number,
-  }
-}
-
-export class ChangeLatencyRequest extends jspb.Message {
-  getLatencySeconds(): number;
-  setLatencySeconds(value: number): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): ChangeLatencyRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: ChangeLatencyRequest): ChangeLatencyRequest.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: ChangeLatencyRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): ChangeLatencyRequest;
-  static deserializeBinaryFromReader(message: ChangeLatencyRequest, reader: jspb.BinaryReader): ChangeLatencyRequest;
-}
-
-export namespace ChangeLatencyRequest {
-  export type AsObject = {
-    latencySeconds: number,
-  }
-}
-
-export class ChangeLatencyResponse extends jspb.Message {
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): ChangeLatencyResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: ChangeLatencyResponse): ChangeLatencyResponse.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: ChangeLatencyResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): ChangeLatencyResponse;
-  static deserializeBinaryFromReader(message: ChangeLatencyResponse, reader: jspb.BinaryReader): ChangeLatencyResponse;
-}
-
-export namespace ChangeLatencyResponse {
-  export type AsObject = {
-  }
-}
-
 export class KillRequest extends jspb.Message {
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): KillRequest.AsObject;
@@ -738,4 +668,3 @@ export namespace KillResponse {
   export type AsObject = {
   }
 }
-

@@ -1,3 +1,5 @@
+// @generated
+
 // GENERATED CODE -- DO NOT EDIT!
 
 'use strict';
