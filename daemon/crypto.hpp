@@ -33,7 +33,7 @@ class Crypto {
   // Generates a new keypair in the format <public_key, private_key>.
   static auto generate_keypair() -> std::pair<string, string>;
 
-  static auto generate_friend_key(const string& my_public_key, int index) 
+  static auto generate_friend_key(const string& my_public_key, int index)
       -> string;
   auto decode_friend_key(const string& friend_key) const
       -> asphr::StatusOr<std::pair<int, string>>;

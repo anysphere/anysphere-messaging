@@ -17,7 +17,6 @@ function MessageBlurb({
 }) {
   let timestamp_string = "";
   try {
-    console.log(message.timestamp);
     timestamp_string = formatTime(message.timestamp);
   } catch {}
 
@@ -28,7 +27,9 @@ function MessageBlurb({
       } border-l-4 px-4 py-4 rounded-sm my-2`}
     >
       <div className="flex flex-row gap-5">
-        <div className="text-asbrown-dark text-sm">{message.from}</div>
+        <div className="text-asbrown-dark text-sm">
+          {message.type === "incoming" ? message.from : `To: ${message.to}`}
+        </div>
         <div className="text-asbrown-300 text-sm">
           {truncate(message.message, 70)}
         </div>
@@ -57,13 +58,49 @@ function MessageList(props: {
 
   React.useEffect(() => {
     if (props.messages === "new") {
-      (window as any).getNewMessages().then((messages: Message[]) => {
-        setMessages(messages);
-      });
+      setMessages([]);
+      let cancel = (window as any).getNewMessagesStreamed(
+        (messages: Message[]) => {
+          setMessages((prev: Message[]) => {
+            // merge new messages with old messages, and sort them by timestamp
+            let new_messages = messages.concat(prev);
+            new_messages.sort((a, b) => {
+              // sort based on timestamp
+              if (a.timestamp > b.timestamp) {
+                return -1;
+              } else if (a.timestamp < b.timestamp) {
+                return 1;
+              } else {
+                return 0;
+              }
+            });
+            return new_messages;
+          });
+        }
+      );
+      return cancel;
     } else if (props.messages === "all") {
-      (window as any).getAllMessages().then((messages: Message[]) => {
-        setMessages(messages);
-      });
+      setMessages([]);
+      let cancel = (window as any).getAllMessagesStreamed(
+        (messages: Message[]) => {
+          setMessages((prev: Message[]) => {
+            // merge new messages with old messages, and sort them by timestamp
+            let new_messages = messages.concat(prev);
+            new_messages.sort((a, b) => {
+              // sort based on timestamp
+              if (a.timestamp > b.timestamp) {
+                return -1;
+              } else if (a.timestamp < b.timestamp) {
+                return 1;
+              } else {
+                return 0;
+              }
+            });
+            return new_messages;
+          });
+        }
+      );
+      return cancel;
     } else if (props.messages === "outbox") {
       (window as any).getOutboxMessages().then((messages: Message[]) => {
         setMessages(messages);

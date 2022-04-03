@@ -20,10 +20,11 @@ void Inbox::update(unique_ptr<asphrdaemon::Daemon::Stub>& stub,
   vector<pair<absl::Time, Message>> new_messages;
 
   grpc::ClientContext context;
-  asphrdaemon::GetAllMessagesRequest request;
-  asphrdaemon::GetAllMessagesResponse response;
+  asphrdaemon::GetMessagesRequest request;
+  request.set_filter(asphrdaemon::GetMessagesRequest::ALL);
+  asphrdaemon::GetMessagesResponse response;
 
-  grpc::Status status = stub->GetAllMessages(&context, request, &response);
+  grpc::Status status = stub->GetMessages(&context, request, &response);
 
   if (!status.ok()) {
     cout << "get all messages failed: " << status.error_message() << endl;

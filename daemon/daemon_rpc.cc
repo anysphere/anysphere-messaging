@@ -7,14 +7,14 @@
 
 #include "google/protobuf/util/time_util.h"
 
-using namespace asphrdaemon;
-
 using grpc::ServerContext;
+using grpc::ServerWriter;
 using grpc::Status;
 
-Status DaemonRpc::RegisterUser(ServerContext* context,
-                               const RegisterUserRequest* registerUserRequest,
-                               RegisterUserResponse* registerUserResponse) {
+Status DaemonRpc::RegisterUser(
+    ServerContext* context,
+    const asphrdaemon::RegisterUserRequest* registerUserRequest,
+    asphrdaemon::RegisterUserResponse* registerUserResponse) {
   cout << "RegisterUser() called" << endl;
 
   if (config->has_registered()) {
@@ -67,8 +67,9 @@ Status DaemonRpc::RegisterUser(ServerContext* context,
 }
 
 Status DaemonRpc::GetFriendList(
-    ServerContext* context, const GetFriendListRequest* getFriendListRequest,
-    GetFriendListResponse* getFriendListResponse) {
+    ServerContext* context,
+    const asphrdaemon::GetFriendListRequest* getFriendListRequest,
+    asphrdaemon::GetFriendListResponse* getFriendListResponse) {
   cout << "GetFriendList() called" << endl;
 
   if (!config->has_registered()) {
@@ -87,8 +88,8 @@ Status DaemonRpc::GetFriendList(
 
 Status DaemonRpc::GenerateFriendKey(
     ServerContext* context,
-    const GenerateFriendKeyRequest* generateFriendKeyRequest,
-    GenerateFriendKeyResponse* generateFriendKeyResponse) {
+    const asphrdaemon::GenerateFriendKeyRequest* generateFriendKeyRequest,
+    asphrdaemon::GenerateFriendKeyResponse* generateFriendKeyResponse) {
   cout << "GenerateFriendKey() called" << endl;
 
   if (!config->has_registered()) {
@@ -130,9 +131,10 @@ Status DaemonRpc::GenerateFriendKey(
   return Status::OK;
 }
 
-Status DaemonRpc::AddFriend(ServerContext* context,
-                            const AddFriendRequest* addFriendRequest,
-                            AddFriendResponse* addFriendResponse) {
+Status DaemonRpc::AddFriend(
+    ServerContext* context,
+    const asphrdaemon::AddFriendRequest* addFriendRequest,
+    asphrdaemon::AddFriendResponse* addFriendResponse) {
   cout << "AddFriend() called" << endl;
   cout << "name: " << addFriendRequest->name() << endl;
 
@@ -149,8 +151,6 @@ Status DaemonRpc::AddFriend(ServerContext* context,
                   "friend not found; call generatefriendkey first!");
   }
 
-  auto friend_info = friend_info_status.value();
-
   auto decoded_friend_key = crypto.decode_friend_key(addFriendRequest->key());
   if (!decoded_friend_key.ok()) {
     cout << "invalid friend key" << endl;
@@ -162,19 +162,19 @@ Status DaemonRpc::AddFriend(ServerContext* context,
   auto [read_key, write_key] = crypto.derive_read_write_keys(
       config->registration_info().public_key,
       config->registration_info().private_key, friend_public_key);
-  friend_info.read_key = read_key;
-  friend_info.write_key = write_key;
-  friend_info.read_index = read_index;
-  friend_info.enabled = true;
 
-  config->update_friend(friend_info);
+  config->update_friend(addFriendRequest->name(), {.read_index = read_index,
+                                                   .read_key = read_key,
+                                                   .write_key = write_key,
+                                                   .enabled = true});
 
   return Status::OK;
 }
 
-Status DaemonRpc::RemoveFriend(ServerContext* context,
-                               const RemoveFriendRequest* removeFriendRequest,
-                               RemoveFriendResponse* removeFriendResponse) {
+Status DaemonRpc::RemoveFriend(
+    ServerContext* context,
+    const asphrdaemon::RemoveFriendRequest* removeFriendRequest,
+    asphrdaemon::RemoveFriendResponse* removeFriendResponse) {
   cout << "RemoveFriend() called" << endl;
 
   if (!config->has_registered()) {
@@ -200,9 +200,10 @@ Status DaemonRpc::RemoveFriend(ServerContext* context,
   return Status::OK;
 }
 
-Status DaemonRpc::SendMessage(ServerContext* context,
-                              const SendMessageRequest* sendMessageRequest,
-                              SendMessageResponse* sendMessageResponse) {
+Status DaemonRpc::SendMessage(
+    ServerContext* context,
+    const asphrdaemon::SendMessageRequest* sendMessageRequest,
+    asphrdaemon::SendMessageResponse* sendMessageResponse) {
   cout << "SendMessage() called" << endl;
 
   if (!config->has_registered()) {
@@ -235,21 +236,33 @@ Status DaemonRpc::SendMessage(ServerContext* context,
   return Status::OK;
 }
 
-Status DaemonRpc::GetAllMessages(
-    ServerContext* context, const GetAllMessagesRequest* getAllMessagesRequest,
-    GetAllMessagesResponse* getAllMessagesResponse) {
+Status DaemonRpc::GetMessages(
+    ServerContext* context,
+    const asphrdaemon::GetMessagesRequest* getMessagesRequest,
+    asphrdaemon::GetMessagesResponse* getMessagesResponse) {
   using TimeUtil = google::protobuf::util::TimeUtil;
-  cout << "GetAllMessages() called" << endl;
+  cout << "GetMessages() called" << endl;
 
   if (!config->has_registered()) {
     cout << "need to register first!" << endl;
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  auto messages = msgstore->get_all_incoming_messages_sorted();
+  auto filter = getMessagesRequest->filter();
+
+  vector<IncomingMessage> messages;
+
+  if (filter == asphrdaemon::GetMessagesRequest::ALL) {
+    messages = msgstore->get_all_incoming_messages_sorted();
+  } else if (filter == asphrdaemon::GetMessagesRequest::NEW) {
+    messages = msgstore->get_new_incoming_messages_sorted();
+  } else {
+    cout << "filter: INVALID" << endl;
+    return Status(grpc::StatusCode::INVALID_ARGUMENT, "invalid filter");
+  }
 
   for (auto& m : messages) {
-    auto message_info = getAllMessagesResponse->add_messages();
+    auto message_info = getMessagesResponse->add_messages();
 
     auto baseMessage = message_info->mutable_m();
     baseMessage->set_id(m.id);
@@ -257,7 +270,7 @@ Status DaemonRpc::GetAllMessages(
     message_info->set_from(m.from);
     message_info->set_seen(m.seen);
 
-    // TODO: do this conversion not through strings....
+    // TODO(arvid): do this conversion not through strings....
     auto timestamp_str = absl::FormatTime(m.received_timestamp);
     auto timestamp = message_info->mutable_received_timestamp();
     auto success = TimeUtil::FromString(timestamp_str, timestamp);
@@ -270,36 +283,121 @@ Status DaemonRpc::GetAllMessages(
   return Status::OK;
 }
 
-Status DaemonRpc::GetNewMessages(
-    ServerContext* context, const GetNewMessagesRequest* getNewMessagesRequest,
-    GetNewMessagesResponse* getNewMessagesResponse) {
+// WARNING: this method is subtle. please take a moment to understand
+// what's going on before modifying it.
+Status DaemonRpc::GetMessagesStreamed(
+    ServerContext* context,
+    const asphrdaemon::GetMessagesRequest* getMessagesRequest,
+    ServerWriter<asphrdaemon::GetMessagesResponse>* writer) {
   using TimeUtil = google::protobuf::util::TimeUtil;
-  cout << "GetNewMessages() called" << endl;
+  cout << "GetMessagesStreamed() called" << endl;
 
   if (!config->has_registered()) {
     cout << "need to register first!" << endl;
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  auto messages = msgstore->get_new_incoming_messages_sorted();
+  auto filter = getMessagesRequest->filter();
 
-  for (auto& m : messages) {
-    auto message_info = getNewMessagesResponse->add_messages();
+  // the messages may not be added in the right order. so what we do is
+  // we wait until the last_mono_index has changed, and then get all messages
+  // from that point on.
+  // this needs to happen before we get all the messages below.
+  //
+  // the caller will always get *each message EXACTLY ONCE*, in the order of
+  // the mono index. *this may or may not correspond to the timestamp order.*
+  int last_mono_index;
+  {
+    std::lock_guard<std::mutex> l(msgstore->add_cv_mtx);
+    last_mono_index = msgstore->last_mono_index;
+  }
 
-    auto baseMessage = message_info->mutable_m();
-    baseMessage->set_id(m.id);
-    baseMessage->set_message(m.message);
-    message_info->set_from(m.from);
-    message_info->set_seen(m.seen);
+  {
+    vector<IncomingMessage> messages;
 
-    // TODO: do this conversion not through strings....
-    auto timestamp_str = absl::FormatTime(m.received_timestamp);
-    auto timestamp = message_info->mutable_received_timestamp();
-    auto success = TimeUtil::FromString(timestamp_str, timestamp);
-    if (!success) {
-      cout << "invalid timestamp" << endl;
-      return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+    if (filter == asphrdaemon::GetMessagesRequest::ALL) {
+      messages = msgstore->get_all_incoming_messages_sorted();
+    } else if (filter == asphrdaemon::GetMessagesRequest::NEW) {
+      messages = msgstore->get_new_incoming_messages_sorted();
+    } else {
+      cout << "filter: INVALID" << endl;
+      return Status(grpc::StatusCode::INVALID_ARGUMENT, "invalid filter");
     }
+
+    asphrdaemon::GetMessagesResponse response;
+
+    for (auto& m : messages) {
+      // let last_mono_index be the maximum
+      last_mono_index =
+          m.mono_index > last_mono_index ? m.mono_index : last_mono_index;
+
+      auto message_info = response.add_messages();
+
+      auto baseMessage = message_info->mutable_m();
+      baseMessage->set_id(m.id);
+      baseMessage->set_message(m.message);
+      message_info->set_from(m.from);
+      message_info->set_seen(m.seen);
+
+      // TODO(arvid): do this conversion not through strings....
+      auto timestamp_str = absl::FormatTime(m.received_timestamp);
+      auto timestamp = message_info->mutable_received_timestamp();
+      auto success = TimeUtil::FromString(timestamp_str, timestamp);
+      if (!success) {
+        cout << "invalid timestamp" << endl;
+        return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+      }
+    }
+
+    writer->Write(response);
+  }
+
+  // keep the connection open forever
+  while (!context->IsCancelled()) {
+    int last_mono_index_here;
+    {
+      std::unique_lock<std::mutex> l(msgstore->add_cv_mtx);
+      msgstore->add_cv.wait_for(l, std::chrono::seconds(60 * 60), [&] {
+        return msgstore->last_mono_index != last_mono_index;
+      });
+      if (msgstore->last_mono_index == last_mono_index) {
+        continue;  // continue the loop to check if we are cancelled
+      }
+      last_mono_index_here = msgstore->last_mono_index;
+    }
+
+    auto messages =
+        msgstore->get_incoming_messages_sorted_after(last_mono_index);
+
+    asphrdaemon::GetMessagesResponse response;
+
+    for (auto& m : messages) {
+      // let last_mono_index_here be the maximum
+      last_mono_index_here = m.mono_index > last_mono_index_here
+                                 ? m.mono_index
+                                 : last_mono_index_here;
+
+      auto message_info = response.add_messages();
+
+      auto baseMessage = message_info->mutable_m();
+      baseMessage->set_id(m.id);
+      baseMessage->set_message(m.message);
+      message_info->set_from(m.from);
+      message_info->set_seen(m.seen);
+
+      // TODO(arvid): do this conversion not through strings....
+      auto timestamp_str = absl::FormatTime(m.received_timestamp);
+      auto timestamp = message_info->mutable_received_timestamp();
+      auto success = TimeUtil::FromString(timestamp_str, timestamp);
+      if (!success) {
+        cout << "invalid timestamp" << endl;
+        return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+      }
+    }
+
+    writer->Write(response);
+
+    last_mono_index = last_mono_index_here;
   }
 
   return Status::OK;
@@ -307,8 +405,8 @@ Status DaemonRpc::GetNewMessages(
 
 Status DaemonRpc::GetOutboxMessages(
     ServerContext* context,
-    const GetOutboxMessagesRequest* getOutboxMessagesRequest,
-    GetOutboxMessagesResponse* getOutboxMessagesResponse) {
+    const asphrdaemon::GetOutboxMessagesRequest* getOutboxMessagesRequest,
+    asphrdaemon::GetOutboxMessagesResponse* getOutboxMessagesResponse) {
   using TimeUtil = google::protobuf::util::TimeUtil;
   cout << "GetOutboxMessages() called" << endl;
 
@@ -342,8 +440,8 @@ Status DaemonRpc::GetOutboxMessages(
 
 Status DaemonRpc::GetSentMessages(
     ServerContext* context,
-    const GetSentMessagesRequest* getSentMessagesRequest,
-    GetSentMessagesResponse* getSentMessagesResponse) {
+    const asphrdaemon::GetSentMessagesRequest* getSentMessagesRequest,
+    asphrdaemon::GetSentMessagesResponse* getSentMessagesResponse) {
   using TimeUtil = google::protobuf::util::TimeUtil;
   cout << "GetSentMessages() called" << endl;
 
@@ -375,9 +473,10 @@ Status DaemonRpc::GetSentMessages(
   return Status::OK;
 }
 
-Status DaemonRpc::MessageSeen(ServerContext* context,
-                              const MessageSeenRequest* messageSeenRequest,
-                              MessageSeenResponse* messageSeenResponse) {
+Status DaemonRpc::MessageSeen(
+    ServerContext* context,
+    const asphrdaemon::MessageSeenRequest* messageSeenRequest,
+    asphrdaemon::MessageSeenResponse* messageSeenResponse) {
   cout << "MessageSeen() called" << endl;
 
   if (!config->has_registered()) {
@@ -397,19 +496,22 @@ Status DaemonRpc::MessageSeen(ServerContext* context,
 }
 
 auto DaemonRpc::GetStatus(ServerContext* context,
-                          const GetStatusRequest* getStatusRequest,
-                          GetStatusResponse* getStatusResponse) -> Status {
+                          const asphrdaemon::GetStatusRequest* getStatusRequest,
+                          asphrdaemon::GetStatusResponse* getStatusResponse)
+    -> Status {
   cout << "GetStatus() called" << endl;
 
   getStatusResponse->set_registered(config->has_registered());
   getStatusResponse->set_release_hash(RELEASE_COMMIT_HASH);
+  getStatusResponse->set_latency_seconds(config->get_latency_seconds());
 
   return Status::OK;
 }
 
-auto DaemonRpc::GetLatency(ServerContext* context,
-                           const GetLatencyRequest* getLatencyRequest,
-                           GetLatencyResponse* getLatencyResponse) -> Status {
+auto DaemonRpc::GetLatency(
+    ServerContext* context,
+    const asphrdaemon::GetLatencyRequest* getLatencyRequest,
+    asphrdaemon::GetLatencyResponse* getLatencyResponse) -> Status {
   cout << "GetLatency() called" << endl;
 
   getLatencyResponse->set_latency_seconds(config->get_latency_seconds());
@@ -439,8 +541,9 @@ auto DaemonRpc::ChangeLatency(
   return Status::OK;
 }
 
-auto DaemonRpc::Kill(ServerContext* context, const KillRequest* killRequest,
-                     KillResponse* killResponse) -> Status {
+auto DaemonRpc::Kill(ServerContext* context,
+                     const asphrdaemon::KillRequest* killRequest,
+                     asphrdaemon::KillResponse* killResponse) -> Status {
   cout << "Kill() called" << endl;
   config->kill();
   cout << "Will kill daemon ASAP" << endl;

@@ -1,3 +1,5 @@
+// @generated
+
 // GENERATED CODE -- DO NOT EDIT!
 
 // package: asphrdaemon
@@ -13,8 +15,8 @@ interface IDaemonService extends grpc.ServiceDefinition<grpc.UntypedServiceImple
   addFriend: grpc.MethodDefinition<schema_daemon_pb.AddFriendRequest, schema_daemon_pb.AddFriendResponse>;
   removeFriend: grpc.MethodDefinition<schema_daemon_pb.RemoveFriendRequest, schema_daemon_pb.RemoveFriendResponse>;
   sendMessage: grpc.MethodDefinition<schema_daemon_pb.SendMessageRequest, schema_daemon_pb.SendMessageResponse>;
-  getAllMessages: grpc.MethodDefinition<schema_daemon_pb.GetAllMessagesRequest, schema_daemon_pb.GetAllMessagesResponse>;
-  getNewMessages: grpc.MethodDefinition<schema_daemon_pb.GetNewMessagesRequest, schema_daemon_pb.GetNewMessagesResponse>;
+  getMessages: grpc.MethodDefinition<schema_daemon_pb.GetMessagesRequest, schema_daemon_pb.GetMessagesResponse>;
+  getMessagesStreamed: grpc.MethodDefinition<schema_daemon_pb.GetMessagesRequest, schema_daemon_pb.GetMessagesResponse>;
   getOutboxMessages: grpc.MethodDefinition<schema_daemon_pb.GetOutboxMessagesRequest, schema_daemon_pb.GetOutboxMessagesResponse>;
   getSentMessages: grpc.MethodDefinition<schema_daemon_pb.GetSentMessagesRequest, schema_daemon_pb.GetSentMessagesResponse>;
   messageSeen: grpc.MethodDefinition<schema_daemon_pb.MessageSeenRequest, schema_daemon_pb.MessageSeenResponse>;
@@ -33,8 +35,8 @@ export interface IDaemonServer extends grpc.UntypedServiceImplementation {
   addFriend: grpc.handleUnaryCall<schema_daemon_pb.AddFriendRequest, schema_daemon_pb.AddFriendResponse>;
   removeFriend: grpc.handleUnaryCall<schema_daemon_pb.RemoveFriendRequest, schema_daemon_pb.RemoveFriendResponse>;
   sendMessage: grpc.handleUnaryCall<schema_daemon_pb.SendMessageRequest, schema_daemon_pb.SendMessageResponse>;
-  getAllMessages: grpc.handleUnaryCall<schema_daemon_pb.GetAllMessagesRequest, schema_daemon_pb.GetAllMessagesResponse>;
-  getNewMessages: grpc.handleUnaryCall<schema_daemon_pb.GetNewMessagesRequest, schema_daemon_pb.GetNewMessagesResponse>;
+  getMessages: grpc.handleUnaryCall<schema_daemon_pb.GetMessagesRequest, schema_daemon_pb.GetMessagesResponse>;
+  getMessagesStreamed: grpc.handleServerStreamingCall<schema_daemon_pb.GetMessagesRequest, schema_daemon_pb.GetMessagesResponse>;
   getOutboxMessages: grpc.handleUnaryCall<schema_daemon_pb.GetOutboxMessagesRequest, schema_daemon_pb.GetOutboxMessagesResponse>;
   getSentMessages: grpc.handleUnaryCall<schema_daemon_pb.GetSentMessagesRequest, schema_daemon_pb.GetSentMessagesResponse>;
   messageSeen: grpc.handleUnaryCall<schema_daemon_pb.MessageSeenRequest, schema_daemon_pb.MessageSeenResponse>;
@@ -64,12 +66,11 @@ export class DaemonClient extends grpc.Client {
   sendMessage(argument: schema_daemon_pb.SendMessageRequest, callback: grpc.requestCallback<schema_daemon_pb.SendMessageResponse>): grpc.ClientUnaryCall;
   sendMessage(argument: schema_daemon_pb.SendMessageRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.SendMessageResponse>): grpc.ClientUnaryCall;
   sendMessage(argument: schema_daemon_pb.SendMessageRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.SendMessageResponse>): grpc.ClientUnaryCall;
-  getAllMessages(argument: schema_daemon_pb.GetAllMessagesRequest, callback: grpc.requestCallback<schema_daemon_pb.GetAllMessagesResponse>): grpc.ClientUnaryCall;
-  getAllMessages(argument: schema_daemon_pb.GetAllMessagesRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetAllMessagesResponse>): grpc.ClientUnaryCall;
-  getAllMessages(argument: schema_daemon_pb.GetAllMessagesRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetAllMessagesResponse>): grpc.ClientUnaryCall;
-  getNewMessages(argument: schema_daemon_pb.GetNewMessagesRequest, callback: grpc.requestCallback<schema_daemon_pb.GetNewMessagesResponse>): grpc.ClientUnaryCall;
-  getNewMessages(argument: schema_daemon_pb.GetNewMessagesRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetNewMessagesResponse>): grpc.ClientUnaryCall;
-  getNewMessages(argument: schema_daemon_pb.GetNewMessagesRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetNewMessagesResponse>): grpc.ClientUnaryCall;
+  getMessages(argument: schema_daemon_pb.GetMessagesRequest, callback: grpc.requestCallback<schema_daemon_pb.GetMessagesResponse>): grpc.ClientUnaryCall;
+  getMessages(argument: schema_daemon_pb.GetMessagesRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetMessagesResponse>): grpc.ClientUnaryCall;
+  getMessages(argument: schema_daemon_pb.GetMessagesRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetMessagesResponse>): grpc.ClientUnaryCall;
+  getMessagesStreamed(argument: schema_daemon_pb.GetMessagesRequest, metadataOrOptions?: grpc.Metadata | grpc.CallOptions | null): grpc.ClientReadableStream<schema_daemon_pb.GetMessagesResponse>;
+  getMessagesStreamed(argument: schema_daemon_pb.GetMessagesRequest, metadata?: grpc.Metadata | null, options?: grpc.CallOptions | null): grpc.ClientReadableStream<schema_daemon_pb.GetMessagesResponse>;
   getOutboxMessages(argument: schema_daemon_pb.GetOutboxMessagesRequest, callback: grpc.requestCallback<schema_daemon_pb.GetOutboxMessagesResponse>): grpc.ClientUnaryCall;
   getOutboxMessages(argument: schema_daemon_pb.GetOutboxMessagesRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetOutboxMessagesResponse>): grpc.ClientUnaryCall;
   getOutboxMessages(argument: schema_daemon_pb.GetOutboxMessagesRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetOutboxMessagesResponse>): grpc.ClientUnaryCall;

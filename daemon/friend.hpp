@@ -44,6 +44,9 @@ class Friend {
 
     check_rep();
   }
+
+  // Be very careful when changing the order of these parameters... please
+  // search for all usages.
   Friend(const string& name, const int read_index, const string& add_key,
          const string& read_key, const string& write_key, const int ack_index,
          const bool enabled, const uint32_t latest_ack_id,

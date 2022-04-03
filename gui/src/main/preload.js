@@ -68,17 +68,35 @@ contextBridge.exposeInMainWorld("copyToClipboard", async (s) => {
   clipboard.writeText(s, "selection");
 });
 
-function convertProtobufMessageToTypedMessage(m) {
-  console.log("seconds", m.getTimestamp().getSeconds());
+function convertProtobufIncomingMessageToTypedMessage(m) {
+  console.log("seconds", m.getReceivedTimestamp().getSeconds());
   var d = new Date(
-    m.getTimestamp().getSeconds() * 1e3 + m.getTimestamp().getNanos() / 1e6
+    m.getReceivedTimestamp().getSeconds() * 1e3 +
+      m.getReceivedTimestamp().getNanos() / 1e6
   );
   return {
-    id: m.getId(),
-    from: m.getSender(),
+    id: m.getM().getId(),
+    from: m.getFrom(),
     to: "me",
-    message: m.getMessage(),
+    message: m.getM().getMessage(),
     timestamp: d,
+    type: "incoming",
+  };
+}
+
+function convertProtobufOutgoingMessageToTypedMessage(m) {
+  console.log("seconds", m.getWrittenTimestamp().getSeconds());
+  var d = new Date(
+    m.getWrittenTimestamp().getSeconds() * 1e3 +
+      m.getWrittenTimestamp().getNanos() / 1e6
+  );
+  return {
+    id: m.getM().getId(),
+    from: "me",
+    to: m.getTo(),
+    message: m.getM().getMessage(),
+    timestamp: d,
+    type: "outgoing",
   };
 }
 
@@ -91,6 +109,7 @@ contextBridge.exposeInMainWorld("getNewMessages", async () => {
         to: "me",
         message: "hello!\n\nthis is a test message\n\nbest,\nalice",
         timestamp: new Date(),
+        type: "incoming",
       },
       {
         id: "2",
@@ -98,17 +117,19 @@ contextBridge.exposeInMainWorld("getNewMessages", async () => {
         to: "me",
         message: "hi",
         timestamp: new Date(),
+        type: "incoming",
       },
     ];
   }
-  const request = new daemonM.GetNewMessagesRequest();
+  const request = new daemonM.GetMessagesRequest();
+  request.setFilter(daemonM.GetMessagesRequest.Filter.NEW);
   const getNewMessages = promisify(daemonClient.getNewMessages).bind(
     daemonClient
   );
   try {
     const response = await getNewMessages(request);
     const lm = response.getMessagesList();
-    const l = lm.map(convertProtobufMessageToTypedMessage);
+    const l = lm.map(convertProtobufIncomingMessageToTypedMessage);
     return l;
   } catch (e) {
     console.log(`error in getNewMessages: ${e}`);
@@ -169,6 +190,7 @@ contextBridge.exposeInMainWorld("getAllMessages", async () => {
         to: "me",
         message: "hello",
         timestamp: new Date(),
+        type: "incoming",
       },
       {
         id: "2",
@@ -176,6 +198,7 @@ contextBridge.exposeInMainWorld("getAllMessages", async () => {
         to: "me",
         message: "hi",
         timestamp: new Date(),
+        type: "incoming",
       },
       {
         id: "3",
@@ -183,6 +206,7 @@ contextBridge.exposeInMainWorld("getAllMessages", async () => {
         to: "me",
         message: "hi this is my second message",
         timestamp: new Date(),
+        type: "incoming",
       },
       {
         id: "4",
@@ -190,17 +214,19 @@ contextBridge.exposeInMainWorld("getAllMessages", async () => {
         to: "me",
         message: "hi this is my first message",
         timestamp: new Date(),
+        type: "incoming",
       },
     ];
   }
-  const request = new daemonM.GetAllMessagesRequest();
+  const request = new daemonM.GetMessagesRequest();
+  request.setFilter(daemonM.GetMessagesRequest.Filter.ALL);
   const getAllMessages = promisify(daemonClient.getAllMessages).bind(
     daemonClient
   );
   try {
     const response = await getAllMessages(request);
     const lm = response.getMessagesList();
-    const l = lm.map(convertProtobufMessageToTypedMessage);
+    const l = lm.map(convertProtobufIncomingMessageToTypedMessage);
     return l;
   } catch (e) {
     console.log(`error in getAllMessages: ${e}`);
@@ -208,36 +234,104 @@ contextBridge.exposeInMainWorld("getAllMessages", async () => {
   }
 });
 
+contextBridge.exposeInMainWorld("getAllMessagesStreamed", (f) => {
+  const request = new daemonM.GetMessagesRequest();
+  request.setFilter(daemonM.GetMessagesRequest.Filter.ALL);
+  var call = daemonClient.getMessagesStreamed(request);
+  call.on("data", function (r) {
+    try {
+      const lm = r.getMessagesList();
+      const l = lm.map(convertProtobufIncomingMessageToTypedMessage);
+      f(l);
+    } catch (e) {
+      console.log(`error in getAllMessagesStreamed: ${e}`);
+    }
+    console.log("got all messages streamed", r);
+  });
+  call.on("end", function () {
+    // The server has finished sending
+    console.log("getAllMessagesStreamed end");
+  });
+  call.on("error", function (e) {
+    // An error has occurred and the stream has been closed.
+    console.log("getAllMessagesStreamed error", e);
+  });
+  call.on("status", function (status) {
+    // process status
+    console.log("getAllMessagesStreamed status", status);
+  });
+  return () => {
+    console.log("cancelling grpc!");
+    call.cancel();
+  };
+});
+
+contextBridge.exposeInMainWorld("getNewMessagesStreamed", (f) => {
+  const request = new daemonM.GetMessagesRequest();
+  request.setFilter(daemonM.GetMessagesRequest.Filter.NEW);
+  var call = daemonClient.getMessagesStreamed(request);
+  call.on("data", function (r) {
+    try {
+      const lm = r.getMessagesList();
+      const l = lm.map(convertProtobufIncomingMessageToTypedMessage);
+      f(l);
+    } catch (e) {
+      console.log(`error in getNewMessagesStreamed: ${e}`);
+    }
+    console.log("got all messages streamed", r);
+  });
+  call.on("end", function () {
+    // The server has finished sending
+    console.log("getNewMessagesStreamed end");
+  });
+  call.on("error", function (e) {
+    // An error has occurred and the stream has been closed.
+    console.log("getNewMessagesStreamed error", e);
+  });
+  call.on("status", function (status) {
+    // process status
+    console.log("getNewMessagesStreamed status", status);
+  });
+  return () => {
+    console.log("cancelling grpc!");
+    call.cancel();
+  };
+});
+
 contextBridge.exposeInMainWorld("getOutboxMessages", async () => {
   if (FAKE_DATA) {
     return [
       {
         id: "1",
-        from: "SuAlEh",
-        to: "me",
+        from: "me",
+        to: "SUelAh",
         message: "hello!\n\nthis is a test message\n\nnot the best,\nSuAlEh",
         timestamp: new Date(),
+        type: "outgoing",
       },
       {
         id: "2",
-        from: "HI",
-        to: "me",
+        from: "me",
+        to: "HI",
         message: "HIHI",
         timestamp: new Date(),
+        type: "outgoing",
       },
       {
         id: "3",
-        from: "Bob",
-        to: "me",
+        from: "me",
+        to: "Bob",
         message: "hi this is my second message",
         timestamp: new Date(),
+        type: "outgoing",
       },
       {
         id: "4",
-        from: "Bob",
-        to: "me",
+        from: "me",
+        to: "Bob",
         message: "hi this is my first message",
         timestamp: new Date(),
+        type: "outgoing",
       },
     ];
   }
@@ -248,7 +342,7 @@ contextBridge.exposeInMainWorld("getOutboxMessages", async () => {
   try {
     const response = await getOutboxMessages(request);
     const lm = response.getMessagesList();
-    const l = lm.map(convertProtobufMessageToTypedMessage);
+    const l = lm.map(convertProtobufOutgoingMessageToTypedMessage);
     return l;
   } catch (e) {
     console.log(`error in getOutboxMessages: ${e}`);
@@ -261,18 +355,20 @@ contextBridge.exposeInMainWorld("getSentMessages", async () => {
     return [
       {
         id: "1",
-        from: "SuAlEh",
-        to: "me",
+        from: "me",
+        to: "SuAlEh",
         message:
           "Send send!\n\nthis is a test message\n\nnot the best,\nSuAlEh",
         timestamp: new Date(),
+        type: "outgoing",
       },
       {
         id: "2",
-        from: "sent happy happy",
-        to: "me",
+        from: "me",
+        to: "sent happy happy",
         message: "HIHI",
         timestamp: new Date(),
+        type: "outgoing",
       },
     ];
   }
@@ -283,7 +379,7 @@ contextBridge.exposeInMainWorld("getSentMessages", async () => {
   try {
     const response = await getSentMessages(request);
     const lm = response.getMessagesList();
-    const l = lm.map(convertProtobufMessageToTypedMessage);
+    const l = lm.map(convertProtobufOutgoingMessageToTypedMessage);
     return l;
   } catch (e) {
     console.log(`error in getSentMessages: ${e}`);

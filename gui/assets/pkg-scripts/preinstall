@@ -9,23 +9,23 @@
 # here, we should check if a current version exists, and clean it up if it does.
 # for example, we should stop the daemon if it is running.
 
-create_user_dir () {
-    install -d -o "$USER" -g "$(id -g "$USER")" "$1" 
+create_user_dir() {
+	install -d -o "$USER" -g "$(id -g "$USER")" "$1"
 }
 
 LOG_DIR=""
 # set to XDG_CACHE_HOME/logs if it exists, otherwise use .anysphere directory as always
 if [ -d "${XDG_CACHE_HOME}" ]; then
-    LOG_DIR="${XDG_CACHE_HOME}/anysphere/logs"
-    create_user_dir "${XDG_CACHE_HOME}/anysphere"
-    create_user_dir "${XDG_CACHE_HOME}/anysphere/logs"
+	LOG_DIR="${XDG_CACHE_HOME}/anysphere/logs"
+	create_user_dir "${XDG_CACHE_HOME}/anysphere"
+	create_user_dir "${XDG_CACHE_HOME}/anysphere/logs"
 else
-    LOG_DIR="${HOME}/.anysphere/cache/logs"
-    create_user_dir "${HOME}/.anysphere"
-    create_user_dir "${HOME}/.anysphere/cache"
-    create_user_dir "${HOME}/.anysphere/cache/logs"
+	LOG_DIR="${HOME}/.anysphere/cache/logs"
+	create_user_dir "${HOME}/.anysphere"
+	create_user_dir "${HOME}/.anysphere/cache"
+	create_user_dir "${HOME}/.anysphere/cache/logs"
 fi
 
-exec 2>&1 > "$LOG_DIR"/preinstall.log
+exec 2>&1 >"$LOG_DIR"/preinstall.log
 
 echo "hello from anysphere preinstall script!"

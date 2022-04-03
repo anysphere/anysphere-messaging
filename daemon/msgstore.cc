@@ -1,3 +1,7 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
 
 #include "msgstore.hpp"
 
@@ -7,6 +11,7 @@ auto IncomingMessage::to_json() const -> asphr::json {
       {"message", message},
       {"from", from},
       {"received_timestamp", absl::FormatTime(received_timestamp)},
+      {"mono_index", mono_index},
       {"seen", seen},
   };
 }
@@ -23,6 +28,7 @@ auto IncomingMessage::from_json(const asphr::json& j) -> IncomingMessage {
     throw std::runtime_error("error parsing time: " + err);
   }
   msg.seen = j.at("seen").get<bool>();
+  msg.mono_index = j.at("mono_index").get<int>();
   return msg;
 }
 
@@ -58,7 +64,9 @@ auto read_msgstore_json(const string& file_address) -> asphr::json {
         std::filesystem::path(file_address).parent_path().u8string();
     std::filesystem::create_directories(dir_path);
     cout << "creating new msgstore asphr::json!" << endl;
-    asphr::json j = {{"incoming", {}}, {"outgoing", {}}};
+    asphr::json j = {{"incoming", asphr::json::array()},
+                     {"outgoing", asphr::json::array()},
+                     {"last_mono_index", 0}};
     std::ofstream o(file_address);
     o << std::setw(4) << j.dump(4) << std::endl;
   }
@@ -71,7 +79,7 @@ Msgstore::Msgstore(const string& file_address, shared_ptr<Config> config)
 
 Msgstore::Msgstore(const asphr::json& serialized_json,
                    const string& file_address, shared_ptr<Config> config)
-    : saved_file_address(file_address), config(config) {
+    : last_mono_index(0), saved_file_address(file_address), config(config) {
   for (auto& messageJson : serialized_json.at("incoming")) {
     auto message = IncomingMessage::from_json(messageJson);
     incoming.push_back(message);
@@ -80,19 +88,24 @@ Msgstore::Msgstore(const asphr::json& serialized_json,
     auto message = OutgoingMessage::from_json(messageJson);
     outgoing.push_back(message);
   }
+  if (serialized_json.contains("last_mono_index")) {
+    last_mono_index = serialized_json.at("last_mono_index").get<int>();
+  }
 
   check_rep();
 }
 
 auto Msgstore::save() noexcept(false) -> void {
   check_rep();
-  asphr::json j = {{"incoming", {}}, {"outgoing", {}}};
+  asphr::json j = {{"incoming", asphr::json::array()},
+                   {"outgoing", asphr::json::array()}};
   for (auto& m : incoming) {
     j.at("incoming").push_back(m.to_json());
   }
   for (auto& m : outgoing) {
     j.at("outgoing").push_back(m.to_json());
   }
+  j["last_mono_index"] = last_mono_index;
   std::ofstream o(saved_file_address);
   o << std::setw(4) << j.dump(4) << std::endl;
   check_rep();
@@ -113,12 +126,12 @@ auto Msgstore::add_outgoing_message(const string& to, const string& message)
               << "; ignoring message" << endl;
     return f_status.status();
   }
+  auto friend_info = f_status.value();
 
-  const auto id = message_id(false, to, f_status.value().latest_send_id);
+  const auto id = message_id(false, to, friend_info.latest_send_id);
 
-  auto new_friend = f_status.value();
-  new_friend.latest_send_id++;
-  config->update_friend(new_friend);
+  config->update_friend(friend_info.name,
+                        {.latest_send_id = friend_info.latest_send_id + 1});
 
   OutgoingMessage outgoing_message{{id, message}, to, absl::Now(), false};
   outgoing.push_back(outgoing_message);
@@ -161,13 +174,23 @@ auto Msgstore::add_incoming_message(int sequence_number, const string& from,
 
   check_rep();
 
+  auto mono_index = last_mono_index + 1;
+
   const auto id = message_id(true, from, sequence_number);
 
-  IncomingMessage incoming_message{{id, message}, from, absl::Now(), false};
+  IncomingMessage incoming_message{
+      {id, message}, from, absl::Now(), false, mono_index};
   incoming.push_back(incoming_message);
 
   save();
   check_rep();
+
+  // only after everything is committed (i.e. saved), we can notify the add_cv
+  {
+    std::lock_guard<std::mutex> l(add_cv_mtx);
+    last_mono_index = mono_index;
+    add_cv.notify_all();
+  }
 }
 
 auto Msgstore::mark_message_as_seen(const string& id) -> asphr::Status {
@@ -185,6 +208,21 @@ auto Msgstore::mark_message_as_seen(const string& id) -> asphr::Status {
       save();
       check_rep();
       return absl::OkStatus();
+    }
+  }
+
+  return absl::NotFoundError("id not found");
+}
+
+auto Msgstore::get_incoming_message_by_id(const string& id)
+    -> asphr::StatusOr<IncomingMessage> {
+  const std::lock_guard<std::mutex> l(msgstore_mtx);
+
+  check_rep();
+
+  for (auto& m : incoming) {
+    if (m.id == id) {
+      return m;
     }
   }
 
@@ -212,6 +250,27 @@ auto Msgstore::get_all_incoming_messages_sorted() -> vector<IncomingMessage> {
             });
   return sorted_incoming;
 }
+
+auto Msgstore::get_incoming_messages_sorted_after(int after_mono_index)
+    -> vector<IncomingMessage> {
+  const std::lock_guard<std::mutex> l(msgstore_mtx);
+
+  check_rep();
+
+  vector<IncomingMessage> sorted_incoming;
+  sorted_incoming.reserve(incoming.size());
+  for (auto& m : incoming) {
+    if (m.mono_index > after_mono_index) {
+      sorted_incoming.push_back(m);
+    }
+  }
+  std::sort(sorted_incoming.begin(), sorted_incoming.end(),
+            [](const IncomingMessage& a, const IncomingMessage& b) {
+              return a.received_timestamp > b.received_timestamp;
+            });
+  return sorted_incoming;
+}
+
 auto Msgstore::get_new_incoming_messages_sorted() -> vector<IncomingMessage> {
   const std::lock_guard<std::mutex> l(msgstore_mtx);
 
@@ -246,7 +305,7 @@ auto Msgstore::get_undelivered_outgoing_messages_sorted()
   }
   std::sort(undelivered_outgoing.begin(), undelivered_outgoing.end(),
             [](const OutgoingMessage& a, const OutgoingMessage& b) {
-              return a.written_timestamp < b.written_timestamp;
+              return a.written_timestamp > b.written_timestamp;
             });
   return undelivered_outgoing;
 }
@@ -266,7 +325,7 @@ auto Msgstore::get_delivered_outgoing_messages_sorted()
   }
   std::sort(delivered_outgoing.begin(), delivered_outgoing.end(),
             [](const OutgoingMessage& a, const OutgoingMessage& b) {
-              return a.written_timestamp < b.written_timestamp;
+              return a.written_timestamp > b.written_timestamp;
             });
   return delivered_outgoing;
 }
@@ -289,5 +348,7 @@ auto Msgstore::check_rep() const -> void {
   for (const auto& m : outgoing) {
     ids.insert(m.id);
   }
-  assert(ids.size() == incoming.size() + outgoing.size());
+  ASPHR_ASSERT_EQ_MSG(ids.size(), incoming.size() + outgoing.size(),
+                      "incoming size: " << incoming.size() << " outgoing size: "
+                                        << outgoing.size());
 }

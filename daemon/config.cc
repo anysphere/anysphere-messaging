@@ -63,8 +63,7 @@ auto Config::server_address() -> std::string {
 Config::Config(const string& config_file_address)
     : Config(read_json_file(config_file_address), config_file_address) {}
 
-Config::Config(const asphr::json& config_json_input,
-               string  config_file_address)
+Config::Config(const asphr::json& config_json_input, string config_file_address)
     : saved_file_address(std::move(config_file_address)),
       db_rows_(CLIENT_DB_ROWS),
       dummyMe("dummyMe", 0, "add_key", "", "", 0, false, 0, 0, 0, true),
@@ -252,8 +251,7 @@ auto Config::remove_friend(const string& name) -> absl::Status {
   check_rep();
 
   if (!friendTable.contains(name)) {
-    return {absl::StatusCode::kInvalidArgument,
-                        "friend does not exist"};
+    return {absl::StatusCode::kInvalidArgument, "friend does not exist"};
   }
   friendTable.erase(name);
 
@@ -290,13 +288,29 @@ auto Config::get_friend(const string& name) const -> absl::StatusOr<Friend> {
   return friendTable.at(name);
 }
 
-auto Config::update_friend(const Friend& f) -> void {
+auto Config::update_friend(const string& name, const FriendUpdate& fs) -> void {
   const std::lock_guard<std::mutex> l(config_mtx);
 
   check_rep();
 
-  assert(friendTable.contains(f.name));
-  friendTable.insert_or_assign(f.name, f);
+  assert(friendTable.contains(name));
+
+  auto old_friend = friendTable.at(name);
+
+  auto new_friend =
+      Friend(name, fs.read_index.value_or(old_friend.read_index),
+             fs.add_key.value_or(old_friend.add_key),
+             fs.read_key.value_or(old_friend.read_key),
+             fs.write_key.value_or(old_friend.write_key),
+             fs.ack_index.value_or(old_friend.ack_index),
+             fs.enabled.value_or(old_friend.enabled),
+             fs.latest_ack_id.value_or(old_friend.latest_ack_id),
+             fs.latest_send_id.value_or(old_friend.latest_send_id),
+             fs.last_receive_id.value_or(old_friend.last_receive_id),
+             fs.dummy.value_or(old_friend.dummy));
+
+  friendTable.insert_or_assign(name, new_friend);
+
   save();
 
   check_rep();
@@ -369,7 +383,7 @@ auto Config::wait_until_killed_or_seconds(int seconds) -> bool {
 // private method; hence no check_rep, no lock
 auto Config::check_rep() const -> void {
   assert(!saved_file_address.empty());
-  assert(data_dir != "");
+  ASPHR_ASSERT_NEQ(data_dir, "");
   assert(db_rows_ > 0);
 
   assert(latency_ >= 1);
@@ -402,6 +416,9 @@ auto Config::check_rep() const -> void {
 
 // private method; hence, no check_rep, no lock
 auto Config::save() -> void {
+  // only save if rep is ok!
+  check_rep();
+
   asphr::json config_json;
   config_json["has_registered"] = has_registered_;
   config_json["data_dir"] = data_dir;
@@ -434,5 +451,8 @@ auto Config::initialize_dummy_me() -> void {
   dummyMe = Friend("dummyMe", 0, "add_key", dummy_read_write_keys.first,
                    dummy_read_write_keys.second, 0, false, 0, 0, 0, true);
 
-  save();
+  // don't save at the end because initialize_dummy_me is called before other
+  // things are initialized, so if we saved here we would save an invalid
+  // config. that's why we also don't have a check-rep here: check-rep is not
+  // guaranteed to pass!
 }

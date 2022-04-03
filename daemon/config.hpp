@@ -33,7 +33,7 @@ struct RegistrationInfo {
 class Config {
  public:
   Config(const string& config_file_address);
-  Config(const asphr::json& config_json, string  config_file_address);
+  Config(const asphr::json& config_json, string config_file_address);
 
   // precondition: friend_info.name is not in friendTable
   auto add_friend(const Friend& friend_info) -> void;
@@ -41,7 +41,19 @@ class Config {
   auto friends() const -> vector<Friend>;
   auto get_friend(const string& name) const -> asphr::StatusOr<Friend>;
   // precondition: f.name is in friendTable
-  auto update_friend(const Friend& f) -> void;
+  struct FriendUpdate {
+    optional<pir_index_t> read_index = std::nullopt;
+    optional<string> add_key = std::nullopt;
+    optional<string> read_key = std::nullopt;
+    optional<string> write_key = std::nullopt;
+    optional<int> ack_index = std::nullopt;
+    optional<bool> enabled = std::nullopt;
+    optional<uint32_t> latest_ack_id = std::nullopt;
+    optional<uint32_t> latest_send_id = std::nullopt;
+    optional<uint32_t> last_receive_id = std::nullopt;
+    optional<bool> dummy = std::nullopt;
+  };
+  auto update_friend(const string& name, const FriendUpdate& f) -> void;
 
   auto has_space_for_friends() -> bool;
   auto num_enabled_friends() -> int;
@@ -110,7 +122,8 @@ class Config {
   std::condition_variable kill_cv;
   bool kill_ = false;
 
-  // randomness source! NOT threadsafe, which is fine because we use monitor pattern
+  // randomness source! NOT threadsafe, which is fine because we use monitor
+  // pattern
   absl::BitGen rand_bitgen_;
 
   auto check_rep() const -> void;

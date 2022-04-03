@@ -138,8 +138,6 @@ export function SelectableList<T>(props: SelectableListProps<T>) {
 
   const pointerMoved = usePointerMovedSinceMount();
 
-  console.log("ACTIVE INDEX", activeIndex);
-
   return (
     <div>
       <div ref={parentRef} className="relative max-h-full">

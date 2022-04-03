@@ -7,8 +7,9 @@
 ## Storybook
 
 To start the storybook of our components:
-```
+
+```bash
 npm run storybook
 ```
 
-In general, if you build a component, you should be able to see it in the storybook! Even better, if you can interact with it with kinda real, and it has tests!  
+In general, if you build a component, you should be able to see it in the storybook! Even better, if you can interact with it with kinda real, and it has tests!
