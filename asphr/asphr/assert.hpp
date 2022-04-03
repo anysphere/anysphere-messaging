@@ -107,24 +107,43 @@
   }
 #define ASPHR_ASSERT(expr) ASPHR_ASSERT_MSG(expr, "<no detail>")
 
-#define ASPHR_ASSERT_EQ_MSG(a, b, msg)                                     \
-  {                                                                        \
-    auto a_val = a;                                                        \
-    auto b_val = b;                                                        \
-    if (ASPHR_PREDICT_TRUE((a_val == b_val))) {                            \
-      static_cast<void>(0);                                                \
-    } else {                                                               \
-      PRINT_CERR(#a, a_val);                                               \
-      PRINT_CERR(#b, b_val);                                               \
-      std::cerr << "Assertion failed: Values '" << #a << "' and '" << #b   \
-                << "' are different in function '" << __func__             \
-                << "' location '" << __FILE__ << ":" << __LINE__ << "': '" \
-                << msg << "'.\n";                                          \
-      std::cerr << boost::stacktrace::stacktrace() << std::endl;           \
-      std::abort();                                                        \
-    }                                                                      \
+#define ASPHR_ASSERT_EQ_MSG(a, b, msg)                                         \
+  {                                                                            \
+    auto a_val = a;                                                            \
+    auto b_val = b;                                                            \
+    if (ASPHR_PREDICT_TRUE((a_val == b_val))) {                                \
+      static_cast<void>(0);                                                    \
+    } else {                                                                   \
+      PRINT_CERR(#a, a_val);                                                   \
+      PRINT_CERR(#b, b_val);                                                   \
+      std::cerr << "Assertion failed (" << #a << " == " << #b << "): Values '" \
+                << #a << "' and '" << #b << "' are different in function '"    \
+                << __func__ << "' location '" << __FILE__ << ":" << __LINE__   \
+                << "': '" << msg << "'.\n";                                    \
+      std::cerr << boost::stacktrace::stacktrace() << std::endl;               \
+      std::abort();                                                            \
+    }                                                                          \
   }
 #define ASPHR_ASSERT_EQ(a, b) ASPHR_ASSERT_EQ_MSG(a, b, "<no detail>")
+
+#define ASPHR_ASSERT_NEQ_MSG(a, b, msg)                                        \
+  {                                                                            \
+    auto a_val = a;                                                            \
+    auto b_val = b;                                                            \
+    if (ASPHR_PREDICT_TRUE((a_val != b_val))) {                                \
+      static_cast<void>(0);                                                    \
+    } else {                                                                   \
+      PRINT_CERR(#a, a_val);                                                   \
+      PRINT_CERR(#b, b_val);                                                   \
+      std::cerr << "Assertion failed (" << #a << " != " << #b << "): Values '" \
+                << #a << "' and '" << #b << "' are equal in function '"        \
+                << __func__ << "' location '" << __FILE__ << ":" << __LINE__   \
+                << "': '" << msg << "'.\n";                                    \
+      std::cerr << boost::stacktrace::stacktrace() << std::endl;               \
+      std::abort();                                                            \
+    }                                                                          \
+  }
+#define ASPHR_ASSERT_NEQ(a, b) ASPHR_ASSERT_NEQ_MSG(a, b, "<no detail>")
 
 #else
 #define ASPHR_ASSERT_MSG(expr, msg) static_cast<void>(0)

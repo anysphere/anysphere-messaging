@@ -51,6 +51,7 @@ using std::to_string;
 using std::tuple;
 using std::unique_ptr;
 using std::vector;
+using std::optional;
 
 namespace asphr {
 using json = nlohmann::json;

@@ -26,10 +26,10 @@ service Daemon {
 
     rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {}
 
-    rpc GetAllMessages(GetAllMessagesRequest) returns (GetAllMessagesResponse) {}
+    rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse) {}
 
-    rpc GetNewMessages(GetNewMessagesRequest) returns (GetNewMessagesResponse) {}
-    
+    rpc GetMessagesStreamed(GetMessagesRequest) returns (stream GetMessagesResponse) {}
+
     rpc GetOutboxMessages(GetOutboxMessagesRequest) returns (GetOutboxMessagesResponse) {}
 
     rpc GetSentMessages(GetSentMessagesRequest) returns (GetSentMessagesResponse) {}
@@ -114,15 +114,15 @@ message OutgoingMessage {
     bool delivered = 4;
 }
 
-message GetAllMessagesRequest {}
-
-message GetAllMessagesResponse {
-    repeated IncomingMessage messages = 1;
+message GetMessagesRequest {
+    enum Filter {
+        ALL = 0;
+        NEW = 1;
+    }
+    Filter filter = 1;
 }
 
-message GetNewMessagesRequest {}
-
-message GetNewMessagesResponse {
+message GetMessagesResponse {
     repeated IncomingMessage messages = 1;
 }
 
@@ -149,6 +149,7 @@ message GetStatusRequest {}
 message GetStatusResponse {
     bool registered = 1;
     string release_hash = 2;
+    int32 latency_seconds = 3;
 }
 
 message GetLatencyRequest {}
