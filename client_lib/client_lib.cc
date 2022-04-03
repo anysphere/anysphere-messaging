@@ -40,10 +40,10 @@ extern constexpr size_t GUARANTEED_SINGLE_MESSAGE_SIZE =
 auto get_base_config_dir() noexcept(false) -> std::filesystem::path {
   // on Linux and on systems where XDG_CONFIG_HOME is defined, use it.
   std::filesystem::path anysphere_home;
-  auto *config_home_maybe = std::getenv("XDG_CONFIG_HOME");
+  auto* config_home_maybe = std::getenv("XDG_CONFIG_HOME");
   if (config_home_maybe == nullptr) {
     // if not defined, default to $HOME/.anysphere
-    auto *home = std::getenv("HOME");
+    auto* home = std::getenv("HOME");
     if (home == nullptr) {
       // don't know what to do now.... there is literally nothing we can do
       // without knowing the HOME directory. crash.
@@ -84,7 +84,7 @@ auto get_gui_config_dir() noexcept(false) -> std::filesystem::path {
 // cli and gui processes.
 auto get_runtime_dir() noexcept(false) -> std::filesystem::path {
   std::filesystem::path runtime_home;
-  auto *runtime_home_maybe = std::getenv("XDG_RUNTIME_DIR");
+  auto* runtime_home_maybe = std::getenv("XDG_RUNTIME_DIR");
   if (runtime_home_maybe == nullptr) {
     // if not defined, there is no standard directory to put this in.
     // we therefore use the base config dir / run.
@@ -115,7 +115,7 @@ auto get_socket_path() noexcept(false) -> std::filesystem::path {
 // this is only the default location.
 auto get_default_data_dir() noexcept(false) -> std::filesystem::path {
   std::filesystem::path data_home;
-  auto *data_home_maybe = std::getenv("XDG_DATA_HOME");
+  auto* data_home_maybe = std::getenv("XDG_DATA_HOME");
   if (data_home_maybe == nullptr) {
     // if not defined, we are using ~/.anysphere to store all data.
     // we therefore use the base config dir / run.

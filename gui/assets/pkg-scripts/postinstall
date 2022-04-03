@@ -9,30 +9,31 @@
 # here we set up the daemon!
 # we also link the CLI to /usr/local/bin
 
-create_user_dir () {
-    install -d -o "$USER" -g "$(id -g "$USER")" "$1" 
+create_user_dir() {
+	install -d -o "$USER" -g "$(id -g "$USER")" "$1"
 }
 
 LOG_DIR=""
 # set to XDG_CACHE_HOME/logs if it exists, otherwise use .anysphere directory as always
 if [ -d "${XDG_CACHE_HOME}" ]; then
-    LOG_DIR="${XDG_CACHE_HOME}/anysphere/logs"
-    create_user_dir "${XDG_CACHE_HOME}/anysphere"
-    create_user_dir "${XDG_CACHE_HOME}/anysphere/logs"
+	LOG_DIR="${XDG_CACHE_HOME}/anysphere/logs"
+	create_user_dir "${XDG_CACHE_HOME}/anysphere"
+	create_user_dir "${XDG_CACHE_HOME}/anysphere/logs"
 else
-    LOG_DIR="${HOME}/.anysphere/cache/logs"
-    create_user_dir "${HOME}/.anysphere"
-    create_user_dir "${HOME}/.anysphere/cache"
-    create_user_dir "${HOME}/.anysphere/cache/logs"
+	LOG_DIR="${HOME}/.anysphere/cache/logs"
+	create_user_dir "${HOME}/.anysphere"
+	create_user_dir "${HOME}/.anysphere/cache"
+	create_user_dir "${HOME}/.anysphere/cache/logs"
 fi
 
-exec 2>&1 > "$LOG_DIR"/postinstall.log
+exec 2>&1 >"$LOG_DIR"/postinstall.log
 
 echo "hello from anysphere postinstall script!"
 
 INSTALL_DIR=$2
 
-PLIST="$(cat << EOF
+PLIST="$(
+	cat <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -58,7 +59,7 @@ EOF
 uid=$(id -u "$USER")
 echo "user: $USER, uid: $uid"
 PLIST_PATH="/Library/LaunchAgents/co.anysphere.anysphered.plist"
-echo "$PLIST" > "$PLIST_PATH"
+echo "$PLIST" >"$PLIST_PATH"
 chmod 644 "$PLIST_PATH"
 # if already existed, unload
 launchctl asuser "$uid" launchctl unload "$PLIST_PATH"

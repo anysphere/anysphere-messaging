@@ -16,7 +16,7 @@ auto Crypto::generate_keypair() -> std::pair<string, string> {
       string(reinterpret_cast<char*>(secret_key), crypto_kx_SECRETKEYBYTES)};
 }
 
-auto Crypto::generate_friend_key(const string& my_public_key, int index) 
+auto Crypto::generate_friend_key(const string& my_public_key, int index)
     -> string {
   string public_key_b64;
   public_key_b64.resize(sodium_base64_ENCODED_LEN(
