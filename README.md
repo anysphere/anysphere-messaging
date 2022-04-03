@@ -22,7 +22,7 @@ To get these working, you need to run `./setupgit.sh` and follow its instruction
 
 After updating the schema in `asphr/schema`, run the following on a Linux machine:
 
-```
+```bash
 make update-gui-repo
 ```
 
@@ -30,13 +30,13 @@ in this directory. Then commit and push! This updates the generated schema for t
 
 # Testing
 
-```
+```bash
 bazel test //...
 ```
 
 Testing with address sanitizer is also recommended:
 
-```
+```bash
 bazel test --config=asan //...
 ```
 
@@ -48,14 +48,14 @@ bazel test --config=asan //...
 
 Install `x86brew`:
 
-```
+```bash
 arch --x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 ```
 
 Create alias: add `alias x86brew='arch --x86_64 /usr/local/Homebrew/bin/brew'` to your `.bashrc`.
 Install `x86bazel`:
 
-```
+```bash
 x86brew install bazel
 ```
 

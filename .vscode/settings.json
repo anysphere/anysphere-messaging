@@ -117,7 +117,9 @@
     "filesystem": "cpp",
     "ranges": "cpp",
     "__functional_03": "cpp",
-    "hash_map": "cpp"
+    "hash_map": "cpp",
+    "__availability": "cpp",
+    "*.ipp": "cpp"
   },
   "C_Cpp.codeAnalysis.clangTidy.enabled": true,
   "C_Cpp.codeAnalysis.runAutomatically": false,
@@ -130,6 +132,8 @@
     "**/bazel-anysphere": true,
     "**/third_party": true,
     "bazel-anysphere": true,
+    ".trunk": true,
+    ".trunk/out": true,
     "bazel-anysphere/**": true
   }
 }

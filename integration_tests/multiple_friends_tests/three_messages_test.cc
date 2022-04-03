@@ -201,9 +201,10 @@ TEST_F(MultipleFriendsTest, SendThreeMessages) {
     }
 
     for (size_t i = 1; i < names.size(); i++) {
-      GetAllMessagesRequest request;
-      GetAllMessagesResponse response;
-      auto status = rpcs[i]->GetAllMessages(nullptr, &request, &response);
+      GetMessagesRequest request;
+      request.set_filter(GetMessagesRequest::ALL);
+      GetMessagesResponse response;
+      auto status = rpcs[i]->GetMessages(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
       if (response.messages_size() > 0) {
         EXPECT_EQ(response.messages_size(), 1);

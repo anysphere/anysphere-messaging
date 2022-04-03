@@ -207,9 +207,10 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
     }
 
     for (auto i : to_receive) {
-      GetAllMessagesRequest request;
-      GetAllMessagesResponse response;
-      auto status = rpcs[i]->GetAllMessages(nullptr, &request, &response);
+      GetMessagesRequest request;
+      request.set_filter(GetMessagesRequest::ALL);
+      GetMessagesResponse response;
+      auto status = rpcs[i]->GetMessages(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
       EXPECT_EQ(response.messages_size(), 0);
     }
@@ -223,9 +224,10 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
     unordered_set<int> new_to_receive;
 
     for (auto i : to_receive) {
-      GetAllMessagesRequest request;
-      GetAllMessagesResponse response;
-      auto status = rpcs[i]->GetAllMessages(nullptr, &request, &response);
+      GetMessagesRequest request;
+      request.set_filter(GetMessagesRequest::ALL);
+      GetMessagesResponse response;
+      auto status = rpcs[i]->GetMessages(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
       if (response.messages_size() > 0) {
         EXPECT_EQ(response.messages_size(), 1);

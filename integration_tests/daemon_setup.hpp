@@ -17,6 +17,11 @@
  *
  **/
 
+struct FriendTestingInfo {
+  unique_ptr<DaemonRpc> rpc;
+  unique_ptr<Transmitter> t;
+};
+
 using namespace asphrdaemon;
 
 namespace asphr::testing {
@@ -68,8 +73,83 @@ class DaemonRpcTest : public ::testing::Test {
     return address;
   }
 
+  auto generate_two_friends() -> pair<FriendTestingInfo, FriendTestingInfo> {
+    auto crypto1 = gen_crypto();
+    auto config1 = gen_config(string(generateTempDir()), generateTempFile());
+    auto msgstore1 = gen_msgstore(config1);
+    auto rpc1 = make_unique<DaemonRpc>(crypto1, config1, stub_, msgstore1);
+    auto t1 = make_unique<Transmitter>(crypto1, config1, stub_, msgstore1);
+    auto crypto2 = gen_crypto();
+    auto config2 = gen_config(string(generateTempDir()), generateTempFile());
+    auto msgstore2 = gen_msgstore(config2);
+    auto rpc2 = make_unique<DaemonRpc>(crypto2, config2, stub_, msgstore2);
+    auto t2 = make_unique<Transmitter>(crypto2, config2, stub_, msgstore2);
+
+    {
+      RegisterUserRequest request;
+      request.set_name("user1local");
+      request.set_beta_key("asphr_magic");
+      RegisterUserResponse response;
+      rpc1->RegisterUser(nullptr, &request, &response);
+    }
+
+    {
+      RegisterUserRequest request;
+      request.set_name("user2local");
+      request.set_beta_key("asphr_magic");
+      RegisterUserResponse response;
+      rpc2->RegisterUser(nullptr, &request, &response);
+    }
+
+    string user1_key;
+    string user2_key;
+
+    {
+      GenerateFriendKeyRequest request;
+      request.set_name("user2");
+      GenerateFriendKeyResponse response;
+      auto status = rpc1->GenerateFriendKey(nullptr, &request, &response);
+      EXPECT_TRUE(status.ok());
+      EXPECT_GT(response.key().size(), 0);
+      user1_key = response.key();
+    }
+
+    {
+      GenerateFriendKeyRequest request;
+      request.set_name("user1");
+      GenerateFriendKeyResponse response;
+      auto status = rpc2->GenerateFriendKey(nullptr, &request, &response);
+      EXPECT_TRUE(status.ok());
+      EXPECT_GT(response.key().size(), 0);
+      user2_key = response.key();
+    }
+
+    {
+      AddFriendRequest request;
+      request.set_name("user2");
+      request.set_key(user2_key);
+      AddFriendResponse response;
+      auto status = rpc1->AddFriend(nullptr, &request, &response);
+      EXPECT_TRUE(status.ok());
+    }
+
+    {
+      AddFriendRequest request;
+      request.set_name("user1");
+      request.set_key(user1_key);
+      AddFriendResponse response;
+      auto status = rpc2->AddFriend(nullptr, &request, &response);
+      EXPECT_TRUE(status.ok());
+    }
+
+    auto friend1 = FriendTestingInfo{move(rpc1), move(t1)};
+    auto friend2 = FriendTestingInfo{move(rpc2), move(t2)};
+    auto friends = make_pair(std::move(friend1), std::move(friend2));
+
+    return friends;
+  }
+
   void SetUp() override {
-    
     // get a random port number
     // https://github.com/yegor256/random-tcp-port might be useful sometime in
     // the future.

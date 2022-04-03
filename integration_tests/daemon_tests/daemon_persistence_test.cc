@@ -110,9 +110,10 @@ TEST_F(DaemonRpcTest, MsgstorePersistence) {
     }
 
     {
-      GetAllMessagesRequest request;
-      GetAllMessagesResponse response;
-      auto status = rpc1.GetAllMessages(nullptr, &request, &response);
+      GetMessagesRequest request;
+      request.set_filter(GetMessagesRequest::ALL);
+      GetMessagesResponse response;
+      auto status = rpc1.GetMessages(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
       EXPECT_EQ(response.messages_size(), 1);
       EXPECT_EQ(response.messages(0).from(), "user2");
@@ -120,9 +121,10 @@ TEST_F(DaemonRpcTest, MsgstorePersistence) {
     }
 
     {
-      GetAllMessagesRequest request;
-      GetAllMessagesResponse response;
-      auto status = rpc2.GetAllMessages(nullptr, &request, &response);
+      GetMessagesRequest request;
+      request.set_filter(GetMessagesRequest::ALL);
+      GetMessagesResponse response;
+      auto status = rpc2.GetMessages(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
       EXPECT_EQ(response.messages_size(), 1);
       EXPECT_EQ(response.messages(0).from(), "user1");
@@ -144,9 +146,10 @@ TEST_F(DaemonRpcTest, MsgstorePersistence) {
     Transmitter t2(crypto2, config2, stub_, msgstore2);
 
     {
-      GetAllMessagesRequest request;
-      GetAllMessagesResponse response;
-      auto status = rpc1.GetAllMessages(nullptr, &request, &response);
+      GetMessagesRequest request;
+      request.set_filter(GetMessagesRequest::ALL);
+      GetMessagesResponse response;
+      auto status = rpc1.GetMessages(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
       EXPECT_EQ(response.messages_size(), 1);
       EXPECT_EQ(response.messages(0).from(), "user2");
@@ -154,9 +157,10 @@ TEST_F(DaemonRpcTest, MsgstorePersistence) {
     }
 
     {
-      GetAllMessagesRequest request;
-      GetAllMessagesResponse response;
-      auto status = rpc2.GetAllMessages(nullptr, &request, &response);
+      GetMessagesRequest request;
+      request.set_filter(GetMessagesRequest::ALL);
+      GetMessagesResponse response;
+      auto status = rpc2.GetMessages(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
       EXPECT_EQ(response.messages_size(), 1);
       EXPECT_EQ(response.messages(0).from(), "user1");
@@ -261,17 +265,19 @@ TEST_F(DaemonRpcTest, OutboxPersistence) {
     }
 
     {
-      GetAllMessagesRequest request;
-      GetAllMessagesResponse response;
-      auto status = rpc1.GetAllMessages(nullptr, &request, &response);
+      GetMessagesRequest request;
+      request.set_filter(GetMessagesRequest::ALL);
+      GetMessagesResponse response;
+      auto status = rpc1.GetMessages(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
       EXPECT_EQ(response.messages_size(), 0);
     }
 
     {
-      GetAllMessagesRequest request;
-      GetAllMessagesResponse response;
-      auto status = rpc2.GetAllMessages(nullptr, &request, &response);
+      GetMessagesRequest request;
+      request.set_filter(GetMessagesRequest::ALL);
+      GetMessagesResponse response;
+      auto status = rpc2.GetMessages(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
       EXPECT_EQ(response.messages_size(), 0);
     }
@@ -321,9 +327,10 @@ TEST_F(DaemonRpcTest, OutboxPersistence) {
     { t1.retrieve_messages(); }
 
     {
-      GetAllMessagesRequest request;
-      GetAllMessagesResponse response;
-      auto status = rpc1.GetAllMessages(nullptr, &request, &response);
+      GetMessagesRequest request;
+      request.set_filter(GetMessagesRequest::ALL);
+      GetMessagesResponse response;
+      auto status = rpc1.GetMessages(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
       EXPECT_EQ(response.messages_size(), 1);
       EXPECT_EQ(response.messages(0).from(), "user2");
@@ -331,9 +338,10 @@ TEST_F(DaemonRpcTest, OutboxPersistence) {
     }
 
     {
-      GetAllMessagesRequest request;
-      GetAllMessagesResponse response;
-      auto status = rpc2.GetAllMessages(nullptr, &request, &response);
+      GetMessagesRequest request;
+      request.set_filter(GetMessagesRequest::ALL);
+      GetMessagesResponse response;
+      auto status = rpc2.GetMessages(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
       EXPECT_EQ(response.messages_size(), 1);
       EXPECT_EQ(response.messages(0).from(), "user1");
@@ -366,9 +374,10 @@ TEST_F(DaemonRpcTest, OutboxPersistence) {
     { t1.retrieve_messages(); }
 
     {
-      GetAllMessagesRequest request;
-      GetAllMessagesResponse response;
-      auto status = rpc1.GetAllMessages(nullptr, &request, &response);
+      GetMessagesRequest request;
+      request.set_filter(GetMessagesRequest::ALL);
+      GetMessagesResponse response;
+      auto status = rpc1.GetMessages(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
       EXPECT_EQ(response.messages_size(), 2);
       EXPECT_EQ(response.messages(0).from(), "user2");
@@ -379,9 +388,10 @@ TEST_F(DaemonRpcTest, OutboxPersistence) {
     }
 
     {
-      GetAllMessagesRequest request;
-      GetAllMessagesResponse response;
-      auto status = rpc2.GetAllMessages(nullptr, &request, &response);
+      GetMessagesRequest request;
+      request.set_filter(GetMessagesRequest::ALL);
+      GetMessagesResponse response;
+      auto status = rpc2.GetMessages(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
       EXPECT_EQ(response.messages_size(), 2);
       EXPECT_EQ(response.messages(0).from(), "user1");

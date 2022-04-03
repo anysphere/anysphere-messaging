@@ -113,18 +113,20 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
 
   // 1 can impossibly receive anything!!
   {
-    GetAllMessagesRequest request;
-    GetAllMessagesResponse response;
-    auto status = rpc1.GetAllMessages(nullptr, &request, &response);
+    GetMessagesRequest request;
+    request.set_filter(GetMessagesRequest::ALL);
+    GetMessagesResponse response;
+    auto status = rpc1.GetMessages(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 0);
   }
 
   // 2 should have received the first message!
   {
-    GetAllMessagesRequest request;
-    GetAllMessagesResponse response;
-    auto status = rpc2.GetAllMessages(nullptr, &request, &response);
+    GetMessagesRequest request;
+    request.set_filter(GetMessagesRequest::ALL);
+    GetMessagesResponse response;
+    auto status = rpc2.GetMessages(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 1);
     EXPECT_EQ(response.messages(0).from(), "user1");
@@ -141,9 +143,10 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
 
   // 1 should have received the first message by now
   {
-    GetAllMessagesRequest request;
-    GetAllMessagesResponse response;
-    auto status = rpc1.GetAllMessages(nullptr, &request, &response);
+    GetMessagesRequest request;
+    request.set_filter(GetMessagesRequest::ALL);
+    GetMessagesResponse response;
+    auto status = rpc1.GetMessages(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 1);
     EXPECT_EQ(response.messages(0).from(), "user2");
@@ -151,9 +154,10 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
   }
 
   {
-    GetAllMessagesRequest request;
-    GetAllMessagesResponse response;
-    auto status = rpc2.GetAllMessages(nullptr, &request, &response);
+    GetMessagesRequest request;
+    request.set_filter(GetMessagesRequest::ALL);
+    GetMessagesResponse response;
+    auto status = rpc2.GetMessages(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 2);
     EXPECT_EQ(response.messages(0).from(), "user1");

@@ -1,272 +1,282 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug intergration/daemon_test",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/bazel-bin/integration_tests/daemon_test",
+      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
         {
-            "name": "Debug intergration/daemon_test",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/bazel-bin/integration_tests/daemon_test",
-            "args": [
-                "--gtest_break_on_failure",
-                "--gtest_catch_exceptions=0"
-            ],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "preLaunchTask": "debugBuild",
-            "miDebuggerPath": "gdb"
-        },
-        {
-            "name": "Debug all bazel tests",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "/home/linuxbrew/.linuxbrew/bin/bazel",
-            "args": [
-                "test",
-                "//...",
-                "-c dbg"
-            ],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "preLaunchTask": "debugBuild",
-            "miDebuggerPath": "gdb"
-        },
-        {
-            "name": "Debug intergration/daemon_friends_test",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/bazel-bin/integration_tests/daemon_friends_test",
-            "args": [
-                "--gtest_break_on_failure",
-                "--gtest_catch_exceptions=0"
-            ],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "preLaunchTask": "debugBuild",
-            "miDebuggerPath": "gdb"
-        },
-        {
-            "name": "Debug intergration/daemon_friends_test many times",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/bazel-bin/integration_tests/daemon_friends_test",
-            "args": [
-                "--gtest_break_on_failure",
-                "--gtest_catch_exceptions=0",
-                "--gtest_repeat=100"
-            ],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "preLaunchTask": "debugBuild",
-            "miDebuggerPath": "gdb"
-        },
-        {
-            "name": "Debug intergration/multiple_friends_test",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/bazel-bin/integration_tests/multiple_friends_test",
-            "args": [
-                "--gtest_break_on_failure",
-                "--gtest_catch_exceptions=0"
-            ],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "preLaunchTask": "debugBuild",
-            "miDebuggerPath": "gdb"
-        },
-        {
-            "name": "Debug server test",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/bazel-bin/server/src/test",
-            "args": [
-                "--gtest_break_on_failure",
-                "--gtest_catch_exceptions=0"
-            ],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "preLaunchTask": "debugBuild",
-            "miDebuggerPath": "gdb"
-        },
-        {
-            "name": "Debug daemon test",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/bazel-bin/client/daemon/test",
-            "args": [
-                "--gtest_break_on_failure",
-                "--gtest_catch_exceptions=0"
-            ],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "preLaunchTask": "debugBuild",
-            "miDebuggerPath": "gdb"
-        },
-        {
-            "name": "Debug daemon test (no prelaunch)",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/bazel-bin/client/daemon/test",
-            "args": [
-                "--gtest_break_on_failure",
-                "--gtest_catch_exceptions=0"
-            ],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "miDebuggerPath": "gdb"
-        },
-        {
-            "name": "Debug daemon test Mac",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/bazel-bin/client/daemon/test",
-            "args": [
-                "--gtest_break_on_failure",
-                "--gtest_catch_exceptions=0"
-            ],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "preLaunchTask": "debugBuildMac",
-            "miDebuggerPath": "/Users/arvid/.vscode/extensions/ms-vscode.cpptools-1.8.0-insiders2/debugAdapters/lldb-mi/bin/lldb-mi"
-        },
-        {
-            "name": "Debug client_lib test",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/bazel-bin/client/client_lib/client_lib_test",
-            "args": [
-                "--gtest_break_on_failure",
-                "--gtest_catch_exceptions=0"
-            ],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "preLaunchTask": "debugBuild",
-            "miDebuggerPath": "gdb"
-        },
-        {
-            "name": "Debug cli test",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/bazel-bin/client/cli/as_cli_test",
-            "args": [
-                "--gtest_break_on_failure",
-                "--gtest_catch_exceptions=0"
-            ],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "preLaunchTask": "debugBuild",
-            "miDebuggerPath": "gdb"
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
         }
-    ]
+      ],
+      "preLaunchTask": "debugBuild",
+      "miDebuggerPath": "gdb"
+    },
+    {
+      "name": "Debug all bazel tests",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "/home/linuxbrew/.linuxbrew/bin/bazel",
+      "args": ["test", "//...", "-c dbg"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "debugBuild",
+      "miDebuggerPath": "gdb"
+    },
+    {
+      "name": "Debug intergration/daemon_friends_test",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/bazel-bin/integration_tests/daemon_friends_test",
+      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "debugBuild",
+      "miDebuggerPath": "gdb"
+    },
+    {
+      "name": "Debug integration/daemon_stream_messages_test",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/bazel-bin/integration_tests/daemon_tests/daemon_stream_messages_test",
+      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "debugBuild",
+      "miDebuggerPath": "gdb"
+    },
+    {
+      "name": "Debug intergration/daemon_friends_test many times",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/bazel-bin/integration_tests/daemon_friends_test",
+      "args": [
+        "--gtest_break_on_failure",
+        "--gtest_catch_exceptions=0",
+        "--gtest_repeat=100"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "debugBuild",
+      "miDebuggerPath": "gdb"
+    },
+    {
+      "name": "Debug intergration/multiple_friends_test",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/bazel-bin/integration_tests/multiple_friends_test",
+      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "debugBuild",
+      "miDebuggerPath": "gdb"
+    },
+    {
+      "name": "Debug server test",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/bazel-bin/server/src/test",
+      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "debugBuild",
+      "miDebuggerPath": "gdb"
+    },
+    {
+      "name": "Debug daemon test",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/bazel-bin/client/daemon/test",
+      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "debugBuild",
+      "miDebuggerPath": "gdb"
+    },
+    {
+      "name": "Debug daemon test (no prelaunch)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/bazel-bin/client/daemon/test",
+      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "miDebuggerPath": "gdb"
+    },
+    {
+      "name": "Debug daemon test Mac",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/bazel-bin/client/daemon/test",
+      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "debugBuild",
+      "miDebuggerPath": "/Users/arvid/.vscode/extensions/ms-vscode.cpptools-1.9.5/debugAdapters/lldb-mi/bin/lldb-mi"
+    },
+    {
+      "name": "Debug integration/daemon_stream_messages_test Mac",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/bazel-bin/integration_tests/daemon_tests/daemon_stream_messages_test",
+      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "debugBuild",
+      "miDebuggerPath": "/Users/arvid/code/anysphere/lldb-mi"
+    },
+    {
+      "name": "Debug client_lib test",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/bazel-bin/client/client_lib/client_lib_test",
+      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "debugBuild",
+      "miDebuggerPath": "gdb"
+    },
+    {
+      "name": "Debug cli test",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/bazel-bin/client/cli/as_cli_test",
+      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "debugBuild",
+      "miDebuggerPath": "gdb"
+    }
+  ]
 }
