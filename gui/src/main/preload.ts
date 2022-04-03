@@ -3,51 +3,21 @@
 // SPDX-License-Identifier: GPL-3.0-only
 //
 
-const { contextBridge, clipboard } = require("electron");
-const { promisify } = require("util");
-var grpc = require("@grpc/grpc-js");
-const daemonM = require("../daemon/schema/daemon_pb");
-const daemonS = require("../daemon/schema/daemon_grpc_pb");
-const path = require("path");
-
-function get_socket_path() {
-  if (process.env.XDG_RUNTIME_DIR) {
-    return path.join(
-      process.env.XDG_RUNTIME_DIR,
-      "anysphere",
-      "anysphere.sock"
-    );
-  } else if (process.env.XDG_CONFIG_HOME) {
-    return path.join(
-      process.env.XDG_CONFIG_HOME,
-      "anysphere",
-      "run",
-      "anysphere.sock"
-    );
-  } else if (process.env.HOME) {
-    return path.join(process.env.HOME, ".anysphere", "run", "anysphere.sock");
-  } else {
-    process.stderr(
-      "$HOME or $XDG_CONFIG_HOME or $XDG_RUNTIME_DIR not set! Cannot find socket, aborting. :("
-    );
-    throw new Error("$HOME or $XDG_CONFIG_HOME or $XDG_RUNTIME_DIR not set!");
-  }
-}
-
-function get_socket_address() {
-  return "unix://" + get_socket_path();
-}
-
-const daemonClient = new daemonS.DaemonClient(
-  get_socket_address(),
-  grpc.credentials.createInsecure()
-);
-
-console.log(`SOCKET ADDRESS: ${get_socket_address()}`);
+import { contextBridge, clipboard } from "electron";
+import { promisify } from "util";
+import grpc from "@grpc/grpc-js";
+import daemonM from "../daemon/schema/daemon_pb";
+import {
+  getDaemonClient,
+  convertProtobufIncomingMessageToTypedMessage,
+  convertProtobufOutgoingMessageToTypedMessage,
+} from "./daemon";
+import { Message } from "../types";
+const daemonClient = getDaemonClient();
 
 const FAKE_DATA = process.env.ASPHR_FAKE_DATA === "true";
 
-contextBridge.exposeInMainWorld("send", async (message, to) => {
+contextBridge.exposeInMainWorld("send", async (message: string, to: string) => {
   if (FAKE_DATA) {
     return true;
   }
@@ -57,6 +27,7 @@ contextBridge.exposeInMainWorld("send", async (message, to) => {
   const sendMessage = promisify(daemonClient.sendMessage).bind(daemonClient);
   try {
     const response = await sendMessage(request);
+    console.log("send response", response);
     return true;
   } catch (e) {
     console.log(`error in send: ${e}`);
@@ -64,41 +35,9 @@ contextBridge.exposeInMainWorld("send", async (message, to) => {
   }
 });
 
-contextBridge.exposeInMainWorld("copyToClipboard", async (s) => {
+contextBridge.exposeInMainWorld("copyToClipboard", async (s: string) => {
   clipboard.writeText(s, "selection");
 });
-
-function convertProtobufIncomingMessageToTypedMessage(m) {
-  console.log("seconds", m.getReceivedTimestamp().getSeconds());
-  var d = new Date(
-    m.getReceivedTimestamp().getSeconds() * 1e3 +
-      m.getReceivedTimestamp().getNanos() / 1e6
-  );
-  return {
-    id: m.getM().getId(),
-    from: m.getFrom(),
-    to: "me",
-    message: m.getM().getMessage(),
-    timestamp: d,
-    type: "incoming",
-  };
-}
-
-function convertProtobufOutgoingMessageToTypedMessage(m) {
-  console.log("seconds", m.getWrittenTimestamp().getSeconds());
-  var d = new Date(
-    m.getWrittenTimestamp().getSeconds() * 1e3 +
-      m.getWrittenTimestamp().getNanos() / 1e6
-  );
-  return {
-    id: m.getM().getId(),
-    from: "me",
-    to: m.getTo(),
-    message: m.getM().getMessage(),
-    timestamp: d,
-    type: "outgoing",
-  };
-}
 
 contextBridge.exposeInMainWorld("getNewMessages", async () => {
   if (FAKE_DATA) {
@@ -123,11 +62,11 @@ contextBridge.exposeInMainWorld("getNewMessages", async () => {
   }
   const request = new daemonM.GetMessagesRequest();
   request.setFilter(daemonM.GetMessagesRequest.Filter.NEW);
-  const getNewMessages = promisify(daemonClient.getNewMessages).bind(
-    daemonClient
-  );
+  const getNewMessages = promisify(daemonClient.getMessages).bind(daemonClient);
   try {
-    const response = await getNewMessages(request);
+    const response = (await getNewMessages(
+      request
+    )) as daemonM.GetMessagesResponse;
     const lm = response.getMessagesList();
     const l = lm.map(convertProtobufIncomingMessageToTypedMessage);
     return l;
@@ -139,7 +78,7 @@ contextBridge.exposeInMainWorld("getNewMessages", async () => {
 
 contextBridge.exposeInMainWorld(
   "generateFriendKey",
-  async (requestedFriend) => {
+  async (requestedFriend: string) => {
     if (FAKE_DATA) {
       return {
         friend: "sualeh",
@@ -152,31 +91,34 @@ contextBridge.exposeInMainWorld(
       daemonClient
     );
     try {
-      const response = await generateFriendKey(request);
+      const response = (await generateFriendKey(
+        request
+      )) as daemonM.GenerateFriendKeyResponse;
       return {
         friend: requestedFriend,
         key: response.getKey(),
       };
     } catch (e) {
       console.log(`error in generateFriendKey: ${e}`);
-      return [];
+      return null;
     }
   }
 );
 
 contextBridge.exposeInMainWorld(
   "addFriend",
-  async (requestedFriend, requestedFriendKey) => {
+  async (requestedFriend: string, requestedFriendKey: string) => {
     const request = new daemonM.AddFriendRequest();
     request.setName(requestedFriend);
     request.setKey(requestedFriendKey);
     const addFriend = promisify(daemonClient.addFriend).bind(daemonClient);
     try {
       const response = await addFriend(request);
+      console.log("addFriend response", response);
       return true;
     } catch (e) {
       console.log(`error in addFriend: ${e}`);
-      return e;
+      return false;
     }
   }
 );
@@ -220,11 +162,11 @@ contextBridge.exposeInMainWorld("getAllMessages", async () => {
   }
   const request = new daemonM.GetMessagesRequest();
   request.setFilter(daemonM.GetMessagesRequest.Filter.ALL);
-  const getAllMessages = promisify(daemonClient.getAllMessages).bind(
-    daemonClient
-  );
+  const getAllMessages = promisify(daemonClient.getMessages).bind(daemonClient);
   try {
-    const response = await getAllMessages(request);
+    const response = (await getAllMessages(
+      request
+    )) as daemonM.GetMessagesResponse;
     const lm = response.getMessagesList();
     const l = lm.map(convertProtobufIncomingMessageToTypedMessage);
     return l;
@@ -234,69 +176,87 @@ contextBridge.exposeInMainWorld("getAllMessages", async () => {
   }
 });
 
-contextBridge.exposeInMainWorld("getAllMessagesStreamed", (f) => {
-  const request = new daemonM.GetMessagesRequest();
-  request.setFilter(daemonM.GetMessagesRequest.Filter.ALL);
-  var call = daemonClient.getMessagesStreamed(request);
-  call.on("data", function (r) {
-    try {
-      const lm = r.getMessagesList();
-      const l = lm.map(convertProtobufIncomingMessageToTypedMessage);
-      f(l);
-    } catch (e) {
-      console.log(`error in getAllMessagesStreamed: ${e}`);
-    }
-    console.log("got all messages streamed", r);
-  });
-  call.on("end", function () {
-    // The server has finished sending
-    console.log("getAllMessagesStreamed end");
-  });
-  call.on("error", function (e) {
-    // An error has occurred and the stream has been closed.
-    console.log("getAllMessagesStreamed error", e);
-  });
-  call.on("status", function (status) {
-    // process status
-    console.log("getAllMessagesStreamed status", status);
-  });
-  return () => {
-    console.log("cancelling grpc!");
-    call.cancel();
-  };
-});
+contextBridge.exposeInMainWorld(
+  "getAllMessagesStreamed",
+  (messageHandler: (_: Message[]) => void) => {
+    const request = new daemonM.GetMessagesRequest();
+    request.setFilter(daemonM.GetMessagesRequest.Filter.ALL);
+    var call = daemonClient.getMessagesStreamed(request);
+    call.on("data", function (r: daemonM.GetMessagesResponse) {
+      try {
+        const lm = r.getMessagesList();
+        const l = lm.map(convertProtobufIncomingMessageToTypedMessage);
+        let l2: Message[] = [];
+        for (const m of l) {
+          if (m) {
+            l2.push(m);
+          }
+        }
+        messageHandler(l2);
+      } catch (e) {
+        console.log(`error in getAllMessagesStreamed: ${e}`);
+      }
+      console.log("got all messages streamed", r);
+    });
+    call.on("end", function () {
+      // The server has finished sending
+      console.log("getAllMessagesStreamed end");
+    });
+    call.on("error", function (e: Error) {
+      // An error has occurred and the stream has been closed.
+      console.log("getAllMessagesStreamed error", e);
+    });
+    call.on("status", function (status: grpc.StatusObject) {
+      // process status
+      console.log("getAllMessagesStreamed status", status);
+    });
+    return () => {
+      console.log("cancelling grpc!");
+      call.cancel();
+    };
+  }
+);
 
-contextBridge.exposeInMainWorld("getNewMessagesStreamed", (f) => {
-  const request = new daemonM.GetMessagesRequest();
-  request.setFilter(daemonM.GetMessagesRequest.Filter.NEW);
-  var call = daemonClient.getMessagesStreamed(request);
-  call.on("data", function (r) {
-    try {
-      const lm = r.getMessagesList();
-      const l = lm.map(convertProtobufIncomingMessageToTypedMessage);
-      f(l);
-    } catch (e) {
-      console.log(`error in getNewMessagesStreamed: ${e}`);
-    }
-    console.log("got all messages streamed", r);
-  });
-  call.on("end", function () {
-    // The server has finished sending
-    console.log("getNewMessagesStreamed end");
-  });
-  call.on("error", function (e) {
-    // An error has occurred and the stream has been closed.
-    console.log("getNewMessagesStreamed error", e);
-  });
-  call.on("status", function (status) {
-    // process status
-    console.log("getNewMessagesStreamed status", status);
-  });
-  return () => {
-    console.log("cancelling grpc!");
-    call.cancel();
-  };
-});
+contextBridge.exposeInMainWorld(
+  "getNewMessagesStreamed",
+  (messageHandler: (_: Message[]) => void) => {
+    const request = new daemonM.GetMessagesRequest();
+    request.setFilter(daemonM.GetMessagesRequest.Filter.NEW);
+    var call = daemonClient.getMessagesStreamed(request);
+    call.on("data", function (r: daemonM.GetMessagesResponse) {
+      try {
+        const lm = r.getMessagesList();
+        const l = lm.map(convertProtobufIncomingMessageToTypedMessage);
+        let l2: Message[] = [];
+        for (const m of l) {
+          if (m) {
+            l2.push(m);
+          }
+        }
+        messageHandler(l2);
+      } catch (e) {
+        console.log(`error in getNewMessagesStreamed: ${e}`);
+      }
+      console.log("got all messages streamed", r);
+    });
+    call.on("end", function () {
+      // The server has finished sending
+      console.log("getNewMessagesStreamed end");
+    });
+    call.on("error", function (e: Error) {
+      // An error has occurred and the stream has been closed.
+      console.log("getNewMessagesStreamed error", e);
+    });
+    call.on("status", function (status: grpc.StatusObject) {
+      // process status
+      console.log("getNewMessagesStreamed status", status);
+    });
+    return () => {
+      console.log("cancelling grpc!");
+      call.cancel();
+    };
+  }
+);
 
 contextBridge.exposeInMainWorld("getOutboxMessages", async () => {
   if (FAKE_DATA) {
@@ -340,7 +300,9 @@ contextBridge.exposeInMainWorld("getOutboxMessages", async () => {
     daemonClient
   );
   try {
-    const response = await getOutboxMessages(request);
+    const response = (await getOutboxMessages(
+      request
+    )) as daemonM.GetOutboxMessagesResponse;
     const lm = response.getMessagesList();
     const l = lm.map(convertProtobufOutgoingMessageToTypedMessage);
     return l;
@@ -377,7 +339,9 @@ contextBridge.exposeInMainWorld("getSentMessages", async () => {
     daemonClient
   );
   try {
-    const response = await getSentMessages(request);
+    const response = (await getSentMessages(
+      request
+    )) as daemonM.GetSentMessagesResponse;
     const lm = response.getMessagesList();
     const l = lm.map(convertProtobufOutgoingMessageToTypedMessage);
     return l;
@@ -409,7 +373,9 @@ contextBridge.exposeInMainWorld("getFriendList", async () => {
     daemonClient
   );
   try {
-    const response = await getFriendList(request);
+    const response = (await getFriendList(
+      request
+    )) as daemonM.GetFriendListResponse;
     const lm = response.getFriendInfosList();
     const l = lm.map((m) => {
       return {
@@ -424,12 +390,13 @@ contextBridge.exposeInMainWorld("getFriendList", async () => {
   }
 });
 
-contextBridge.exposeInMainWorld("messageSeen", async (message_id) => {
+contextBridge.exposeInMainWorld("messageSeen", async (message_id: string) => {
   const request = new daemonM.MessageSeenRequest();
   request.setId(message_id);
   const messageSeen = promisify(daemonClient.messageSeen).bind(daemonClient);
   try {
     const response = await messageSeen(request);
+    console.log("messageSeen response", response);
     return true;
   } catch (e) {
     console.log(`error in send: ${e}`);
@@ -441,7 +408,7 @@ contextBridge.exposeInMainWorld("hasRegistered", async () => {
   const request = new daemonM.GetStatusRequest();
   const getStatus = promisify(daemonClient.getStatus).bind(daemonClient);
   try {
-    const response = await getStatus(request);
+    const response = (await getStatus(request)) as daemonM.GetStatusResponse;
     return response.getRegistered();
   } catch (e) {
     console.log(`error in hasRegistered: ${e}`);
@@ -449,19 +416,24 @@ contextBridge.exposeInMainWorld("hasRegistered", async () => {
   }
 });
 
-contextBridge.exposeInMainWorld("register", async (username, accessKey) => {
-  const request = new daemonM.RegisterUserRequest();
-  request.setName(username);
-  request.setBetaKey(accessKey);
-  const register = promisify(daemonClient.registerUser).bind(daemonClient);
-  try {
-    const response = await register(request);
-    return true;
-  } catch (e) {
-    console.log(`error in register: ${e}`);
+contextBridge.exposeInMainWorld(
+  "register",
+  async (username: string, accessKey: string) => {
+    const request = new daemonM.RegisterUserRequest();
+    request.setName(username);
+    request.setBetaKey(accessKey);
+    const register = promisify(daemonClient.registerUser).bind(daemonClient);
+    try {
+      const response = await register(request);
+      console.log("register response", response);
+      return true;
+    } catch (e) {
+      console.log(`error in register: ${e}`);
+    }
+    return false;
   }
-  return false;
-});
+);
+
 contextBridge.exposeInMainWorld("isPlatformMac", () => {
   return process.platform === "darwin";
 });

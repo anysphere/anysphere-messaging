@@ -5,7 +5,7 @@
 
 import * as React from "react";
 import Modal from "./Modal";
-import { Friend } from "../types";
+import { Friend } from "../../types";
 import { SelectableList, ListItem } from "./SelectableList";
 
 function FriendsModal({
@@ -19,7 +19,7 @@ function FriendsModal({
   const [friends, setFriends] = React.useState<Friend[]>([]);
 
   React.useEffect(() => {
-    (window as any).getFriendList().then((friends: Friend[]) => {
+    window.getFriendList().then((friends: Friend[]) => {
       setFriends(friends);
     });
   }, []);
@@ -304,7 +304,7 @@ export function InitFriendModal({
             </code>
             <button
               className="unselectable px-2 py-0 rounded-md bg-asbrown-100 text-asbrown-light"
-              onClick={() => (window as any).copyToClipboard(friendKey)}
+              onClick={() => window.copyToClipboard(friendKey)}
             >
               <div className="codicon codicon-copy"></div>
             </button>

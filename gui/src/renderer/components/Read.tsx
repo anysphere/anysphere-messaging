@@ -4,7 +4,7 @@
 //
 
 import * as React from "react";
-import { Message } from "../types";
+import { Message } from "../../types";
 
 function Read({ message, onClose }: { message: Message; onClose: () => void }) {
   React.useEffect(() => {

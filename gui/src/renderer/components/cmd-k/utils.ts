@@ -42,7 +42,7 @@ export function shouldRejectKeystrokes(
 }
 
 const SSR = typeof window === "undefined";
-const isMac = !SSR && (window as any).isPlatformMac();
+const isMac = !SSR && window.isPlatformMac();
 export function isModKey(
   event: KeyboardEvent | MouseEvent | React.KeyboardEvent
 ) {
