@@ -4,7 +4,7 @@
 //
 
 import * as React from "react";
-import { Message } from "../types";
+import { Message } from "../../types";
 import { truncate, formatTime } from "../utils";
 import { SelectableList } from "./SelectableList";
 
@@ -59,54 +59,50 @@ function MessageList(props: {
   React.useEffect(() => {
     if (props.messages === "new") {
       setMessages([]);
-      let cancel = (window as any).getNewMessagesStreamed(
-        (messages: Message[]) => {
-          setMessages((prev: Message[]) => {
-            // merge new messages with old messages, and sort them by timestamp
-            let new_messages = messages.concat(prev);
-            new_messages.sort((a, b) => {
-              // sort based on timestamp
-              if (a.timestamp > b.timestamp) {
-                return -1;
-              } else if (a.timestamp < b.timestamp) {
-                return 1;
-              } else {
-                return 0;
-              }
-            });
-            return new_messages;
+      let cancel = window.getNewMessagesStreamed((messages: Message[]) => {
+        setMessages((prev: Message[]) => {
+          // merge new messages with old messages, and sort them by timestamp
+          let new_messages = messages.concat(prev);
+          new_messages.sort((a, b) => {
+            // sort based on timestamp
+            if (a.timestamp > b.timestamp) {
+              return -1;
+            } else if (a.timestamp < b.timestamp) {
+              return 1;
+            } else {
+              return 0;
+            }
           });
-        }
-      );
+          return new_messages;
+        });
+      });
       return cancel;
     } else if (props.messages === "all") {
       setMessages([]);
-      let cancel = (window as any).getAllMessagesStreamed(
-        (messages: Message[]) => {
-          setMessages((prev: Message[]) => {
-            // merge new messages with old messages, and sort them by timestamp
-            let new_messages = messages.concat(prev);
-            new_messages.sort((a, b) => {
-              // sort based on timestamp
-              if (a.timestamp > b.timestamp) {
-                return -1;
-              } else if (a.timestamp < b.timestamp) {
-                return 1;
-              } else {
-                return 0;
-              }
-            });
-            return new_messages;
+      let cancel = window.getAllMessagesStreamed((messages: Message[]) => {
+        setMessages((prev: Message[]) => {
+          // merge new messages with old messages, and sort them by timestamp
+          let new_messages = messages.concat(prev);
+          new_messages.sort((a, b) => {
+            // sort based on timestamp
+            if (a.timestamp > b.timestamp) {
+              return -1;
+            } else if (a.timestamp < b.timestamp) {
+              return 1;
+            } else {
+              return 0;
+            }
           });
-        }
-      );
+          return new_messages;
+        });
+      });
       return cancel;
     } else if (props.messages === "outbox") {
-      (window as any).getOutboxMessages().then((messages: Message[]) => {
+      window.getOutboxMessages().then((messages: Message[]) => {
         setMessages(messages);
       });
     } else if (props.messages === "sent") {
-      (window as any).getSentMessages().then((messages: Message[]) => {
+      window.getSentMessages().then((messages: Message[]) => {
         setMessages(messages);
       });
     }

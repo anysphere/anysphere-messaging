@@ -11,7 +11,7 @@ import Write from "./components/Write";
 import FriendsModal from "./components/FriendsModal";
 import { InitFriendModal } from "./components/FriendsModal";
 import { RegisterModal } from "./components/RegisterModal";
-import { Message } from "./types";
+import { Message } from "../types";
 import { Tab, TabType, TabContainer, useTabs } from "./components/Tabs";
 import { randomString, truncate } from "./utils";
 import { CmdK } from "./components/cmd-k/CmdK";
@@ -59,7 +59,7 @@ function Main() {
           return;
         }
       }
-      (window as any).messageSeen(message.id);
+      window.messageSeen(message.id);
       const readTab = {
         type: TabType.Read,
         name: `${truncate(message.message, 10)} - ${message.from}`,
@@ -86,7 +86,7 @@ function Main() {
 
   const send = React.useCallback(
     (content: string, to: string) => {
-      (window as any).send(content, to).then((s: boolean) => {
+      window.send(content, to).then((s: boolean) => {
         if (s) {
           statusState.setStatus({
             message: `Message sent to ${to}!`,
@@ -136,18 +136,17 @@ function Main() {
 
   const openAddFriendModal = React.useCallback(
     (friend: string) => {
-      (window as any)
+      window
         .generateFriendKey(friend)
-        .then(({ friend, key }: { friend: string; key: string }) => {
-          setModal(
-            <InitFriendModal
-              onClose={closeModal}
-              friend={friend}
-              friendKey={key}
-              onPasteKey={(key: string) => {
-                (window as any)
-                  .addFriend(friend, key)
-                  .then((successOrError: any) => {
+        .then((friendKeyMaybe: null | { friend: string; key: string }) => {
+          if (friendKeyMaybe) {
+            setModal(
+              <InitFriendModal
+                onClose={closeModal}
+                friend={friendKeyMaybe.friend}
+                friendKey={friendKeyMaybe.key}
+                onPasteKey={(key: string) => {
+                  window.addFriend(friend, key).then((successOrError: any) => {
                     if (successOrError === true) {
                       statusState.setStatus({
                         message: `Added ${friend}!`,
@@ -164,10 +163,18 @@ function Main() {
                       statusState.setVisible();
                     }
                   });
-                closeModal();
-              }}
-            />
-          );
+                  closeModal();
+                }}
+              />
+            );
+          } else {
+            statusState.setStatus({
+              message: `Could not generate friend key for ${friend}`,
+              action: () => {},
+              actionName: null,
+            });
+            statusState.setVisible();
+          }
         });
     },
     [setModal, closeModal, statusState]
@@ -235,32 +242,30 @@ function Main() {
   }
 
   React.useEffect(() => {
-    (window as any).hasRegistered().then((registered: boolean) => {
+    window.hasRegistered().then((registered: boolean) => {
       if (!registered) {
         setModal(
           <RegisterModal
             onClose={() => {}} // should not be able to close modal by clicking outside
             onRegister={(username: string, key: string) => {
-              (window as any)
-                .register(username, key)
-                .then((registered: boolean) => {
-                  if (registered) {
-                    closeModal();
-                    statusState.setStatus({
-                      message: `Registered as ${username}.`,
-                      action: () => {},
-                      actionName: null,
-                    });
-                    statusState.setVisible();
-                  } else {
-                    statusState.setStatus({
-                      message: `Unable to register. Perhaps incorrect access key?`,
-                      action: () => {},
-                      actionName: null,
-                    });
-                    statusState.setVisible();
-                  }
-                });
+              window.register(username, key).then((registered: boolean) => {
+                if (registered) {
+                  closeModal();
+                  statusState.setStatus({
+                    message: `Registered as ${username}.`,
+                    action: () => {},
+                    actionName: null,
+                  });
+                  statusState.setVisible();
+                } else {
+                  statusState.setStatus({
+                    message: `Unable to register. Perhaps incorrect access key?`,
+                    action: () => {},
+                    actionName: null,
+                  });
+                  statusState.setVisible();
+                }
+              });
             }}
           />
         );

@@ -4,7 +4,7 @@
 //
 
 import * as React from "react";
-import { Message } from "../../types";
+import { Message } from "../../../types";
 import { truncate, formatTime } from "../../utils";
 import { SelectableList } from "../SelectableList";
 
@@ -57,11 +57,11 @@ export default function OutboxMessageList(props: {
 
   React.useEffect(() => {
     if (props.messages === "new") {
-      (window as any).getNewMessages().then((messages: Message[]) => {
+      window.getNewMessages().then((messages: Message[]) => {
         setMessages(messages);
       });
     } else {
-      (window as any).getAllMessages().then((messages: Message[]) => {
+      window.getAllMessages().then((messages: Message[]) => {
         setMessages(messages);
       });
     }

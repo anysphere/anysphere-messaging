@@ -4,7 +4,7 @@
 //
 
 import * as React from "react";
-import { Friend } from "../types";
+import { Friend } from "../../types";
 import { useSearch, useFocus } from "../utils";
 import { SelectableList, ListItem } from "./SelectableList";
 
@@ -131,7 +131,7 @@ function Write(props: {
   const [contextTestareaFocusRef, setContextTestareaFocusRef] = useFocus();
 
   React.useEffect(() => {
-    (window as any).getFriendList().then((friends: Friend[]) => {
+    window.getFriendList().then((friends: Friend[]) => {
       setFriends(friends);
     });
   }, []);

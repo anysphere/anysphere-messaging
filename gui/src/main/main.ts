@@ -6,9 +6,16 @@
 /* eslint global-require: off, no-console: off, promise/always-return: off */
 
 import path from "path";
-import { app, BrowserWindow, session, shell } from "electron";
+import { app, BrowserWindow, session, shell, Notification } from "electron";
 import MenuBuilder from "./menu";
 import { resolveHtmlPath } from "./util";
+
+import {
+  getDaemonClient,
+  convertProtobufIncomingMessageToTypedMessage,
+  truncate,
+} from "./daemon";
+import daemonM from "../daemon/schema/daemon_pb";
 
 if (process.env.NODE_ENV === "production") {
   const sourceMapSupport = require("source-map-support");
@@ -54,7 +61,9 @@ const createWindow = async () => {
     icon: getAssetPath("icon.png"),
     titleBarStyle: "hidden",
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
+      preload: app.isPackaged
+        ? path.join(__dirname, "preload.js")
+        : path.join(__dirname, "../../helpers/dll/preload.js"),
     },
   });
 
@@ -100,6 +109,55 @@ app.on("window-all-closed", () => {
   }
 });
 
+function registerForNotifications() {
+  const daemonClient = getDaemonClient();
+  const request = new daemonM.GetMessagesRequest();
+  request.setFilter(daemonM.GetMessagesRequest.Filter.NEW);
+  var call = daemonClient.getMessagesStreamed(request);
+
+  let firstTime = true;
+
+  call.on("data", function (r) {
+    if (firstTime) {
+      firstTime = false;
+      return;
+    }
+    try {
+      const lm = r.getMessagesList();
+      const l = lm.map(convertProtobufIncomingMessageToTypedMessage);
+      // notify!!!
+      for (const m of l) {
+        const notification = new Notification({
+          title: m.from,
+          body: truncate(m.message, 50),
+        });
+        notification.show();
+      }
+    } catch (e) {
+      console.log(`error in getNewMessagesStreamed: ${e}`);
+    }
+    console.log("got all messages streamed", r);
+  });
+  call.on("end", function () {
+    // The server has finished sending
+    // TODO(arvid): resubscribe?
+    console.log("getNewMessagesStreamed end");
+  });
+  call.on("error", function (e) {
+    // An error has occurred and the stream has been closed.
+    // TODO(arvid): resubscribe?
+    console.log("getNewMessagesStreamed error", e);
+  });
+  call.on("status", function (status) {
+    // process status
+    console.log("getNewMessagesStreamed status", status);
+  });
+  return () => {
+    console.log("cancelling notifications!");
+    call.cancel();
+  };
+}
+
 app
   .whenReady()
   .then(() => {
@@ -110,6 +168,13 @@ app
       if (BrowserWindow.getAllWindows().length === 0) {
         createWindow();
       }
+    });
+
+    // set up notifications!
+    const cancelNotifications = registerForNotifications();
+
+    app.on("will-quit", () => {
+      cancelNotifications();
     });
   })
   .catch(console.log);
