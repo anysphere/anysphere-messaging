@@ -8,7 +8,7 @@
 
 To start the storybook of our components:
 
-```
+```bash
 npm run storybook
 ```
 

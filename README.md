@@ -18,7 +18,7 @@ bazel test //...
 
 to test.
 
-## Develop GUI.
+## Develop GUI
 
 Checkout [the GUI Readme](gui/README.md)!
 
@@ -76,6 +76,6 @@ To connect to daemon 1, run:
 
 To connect to daemon 2, run:
 
-```
+```bash
 ./wrap2.sh ./bazel-bin/cli/asphr [command]
 ```
