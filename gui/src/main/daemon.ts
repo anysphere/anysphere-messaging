@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 const grpc = require("@grpc/grpc-js");
 import daemonS from "../daemon/schema/daemon_grpc_pb";
 import daemonM from "../daemon/schema/daemon_pb";
