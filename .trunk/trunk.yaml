@@ -17,3 +17,9 @@ lint:
     - terraform-fmt@1.1.0
     - terraform-validate@1.1.0
     - tflint@0.34.1
+repo:
+  repo:
+    host: github.com
+    owner: anysphere
+    name: anysphere
+  trunk_branch_name: origin/main
