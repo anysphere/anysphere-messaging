@@ -118,9 +118,20 @@ function package_mac() {
             Arch[context.arch]
           } ${context.appOutDir}/Anysphere.app/Contents/Resources/bin`
         );
+
         if (r.stderr) {
           console.log("ERROR");
           console.log(r.stderr);
+          exit(1);
+        }
+
+        // for updates, need binaries to be writable
+        const r2 = await exec(
+          `chmod u+w ${context.appOutDir}/Anysphere.app/Contents/Resources/bin/*`
+        );
+        if (r2.stderr) {
+          console.log("ERROR");
+          console.log(r2.stderr);
           exit(1);
         }
       },
