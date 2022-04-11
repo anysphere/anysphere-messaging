@@ -150,4 +150,6 @@
 #define ASPHR_ASSERT(expr) static_cast<void>(0)
 #define ASPHR_ASSERT_EQ_MSG(a, b, msg) static_cast<void>(0)
 #define ASPHR_ASSERT_EQ(a, b) static_cast<void>(0)
+#define ASPHR_ASSERT_NEQ_MSG(a, b, msg) static_cast<void>(0)
+#define ASPHR_ASSERT_NEQ(a, b) static_cast<void>(0)
 #endif
