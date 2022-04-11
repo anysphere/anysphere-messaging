@@ -252,7 +252,7 @@ function Main() {
                 if (registered) {
                   closeModal();
                   statusState.setStatus({
-                    message: `Registered as ${username}.`,
+                    message: `Registered!`,
                     action: () => {},
                     actionName: null,
                   });

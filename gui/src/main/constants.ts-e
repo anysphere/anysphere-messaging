@@ -27,7 +27,7 @@ export const PLIST_CONTENTS = (pkgPath: string, logPath: string) => {
     <key>Label</key>
     <string>co.anysphere.anysphered</string>
     <key>Program</key>
-    <string>${pkgPath}/bin/anysphered</string>
+    <string>${pkgPath}/binaries/anysphered</string>
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>

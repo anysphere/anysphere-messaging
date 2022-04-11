@@ -7,9 +7,10 @@
 
 import path from "path";
 import { app, BrowserWindow, session, shell, Notification } from "electron";
-import { promisify } from "util";
 import MenuBuilder from "./menu";
 import { resolveHtmlPath } from "./util";
+import { autoUpdater } from "electron-updater";
+import { promisify } from "util";
 import { exec as execNonPromisified } from "child_process";
 const exec = promisify(execNonPromisified);
 
@@ -53,7 +54,7 @@ const startDaemonIfNeeded = async (pkgPath: string) => {
     }
 
     // first copy the CLI
-    const cliPath = path.join(pkgPath, "Resources", "anysphere");
+    const cliPath = path.join(pkgPath, "bin", "anysphere");
     // ln -sf link it!
     const mkdir = await exec(`mkdir -p /usr/local/bin`);
     if (mkdir.stderr) {
@@ -228,7 +229,9 @@ function registerForNotifications() {
 app
   .whenReady()
   .then(() => {
-    startDaemonIfNeeded(app.getAppPath());
+    autoUpdater.checkForUpdatesAndNotify();
+
+    startDaemonIfNeeded(path.dirname(app.getAppPath()));
 
     createWindow();
     app.on("activate", () => {
