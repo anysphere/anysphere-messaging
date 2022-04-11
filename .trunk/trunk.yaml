@@ -17,4 +17,4 @@ repo:
     host: github.com
     owner: anysphere
     name: client
-  trunk_branch_name: origin/main
+  trunk_branch: origin/main
