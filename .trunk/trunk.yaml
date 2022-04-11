@@ -1,6 +1,6 @@
 version: 0.1
 cli:
-  version: 0.8.1-beta
+  version: 0.9.2-beta
 lint:
   enabled:
     - actionlint@1.6.4
@@ -12,3 +12,9 @@ lint:
     - prettier@2.4.1
     - shellcheck@0.7.2
     - shfmt@3.4.0
+repo:
+  repo:
+    host: github.com
+    owner: anysphere
+    name: anysphere
+  trunk_branch_name: origin/main
