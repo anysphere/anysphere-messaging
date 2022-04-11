@@ -52,6 +52,14 @@ const startDaemonIfNeeded = async (pkgPath: string) => {
       return;
     }
 
+    // first copy the CLI
+    const cliPath = path.join(pkgPath, "Resources", "anysphere");
+    // ln -sf link it!
+    const clilink = await exec(`ln -sf ${cliPath} /usr/local/bin/anysphere`);
+    if (clilink.stderr) {
+      process.stderr.write(clilink.stderr);
+    }
+
     // TODO(arvid): handle windows and linux too
     // possible problem, so let's start the daemon!
     // unload the plist if it exists.
