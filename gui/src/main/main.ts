@@ -55,6 +55,10 @@ const startDaemonIfNeeded = async (pkgPath: string) => {
     // first copy the CLI
     const cliPath = path.join(pkgPath, "Resources", "anysphere");
     // ln -sf link it!
+    const mkdir = await exec(`mkdir -p /usr/local/bin`);
+    if (mkdir.stderr) {
+      process.stderr.write(mkdir.stderr);
+    }
     const clilink = await exec(`ln -sf ${cliPath} /usr/local/bin/anysphere`);
     if (clilink.stderr) {
       process.stderr.write(clilink.stderr);
