@@ -5,7 +5,7 @@ import { SideBarButton, SideBarProps } from "./SideBarProps";
 import { SelectableList, ListItem } from "../SelectableList";
 
 import { Dialog, Transition } from "@headlessui/react";
-import { XIcon } from "@heroicons/react/outline";
+// import { XIcon } from "@heroicons/react/outline";
 
 /* Defining the properties of the component. */
 export interface SideBarItemProps {
@@ -90,7 +90,7 @@ export function HeadlessSlideOver({
                       onClick={() => setOpen(false)}
                     >
                       <span className="sr-only">Close panel</span>
-                      <XIcon className="h-6 w-6" aria-hidden="true" />
+                      {/* <XIcon className="h-6 w-6" aria-hidden="true" /> */}
                     </button>
                   </div>
                 </Transition.Child>

@@ -9,6 +9,10 @@ import path from "path";
 import { app, BrowserWindow, session, shell, Notification } from "electron";
 import MenuBuilder from "./menu";
 import { resolveHtmlPath } from "./util";
+import { autoUpdater } from "electron-updater";
+import { promisify } from "util";
+import { exec as execNonPromisified } from "child_process";
+const exec = promisify(execNonPromisified);
 
 import {
   getDaemonClient,
@@ -16,14 +20,79 @@ import {
   truncate,
 } from "./daemon";
 import daemonM from "../daemon/schema/daemon_pb";
+import { PLIST_CONTENTS, PLIST_PATH, RELEASE_COMMIT_HASH } from "./constants";
+import { exit } from "process";
+import fs from "fs";
+const daemonClient = getDaemonClient();
+
+const isDevelopment =
+  process.env.NODE_ENV === "development" || process.env.DEBUG_PROD === "true";
 
 if (process.env.NODE_ENV === "production") {
   const sourceMapSupport = require("source-map-support");
   sourceMapSupport.install();
 }
 
-const isDevelopment =
-  process.env.NODE_ENV === "development" || process.env.DEBUG_PROD === "true";
+const startDaemonIfNeeded = async (pkgPath: string) => {
+  const request = new daemonM.GetStatusRequest();
+  const getStatus = promisify(daemonClient.getStatus).bind(daemonClient);
+  try {
+    const response = (await getStatus(request)) as daemonM.GetStatusResponse;
+    // if release hash is wrong, we need to restart!
+    if (response.getReleaseHash() !== RELEASE_COMMIT_HASH) {
+      throw new Error("incorrect release hash");
+    }
+    // daemon is running, correct version, nothing to do
+    return;
+  } catch (e) {
+    // if development, we don't want to start the daemon (want to do it manually)
+    if (isDevelopment) {
+      process.stdout.write(
+        `Daemon is either not running or running the wrong version. Please start it; we're not doing anything because we're in DEV mode. Error: ${e}.`
+      );
+      return;
+    }
+
+    // first copy the CLI
+    const cliPath = path.join(pkgPath, "bin", "anysphere");
+    // ln -sf link it!
+    const mkdir = await exec(`mkdir -p /usr/local/bin`);
+    if (mkdir.stderr) {
+      process.stderr.write(mkdir.stderr);
+    }
+    const clilink = await exec(`ln -sf ${cliPath} /usr/local/bin/anysphere`);
+    if (clilink.stderr) {
+      process.stderr.write(clilink.stderr);
+    }
+
+    // TODO(arvid): handle windows and linux too
+    // possible problem, so let's start the daemon!
+    // unload the plist if it exists.
+    const plist_path = PLIST_PATH();
+    // 1: unload plist
+    await exec("launchctl unload " + plist_path); // we don't care if it fails or not!
+    let logPath = "";
+    if (process.env.XDG_CACHE_HOME) {
+      logPath = path.join(process.env.XDG_CACHE_HOME, "anysphere", "logs");
+    } else if (process.env.HOME) {
+      logPath = path.join(process.env.HOME, ".anysphere", "cache", "logs");
+    } else {
+      process.stderr.write(
+        "$HOME or $XDG_CACHE_HOME not set! Cannot create daemon, aborting :("
+      );
+      exit(1);
+    }
+    const contents = PLIST_CONTENTS(pkgPath, logPath);
+    // 2: write plist
+    await fs.promises.writeFile(plist_path, contents);
+    // 3: load plist
+    const response = await exec("launchctl load " + plist_path);
+    if (response.stderr) {
+      process.stderr.write(response.stderr);
+      exit(1);
+    }
+  }
+};
 
 const installExtensions = async () => {
   const installer = require("electron-devtools-installer");
@@ -110,7 +179,6 @@ app.on("window-all-closed", () => {
 });
 
 function registerForNotifications() {
-  const daemonClient = getDaemonClient();
   const request = new daemonM.GetMessagesRequest();
   request.setFilter(daemonM.GetMessagesRequest.Filter.NEW);
   var call = daemonClient.getMessagesStreamed(request);
@@ -161,6 +229,10 @@ function registerForNotifications() {
 app
   .whenReady()
   .then(() => {
+    autoUpdater.checkForUpdatesAndNotify();
+
+    startDaemonIfNeeded(path.dirname(app.getAppPath()));
+
     createWindow();
     app.on("activate", () => {
       // On macOS it's common to re-create a window in the app when the

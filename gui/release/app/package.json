@@ -1,9 +1,10 @@
 {
   "name": "anysphere",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "author": "Anysphere, Inc.",
   "description": "The world's first completely private messenger.",
   "main": "./dist/main/main.js",
+  "repository": "https://github.com/anysphere/client",
   "scripts": {
     "electron-rebuild": "node -r ts-node/register ../../helpers/scripts/electron-rebuild.js",
     "link-modules": "node -r ts-node/register ../../helpers/scripts/link-modules.ts",
