@@ -4,7 +4,7 @@ The world's first completely private messenger. For freedom.
 
 Clone: `git clone git@github.com:anysphere/anysphere && cd anysphere && ./setupgit.sh`
 
-# Git
+## Git
 
 I recommend using the following git aliases:
 
@@ -18,7 +18,7 @@ I recommend using the following git aliases:
 
 To get these working, you need to run `./setupgit.sh` and follow its instructions.
 
-# Updating schema
+## Updating schema
 
 After updating the schema in `asphr/schema`, run the following on a Linux machine:
 
@@ -28,7 +28,7 @@ make update-gui-repo
 
 in this directory. Then commit and push! This updates the generated schema for the gui.
 
-# Testing
+## Testing
 
 ```bash
 bazel test //...
@@ -40,11 +40,11 @@ Testing with address sanitizer is also recommended:
 bazel test --config=asan //...
 ```
 
-# GitPod
+## GitPod
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/anysphere/anysphere)
 
-# Build for x86
+## Build for x86
 
 Install `x86brew`:
 
@@ -61,3 +61,27 @@ x86brew install bazel
 
 Create alias: add `alias x86bazel='arch --x86_64 /usr/local/bin/bazel'` to your `.bashrc`.
 Make sure `which bazel` is the `/opt/homebrew/...` version, and make sure `x86bazel` is the right thing too.
+
+## Release
+
+Make a new draft release on GitHub in the client repo. Pick a new version number and give the tag `vX.X.X`.
+
+Run
+
+```bash
+ASPHR_VERSION=X.X.X make publish-mac
+```
+
+Publish the release on GitHub.
+
+Deploy the landing page:
+
+```bash
+make publish-landing
+```
+
+### One-time setup
+
+Create a GH access token with the full repo scope. Put it in `.env` as `GH_TOKEN=ghp_xxxxxxxx`. Then run `make publish-mac`.
+
+To debug, check `~/Library/Caches/co.anysphere.Anysphere.ShipIt`.

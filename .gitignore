@@ -13,3 +13,5 @@ compile_commands.json
 # asphr and client will be clone by setupgit.sh
 client
 asphr
+
+.env

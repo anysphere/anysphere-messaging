@@ -119,7 +119,12 @@
     "__functional_03": "cpp",
     "hash_map": "cpp",
     "__availability": "cpp",
-    "*.ipp": "cpp"
+    "*.ipp": "cpp",
+    "barrier": "cpp",
+    "csetjmp": "cpp",
+    "coroutine": "cpp",
+    "latch": "cpp",
+    "strstream": "cpp"
   },
   "C_Cpp.codeAnalysis.clangTidy.enabled": true,
   "C_Cpp.codeAnalysis.runAutomatically": false,

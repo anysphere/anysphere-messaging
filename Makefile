@@ -1,5 +1,15 @@
 .PHONY: server minimal-server push push-minimal package-mac publish-mac-alpha update-gui-proto clean
 
+define load_env
+    $(eval ENV_FILE := .env)
+    @echo " - setup env $(ENV_FILE)"
+    $(eval include .env)
+    $(eval export)
+endef
+
+loadenv:
+	$(call load_env)
+
 server: 
 	echo "WARNING: THE server.Dockerfile IS OUT OF DATE. PLEASE UPDATE IT, TAKING INSPIRATION FROM minimal-server.Dockerfile."
 	DOCKER_BUILDKIT=1 docker build -f server.Dockerfile -t server .
@@ -23,20 +33,32 @@ push-minimal: minimal-server
 	echo "Now update infra/aws/variables.tf to include the new sha256 in the asphr_server_image_tag variable!"
 	echo "Now do cd infra/aws && terraform apply"
 
-package-mac-arm64:
+
+# the OLD package functions use .pkg and publish to s3
+package-mac-arm64-OLD:
 	pushd client/gui && npm install && npm run package-mac-arm64 && popd
 	./move-pkg.sh
 	echo "Client successfully built for mac-arm64! Look in the release folder."
-
-package-mac-x86_64:
+package-mac-x86_64-OLD:
 	pushd client/gui && npm install && npm run package-mac-x86_64 && popd
 	./move-pkg.sh x86_64
 	echo "Client successfully built for mac-x86_64! Look in the release folder."
-
-# we generate a random release ID so that only people we send the link to can download
-publish-alpha: package-mac-arm64 package-mac-x86_64
+publish-alpha-OLD: package-mac-arm64 package-mac-x86_64
 	./publish.sh arm64 x86_64
 	echo "Client successfully published to s3! Download from URL above."
+
+# the NEW package functions use .dmg and publish to github
+publish-mac-arm64: loadenv
+	pushd client/gui && npm install && PUBLISH_ASPHR=true npm run package-mac-arm64 && popd
+
+publish-mac-x86_64: loadenv
+	pushd client/gui && npm install && PUBLISH_ASPHR=true npm run package-mac-x86_64 && popd
+
+publish-mac: loadenv
+	./publish-mac.sh
+
+publish-landing:
+	pushd website/landing && ./deploy.sh && popd
 
 # whenver daemon.proto is changed, run this on the server and push the changed files!
 update-gui-proto:
