@@ -179,6 +179,66 @@ contextBridge.exposeInMainWorld("getAllMessages", async () => {
 contextBridge.exposeInMainWorld(
   "getAllMessagesStreamed",
   (messageHandler: (_: Message[]) => void) => {
+    if (FAKE_DATA) {
+      const l: Message[] = [
+        {
+          id: "5",
+          from: "Sualeh",
+          to: "me",
+          message:
+            "Can you schedule a meeting with Srini for next week, please?",
+          timestamp: new Date(),
+          type: "incoming",
+        },
+        {
+          id: "5",
+          from: "Sualeh",
+          to: "me",
+          message:
+            "I pushed some of my comments on the white paper draft to the repo, but I figured I should explain some of it here, too.",
+          timestamp: new Date(),
+          type: "incoming",
+        },
+        {
+          id: "2",
+          from: "Sualeh",
+          to: "me",
+          message:
+            "I was thinking about the thing you told me about the other day, and I think you're right.",
+          timestamp: new Date(),
+          type: "incoming",
+        },
+        {
+          id: "3",
+          from: "Sualeh",
+          to: "me",
+          message:
+            "Can you take a look at the server branch and see if it works? I made some changes.",
+          timestamp: new Date(),
+          type: "incoming",
+        },
+        {
+          id: "4",
+          from: "Shengtong",
+          to: "me",
+          message:
+            "Hi Arvid,\n\nThank you so much for onboarding me to Anysphere! I am very excited to work with you.\n\nBest,\nShengtong",
+          timestamp: new Date(),
+          type: "incoming",
+        },
+        {
+          id: "1",
+          from: "Sualeh",
+          to: "me",
+          message:
+            "Dear Arvid,\n\nThis is my first ever completely private message to you. No one will be able to read this message, find out when it was sent, or even suspect that I sent anything to you at all.\n\nHere's to a thoughtful, private and free future.\n\nYours truly,\nSualeh",
+          timestamp: new Date(),
+          type: "incoming",
+        },
+      ];
+      messageHandler(l);
+      return () => {};
+    }
     const request = new daemonM.GetMessagesRequest();
     request.setFilter(daemonM.GetMessagesRequest.Filter.ALL);
     var call = daemonClient.getMessagesStreamed(request);
@@ -220,6 +280,30 @@ contextBridge.exposeInMainWorld(
 contextBridge.exposeInMainWorld(
   "getNewMessagesStreamed",
   (messageHandler: (_: Message[]) => void) => {
+    if (FAKE_DATA) {
+      const l: Message[] = [
+        {
+          id: "5",
+          from: "Sualeh",
+          to: "me",
+          message:
+            "Can you schedule a meeting with Srini for next week, please?",
+          timestamp: new Date(),
+          type: "incoming",
+        },
+        {
+          id: "5",
+          from: "Sualeh",
+          to: "me",
+          message:
+            "I pushed some of my comments on the white paper draft to the repo, but I figured I should explain some of it here, too.",
+          timestamp: new Date(),
+          type: "incoming",
+        },
+      ];
+      messageHandler(l);
+      return () => {};
+    }
     const request = new daemonM.GetMessagesRequest();
     request.setFilter(daemonM.GetMessagesRequest.Filter.NEW);
     var call = daemonClient.getMessagesStreamed(request);
@@ -318,17 +402,17 @@ contextBridge.exposeInMainWorld("getSentMessages", async () => {
       {
         id: "1",
         from: "me",
-        to: "SuAlEh",
-        message:
-          "Send send!\n\nthis is a test message\n\nnot the best,\nSuAlEh",
+        to: "Sualeh",
+        message: "The draft looks good. Let me know if you need any help!",
         timestamp: new Date(),
         type: "outgoing",
       },
       {
         id: "2",
         from: "me",
-        to: "sent happy happy",
-        message: "HIHI",
+        to: "Shengtong",
+        message:
+          "Welcome! We are extremely excited to have you as a part of our team.",
         timestamp: new Date(),
         type: "outgoing",
       },
@@ -355,15 +439,15 @@ contextBridge.exposeInMainWorld("getFriendList", async () => {
   if (FAKE_DATA) {
     return [
       {
-        name: "Friend 1",
+        name: "Srini",
         status: "initiated",
       },
       {
-        name: "Friend 2",
+        name: "Sualeh",
         status: "added",
       },
       {
-        name: "Friend 3",
+        name: "Shengtong",
         status: "added",
       },
     ];

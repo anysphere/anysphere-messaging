@@ -31,7 +31,7 @@ function MessageBlurb({
           {message.type === "incoming" ? message.from : `To: ${message.to}`}
         </div>
         <div className="text-asbrown-300 text-sm">
-          {truncate(message.message, 70)}
+          {truncate(message.message, 65)}
         </div>
         <div className="flex-1"></div>
         <div className="text-asbrown-200 text-sm">{timestamp_string}</div>
