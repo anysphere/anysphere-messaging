@@ -85,7 +85,8 @@ int main(int argc, char** argv) {
   socket_address = StrCat("unix://", socket_address);
 
   // connect to the anysphere servers
-  cout << "Client querying server address: " << server_address << std::endl;
+  ASPHR_LOG_ERR("Client querying server address.", server_address, server_address);
+  // cout << "Client querying server address: " << server_address << std::endl;
   auto channel_creds = grpc::SslCredentials(
       grpc::SslCredentialsOptions{.pem_root_certs = AMAZON_ROOT_CERTS});
 
