@@ -4,6 +4,12 @@
 
 > "Design is not just what it looks like and feels like. Design is how it works." -- Steve Jobs
 
+## Run
+
+```bash
+npm run start
+```
+
 ## Storybook
 
 To start the storybook of our components:
