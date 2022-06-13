@@ -27,7 +27,7 @@ setup_asphr("@asphr")
 
 git_repository(
     name = "client",
-    commit = "c3b5e2d6120989d5b3cacc5dc5ffe7bf97d8d77c",  # autoupdate anysphere/client
+    commit = "f956ce44f811ad0e04c39faaf8f67c652266223a",  # autoupdate anysphere/client
     init_submodules = True,
     remote = "https://github.com/anysphere/client.git",
 )
