@@ -4,3 +4,6 @@
 [submodule "non_code/emails/kerberi"]
 	path = non_code/emails/kerberi
 	url = git@github.com:arvid220u/kerberi
+[submodule "research/whitepaper"]
+	path = research/whitepaper
+	url = https://github.com/anysphere/whitepaper
