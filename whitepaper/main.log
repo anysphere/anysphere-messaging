@@ -1,12 +1,12 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.12.11)  13 JUN 2022 08:54
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.12.11)  13 JUN 2022 09:10
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**/Users/arvid/code/anysphere/research/whitepaper/main.tex
-(/Users/arvid/code/anysphere/research/whitepaper/main.tex
+**/Users/arvid/code/anysphere/client/whitepaper/main.tex
+(/Users/arvid/code/anysphere/client/whitepaper/main.tex
 LaTeX2e <2020-10-01> patch level 4
-L3 programming layer <2021-02-18> (/Users/arvid/code/anysphere/research/whitepaper/acmart.cls
+L3 programming layer <2021-02-18> (/Users/arvid/code/anysphere/client/whitepaper/acmart.cls
 Document Class: acmart 2021/09/24 v1.80 Typesetting articles for the Association for Computing Machinery
 (/usr/local/texlive/2021/texmf-dist/tex/latex/xkeyval/xkeyval.sty
 Package: xkeyval 2020/11/20 v2.8 package option processing (HA)
@@ -571,7 +571,7 @@ File: T1LinuxLibertineT-TLF.fd 2017/03/20 (autoinst) Font definitions for T1/Lin
 )
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
 (Font)              scaled to size 9.0pt on input line 3103.
-) (/Users/arvid/code/anysphere/research/whitepaper/preamble.tex (/usr/local/texlive/2021/texmf-dist/tex/latex/hanging/hanging.sty
+) (/Users/arvid/code/anysphere/client/whitepaper/preamble.tex (/usr/local/texlive/2021/texmf-dist/tex/latex/hanging/hanging.sty
 Package: hanging 2009/09/02 v1.2b hanging paragraphs and punctuation
 \h@ngcommawd=\skip73
 \h@ngfstopwd=\skip74
@@ -618,11 +618,11 @@ Package: framed 2011/10/22 v 0.96: framed or shaded text with page breaks
 \fb@frh=\dimen196
 \FrameRule=\dimen197
 \FrameSep=\dimen198
-) (/Users/arvid/code/anysphere/research/whitepaper/latexdefs.tex
+) (/Users/arvid/code/anysphere/client/whitepaper/latexdefs.tex
 \c@theorem=\count303
 \c@sgoal=\count304
 \c@fgoal=\count305
-) (/Users/arvid/code/anysphere/research/whitepaper/cryptocode.sty
+) (/Users/arvid/code/anysphere/client/whitepaper/cryptocode.sty
 Package: cryptocode 2020/07/10 v0.40 Cryptocode LaTeX package for typesetting pseudocode, algorithms and protocols as well as cryptographic proofs.
  (/usr/local/texlive/2021/texmf-dist/tex/latex/mathtools/mathtools.sty
 Package: mathtools 2021/03/18 v1.25 mathematical typesetting tools
@@ -1172,93 +1172,101 @@ Package: appendix 2020/02/08 v1.2c extra appendix facilities
 \c@@ppsaveapp=\count502
 ))
 
-Class acmart Warning: Do not put several authors in the same \author macro! on input line 8.
+Class acmart Warning: Do not put several authors in the same \author macro! on input line 10.
 
-Package hyperref Info: Option `pdfdisplaydoctitle' set `true' on input line 16.
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\\' on input line 18.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 18.
+
+Package hyperref Info: Option `pdfdisplaydoctitle' set `true' on input line 18.
 Excluding comment 'screenonly' Include comment 'printonly' Include comment 'anonsuppress'
 \@quotelevel=\count503
 \@quotereset=\count504
- (/Users/arvid/code/anysphere/research/whitepaper/main.aux)
+ (/Users/arvid/code/anysphere/client/whitepaper/main.aux)
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/nxlmi/m/it on input line 16.
-LaTeX Font Info:    Trying to load font information for OML+nxlmi on input line 16.
+LaTeX Font Info:    Checking defaults for OML/nxlmi/m/it on input line 18.
+LaTeX Font Info:    Trying to load font information for OML+nxlmi on input line 18.
  (/usr/local/texlive/2021/texmf-dist/tex/latex/newtx/omlnxlmi.fd
 File: omlnxlmi.fd 2013/11/19 Fontinst v1.933 font definitions for OML/nxlmi.
 )
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for U/ntxexa/m/n on input line 16.
-LaTeX Font Info:    Trying to load font information for U+ntxexa on input line 16.
+LaTeX Font Info:    ... okay on input line 18.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 18.
+LaTeX Font Info:    ... okay on input line 18.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 18.
+LaTeX Font Info:    ... okay on input line 18.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 18.
+LaTeX Font Info:    ... okay on input line 18.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 18.
+LaTeX Font Info:    ... okay on input line 18.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 18.
+LaTeX Font Info:    ... okay on input line 18.
+LaTeX Font Info:    Checking defaults for U/ntxexa/m/n on input line 18.
+LaTeX Font Info:    Trying to load font information for U+ntxexa on input line 18.
  (/usr/local/texlive/2021/texmf-dist/tex/latex/newtx/untxexa.fd
 File: untxexa.fd 2012/04/16 Fontinst v1.933 font definitions for U/ntxexa.
 )
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for LMS/ntxsy/m/n on input line 16.
-LaTeX Font Info:    Trying to load font information for LMS+ntxsy on input line 16.
+LaTeX Font Info:    ... okay on input line 18.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 18.
+LaTeX Font Info:    ... okay on input line 18.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 18.
+LaTeX Font Info:    ... okay on input line 18.
+LaTeX Font Info:    Checking defaults for LMS/ntxsy/m/n on input line 18.
+LaTeX Font Info:    Trying to load font information for LMS+ntxsy on input line 18.
  (/usr/local/texlive/2021/texmf-dist/tex/latex/newtx/lmsntxsy.fd
 File: lmsntxsy.fd 2016/07/02 Fontinst v1.933 font definitions for LMS/ntxsy.
 )
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for LMX/ntxexx/m/n on input line 16.
-LaTeX Font Info:    Trying to load font information for LMX+ntxexx on input line 16.
+LaTeX Font Info:    ... okay on input line 18.
+LaTeX Font Info:    Checking defaults for LMX/ntxexx/m/n on input line 18.
+LaTeX Font Info:    Trying to load font information for LMX+ntxexx on input line 18.
  (/usr/local/texlive/2021/texmf-dist/tex/latex/newtx/lmxntxexx.fd
 File: lmxntxexx.fd 2016/07/03 Fontinst v1.933 font definitions for LMX/ntxexx.
 )
-LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    ... okay on input line 18.
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 7.0pt on input line 16.
-LaTeX Font Info:    Trying to load font information for OT1+LinuxLibertineT-TLF on input line 16.
+(Font)              scaled to size 7.0pt on input line 18.
+LaTeX Font Info:    Trying to load font information for OT1+LinuxLibertineT-TLF on input line 18.
  (/usr/local/texlive/2021/texmf-dist/tex/latex/libertine/OT1LinuxLibertineT-TLF.fd
 File: OT1LinuxLibertineT-TLF.fd 2017/03/20 (autoinst) Font definitions for OT1/LinuxLibertineT-TLF.
 )
 LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 7.3pt on input line 16.
+(Font)              scaled to size 7.3pt on input line 18.
 <<ot1.cmap>>
 LaTeX Font Info:    Font shape `OT1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 5.5pt on input line 16.
+(Font)              scaled to size 5.5pt on input line 18.
 <<oml.cmap>>
-LaTeX Font Info:    Trying to load font information for U+msa on input line 16.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 18.
  (/usr/local/texlive/2021/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 16.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 18.
  (/usr/local/texlive/2021/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-LaTeX Font Info:    Trying to load font information for U+ntxmia on input line 16.
+LaTeX Font Info:    Trying to load font information for U+ntxmia on input line 18.
  (/usr/local/texlive/2021/texmf-dist/tex/latex/newtx/untxmia.fd
 File: untxmia.fd 2018/04/14 Fontinst v1.933 font definitions for U/ntxmia.
 )
-LaTeX Font Info:    Trying to load font information for U+ntxsym on input line 16.
+LaTeX Font Info:    Trying to load font information for U+ntxsym on input line 18.
  (/usr/local/texlive/2021/texmf-dist/tex/latex/newtx/untxsym.fd
 File: untxsym.fd 2015/03/20 Fontinst v1.933 font definitions for U/ntxsym.
 )
-LaTeX Font Info:    Trying to load font information for U+ntxsyc on input line 16.
+LaTeX Font Info:    Trying to load font information for U+ntxsyc on input line 18.
  (/usr/local/texlive/2021/texmf-dist/tex/latex/newtx/untxsyc.fd
 File: untxsyc.fd 2012/04/12 Fontinst v1.933 font definitions for U/ntxsyc.
 )
-LaTeX Info: Redefining \microtypecontext on input line 16.
+LaTeX Info: Redefining \microtypecontext on input line 18.
 Package microtype Info: Generating PDF output.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using default protrusion set `alltext'.
 Package microtype Info: Automatic font expansion enabled (level 2),
 (microtype)             stretch: 20, shrink: 20, step: 1, non-selected.
 Package microtype Info: Using default expansion set `alltext-nott'.
-LaTeX Info: Redefining \showhyphens on input line 16.
+LaTeX Info: Redefining \showhyphens on input line 18.
 Package microtype Info: No adjustment of tracking.
 Package microtype Info: No adjustment of interword spacing.
 Package microtype Info: No adjustment of character kerning.
@@ -1266,7 +1274,7 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `LinuxLibertineT-TLF' (encoding: T1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
-Package hyperref Info: Link coloring OFF on input line 16.
+Package hyperref Info: Link coloring OFF on input line 18.
  (/usr/local/texlive/2021/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2021-04-02 v2.47 Cross-referencing by name of section
  (/usr/local/texlive/2021/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty
@@ -1274,10 +1282,10 @@ Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 )
 \c@section@level=\count505
 )
-LaTeX Info: Redefining \ref on input line 16.
-LaTeX Info: Redefining \pageref on input line 16.
-LaTeX Info: Redefining \nameref on input line 16.
- (/Users/arvid/code/anysphere/research/whitepaper/main.out) (/Users/arvid/code/anysphere/research/whitepaper/main.out)
+LaTeX Info: Redefining \ref on input line 18.
+LaTeX Info: Redefining \pageref on input line 18.
+LaTeX Info: Redefining \nameref on input line 18.
+ (/Users/arvid/code/anysphere/client/whitepaper/main.out) (/Users/arvid/code/anysphere/client/whitepaper/main.out)
 \@outlinefile=\write6
 \openout6 = `main.out'.
 
@@ -1365,84 +1373,96 @@ Package: blx-case-expl3 2020/12/31 v3.16 expl3 case changing code for biblatex
 
 Package biblatex Info: Trying to load bibliographic data...
 Package biblatex Info: ... file 'main.bbl' found.
- (/Users/arvid/code/anysphere/research/whitepaper/main.bbl)
-Package biblatex Info: Reference section=0 on input line 16.
-Package biblatex Info: Reference segment=0 on input line 16.
- (/Users/arvid/code/anysphere/research/whitepaper/abs.tex)
+ (/Users/arvid/code/anysphere/client/whitepaper/main.bbl)
+Package biblatex Info: Reference section=0 on input line 18.
+Package biblatex Info: Reference segment=0 on input line 18.
+ (/Users/arvid/code/anysphere/client/whitepaper/abs.tex)
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 17.28pt on input line 20.
-LaTeX Font Info:    Trying to load font information for T1+LinuxBiolinumT-TLF on input line 20.
+(Font)              scaled to size 17.28pt on input line 22.
+LaTeX Font Info:    Trying to load font information for T1+LinuxBiolinumT-TLF on input line 22.
  (/usr/local/texlive/2021/texmf-dist/tex/latex/libertine/T1LinuxBiolinumT-TLF.fd
 File: T1LinuxBiolinumT-TLF.fd 2017/03/20 (autoinst) Font definitions for T1/LinuxBiolinumT-TLF.
 )
 LaTeX Font Info:    Font shape `T1/LinuxBiolinumT-TLF/m/n' will be
-(Font)              scaled to size 17.28pt on input line 20.
+(Font)              scaled to size 17.28pt on input line 22.
 Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `LinuxBiolinumT-TLF' (encoding: T1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
 LaTeX Font Info:    Font shape `T1/LinuxBiolinumT-TLF/b/n' will be
-(Font)              scaled to size 17.28pt on input line 20.
+(Font)              scaled to size 17.28pt on input line 22.
+LaTeX Font Info:    Font shape `T1/LinuxBiolinumT-TLF/b/n' will be
+(Font)              scaled to size 14.4pt on input line 22.
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 12.0pt on input line 20.
+(Font)              scaled to size 14.4pt on input line 22.
+LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
+(Font)              scaled to size 12.0pt on input line 22.
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/it' will be
-(Font)              scaled to size 12.0pt on input line 20.
+(Font)              scaled to size 12.0pt on input line 22.
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 10.0pt on input line 20.
+(Font)              scaled to size 10.0pt on input line 22.
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/b/n' will be
-(Font)              scaled to size 9.0pt on input line 20.
-LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/b/n' will be
-(Font)              scaled to size 10.95pt on input line 20.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\\' on input line 20.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\\' on input line 20.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\new@ifnextchar' on input line 20.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\\' on input line 20.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\new@ifnextchar' on input line 20.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\\' on input line 20.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\\' on input line 20.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\new@ifnextchar' on input line 20.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\\' on input line 20.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\new@ifnextchar' on input line 20.
-
-LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/sc' will be
 (Font)              scaled to size 9.0pt on input line 22.
-(/Users/arvid/code/anysphere/research/whitepaper/main.toc)
+LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/b/n' will be
+(Font)              scaled to size 10.95pt on input line 22.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\\' on input line 22.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\\' on input line 22.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 22.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\\' on input line 22.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 22.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\\' on input line 22.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\\' on input line 22.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 22.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\\' on input line 22.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 22.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\\' on input line 22.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 22.
+
+LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
+(Font)              scaled to size 10.95pt on input line 24.
+(/Users/arvid/code/anysphere/client/whitepaper/main.toc)
 \tf@toc=\write7
 \openout7 = `main.toc'.
 
- (/Users/arvid/code/anysphere/research/whitepaper/introduction.tex) (/Users/arvid/code/anysphere/research/whitepaper/threatmodel.tex)
+ (/Users/arvid/code/anysphere/client/whitepaper/introduction.tex) (/Users/arvid/code/anysphere/client/whitepaper/threatmodel.tex)
 
-LaTeX Warning: Empty bibliography on input line 27.
+LaTeX Warning: Empty bibliography on input line 29.
 
 (/usr/local/texlive/2021/texmf-dist/tex/generic/stringenc/se-pdfdoc.def
 File: se-pdfdoc.def 2019/11/29 v1.12 stringenc: PDFDocEncoding
@@ -1451,7 +1471,7 @@ File: se-utf8.def 2019/11/29 v1.12 stringenc: UTF-8
 ) [1.1{/usr/local/texlive/2021/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
 
-] (/Users/arvid/code/anysphere/research/whitepaper/main.aux)
+] (/Users/arvid/code/anysphere/client/whitepaper/main.aux)
 Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 32715D61BDAB5DAE5EA5980689B480D2;403.
 Package logreq Info: Writing requests to 'main.run.xml'.
@@ -1459,18 +1479,20 @@ Package logreq Info: Writing requests to 'main.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 39897 strings out of 478994
- 723691 string characters out of 5858183
- 1422357 words of memory out of 5000000
- 56440 multiletter control sequences out of 15000+600000
- 474530 words of font info for 103 fonts, out of 8000000 for 9000
+ 39910 strings out of 478994
+ 723960 string characters out of 5858183
+ 1423717 words of memory out of 5000000
+ 56443 multiletter control sequences out of 15000+600000
+ 486046 words of font info for 110 fonts, out of 8000000 for 9000
  1302 hyphenation exceptions out of 8191
- 107i,11n,131p,1907b,805s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/local/texlive/2021/texmf-dist/fonts/enc/dvips/libertine/lbtn_ncsllp.enc}{/usr/local/texlive/2021/texmf-dist/fonts/enc/dvips/libertine/lbtn_nh77jq.enc}{/usr/local/texlive/2021/texmf-dist/fonts/enc/dvips/libertine/lbtn_7grukw.enc}{/usr/local/texlive/2021/texmf-dist/fonts/enc/dvips/libertine/lbtn_76gpa5.enc}{/usr/local/texlive/2021/texmf-dist/fonts/enc/dvips/libertine/lbtn_25tcsq.enc}</usr/local/texlive/2021/texmf-dist/fonts/type1/public/libertine/LinBiolinumTB.pfb></usr/local/texlive/2021/texmf-dist/fonts/type1/public/libertine/LinLibertineT.pfb></usr/local/texlive/2021/texmf-dist/fonts/type1/public/libertine/LinLibertineTB.pfb></usr/local/texlive/2021/texmf-dist/fonts/type1/public/libertine/LinLibertineTI.pfb>
-Output written on /Users/arvid/code/anysphere/research/whitepaper/main.pdf (1 page, 289700 bytes).
+ 107i,11n,131p,1905b,805s stack positions out of 5000i,500n,10000p,200000b,80000s
+pdfTeX warning (dest): name{section*.3} has been referenced but does not exist, replaced by a fixed one
+
+{/usr/local/texlive/2021/texmf-dist/fonts/enc/dvips/libertine/lbtn_nh77jq.enc}{/usr/local/texlive/2021/texmf-dist/fonts/enc/dvips/libertine/lbtn_7grukw.enc}{/usr/local/texlive/2021/texmf-dist/fonts/enc/dvips/libertine/lbtn_76gpa5.enc}{/usr/local/texlive/2021/texmf-dist/fonts/enc/dvips/libertine/lbtn_25tcsq.enc}</usr/local/texlive/2021/texmf-dist/fonts/type1/public/libertine/LinBiolinumTB.pfb></usr/local/texlive/2021/texmf-dist/fonts/type1/public/libertine/LinLibertineT.pfb></usr/local/texlive/2021/texmf-dist/fonts/type1/public/libertine/LinLibertineTB.pfb></usr/local/texlive/2021/texmf-dist/fonts/type1/public/libertine/LinLibertineTI.pfb>
+Output written on /Users/arvid/code/anysphere/client/whitepaper/main.pdf (1 page, 276357 bytes).
 PDF statistics:
- 72 PDF objects out of 1000 (max. 8388607)
- 55 compressed objects within 1 object stream
+ 68 PDF objects out of 1000 (max. 8388607)
+ 52 compressed objects within 1 object stream
  7 named destinations out of 1000 (max. 500000)
- 32829 words of extra memory for PDF output out of 35830 (max. 10000000)
+ 36925 words of extra memory for PDF output out of 42996 (max. 10000000)
 
