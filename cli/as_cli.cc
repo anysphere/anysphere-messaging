@@ -56,7 +56,6 @@ int main(int argc, char** argv) {
   }
 
   // connect to the anysphere daemon
-  dbg("Client connecting to socket: " + socket_address);
   auto channel =
       grpc::CreateChannel(socket_address, grpc::InsecureChannelCredentials());
   auto stub = Daemon::NewStub(channel);
