@@ -15,10 +15,10 @@ Status DaemonRpc::RegisterUser(
     ServerContext* context,
     const asphrdaemon::RegisterUserRequest* registerUserRequest,
     asphrdaemon::RegisterUserResponse* registerUserResponse) {
-  cout << "RegisterUser() called" << endl;
+  ASPHR_LOG_INFO("RegisterUser() called.");
 
   if (config->has_registered()) {
-    cout << "already registered" << endl;
+    ASPHR_LOG_INFO("already registered");
     return Status(grpc::StatusCode::ALREADY_EXISTS, "already registered");
   }
 
@@ -38,7 +38,7 @@ Status DaemonRpc::RegisterUser(
   Status status = stub->Register(&client_context, request, &reply);
 
   if (status.ok()) {
-    cout << "register success" << endl;
+    ASPHR_LOG_INFO("register success");
 
     const auto authentication_token = reply.authentication_token();
     auto alloc_repeated = reply.allocation();
@@ -46,12 +46,12 @@ Status DaemonRpc::RegisterUser(
         vector<int>(alloc_repeated.begin(), alloc_repeated.end());
 
     if (reply.authentication_token() == "") {
-      cout << "authentication token is empty" << endl;
+      ASPHR_LOG_ERR("authentication token is empty");
       return Status(grpc::StatusCode::UNAUTHENTICATED,
                     "authentication token is empty");
     }
     if (reply.allocation().empty()) {
-      cout << "allocation is empty" << endl;
+      ASPHR_LOG_ERR("allocation is empty");
       return Status(grpc::StatusCode::UNKNOWN, "allocation is empty");
     }
 
@@ -59,7 +59,8 @@ Status DaemonRpc::RegisterUser(
                         allocation);
 
   } else {
-    cout << status.error_code() << ": " << status.error_message() << endl;
+    ASPHR_LOG_ERR("register failed", error_code, status.error_code(),
+                  error_message, status.error_message());
     return Status(grpc::StatusCode::UNAVAILABLE, status.error_message());
   }
 
@@ -70,10 +71,10 @@ Status DaemonRpc::GetFriendList(
     ServerContext* context,
     const asphrdaemon::GetFriendListRequest* getFriendListRequest,
     asphrdaemon::GetFriendListResponse* getFriendListResponse) {
-  cout << "GetFriendList() called" << endl;
+  ASPHR_LOG_INFO("GetFriendList() called.");
 
   if (!config->has_registered()) {
-    cout << "need to register first!" << endl;
+    ASPHR_LOG_INFO("need to register first");
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
@@ -90,10 +91,10 @@ Status DaemonRpc::GenerateFriendKey(
     ServerContext* context,
     const asphrdaemon::GenerateFriendKeyRequest* generateFriendKeyRequest,
     asphrdaemon::GenerateFriendKeyResponse* generateFriendKeyResponse) {
-  cout << "GenerateFriendKey() called" << endl;
+  ASPHR_LOG_INFO("GenerateFriendKey() called.");
 
   if (!config->has_registered()) {
-    cout << "need to register first!" << endl;
+    ASPHR_LOG_INFO("need to register first");
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 

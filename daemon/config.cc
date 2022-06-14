@@ -46,7 +46,7 @@ auto read_json_file(const string& config_file_address) -> asphr::json {
     auto dir_path =
         std::filesystem::path(config_file_address).parent_path().u8string();
     std::filesystem::create_directories(dir_path);
-    cout << "creating new config asphr::json!" << endl;
+    ASPHR_LOG_INFO("Creating new config asphr::json.");
     asphr::json j = new_config_json();
     std::ofstream o(config_file_address);
     o << std::setw(4) << j.dump(4) << std::endl;
@@ -70,31 +70,27 @@ Config::Config(const asphr::json& config_json_input, string config_file_address)
       latency_(DEFAULT_ROUND_DELAY_SECONDS) {
   auto config_json = config_json_input;
   if (!config_json.contains("has_registered")) {
-    cout << "WARNING (invalid config file): config file does not contain "
-            "has_registered"
-         << endl;
-    cout << "creating a new config file" << endl;
+    ASPHR_LOG_WARN(
+        "Invalid config file: Config file does not contain has_registered.");
+    ASPHR_LOG_INFO("Creating new config file.");
     config_json = new_config_json();
   }
   if (!config_json.contains("friends")) {
-    cout
-        << "WARNING (invalid config file): config file does not contain friends"
-        << endl;
-    cout << "creating a new config file" << endl;
+    ASPHR_LOG_WARN(
+        "Invalid config file: Config file does not contain friends.");
+    ASPHR_LOG_INFO("Creating new config file.");
     config_json = new_config_json();
   }
   if (!config_json.contains("data_dir")) {
-    cout << "WARNING (invalid config file): config file does not contain "
-            "data_dir"
-         << endl;
-    cout << "creating a new config file" << endl;
+    ASPHR_LOG_WARN(
+        "Invalid config file: Config file does not contain data_dir.");
+    ASPHR_LOG_INFO("Creating new config file.");
     config_json = new_config_json();
   }
   if (!config_json.contains("server_address")) {
-    cout << "WARNING (invalid config file): config file does not contain "
-            "server_address"
-         << endl;
-    cout << "creating a new config file" << endl;
+    ASPHR_LOG_WARN(
+        "Invalid config file: Config file does not contain server_address.");
+    ASPHR_LOG_INFO("Creating new config file.");
     config_json = new_config_json();
   }
   if (config_json.contains("latency")) {
