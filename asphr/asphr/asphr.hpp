@@ -32,6 +32,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "assert.hpp"
+#include "log.hpp"
 #include "third_party/json/nlohmann_json.h"
 #include "utils.hpp"
 
@@ -44,6 +45,7 @@ using std::make_pair;
 using std::make_shared;
 using std::make_tuple;
 using std::make_unique;
+using std::optional;
 using std::pair;
 using std::shared_ptr;
 using std::string;
@@ -51,7 +53,6 @@ using std::to_string;
 using std::tuple;
 using std::unique_ptr;
 using std::vector;
-using std::optional;
 
 namespace asphr {
 using json = nlohmann::json;
@@ -80,20 +81,3 @@ using pir_value_t = array<byte, MESSAGE_SIZE>;
 // pir_index is the type of the index in the database. this should correspond to
 // the index in the schema/messenger.proto definition
 using pir_index_t = uint32_t;
-
-// initiate the debug mode macros
-#ifdef DEBUG
-#define dbg(x) x
-// x is the value, y is the message
-#define debug(x, y) cout << y << ": " << x << endl
-#define DEBUG_PRINT(x) std::cout << x << std::endl
-#define DEBUG_PRINT_VAR(x) std::cout << #x << ": " << x << std::endl
-#define DEBUG_PRINT_VAR_VAR(x, y) \
-  std::cout << #x << ": " << x << " " << #y << ": " << y << std::endl
-#else
-#define dbg(x)
-#define debug(x)
-#define DEBUG_PRINT(x)
-#define DEBUG_PRINT_VAR(x)
-#define DEBUG_PRINT_VAR_VAR(x, y)
-#endif

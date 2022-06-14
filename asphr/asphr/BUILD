@@ -13,6 +13,7 @@ cc_library(
     deps = [
         ":assert",
         ":utils",
+        ":log",
         "//third_party/json",
         "@com_google_absl//absl/hash",
         "@com_google_absl//absl/random",
@@ -67,9 +68,60 @@ cc_binary(
     ],
 )
 
+cc_library(
+    name = "log",
+    hdrs = [
+        "log.hpp",
+        "foreach.hpp"
+    ],
+    linkstatic = True,
+    defines = select({
+        "//conditions:default": [],
+        ":log_level_dbg": ["ASPHR_LOGLEVEL_DBG"],
+        ":log_level_info": ["ASPHR_LOGLEVEL_INFO"],
+        ":log_level_warn": ["ASPHR_LOGLEVEL_WARN"],
+        ":log_level_err": ["ASPHR_LOGLEVEL_ERR"],
+        ":log_level_none": ["ASPHR_LOGLEVEL_NONE"],
+    }),
+    deps = [
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/time",
+    ]
+)
+
+cc_binary(
+    name = "log_manual_test",
+    srcs = ["log_manual_test.cc"],
+    linkstatic = True,
+    deps = [
+        ":log",
+    ],
+)
+
 config_setting(
     name = "opt_build",
     values = {
         "compilation_mode": "opt"
     }
+)
+
+config_setting(
+    name = "log_level_dbg",
+    values = {"define": "log_level=dbg"},
+)
+config_setting(
+    name = "log_level_info",
+    values = {"define": "log_level=info"},
+)
+config_setting(
+    name = "log_level_warn",
+    values = {"define": "log_level=warn"},
+)
+config_setting(
+    name = "log_level_err",
+    values = {"define": "log_level=err"},
+)
+config_setting(
+    name = "log_level_none",
+    values = {"define": "log_level=none"},
 )
