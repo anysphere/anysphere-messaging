@@ -12,17 +12,17 @@ class Friend {
  public:
   Friend(const string& name, const vector<Friend>& friends,
          const string add_key)
-      : name(name),
-        read_index(0),
-        add_key(add_key),
-        read_key(""),
-        write_key(""),
-        ack_index(0),
-        enabled(false),
-        latest_ack_id(0),
-        latest_send_id(0),
-        last_receive_id(0),
-        dummy(false) {
+      : name(name),          // Friend
+        read_index(0),       // Address
+        add_key(add_key),    // Address
+        read_key(""),        // Address
+        write_key(""),       // Address
+        ack_index(0),        // Address
+        enabled(false),      // Friend
+        latest_ack_id(0),    // Status
+        latest_send_id(0),   // Status
+        last_receive_id(0),  // Status
+        dummy(false) {       // removed
     auto rng = std::default_random_engine{};
 
     auto all_ack_indexes_not_used = asphr::unordered_set<int>{};
