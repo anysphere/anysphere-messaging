@@ -85,8 +85,8 @@ int main(int argc, char** argv) {
   socket_address = StrCat("unix://", socket_address);
 
   // connect to the anysphere servers
-  ASPHR_LOG_ERR("Client querying server address.", server_address, server_address);
-  // cout << "Client querying server address: " << server_address << std::endl;
+  ASPHR_LOG_INFO("Client querying server address.", server_address,
+                 server_address);
   auto channel_creds = grpc::SslCredentials(
       grpc::SslCredentialsOptions{.pem_root_certs = AMAZON_ROOT_CERTS});
 
@@ -114,12 +114,12 @@ int main(int argc, char** argv) {
         config->wait_until_killed_or_seconds(config->get_latency_seconds());
     if (killed) {
       daemon_server->Shutdown();
-      cout << "Daemon killed!" << endl;
+      ASPHR_LOG_INFO("Daemon killed.");
       break;
     }
 
     // do a round
-    std::cout << "Client round" << std::endl;
+    ASPHR_LOG_INFO("Client round.");
 
     // receive and then send! it is important! 2x speedup
     transmitter.retrieve_messages();
