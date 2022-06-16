@@ -1,93 +1,52 @@
-// Copyright 2015 The Bazel Authors. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//    http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 #[macro_use]
 extern crate diesel;
-
-pub mod schema;
-
-mod greeter;
-
-use diesel::insert_into;
 use diesel::prelude::*;
+mod schema;
 
 #[cxx::bridge]
 mod ffi {
+    unsafe extern "C++" {
+        include!("daemon-rs/main.hpp");
+
+        fn main_cc() -> i32;
+    }
+}
+
+fn main() {
+    ffi::main_cc();
+}
+
+#[cxx::bridge(namespace = "db")]
+pub mod db {
 
     #[derive(Queryable)]
     struct Friend {
         pub uid: i32,
         pub unique_name: String,
-        pub display_name: i32,
+        pub display_name: String,
         pub enabled: bool,
         pub deleted: bool,
     }
 
     extern "Rust" {
-        fn f() -> i32;
-
-        fn g() -> Friend;
-    }
-
-    unsafe extern "C++" {
-        include!("daemon-rs/test.hpp");
-
-        fn test_cpp() -> i32;
+        fn get_friend(uid: i32) -> Friend;
+        fn get_friend_uid(uid: i32) -> i32;
     }
 }
 
-fn f() -> i32 {
-    return 79;
-}
-
-fn g() -> ffi::Friend {
-    ffi::Friend {
-        uid: 79,
-        unique_name: "unique_name".to_string(),
-        display_name: 13,
-        enabled: true,
-        deleted: false,
-    }
-}
-
-fn main() {
-    let hello = greeter::Greeter::new("Hello");
-    hello.greet("world");
-
-    let i = ffi::test_cpp();
-    println!("Test_cpp returns {}", i);
-
-    let database_url = "/Users/arvid/code/anysphere/client/test.db";
+fn get_friend(uid: i32) -> db::Friend {
+    let database_url = "/Users/arvid/code/anysphere/client/daemon-rs/test.db";
     let conn = SqliteConnection::establish(&database_url)
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
 
-    use self::schema::friends::dsl::*;
+    use self::schema::friend;
 
-    insert_into(friends)
-        .values((unique_name.eq("arvid"), display_name.eq(13)))
-        .execute(&conn)
-        .expect("Error inserting arvid.");
-
-    let results = friends
-        .filter(enabled.eq(true))
-        .limit(5)
-        .load::<ffi::Friend>(&conn)
-        .expect("Error loading friends");
-
-    println!("Displaying {} posts", results.len());
-    for friend in results {
-        println!("{}", friend.unique_name);
-        println!("----------\n");
-        println!("{}", friend.display_name);
+    let mut v = friend::table.find(uid).load::<db::Friend>(&conn).expect("Error loading friend");
+    if v.len() == 0 {
+        panic!("No friend with uid {}", uid);
     }
+    v.remove(0)
+}
+fn get_friend_uid(uid: i32) -> i32 {
+    51 + uid
 }

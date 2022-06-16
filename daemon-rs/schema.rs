@@ -49,7 +49,7 @@ table! {
 table! {
     message (uid) {
         uid -> Integer,
-        message -> Text,
+        s -> Text,
     }
 }
 
