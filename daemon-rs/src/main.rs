@@ -23,9 +23,21 @@ use diesel::prelude::*;
 use diesel::insert_into;
 use models::Friend;
 
+#[cxx::bridge]
+mod ffi {
+    unsafe extern "C++" {
+        include!("daemon-rs/src/test.hpp");
+
+        fn test_cpp() -> i32;
+    }
+}
+
 fn main() {
     let hello = greeter::Greeter::new("Hello");
     hello.greet("world");
+
+    let i = ffi::test_cpp();
+    println!("Test_cpp returns {}", i);
 
     let database_url = "/Users/arvid/code/anysphere/client/test.db";
     let conn = SqliteConnection::establish(&database_url)

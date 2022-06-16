@@ -1,12 +1,29 @@
 load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_doc")
+load("@cxx.rs//tools/bazel:rust_cxx_bridge.bzl", "rust_cxx_bridge")
 
 rust_binary(
     name = "hello_world",
     srcs = ["src/main.rs", "src/greeter.rs", "src/models.rs", "src/schema.rs"],
-    deps = ["@crate_index//:diesel"]
+    deps = ["@crate_index//:diesel", "@cxx.rs//:cxx", ":bridge", ":cpp-imp"]
 )
 
-rust_doc(
-    name = "hello_world_doc",
-    crate = ":hello_world",
+rust_cxx_bridge(
+    name = "bridge",
+    src = "src/main.rs",
+    deps = [":cpp-include"],
+)
+
+cc_library(
+    name = "cpp-imp",
+    srcs = ["src/test.cc"],
+    deps = [
+        ":cpp-include",
+        ":bridge",
+    ],
+)
+
+cc_library(
+    name = "cpp-include",
+    hdrs = ["src/test.hpp"],
+    deps = ["@cxx.rs//:core"],
 )
