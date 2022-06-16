@@ -14,11 +14,20 @@ rust_cxx_bridge(
 )
 
 cc_library(
+    name = "lib-cpp",
+    srcs = ["src/lib.hpp"],
+    deps = [
+        ":bridge",
+    ]
+)
+
+cc_library(
     name = "cpp-imp",
     srcs = ["src/test.cc"],
     deps = [
         ":cpp-include",
         ":bridge",
+        ":lib-cpp"
     ],
 )
 

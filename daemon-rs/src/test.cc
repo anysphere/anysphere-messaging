@@ -1,3 +1,8 @@
 #include "test.hpp"
 
-auto test_cpp() -> int { return 13; }
+#include "lib.hpp"
+
+auto test_cpp() -> int {
+  lib();
+  return 13;
+}

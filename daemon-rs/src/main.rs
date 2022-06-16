@@ -25,11 +25,20 @@ use models::Friend;
 
 #[cxx::bridge]
 mod ffi {
+
+    extern "Rust" {
+        fn f() -> i32;
+    }
+
     unsafe extern "C++" {
         include!("daemon-rs/src/test.hpp");
 
         fn test_cpp() -> i32;
     }
+}
+
+fn f() -> i32 {
+    return 69;
 }
 
 fn main() {
