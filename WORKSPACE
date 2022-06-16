@@ -31,7 +31,7 @@ load_asphr_repos4()
 
 load("@asphr//:asphr_load5.bzl", "load_asphr_repos5")
 
-load_asphr_repos5()
+load_asphr_repos5("@asphr")
 
 load("@asphr//:asphr.bzl", "setup_asphr")
 
