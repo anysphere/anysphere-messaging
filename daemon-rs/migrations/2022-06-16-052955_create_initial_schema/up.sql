@@ -1,14 +1,23 @@
+-- exactly 1 element always!
 CREATE TABLE config (
+    uid integer PRIMARY KEY NOT NULL,
     server_address text NOT NULL,
     latency integer NOT NULL,
     db_rows integer NOT NULL,
     has_registered boolean NOT NULL,
-    public_key blob,
-    private_key blob,
-    allocation integer,
-    pir_secret_key blob,
-    pir_galois_key blob,
-    authentication_token text
+    registration_uid integer,
+    FOREIGN KEY(registration_uid) REFERENCES registration(uid)
+);
+
+-- 0-1 elements always!
+CREATE TABLE registration (
+    uid integer PRIMARY KEY NOT NULL,
+    public_key blob NOT NULL,
+    private_key blob NOT NULL,
+    allocation integer NOT NULL,
+    pir_secret_key blob NOT NULL,
+    pir_galois_key blob NOT NULL,
+    authentication_token text NOT NULL
 );
 
 CREATE TABLE friend (
@@ -33,7 +42,7 @@ CREATE TABLE status (
     sent_acked_seqnum integer NOT NULL, -- the maximum ACK from this friend
     received_seqnum integer NOT NULL, -- we have received all messages up and including this seqnum
     FOREIGN KEY(uid) REFERENCES friend(uid)
-)
+);
 
 -- message includes ALL real messages
 CREATE TABLE message (
