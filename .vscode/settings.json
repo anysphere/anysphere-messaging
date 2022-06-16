@@ -140,5 +140,6 @@
     ".trunk": true,
     ".trunk/out": true,
     "bazel-anysphere/**": true
-  }
+  },
+  "trunk.inlineDecorators": false
 }

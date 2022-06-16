@@ -5,6 +5,7 @@ bazel build //server/src:as_server
 ```
 
 # RUN
+
 ```
 bazel run //server/src:as_server
 ```
@@ -22,14 +23,16 @@ use `grpcurl` to test the server. it is great.
 ## debugging
 
 compile with debug symbols
+
 ```
 bazel build //server/test:server_test --compilation_mode=dbg
 ```
+
 then run gdb:
+
 ```
 gdb --args bazel-bin/server/test/server_test --gtest_break_on_failure --gtest_catch_exceptions=0
 ```
-
 
 ## using in memory db
 
