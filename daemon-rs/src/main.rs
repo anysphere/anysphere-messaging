@@ -14,7 +14,6 @@
 #[macro_use]
 extern crate diesel;
 
-pub mod models;
 pub mod schema;
 
 mod greeter;
@@ -26,7 +25,6 @@ use diesel::prelude::*;
 mod ffi {
 
     #[derive(Queryable)]
-    #[derive(Debug)]
     struct Friend {
         pub uid: i32,
         pub unique_name: String,

@@ -3,7 +3,7 @@ load("@cxx.rs//tools/bazel:rust_cxx_bridge.bzl", "rust_cxx_bridge")
 
 rust_binary(
     name = "hello_world",
-    srcs = ["src/main.rs", "src/greeter.rs", "src/models.rs", "src/schema.rs"],
+    srcs = ["src/main.rs", "src/greeter.rs", "src/schema.rs"],
     deps = ["@crate_index//:diesel", "@cxx.rs//:cxx", ":bridge", ":cpp-imp"]
 )
 
