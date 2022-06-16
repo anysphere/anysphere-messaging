@@ -28,8 +28,9 @@ mod ffi {
     struct Friend {
         pub uid: i32,
         pub unique_name: String,
-        pub display_name: String,
+        pub display_name: i32,
         pub enabled: bool,
+        pub deleted: bool,
     }
 
     extern "Rust" {
@@ -39,7 +40,7 @@ mod ffi {
     }
 
     unsafe extern "C++" {
-        include!("daemon-rs/src/test.hpp");
+        include!("daemon-rs/test.hpp");
 
         fn test_cpp() -> i32;
     }
@@ -53,8 +54,9 @@ fn g() -> ffi::Friend {
     ffi::Friend {
         uid: 79,
         unique_name: "unique_name".to_string(),
-        display_name: "display_name".to_string(),
+        display_name: 13,
         enabled: true,
+        deleted: false,
     }
 }
 
@@ -72,7 +74,7 @@ fn main() {
     use self::schema::friends::dsl::*;
 
     insert_into(friends)
-        .values((unique_name.eq("arvid"), display_name.eq("Arvid")))
+        .values((unique_name.eq("arvid"), display_name.eq(13)))
         .execute(&conn)
         .expect("Error inserting arvid.");
 

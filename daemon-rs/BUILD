@@ -3,19 +3,19 @@ load("@cxx.rs//tools/bazel:rust_cxx_bridge.bzl", "rust_cxx_bridge")
 
 rust_binary(
     name = "hello_world",
-    srcs = ["src/main.rs", "src/greeter.rs", "src/schema.rs"],
+    srcs = ["main.rs", "greeter.rs", "schema.rs"],
     deps = ["@crate_index//:diesel", "@cxx.rs//:cxx", ":bridge", ":cpp-imp"]
 )
 
 rust_cxx_bridge(
     name = "bridge",
-    src = "src/main.rs",
+    src = "main.rs",
     deps = [":cpp-include"],
 )
 
 cc_library(
     name = "lib-cpp",
-    srcs = ["src/lib.hpp"],
+    srcs = ["lib.hpp"],
     deps = [
         ":bridge",
     ]
@@ -23,7 +23,7 @@ cc_library(
 
 cc_library(
     name = "cpp-imp",
-    srcs = ["src/test.cc"],
+    srcs = ["test.cc"],
     deps = [
         ":cpp-include",
         ":bridge",
@@ -33,6 +33,6 @@ cc_library(
 
 cc_library(
     name = "cpp-include",
-    hdrs = ["src/test.hpp"],
+    hdrs = ["test.hpp"],
     deps = ["@cxx.rs//:core"],
 )
