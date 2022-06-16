@@ -3,3 +3,7 @@ bazel-*
 .user.bazelrc
 
 .DS_Store
+
+rust-project.json
+
+test.db
