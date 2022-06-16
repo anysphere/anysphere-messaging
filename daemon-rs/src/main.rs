@@ -19,15 +19,25 @@ pub mod schema;
 
 mod greeter;
 
-use diesel::prelude::*;
 use diesel::insert_into;
-use models::Friend;
+use diesel::prelude::*;
 
 #[cxx::bridge]
 mod ffi {
 
+    #[derive(Queryable)]
+    #[derive(Debug)]
+    struct Friend {
+        pub uid: i32,
+        pub unique_name: String,
+        pub display_name: String,
+        pub enabled: bool,
+    }
+
     extern "Rust" {
         fn f() -> i32;
+
+        fn g() -> Friend;
     }
 
     unsafe extern "C++" {
@@ -38,7 +48,16 @@ mod ffi {
 }
 
 fn f() -> i32 {
-    return 69;
+    return 79;
+}
+
+fn g() -> ffi::Friend {
+    ffi::Friend {
+        uid: 79,
+        unique_name: "unique_name".to_string(),
+        display_name: "display_name".to_string(),
+        enabled: true,
+    }
 }
 
 fn main() {
@@ -51,12 +70,19 @@ fn main() {
     let database_url = "/Users/arvid/code/anysphere/client/test.db";
     let conn = SqliteConnection::establish(&database_url)
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
-    
-    use self::schema::friends::dsl::*;
-    
-    insert_into(friends).values((unique_name.eq("arvid"), display_name.eq("Arvid"))).execute(&conn).expect("Error inserting arvid.");
 
-    let results = friends.filter(enabled.eq(true)).limit(5).load::<Friend>(&conn).expect("Error loading friends");
+    use self::schema::friends::dsl::*;
+
+    insert_into(friends)
+        .values((unique_name.eq("arvid"), display_name.eq("Arvid")))
+        .execute(&conn)
+        .expect("Error inserting arvid.");
+
+    let results = friends
+        .filter(enabled.eq(true))
+        .limit(5)
+        .load::<ffi::Friend>(&conn)
+        .expect("Error loading friends");
 
     println!("Displaying {} posts", results.len());
     for friend in results {
