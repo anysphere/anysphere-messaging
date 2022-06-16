@@ -1,12 +1,11 @@
 # REMINDER: WHEN CHANGING THIS FILE, PLEASE CHANGE ALL .BAZELRC FILES IN ALL THREE REPOS!!!!
 # (unfortunately, we cannot have a single source of truth...)
 
-build --incompatible_enable_cc_toolchain_resolution
-
 # note: each bazelrc that try-imports this one needs to try-import the buildbuddy bazelrc but using the correct relative path
 try-import %workspace%/../.buildbuddy.bazelrc
 
 # to prevent problems with CI, we cannot try-import this bazelrc from other places. instead we just copy-paste.
+build --incompatible_enable_cc_toolchain_resolution
 
 # note: each bazelrc that try-imports this one needs to include a .user.bazelrc in its workspace directory
 try-import %workspace%/.user.bazelrc
@@ -17,9 +16,9 @@ build --bes_backend=grpcs://remote.buildbuddy.io
 build --remote_cache=grpcs://remote.buildbuddy.io
 build --remote_upload_local_results
 build --remote_timeout=3600
-build --experimental_remote_cache_compression
-build --experimental_remote_cache_async
-build --remote_download_toplevel
+# build --experimental_remote_cache_compression
+# build --experimental_remote_cache_async
+# build --remote_download_toplevel
 
 build --genrule_strategy=local
 # test --test_strategy=standalone
