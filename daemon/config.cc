@@ -133,6 +133,13 @@ auto Config::has_space_for_friends() -> bool {
   return friendTable.size() < MAX_FRIENDS;
 }
 
+auto Config::has_space_for_async_friend_requests() -> bool {
+  const std::lock_guard<std::mutex> l(config_mtx);
+
+  check_rep();
+  return pending_async_friend_requests.size() < 1;
+}
+
 auto Config::has_registered() -> bool {
   const std::lock_guard<std::mutex> l(config_mtx);
 
@@ -142,6 +149,8 @@ auto Config::has_registered() -> bool {
 
 auto Config::do_register(const string& name, const string& public_key,
                          const string& private_key,
+                         const string& friend_request_public_key,
+                         const string& friend_request_private_key,
                          const string& authentication_token,
                          const vector<int>& allocation) -> void {
   check_rep();
@@ -152,6 +161,8 @@ auto Config::do_register(const string& name, const string& public_key,
       .name = name,
       .public_key = public_key,
       .private_key = private_key,
+      .friend_request_public_key = friend_request_public_key,
+      .friend_request_private_key = friend_request_private_key,
       .authentication_token = authentication_token,
       .allocation = allocation,
   };
@@ -255,6 +266,20 @@ auto Config::remove_friend(const string& name) -> absl::Status {
   check_rep();
 
   return absl::OkStatus();
+}
+
+auto Config::add_async_friend_request(const string& friend_public_key,
+                                      const Friend& friend_info) -> void {
+  const std::lock_guard<std::mutex> l(config_mtx);
+
+  check_rep();
+
+  assert(has_space_for_async_friend_requests());
+  assert(!pending_async_friend_requests.contains(friend_public_key));
+  pending_async_friend_requests.try_emplace(friend_public_key, friend_info);
+
+  save();
+  check_rep();
 }
 
 auto Config::friends() const -> vector<Friend> {

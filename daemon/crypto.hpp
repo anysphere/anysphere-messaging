@@ -35,6 +35,9 @@ class Crypto {
 
   static auto generate_friend_key(const string& my_public_key, int index)
       -> string;
+  // generate the friend request keys for the given friend
+  static auto generate_friend_request_keypair() -> std::pair<string, string>;
+
   auto decode_friend_key(const string& friend_key) const
       -> asphr::StatusOr<std::pair<int, string>>;
 
@@ -69,4 +72,22 @@ class Crypto {
   // decrypt_ack undoes encrypt_ack
   auto decrypt_ack(const string& ciphertext, const Friend& friend_info) const
       -> asphr::StatusOr<uint32_t>;
+
+  // encrypt an asynchronous friend request
+  // given the friend's friend request public key
+  // which could already be computed by pulling the friend request keys
+  auto encrypt_async_friend_request(const RegistrationInfo& registration_info,
+                                    const string& friend_public_key) const
+      -> asphr::StatusOr<string>;
+
+  // decrypt the asynchronous friend requests
+  // returns the NAME, ALLOCATION INDEX, KX PUBLIC KEY
+  // in that order
+  // TODO: there are two plans here: either use the existing fx_public key
+  // or create a new one.
+  // I'm using the second plan for now.
+  auto decrypt_async_friend_request(const RegistrationInfo& registration_info,
+                                    const string& friend_public_key,
+                                    const string& ciphertext) const
+      -> asphr::StatusOr<std::tuple<string, int, string>>;
 };

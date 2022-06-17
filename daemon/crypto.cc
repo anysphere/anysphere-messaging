@@ -16,6 +16,15 @@ auto Crypto::generate_keypair() -> std::pair<string, string> {
       string(reinterpret_cast<char*>(secret_key), crypto_kx_SECRETKEYBYTES)};
 }
 
+auto Crypto::generate_friend_request_keypair() -> std::pair<string, string> {
+  unsigned char public_key[crypto_box_PUBLICKEYBYTES];
+  unsigned char secret_key[crypto_box_SECRETKEYBYTES];
+  crypto_box_keypair(public_key, secret_key);
+  return {
+      string(reinterpret_cast<char*>(public_key), crypto_box_PUBLICKEYBYTES),
+      string(reinterpret_cast<char*>(secret_key), crypto_box_SECRETKEYBYTES)};
+}
+
 auto Crypto::generate_friend_key(const string& my_public_key, int index)
     -> string {
   string public_key_b64;
@@ -308,4 +317,123 @@ auto Crypto::decrypt_ack(const string& ciphertext,
   uint32_t ack_id = reinterpret_cast<uint32_t*>(plaintext.data())[0];
 
   return ack_id;
+}
+
+auto Crypto::encrypt_async_friend_request(
+    const RegistrationInfo& registration_info,
+    const string& friend_public_key) const -> asphr::StatusOr<string> {
+  std::string self_private_key = registration_info.friend_request_private_key;
+  if (friend_public_key.size() != crypto_box_PUBLICKEYBYTES) {
+    return asphr::InvalidArgumentError(
+        "friend_public_key is not the correct size");
+  }
+  if (self_private_key.size() != crypto_box_SECRETKEYBYTES) {
+    return asphr::InvalidArgumentError(
+        "self_private_key is not the correct size");
+  }
+  // formmat the message we want to send
+  std::stringstream ss;
+  // For now, we send our name, and our "friend public key"
+  std::string name = registration_info.name;
+  std::string friend_key = generate_friend_key(
+      registration_info.public_key, registration_info.allocation.at(0));
+  ss << name << " " << friend_key << " ";
+
+  std::string message = ss.str();
+  if (message.size() > GUARANTEED_SINGLE_MESSAGE_SIZE) {
+    return asphr::InvalidArgumentError("friend request message too long!!");
+  }
+
+  // We now encrypt the message, using a clone of the code above
+  std::string plaintext = message;
+  // I couldn't find any documentation on what the max length is for this
+  // so i'll leave it for now
+  // assert(padded_plaintext_len == plaintext.size());
+
+  // encrypt it!
+  std::string ciphertext;
+  unsigned long long ciphertext_len = plaintext.size() + crypto_box_MACBYTES;
+  ciphertext.resize(ciphertext_len + crypto_box_NONCEBYTES);
+
+  unsigned char nonce[crypto_box_NONCEBYTES];
+  randombytes_buf(nonce, sizeof nonce);
+
+  if (crypto_box_easy(
+          reinterpret_cast<unsigned char*>(ciphertext.data()),
+          reinterpret_cast<const unsigned char*>(plaintext.data()),
+          plaintext.size(), nonce,
+          reinterpret_cast<const unsigned char*>(friend_public_key.data()),
+          reinterpret_cast<const unsigned char*>(self_private_key.data())) !=
+      0) {
+    return absl::UnknownError("failed to encrypt message");
+  }
+  // append the nounce to the end of the ciphertext
+
+  for (size_t i = 0; i < crypto_box_NONCEBYTES; i++) {
+    ciphertext[i + ciphertext_len] += nonce[i];
+  }
+
+  // the ciphertext length is exactly equal to the plaintext length
+  assert(ciphertext_len == plaintext.size() + crypto_box_MACBYTES);
+
+  return ciphertext;
+}
+
+// Try to decrypt using friend's public key
+auto Crypto::decrypt_async_friend_request(
+    const RegistrationInfo& registration_info, const string& friend_public_key,
+    const string& ciphertext) const
+    -> asphr::StatusOr<std::tuple<string, int, string>> {
+  // We now decrypt the message, using a clone of the code above
+  std::string my_private_key = registration_info.friend_request_private_key;
+  if (friend_public_key.size() != crypto_box_PUBLICKEYBYTES) {
+    return asphr::InvalidArgumentError(
+        "friend_pbulic_key is not the correct size");
+  }
+  if (my_private_key.size() != crypto_box_SECRETKEYBYTES) {
+    return asphr::InvalidArgumentError(
+        "self_private_key is not the correct size");
+  }
+  auto ciphertext_len = ciphertext.size() - crypto_box_NONCEBYTES;
+  auto plaintext_len = ciphertext_len - crypto_box_MACBYTES;
+  // Extract the nounce from the end of the ciphertext
+  unsigned char nonce[crypto_box_NONCEBYTES];
+  for (size_t i = 0; i < crypto_box_NONCEBYTES; i++) {
+    nonce[i] = ciphertext[i + ciphertext_len];
+  }
+  // convert the ciphertext to the string form
+  string ciphertext_str = "";
+  for (size_t i = 0; i < ciphertext_len; i++) {
+    ciphertext_str += ciphertext.at(i);
+  }
+  // decrypt it!!
+  std::string plaintext;
+  plaintext.resize(plaintext_len);
+  if (crypto_box_open_easy(
+          reinterpret_cast<unsigned char*>(plaintext.data()),
+          reinterpret_cast<const unsigned char*>(ciphertext_str.data()),
+          ciphertext_str.size(), nonce,
+          reinterpret_cast<const unsigned char*>(friend_public_key.data()),
+          reinterpret_cast<const unsigned char*>(my_private_key.data())) != 0) {
+    return absl::UnknownError("failed to decrypt friend request");
+  }
+
+  // stream the message into a stringstream
+  std::stringstream ss;
+  ss << plaintext;
+  std::string name;
+  std::string friend_key;
+  // read the name
+  ss >> name;
+  // read the public key
+  ss >> friend_key;
+  Crypto crypto;
+  auto decode_friend_key = crypto.decode_friend_key(friend_key);
+  if (!decode_friend_key.ok()) {
+    return absl::UnknownError("Malformed friend key");
+  }
+  auto [allocation, public_key] = decode_friend_key.value();
+  // read the allocation
+  // create the friend
+  return make_tuple(name, allocation, public_key);
 }

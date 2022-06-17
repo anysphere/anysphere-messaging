@@ -24,6 +24,8 @@ Status DaemonRpc::RegisterUser(
 
   const auto name = registerUserRequest->name();
   const auto [public_key, secret_key] = crypto.generate_keypair();
+  const auto [friend_request_public_key, friend_request_secret_key] =
+      crypto.generate_friend_request_keypair();
 
   auto beta_key = registerUserRequest->beta_key();
 
@@ -36,6 +38,9 @@ Status DaemonRpc::RegisterUser(
   grpc::ClientContext client_context;
 
   Status status = stub->Register(&client_context, request, &reply);
+
+  // TODO: we need to send the friend_request public key to the PKI.
+  // Whatever that is.
 
   if (status.ok()) {
     ASPHR_LOG_INFO("register success");
@@ -55,7 +60,8 @@ Status DaemonRpc::RegisterUser(
       return Status(grpc::StatusCode::UNKNOWN, "allocation is empty");
     }
 
-    config->do_register(name, public_key, secret_key, authentication_token,
+    config->do_register(name, public_key, secret_key, friend_request_public_key,
+                        friend_request_secret_key, authentication_token,
                         allocation);
 
   } else {
@@ -168,6 +174,49 @@ Status DaemonRpc::AddFriend(
                                                    .read_key = read_key,
                                                    .write_key = write_key,
                                                    .enabled = true});
+
+  return Status::OK;
+}
+
+// send an async friend request
+// currently, we need to supply several pieces of information:
+// 1. the allocation index
+// 2. the public keys for kx exchange and for the friend request
+// 3. the local name for the friend
+Status DaemonRpc::SendFriendRequestAsync(
+    ServerContext* context,
+    const asphrdaemon::SendFriendRequestAsyncRequest* request,
+    asphrdaemon::SendFriendRequestAsyncResponse* response) {
+  ASPHR_LOG_INFO("SendFriendRequestAsync() called.");
+  // TODO: for simplicity, we only support adding one friend asynchronously at a
+  // time This can be easily addressed later, but I need to finish testing
+  // before 4pm
+
+  // TODO: the architecture here will be refactored with the new inbox
+  // so we need to change this later
+
+  // make sure we have space
+  if (!config->has_space_for_friends()) {
+    return Status(grpc::StatusCode::INVALID_ARGUMENT,
+                  "too many simultaneous async requests");
+  }
+  // use the kx key to initiate a friend instance
+  string friend_kx_public_key = request->kx_public_key();
+  string my_kx_public_key = config->registration_info().public_key;
+  string my_kx_private_key = config->registration_info().private_key;
+  auto friend_instance =
+      Friend(request->name(), config->friends(), friend_kx_public_key);
+
+  // we can generate the read write key now
+  auto [read_key, write_key] = crypto.derive_read_write_keys(
+      my_kx_public_key, my_kx_private_key, friend_kx_public_key);
+
+  friend_instance.read_key = read_key;
+  friend_instance.write_key = write_key;
+
+  // push the request to the config
+  config->add_async_friend_request(request->friend_request_public_key(),
+                                   friend_instance);
 
   return Status::OK;
 }

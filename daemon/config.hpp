@@ -12,8 +12,14 @@
 
 struct RegistrationInfo {
   string name;
-  string public_key;
-  string private_key;
+  string public_key;   // note: this is the public key used in the ''key
+                       // exchange'' to derive the common secret key
+  string private_key;  // note: this is the private key used in the ''key
+                       // exchange''
+  string friend_request_public_key;   // this is the public key used in the
+                                      // public key cryptography
+  string friend_request_private_key;  // this is the private key used in the
+                                      // public key cryptography
   string authentication_token;
   // NOTE: OUR CURRENT CODE ONLY SUPPORTS ALLOCATION.SIZE() == 1
   // if we want to support bigger allocations in the future, it is very
@@ -55,7 +61,11 @@ class Config {
   };
   auto update_friend(const string& name, const FriendUpdate& f) -> void;
 
+  auto add_async_friend_request(const string& friend_public_key,
+                                const Friend& friend_info) -> void;
+
   auto has_space_for_friends() -> bool;
+  auto has_space_for_async_friend_requests() -> bool;
   auto num_enabled_friends() -> int;
   auto random_enabled_friend(const std::unordered_set<string>& excluded)
       -> asphr::StatusOr<Friend>;
@@ -64,6 +74,8 @@ class Config {
   auto has_registered() -> bool;
   auto do_register(const string& name, const string& public_key,
                    const string& private_key,
+                   const string& friend_request_public_key,
+                   const string& friend_request_private_key,
                    const string& authentication_token,
                    const vector<int>& allocation) -> void;
   auto registration_info() -> RegistrationInfo;
@@ -105,6 +117,10 @@ class Config {
   std::filesystem::path data_dir;
   // me is used whenever we need to encrypt dummy data!
   Friend dummyMe;
+
+  // maps public key to a friend struct that describes the friend
+  // as soon as this is answered we can add it to the friendTable struct
+  std::unordered_map<string, Friend> pending_async_friend_requests;
 
   // latency in seconds
   int latency_;

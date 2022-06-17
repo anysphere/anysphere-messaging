@@ -155,3 +155,43 @@ TEST(CryptoTest, EncryptDecryptAcks) {
     EXPECT_EQ(decrypted.value(), ack);
   }
 }
+
+TEST(CryptoTest, EncryptDecryptAsyncFriendRequest) {
+  Crypto crypto;
+  for (auto round = 0; round < 10; round++) {
+    auto [pk1, sk1] = crypto.generate_keypair();
+    auto [f_pk1, f_sk1] = crypto.generate_friend_request_keypair();
+    auto [f_pk2, f_sk2] = crypto.generate_friend_request_keypair();
+
+    int allocation = rand() % 10000;
+    RegistrationInfo reg_info1 = {.name = "friend_test_1",
+                                  .public_key = pk1,
+                                  .private_key = sk1,
+                                  .friend_request_public_key = f_pk1,
+                                  .friend_request_private_key = f_sk1,
+                                  .allocation = std::vector({allocation})};
+
+    RegistrationInfo reg_info2 = {.name = "friend_test_2",
+                                  .public_key = pk1,
+                                  .private_key = sk1,
+                                  .friend_request_public_key = f_pk2,
+                                  .friend_request_private_key = f_sk2};
+    // user 1 sends friend request to user 2
+    auto friend_request_ =
+        crypto.encrypt_async_friend_request(reg_info1, f_pk2);
+    if (!friend_request_.ok()) {
+      FAIL() << "Failed to encrypt friend request";
+    }
+    auto friend_request = friend_request_.value();
+    // user 2 decrypts friend request
+    auto decrypted_friend_request_ =
+        crypto.decrypt_async_friend_request(reg_info2, f_pk1, friend_request);
+    if (!decrypted_friend_request_.ok()) {
+      FAIL() << "Failed to decrypt friend request";
+    }
+    auto decrypted_friend_request = decrypted_friend_request_.value();
+    EXPECT_EQ(std::get<0>(decrypted_friend_request), reg_info1.name);
+    EXPECT_EQ(std::get<1>(decrypted_friend_request), allocation);
+    EXPECT_EQ(std::get<2>(decrypted_friend_request), reg_info1.public_key);
+  }
+}
