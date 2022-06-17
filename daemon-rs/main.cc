@@ -103,19 +103,25 @@ int main_cc_impl(rust::Vec<rust::String> args) {
   // TODO(arvid-NOW): add daemon RPC
 
   while (true) {
-    auto killed = G.wait_until_killed_or_seconds(G.db->get_latency());
-    if (killed) {
-      // TODO(arvid-NOW): daemon_server->Shutdown();
-      ASPHR_LOG_INFO("Daemon killed.");
-      break;
+    try {
+      auto killed = G.wait_until_killed_or_seconds(G.db->get_latency());
+      if (killed) {
+        // TODO(arvid-NOW): daemon_server->Shutdown();
+        ASPHR_LOG_INFO("Daemon killed.");
+        break;
+      }
+
+      // do a round
+      ASPHR_LOG_INFO("Client round.");
+
+      // receive and then send! it is important! 2x speedup
+      transmitter.retrieve_messages();
+      transmitter.send_messages();
+    } catch (const rust::Error& e) {
+      ASPHR_LOG_ERR("Error in database.", error_msg, e.what());
+      ASPHR_LOG_INFO("Retrying in 30 seconds...");
+      G.wait_until_killed_or_seconds(30);
     }
-
-    // do a round
-    ASPHR_LOG_INFO("Client round.");
-
-    // receive and then send! it is important! 2x speedup
-    transmitter.retrieve_messages();
-    transmitter.send_messages();
   }
 
   return 0;

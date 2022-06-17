@@ -98,7 +98,8 @@ CREATE TABLE outgoing_chunk (
     sequence_number integer NOT NULL,
     chunk_index integer NOT NULL,
     message_uid integer NOT NULL,
-    message text NOT NULL,
+  -- the message is encoded using message.proto so it will be a bytestream
+    message blob NOT NULL,
     PRIMARY KEY (to_friend, sequence_number),
     FOREIGN KEY(message_uid) REFERENCES sent(uid),
     FOREIGN KEY(to_friend) REFERENCES friend(uid)
@@ -109,7 +110,8 @@ CREATE TABLE incoming_chunk (
     sequence_number integer NOT NULL,
     chunk_index integer NOT NULL,
     message_uid integer NOT NULL,
-    message text NOT NULL,
+  -- the message is encoded using message.proto so it will be a bytestream
+    message blob NOT NULL,
     PRIMARY KEY (from_friend, sequence_number),
     FOREIGN KEY(message_uid) REFERENCES received(uid),
     FOREIGN KEY(from_friend) REFERENCES friend(uid)

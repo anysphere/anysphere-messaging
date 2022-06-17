@@ -73,6 +73,10 @@ struct DB {
     address: String,
 }
 
+//
+// Source of truth is in the migrations folder. Schema.rs is generated from them.
+// This right here is just a query interface. It will not correspond exactly. It should not.
+//
 #[cxx::bridge(namespace = "db")]
 pub mod db {
 
@@ -105,6 +109,29 @@ pub mod db {
         pub authentication_token: String,
     }
 
+    #[derive(Queryable)]
+    struct SendInfo {
+        pub allocation: i32,
+        pub authentication_token: String,
+    }
+
+    #[derive(Queryable)]
+    struct OutgoingChunk {
+        pub to_friend: i32,
+        pub sequence_number: i32,
+        pub chunk_index: i32,
+        pub message_uid: i32,
+        pub message: Vec<u8>,
+        pub write_key: Vec<u8>,
+    }
+
+    #[derive(Queryable)]
+    struct OutgoingAck {
+        pub to_friend: i32,
+        pub ack: i32,
+        pub write_key: Vec<u8>,
+    }
+
     extern "Rust" {
         type DB;
         fn init(address: &str, default_server_address: &str, default_latency: i32) -> Result<Box<DB>>;
@@ -123,6 +150,7 @@ pub mod db {
         fn has_registered(&self) -> bool;
         fn get_registration(&self) -> Result<Registration>;
         fn get_pir_secret_key(&self) -> Result<Vec<u8>>;
+        fn get_send_info(&self) -> Result<SendInfo>;
 
         //
         // Friends
@@ -136,8 +164,14 @@ pub mod db {
         //
         // Messages
         //
-        fn receive_ack(&self, uid: i32, index: i32);
+        // returns true iff the ack was novel
+        fn receive_ack(&self, uid: i32, index: i32) -> bool;
         fn receive_chunk(&self, uid: i32, chunk: Vec<u8>);
+
+        // fails if there is no chunk to send
+        // prioritizes by the given uid in order from first to last try
+        fn chunk_to_send(&self, uid_priority: Vec<i32>) -> Result<OutgoingChunk>;
+        fn acks_to_send(&self) -> Result<Vec<OutgoingAck>>;
     }
 
 }

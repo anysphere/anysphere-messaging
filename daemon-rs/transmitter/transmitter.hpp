@@ -20,8 +20,10 @@ class Transmitter {
  public:
   Transmitter(const Global& G, shared_ptr<asphrserver::Server::Stub> stub);
 
+  // may throw rust::Error if there is a database problem
   auto retrieve() -> void;
 
+  // may throw rust::Error if there is a database problem
   auto send() -> void;
 
  private:
@@ -38,11 +40,12 @@ class Transmitter {
   std::optional<db::Address> dummy_address;
 
   // Cached values that are not necessary, but might be useful for
-  // optimizations.
+  // optimizations. Heuristics.
   // TODO: do we want to get rid of this optimization, because it relies on the
   // trusted third friend assumption?
   std::optional<int> just_sent_friend;
   std::optional<int> previous_success_receive_friend;
+  std::optional<int> just_acked_friend;
 
   // for each index, get the PIR response for that index
   auto batch_retrieve_pir(FastPIRClient& client, vector<pir_index_t> indices)

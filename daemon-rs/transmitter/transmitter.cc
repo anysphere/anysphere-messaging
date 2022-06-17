@@ -136,7 +136,11 @@ auto Transmitter::retrieve() -> void {
       auto ack_answer_obj = client.answer_from_string(ack_answer);
       auto ack_decoded = client.decode(ack_answer_obj, f.read_index);
 
-      G.db->receive_ack(f.uid, ack_decoded);
+      auto new_ack = G.db->receive_ack(f.uid, ack_decoded);
+      if (new_ack) {
+        ASPHR_LOG_INFO("Received ACK from friend.", friend_uid, f.uid);
+        just_acked_friend = f.uid;
+      }
 
       //
       // Step 3(b): Record the message in the database.
@@ -150,6 +154,8 @@ auto Transmitter::retrieve() -> void {
         auto& message = decrypted.value();
 
         G.db->receive_chunk(f.uid, message);
+
+        previous_success_receive_friend = std::optional<int>(f.uid);
       } else {
         ASPHR_LOG_INFO(
             "Failed to decrypt message (message was probably not for us, which "
@@ -167,84 +173,73 @@ auto Transmitter::retrieve() -> void {
   check_rep();
 }
 
-auto Transmitter::send_messages() -> void {
+auto Transmitter::send() -> void {
   check_rep();
 
   if (!G.db->has_registered()) {
     ASPHR_LOG_INFO("Not registered, so not sending messages.");
     return;
   }
+  auto send_info = G.db->get_send_info();
 
-  auto undelivered_messages =
-      msgstore->get_undelivered_outgoing_messages_sorted();
-  // we want to send messages in chronological order, not reverse chronological
-  // order hence, we need to reverse this array
-  std::reverse(undelivered_messages.begin(), undelivered_messages.end());
-
-  auto authentication_token = config->registration_info().authentication_token;
-
-  for (auto& undelivered_msg : undelivered_messages) {
-    const auto friend_info_status = config->get_friend(undelivered_msg.to);
-    if (!friend_info_status.ok()) {
-      std::cerr << "FriendHashTable does not contain " << undelivered_msg.to
-                << "; ignoring message" << endl;
-      continue;
-    }
-    const auto friend_info = friend_info_status.value();
-    outbox.add(undelivered_msg.id, undelivered_msg.message, friend_info);
+  vector<int> prioritized_friends;
+  if (just_acked_friend.has_value()) {
+    prioritized_friends.push_back(just_acked_friend.value());
+  }
+  string write_key;
+  string chunk;
+  try {
+    auto chunk_to_send = G.db->chunk_to_send(prioritized_friends);
+    just_sent_friend = chunk_to_send.to_friend;
+    write_key = chunk_to_send.write_key;
+    chunk = std::string(chunk_to_send.message);
+  } catch (const rust::Error& e) {
+    ASPHR_LOG_INFO("No chunks to send (probably).", error_msg, e.what());
+    just_sent_friend = std::nullopt;
+    write_key = dummy_address.write_key;
+    chunk = "";
   }
 
-  auto messageToSend = outbox.message_to_send(*config, config->dummy_me());
-  // TODO: update status in msgstore for this message so it can be shown in the
-  // UI that now we're trying to send this
-
-  // always send to the 0th index. currently we only support one index per
-  // person!! in the future, this may change, so please don't assert that the
-  // length is 1.
-  auto index = config->registration_info().allocation.at(0);
-
-  just_sent_friend = messageToSend.to.name;
-
-  auto pir_value_message_status =
-      crypto.encrypt_send(messageToSend.to_proto(), messageToSend.to);
-  if (!pir_value_message_status.ok()) {
-    cout << "encryption failed; not doing anything with message"
-         << pir_value_message_status.status() << endl;
+  auto encrypted_chunk_status = crypto::encrypt_send(chunk, write_key);
+  if (!encrypted_chunk_status.ok()) {
+    ASPHR_LOG_ERR("Could not encrypt message.", error_msg,
+                  encrypted_chunk_status.status().message());
     return;
   }
-  auto pir_value_message = pir_value_message_status.value();
+  auto encrypted_chunk = encrypted_chunk_status.value();
 
-  auto pir_encrypted_acks_status =
-      inbox.get_encrypted_acks(config->friends(), crypto, config->dummy_me());
-  if (!pir_encrypted_acks_status.ok()) {
-    cout << "encryption failed; not doing anything with message"
-         << pir_encrypted_acks_status.status() << endl;
+  auto acks_to_send = G.db->acks_to_send();
+  auto encrypted_acks_status = crypto::encrypt_acks(acks_to_send, write_key);
+  if (!encrypted_acks_status.ok()) {
+    ASPHR_LOG_ERR("Could not encrypt ACKs.", error_msg,
+                  encrypted_acks_status.status().message());
     return;
   }
-  auto pir_encrypted_acks = pir_encrypted_acks_status.value();
+  auto encrypted_acks = encrypted_acks_status.value();
 
-  cout << "Sending message to server: " << endl;
-  cout << "index: " << index << endl;
-  cout << "authentication_token: " << authentication_token << endl;
+  ASPHR_LOG_INFO("Sending chunk.", friend_uid, just_sent_friend.value_or(-1),
+                 index, send_info.allocation, auth_token,
+                 send_info.authentication_token);
+
   check_rep();
 
   // call register rpc to send the register request
   asphrserver::SendMessageInfo request;
 
-  request.set_index(index);
-  request.set_authentication_token(authentication_token);
+  request.set_index(send_info.allocation);
+  request.set_authentication_token(send_info.authentication_token);
 
-  string padded_msg_str = "";
-  for (auto& c : pir_value_message) {
-    padded_msg_str += c;
+  string encrypted_chunk_string = "";
+  for (auto& c : encrypted_chunk) {
+    encrypted_chunk_string += c;
   }
-  request.set_message(padded_msg_str);
+  request.set_message(encrypted_chunk_string);
 
-  string padded_acks_str = "";
-  for (auto& c : pir_encrypted_acks) {
-    padded_acks_str += c;
+  string encrypted_acks_string = "";
+  for (auto& c : encrypted_acks) {
+    encrypted_acks_string += c;
   }
-  request.set_acks(padded_acks_str);
+  request.set_acks(encrypted_acks_string);
 
   asphrserver::SendMessageResponse reply;
 
@@ -253,10 +248,15 @@ auto Transmitter::send_messages() -> void {
   grpc::Status status = stub->SendMessage(&context, request, &reply);
 
   if (status.ok()) {
-    std::cout << "Message sent to server!" << std::endl;
+    ASPHR_LOG_INFO("Sent chunk.", friend_uid, just_sent_friend.value_or(-1),
+                   index, send_info.allocation, auth_token,
+                   send_info.authentication_token);
   } else {
-    std::cerr << status.error_code() << ": " << status.error_message()
-              << " details:" << status.error_details() << std::endl;
+    ASPHR_LOG_ERR("Could not send chunk.", friend_uid,
+                  just_sent_friend.value_or(-1), index, send_info.allocation,
+                  auth_token, send_info.authentication_token,
+                  server_status_code, status.error_code(),
+                  server_status_message, status.error_message());
   }
   check_rep();
 }
