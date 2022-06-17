@@ -99,6 +99,13 @@ pub mod db {
     }
 
     #[derive(Queryable)]
+    struct Status {
+        pub uid: i32,
+        pub sent_acked_seqnum: i32,
+        pub received_seqnum: i32,
+    }
+
+    #[derive(Queryable)]
     struct Registration {
         pub uid: i32,
         pub public_key: Vec<u8>,
@@ -115,11 +122,19 @@ pub mod db {
         pub authentication_token: String,
     }
 
+    struct IncomingChunk {
+        pub from_friend: i32,
+        pub sequence_number: i32,
+        pub chunks_start_sequence_number: i32,
+        pub num_chunks: i32,
+        pub s: String,
+    }
+
     #[derive(Queryable)]
     struct OutgoingChunk {
         pub to_friend: i32,
         pub sequence_number: i32,
-        pub chunk_index: i32,
+        pub chunks_start_sequence_number: i32,
         pub message_uid: i32,
         pub message: Vec<u8>,
         pub write_key: Vec<u8>,
@@ -147,7 +162,7 @@ pub mod db {
         //
         // Registration
         //
-        fn has_registered(&self) -> bool;
+        fn has_registered(&self) -> Result<bool>;
         fn get_registration(&self) -> Result<Registration>;
         fn get_pir_secret_key(&self) -> Result<Vec<u8>>;
         fn get_send_info(&self) -> Result<SendInfo>;
@@ -165,8 +180,8 @@ pub mod db {
         // Messages
         //
         // returns true iff the ack was novel
-        fn receive_ack(&self, uid: i32, index: i32) -> bool;
-        fn receive_chunk(&self, uid: i32, chunk: Vec<u8>);
+        fn receive_ack(&self, uid: i32, ack: i32) -> Result<bool>;
+        fn receive_chunk(&self, chunk: IncomingChunk) -> Result<()>;
 
         // fails if there is no chunk to send
         // prioritizes by the given uid in order from first to last try
@@ -314,5 +329,55 @@ impl DB {
             Err(e) => Err(DbError::Unknown(format!("get_server_address: {}", e))),
         }
     }
+
+    fn receive_ack(&self, uid: i32, ack: i32) -> Result<(), DbError> {
+        let conn = self.connect()?;
+        use self::schema::status;
+        use self::schema::outgoing_chunk;
+
+        let r = conn.transaction::<_, diesel::result::Error, _>(|| {
+            let old_ack = status::table.find(status::uid.eq(uid)).select(status::ack).first(&conn)?;
+            if ack > old_ack {
+                diesel::update(status::table.find(status::uid.eq(uid))).set(status::ack.eq(ack)).execute(&conn)?;
+                // delete outgoing chunk if it exists
+                diesel::delete(outgoing_chunk::table.filter((outgoing_chunk::to_friend.eq(uid), outgoing_chunk::sequence_number.eq(ack)))).execute(&conn)?;
+            }
+            return old_ack;
+        });
+        match r {
+            Ok(old_ack) => {
+                if ack > old_ack {
+                    Ok(true)
+                } else if ack == old_ack {
+                    Ok(false)
+                } else {
+                    println!("Ack is older than old ack. This is weird, and probably indicates that the person you're talking to has done something wrong.")
+                    Ok(false)
+                }
+            }
+            Err(e) => Err(DbError::Unknown(format!("receive_ack: {}", e))),
+        }
+    }
+
+    fn receive_chunk(&self, chunk: IncomingChunk) -> Result<(), DbError> {
+        let conn = self.connect()?;
+        use self::schema::incoming_chunk;
+        use self::schema::message;
+        use self::schema::received;
+
+        let r = conn.transaction::<_, diesel::result::Error, _>(|| {
+            // if already exists, we are happy! don't need to do anything :))
+            if let Ok(_) = incoming_chunk::table.filter((incoming_chunk::from_friend.eq(chunk.from_friend), incoming_chunk::sequence_number.eq(chunk.sequence_number))).first(&conn) {
+                return Ok(());
+            }
+
+            // check if there is already a message uid associated with this chunk sequence
+            let q = incoming_chunk::table.filter((incoming_chunk::from_friend.eq(chunk.from_friend),incoming_chunk::chunks_start_sequence_number.eq(chunk.chunks_start_sequence_number)));
+            match q.first(&conn) {
+                Ok(ref_chunk) => {
+                    // ok now we want to simply insert this chunk!
+    }
+
+    
 
 }

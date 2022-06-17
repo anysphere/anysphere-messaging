@@ -42,6 +42,26 @@ auto Transmitter::setup_registration_caching() -> void {
   check_rep();
 }
 
+auto decrypt_ack_row(pir_value_t& acks_row, const string& read_key)
+    -> asphr::StatusOr<int> {
+  vector<string> encrypted_acks(MAX_FRIENDS);
+  for (size_t i = 0; i < MAX_FRIENDS; i++) {
+    encrypted_acks.at(i).resize(ENCRYPTED_ACKING_BYTES);
+    std::copy(acks_row.begin() + i * ENCRYPTED_ACKING_BYTES,
+              acks_row.begin() + (i + 1) * ENCRYPTED_ACKING_BYTES,
+              encrypted_acks.at(i).begin());
+  }
+
+  // try decrypting each!
+  for (size_t i = 0; i < MAX_FRIENDS; i++) {
+    auto ack = crypto::decrypt_ack(encrypted_acks.at(i), read_key);
+    if (ack.ok()) {
+      return ack.value();
+    }
+  }
+  return absl::NotFoundError("Could not decrypt any ack.");
+}
+
 auto Transmitter::retrieve() -> void {
   check_rep();
 
@@ -51,7 +71,6 @@ auto Transmitter::retrieve() -> void {
   }
 
   setup_registration_caching();
-
   auto& client = *cached_pir_client;
 
   // -----
@@ -141,11 +160,17 @@ auto Transmitter::retrieve() -> void {
       auto ack_answer = reply.pir_answer_acks();
       auto ack_answer_obj = client.answer_from_string(ack_answer);
       auto ack_decoded = client.decode(ack_answer_obj, f.read_index);
+      auto decrypted_ack_status = decrypt_ack_row(ack_decoded, f.read_key);
+      if (decrypted_ack_status.ok()) {
+        auto decrypted_ack = decrypted_ack_status.value();
 
-      auto new_ack = G.db->receive_ack(f.uid, ack_decoded);
-      if (new_ack) {
-        ASPHR_LOG_INFO("Received ACK from friend.", friend_uid, f.uid);
-        just_acked_friend = f.uid;
+        auto new_ack = G.db->receive_ack(f.uid, decrypted_ack);
+        if (new_ack) {
+          ASPHR_LOG_INFO("Received new ACK from friend.", friend_uid, f.uid);
+          just_acked_friend = f.uid;
+        }
+      } else {
+        ASPHR_LOG_INFO("Could not decrypt ACK from friend.", friend_uid, f.uid);
       }
 
       //
@@ -155,11 +180,25 @@ auto Transmitter::retrieve() -> void {
       auto answer_obj = client.answer_from_string(answer);
       auto decoded = client.decode(answer_obj, f.read_index);
 
-      auto decrypted = crypto::decrypt_receive(decoded, f);
+      auto decrypted = crypto::decrypt_receive(decoded, f.read_key);
       if (decrypted.ok()) {
-        auto& message = decrypted.value();
+        auto& chunk = decrypted.value();
 
-        G.db->receive_chunk(f.uid, message);
+        if (chunk.id() == 0) {
+          ASPHR_LOG_INFO(
+              "Received empty garbage-message for security purposes.",
+              friend_uid, f.uid);
+          return;
+        }
+
+        G.db->receive_chunk(
+            f.uid,
+            (db::IncomingChunk){.from_friend = f.uid,
+                                .sequence_number = chunk.sequence_number(),
+                                .chunks_start_sequence_number =
+                                    chunk.chunks_start_sequence_number,
+                                .num_chunks = chunk.num_chunks(),
+                                .s = chunk.msg()});
 
         previous_success_receive_friend = std::optional<int>(f.uid);
       } else {
@@ -188,6 +227,7 @@ auto Transmitter::send() -> void {
   }
 
   setup_registration_caching();
+  auto& client = *cached_pir_client;
 
   auto send_info = G.db->get_send_info();
 

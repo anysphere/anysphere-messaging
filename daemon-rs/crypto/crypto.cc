@@ -108,13 +108,10 @@ auto derive_read_write_keys(string my_public_key, string my_private_key,
 }
 
 auto encrypt_send(const asphrclient::Message& message_in,
-                  const db::Address& friend_info)
-    -> asphr::StatusOr<pir_value_t> {
+                  const string& write_key) -> asphr::StatusOr<pir_value_t> {
   auto message = message_in;
-  if (friend_info.write_key.size() !=
-      crypto_aead_xchacha20poly1305_ietf_KEYBYTES) {
-    return asphr::InvalidArgumentError(
-        "friend_info.write_key is not the correct size");
+  if (write_key.size() != crypto_aead_xchacha20poly1305_ietf_KEYBYTES) {
+    return asphr::InvalidArgumentError("write_key is not the correct size");
   }
 
   std::string ciphertext;
@@ -159,8 +156,7 @@ auto encrypt_send(const asphrclient::Message& message_in,
           reinterpret_cast<unsigned char*>(ciphertext.data()), &ciphertext_len,
           reinterpret_cast<const unsigned char*>(plaintext.data()),
           plaintext.size(), nullptr, 0, nullptr, nonce,
-          reinterpret_cast<const unsigned char*>(
-              friend_info.write_key.data())) != 0) {
+          reinterpret_cast<const unsigned char*>(write_key.data())) != 0) {
     return absl::UnknownError("failed to encrypt message");
   }
 
@@ -176,8 +172,7 @@ auto encrypt_send(const asphrclient::Message& message_in,
   return pir_ciphertext;
 }
 
-auto decrypt_receive(const pir_value_t& ciphertext,
-                     const db::Address& friend_info)
+auto decrypt_receive(const pir_value_t& ciphertext, const string& read_key)
     -> asphr::StatusOr<asphrclient::Message> {
   auto ciphertext_len =
       MESSAGE_SIZE - crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
@@ -193,10 +188,8 @@ auto decrypt_receive(const pir_value_t& ciphertext,
                            crypto_aead_xchacha20poly1305_ietf_ABYTES -
                            crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
 
-  if (friend_info.read_key.size() !=
-      crypto_aead_xchacha20poly1305_ietf_KEYBYTES) {
-    return asphr::InvalidArgumentError(
-        "friend_info.read_key is not the correct size");
+  if (read_key.size() != crypto_aead_xchacha20poly1305_ietf_KEYBYTES) {
+    return asphr::InvalidArgumentError("read_key is not the correct size");
   }
 
   std::string plaintext;
@@ -207,8 +200,7 @@ auto decrypt_receive(const pir_value_t& ciphertext,
           nullptr,
           reinterpret_cast<const unsigned char*>(ciphertext_str.data()),
           ciphertext_str.size(), nullptr, 0, nonce,
-          reinterpret_cast<const unsigned char*>(
-              friend_info.read_key.data())) != 0) {
+          reinterpret_cast<const unsigned char*>(read_key.data())) != 0) {
     return absl::UnknownError("failed to decrypt message");
   }
 
@@ -233,12 +225,10 @@ auto decrypt_receive(const pir_value_t& ciphertext,
 }
 
 // encrypt_ack encrypts the ack_id to the friend
-auto encrypt_ack(uint32_t ack_id, const db::Address& friend_info)
+auto encrypt_ack(uint32_t ack_id, const string& write_key)
     -> asphr::StatusOr<string> {
-  if (friend_info.write_key.size() !=
-      crypto_aead_xchacha20poly1305_ietf_KEYBYTES) {
-    return asphr::InvalidArgumentError(
-        "friend_info.write_key is not the correct size");
+  if (write_key.size() != crypto_aead_xchacha20poly1305_ietf_KEYBYTES) {
+    return asphr::InvalidArgumentError("write_key is not the correct size");
   }
   std::string ciphertext;
   ciphertext.resize(ENCRYPTED_ACKING_BYTES);
@@ -257,8 +247,7 @@ auto encrypt_ack(uint32_t ack_id, const db::Address& friend_info)
           reinterpret_cast<unsigned char*>(ciphertext.data()), &ciphertext_len,
           reinterpret_cast<const unsigned char*>(plaintext.data()),
           plaintext.size(), nullptr, 0, nullptr, nonce,
-          reinterpret_cast<const unsigned char*>(
-              friend_info.write_key.data())) != 0) {
+          reinterpret_cast<const unsigned char*>(write_key.data())) != 0) {
     return absl::UnknownError("failed to encrypt message");
   }
 
@@ -272,12 +261,10 @@ auto encrypt_ack(uint32_t ack_id, const db::Address& friend_info)
   return ciphertext;
 }
 // decrypt_ack undoes encrypt_ack
-auto decrypt_ack(const string& ciphertext, const db::Address& friend_info)
+auto decrypt_ack(const string& ciphertext, const string& read_key)
     -> asphr::StatusOr<uint32_t> {
-  if (friend_info.read_key.size() !=
-      crypto_aead_xchacha20poly1305_ietf_KEYBYTES) {
-    return asphr::InvalidArgumentError(
-        "friend_info.read_key is not the correct size");
+  if (read_key.size() != crypto_aead_xchacha20poly1305_ietf_KEYBYTES) {
+    return asphr::InvalidArgumentError("read_key is not the correct size");
   }
   auto ciphertext_len =
       ENCRYPTED_ACKING_BYTES - crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
@@ -297,8 +284,7 @@ auto decrypt_ack(const string& ciphertext, const db::Address& friend_info)
           nullptr,
           reinterpret_cast<const unsigned char*>(ciphertext_str.data()),
           ciphertext_str.size(), nullptr, 0, nonce,
-          reinterpret_cast<const unsigned char*>(
-              friend_info.read_key.data())) != 0) {
+          reinterpret_cast<const unsigned char*>(read_key.data())) != 0) {
     return absl::UnknownError("failed to decrypt message");
   }
 
