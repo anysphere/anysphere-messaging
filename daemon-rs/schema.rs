@@ -41,16 +41,16 @@ table! {
     incoming_chunk (from_friend, sequence_number) {
         from_friend -> Integer,
         sequence_number -> Integer,
-        chunk_index -> Integer,
+        chunks_start_sequence_number -> Integer,
         message_uid -> Integer,
-        message -> Text,
+        s -> Text,
     }
 }
 
 table! {
     message (uid) {
         uid -> Integer,
-        s -> Text,
+        content -> Text,
     }
 }
 
@@ -58,9 +58,9 @@ table! {
     outgoing_chunk (to_friend, sequence_number) {
         to_friend -> Integer,
         sequence_number -> Integer,
-        chunk_index -> Integer,
+        chunks_start_sequence_number -> Integer,
         message_uid -> Integer,
-        message -> Text,
+        s -> Text,
     }
 }
 

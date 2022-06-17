@@ -58,7 +58,7 @@ CREATE TABLE status (
 -- message includes ALL real messages
 CREATE TABLE message (
     uid integer PRIMARY KEY NOT NULL,
-    s text NOT NULL -- the payload!
+    content text NOT NULL -- the payload!
 );
 
 CREATE TABLE draft (

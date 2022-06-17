@@ -11,6 +11,7 @@ rust_binary(
         ":bridge",
         ":cpp-imp",
         "@crate_index//:diesel",
+        "@crate_index//:chrono",
         "@cxx.rs//:cxx",
     ],
 )

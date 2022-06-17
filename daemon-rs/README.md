@@ -1,5 +1,11 @@
 # Database changes
 
+Install the CLI:
+
+```
+cargo install diesel_cli --no-default-features --features sqlite
+```
+
 We want to create a migration! Get the `diesel` CLI and run
 
 ```
