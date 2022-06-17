@@ -3,3 +3,5 @@ bazel-*
 .user.bazelrc
 
 .DS_Store
+
+compile_commands.json
