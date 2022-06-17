@@ -1,10 +1,10 @@
 -- exactly 1 element always!
+-- DUPLICATION: MAKE SURE TO HAVE THE CONSTANTS BE THE SAME AS constants.hpp
+-- When you update the constants.hpp, you need to run a migration here.
 CREATE TABLE config (
     uid integer PRIMARY KEY NOT NULL,
-    server_address text,
-    server_address_default boolean NOT NULL, -- whether the user is using the default server address! if so we replace from code at every startup
-    latency integer,
-    latency_default boolean NOT NULL, -- whether the user is using the default latency! if so we replace from code at every startup
+    server_address text NOT NULL,
+    latency integer NOT NULL,
     has_registered boolean NOT NULL,
     registration_uid integer,
     FOREIGN KEY(registration_uid) REFERENCES registration(uid)
@@ -98,7 +98,7 @@ CREATE TABLE outgoing_chunk (
     sequence_number integer NOT NULL,
     chunks_start_sequence_number integer NOT NULL,
     message_uid integer NOT NULL,
-    s text NOT NULL,
+    content text NOT NULL,
     PRIMARY KEY (to_friend, sequence_number),
     FOREIGN KEY(message_uid) REFERENCES sent(uid),
     FOREIGN KEY(to_friend) REFERENCES friend(uid)
@@ -109,7 +109,7 @@ CREATE TABLE incoming_chunk (
     sequence_number integer NOT NULL,
     chunks_start_sequence_number integer NOT NULL,
     message_uid integer NOT NULL,
-    s text NOT NULL,
+    content text NOT NULL,
     PRIMARY KEY (from_friend, sequence_number),
     FOREIGN KEY(message_uid) REFERENCES received(uid),
     FOREIGN KEY(from_friend) REFERENCES friend(uid)
@@ -123,5 +123,5 @@ CREATE TABLE incoming_chunk (
 ------------------END OF SCHEMA------------------
 ------------------START OF DATA------------------
 
-
-INSERT INTO config (uid, server_address_default, latency_default, has_registered) VALUES (1, true, true, false);
+-- DUPLICATION: MAKE SURE TO HAVE THE CONSTANTS BE THE SAME AS constants.hpp
+INSERT INTO config (uid, server_address, latency, has_registered) VALUES (1, "server1.anysphere.co:443", 30, false);

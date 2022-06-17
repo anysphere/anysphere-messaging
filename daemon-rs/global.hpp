@@ -10,9 +10,7 @@
 class Global {
  public:
   Global(const string& db_address)
-      : db_address(db_address),
-        db(db::init(db_address, DEFAULT_SERVER_ADDRESS,
-                    DEFAULT_ROUND_DELAY_SECONDS)) {
+      : db_address(db_address), db(db::init(db_address)) {
     crypto::init();
   }
 

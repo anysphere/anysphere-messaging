@@ -29,6 +29,7 @@ cc_library(
         "main.cc",
         # "rpc/daemon_rpc.cc",
         "transmitter/transmitter.cc",
+        "global.cc",
     ],
     hdrs = [
         "constants.hpp",

@@ -74,11 +74,15 @@ struct DB {
     address: String,
 }
 
-use schema::received;
-use schema::sent;
+#[derive(Queryable, Insertable)]
+#[diesel(table_name = schema::message)]
+struct Message {
+    uid: i32,
+    content: String,
+}
 
-#[derive(Queryable)]
-#[diesel(table_name = "sent")]
+#[derive(Queryable, Insertable)]
+#[diesel(table_name = schema::sent)]
 struct Sent {
     pub uid: i32,
     pub to_friend: i32,
@@ -88,8 +92,8 @@ struct Sent {
     pub delivered_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Queryable)]
-#[diesel(table_name = "received")]
+#[derive(Queryable, Insertable)]
+#[diesel(table_name = schema::received)]
 struct Received {
     pub uid: i32,
     pub from_friend: i32,
@@ -107,7 +111,8 @@ struct Received {
 #[cxx::bridge(namespace = "db")]
 pub mod db {
 
-    #[derive(Queryable)]
+    #[derive(Queryable, Insertable)]
+    #[diesel(table_name = crate::schema::friend)]
     struct Friend {
         pub uid: i32,
         pub unique_name: String,
@@ -149,24 +154,23 @@ pub mod db {
         pub authentication_token: String,
     }
 
-    #[derive(Queryable)]
-    // #[table_name = "incoming_chunk"]
+    #[derive(Queryable, Insertable)]
+    #[diesel(table_name = crate::schema::incoming_chunk)]
     struct IncomingChunk {
         pub from_friend: i32,
         pub sequence_number: i32,
         pub chunks_start_sequence_number: i32,
         pub message_uid: i32,
-        pub s: String,
+        pub content: String,
     }
 
     struct IncomingChunkFragment {
         pub from_friend: i32,
         pub sequence_number: i32,
         pub chunks_start_sequence_number: i32,
-        pub s: String,
+        pub content: String,
     }
 
-    #[derive(Queryable)]
     struct OutgoingChunkPlusPlus {
         pub to_friend: i32,
         pub sequence_number: i32,
@@ -187,22 +191,14 @@ pub mod db {
 
     extern "Rust" {
         type DB;
-        fn init(
-            address: &str,
-            default_server_address: &str,
-            default_latency: i32,
-        ) -> Result<Box<DB>>;
+        fn init(address: &str) -> Result<Box<DB>>;
 
         //
         // Config
         //
-        fn set_latency(&self, latency: i32, default_latency: i32) -> Result<()>;
+        fn set_latency(&self, latency: i32) -> Result<()>;
         fn get_latency(&self) -> Result<i32>;
-        fn set_server_address(
-            &self,
-            server_address: &str,
-            default_server_address: &str,
-        ) -> Result<()>;
+        fn set_server_address(&self, server_address: &str) -> Result<()>;
         fn get_server_address(&self) -> Result<String>;
 
         //
@@ -220,7 +216,7 @@ pub mod db {
         // returns address iff enabled && !deleted
         fn get_friend_address(&self, uid: i32) -> Result<Address>;
         // fails if no such friend exists
-get_random_enabled_friend_address_excluding(&self, uids: Vec<i32>) -> Result<Address>;
+        fn get_random_enabled_friend_address_excluding(&self, uids: Vec<i32>) -> Result<Address>;
 
         //
         // Messages
@@ -236,43 +232,13 @@ get_random_enabled_friend_address_excluding(&self, uids: Vec<i32>) -> Result<Add
     }
 }
 
-fn init(
-    address: &str,
-    default_server_address: &str,
-    default_latency: i32,
-) -> Result<Box<DB>, DbError> {
+fn init(address: &str) -> Result<Box<DB>, DbError> {
     let db = DB {
         address: address.to_string(),
     };
-    let conn = db.connect()?;
-
-    // TODO(arvid): run migrations
-
-    use self::schema::config;
-
-    let q = diesel::update(config::table.filter(config::server_address_default.eq(true)))
-        .set(config::server_address.eq(default_server_address));
-    match q.execute(&conn) {
-        Ok(_) => (),
-        Err(e) => {
-            return Err(DbError::Unknown(format!(
-                "failed to set default server address: {}",
-                e
-            )))
-        }
-    };
-
-    let q = diesel::update(config::table.filter(config::latency_default.eq(true)))
-        .set(config::latency.eq(default_latency));
-    match q.execute(&conn) {
-        Ok(_) => (),
-        Err(e) => {
-            return Err(DbError::Unknown(format!(
-                "failed to set default latency: {}",
-                e
-            )))
-        }
-    };
+    // We want to connect to fail early.
+    let _ = db.connect()?;
+    // TODO(urgent, arvid): run migration
 
     Ok(Box::new(db))
 }
@@ -289,63 +255,64 @@ impl DB {
         match SqliteConnection::establish(&self.address) {
             Ok(c) => return Ok(c),
             Err(e) => {
-                return Err(DbError::Unknown(
-                    "failed to connect to database".to_string(),
-                ))
+                return Err(DbError::Unknown(format!(
+                    "failed to connect to database, {}",
+                    e,
+                )))
             }
         }
     }
 
     fn has_registered(&self) -> Result<bool, DbError> {
-        let conn = self.connect()?;
+        let mut conn = self.connect()?;
         use self::schema::config;
 
         let q = config::table.select(config::has_registered);
         let has_registered = q
-            .first(&conn)
+            .first(&mut conn)
             .map_err(|e| DbError::Unknown(format!("failed to query has_registered: {}", e)))?;
         Ok(has_registered)
     }
 
     fn get_registration(&self) -> Result<db::Registration, DbError> {
-        let conn = self.connect()?;
+        let mut conn = self.connect()?;
         use self::schema::registration;
 
         let q = registration::table.select(registration::all_columns);
         let registration = q
-            .first(&conn)
+            .first(&mut conn)
             .map_err(|e| DbError::Unknown(format!("failed to query registration: {}", e)))?;
         Ok(registration)
     }
 
     fn get_pir_secret_key(&self) -> Result<Vec<u8>, DbError> {
-        let conn = self.connect()?;
+        let mut conn = self.connect()?;
         use self::schema::registration;
 
         let q = registration::table.select(registration::pir_secret_key);
         let pir_secret_key = q
-            .first(&conn)
+            .first(&mut conn)
             .map_err(|e| DbError::Unknown(format!("failed to query pir_secret_key: {}", e)))?;
         Ok(pir_secret_key)
     }
 
     fn get_send_info(&self) -> Result<db::SendInfo, DbError> {
-        let conn = self.connect()?;
+        let mut conn = self.connect()?;
         use self::schema::registration;
 
         let q = registration::table
             .select((registration::allocation, registration::authentication_token));
         let send_info = q
-            .first(&conn)
+            .first(&mut conn)
             .map_err(|e| DbError::Unknown(format!("failed to query send_info: {}", e)))?;
         Ok(send_info)
     }
 
     fn get_friend(&self, uid: i32) -> Result<db::Friend, DbError> {
-        let conn = self.connect()?;
+        let mut conn = self.connect()?;
         use self::schema::friend;
 
-        if let Ok(mut v) = friend::table.find(uid).load::<db::Friend>(&conn) {
+        if let Ok(mut v) = friend::table.find(uid).load::<db::Friend>(&mut conn) {
             if v.len() == 0 {
                 return Err(DbError::NotFound("friend not found".to_string()));
             }
@@ -355,24 +322,13 @@ impl DB {
         }
     }
 
-    fn set_latency(&self, latency: i32, default_latency: i32) -> Result<(), DbError> {
-        let conn = self.connect()?;
+    fn set_latency(&self, latency: i32) -> Result<(), DbError> {
+        let mut conn = self.connect()?;
         use self::schema::config;
 
-        let r = conn.transaction::<_, diesel::result::Error, _>(|| {
-            if latency == default_latency {
-                diesel::update(config::table)
-                    .set(config::latency_default.eq(true))
-                    .execute(&conn)?;
-            } else {
-                diesel::update(config::table)
-                    .set(config::latency_default.eq(true))
-                    .execute(&conn)?;
-            }
-            diesel::update(config::table)
-                .set(config::latency.eq(latency))
-                .execute(&conn)
-        });
+        let r = diesel::update(config::table)
+            .set(config::latency.eq(latency))
+            .execute(&mut conn);
 
         match r {
             Ok(_) => Ok(()),
@@ -381,38 +337,23 @@ impl DB {
     }
 
     fn get_latency(&self) -> Result<i32, DbError> {
-        let conn = self.connect()?;
+        let mut conn = self.connect()?;
         use self::schema::config;
 
         let q = config::table.select(config::latency);
         let latency = q
-            .first(&conn)
+            .first(&mut conn)
             .map_err(|e| DbError::Unknown(format!("failed to query latency: {}", e)))?;
         Ok(latency)
     }
 
-    fn set_server_address(
-        &self,
-        server_address: &str,
-        default_server_address: &str,
-    ) -> Result<(), DbError> {
-        let conn = self.connect()?;
+    fn set_server_address(&self, server_address: &str) -> Result<(), DbError> {
+        let mut conn = self.connect()?;
         use self::schema::config;
 
-        let r = conn.transaction::<_, diesel::result::Error, _>(|| {
-            if server_address == default_server_address {
-                diesel::update(config::table)
-                    .set(config::server_address_default.eq(true))
-                    .execute(&conn)?;
-            } else {
-                diesel::update(config::table)
-                    .set(config::server_address_default.eq(false))
-                    .execute(&conn)?;
-            }
-            diesel::update(config::table)
-                .set(config::server_address.eq(server_address))
-                .execute(&conn)
-        });
+        let r = diesel::update(config::table)
+            .set(config::server_address.eq(server_address))
+            .execute(&mut conn);
 
         match r {
             Ok(_) => Ok(()),
@@ -421,38 +362,34 @@ impl DB {
     }
 
     fn get_server_address(&self) -> Result<String, DbError> {
-        let conn = self.connect()?;
+        let mut conn = self.connect()?;
         use self::schema::config;
 
-        match config::table.select(config::server_address).first(&conn) {
-            Ok(s) => match s {
-                Some(s) => Ok(s),
-                None => Err(DbError::NotFound("server address not found".to_string())),
-            },
+        match config::table
+            .select(config::server_address)
+            .first(&mut conn)
+        {
+            Ok(server_address) => Ok(server_address),
             Err(e) => Err(DbError::Unknown(format!("get_server_address: {}", e))),
         }
     }
 
     fn receive_ack(&self, uid: i32, ack: i32) -> Result<bool, DbError> {
-        let conn = self.connect()?;
+        let mut conn = self.connect()?;
         use self::schema::outgoing_chunk;
         use self::schema::status;
 
-        let r = conn.transaction::<_, diesel::result::Error, _>(|| {
+        let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
             let old_acked_seqnum = status::table
-                .find(status::uid.eq(uid))
+                .find(uid)
                 .select(status::sent_acked_seqnum)
-                .first(&conn)?;
+                .first(conn_b)?;
             if ack > old_acked_seqnum {
-                diesel::update(status::table.find(status::uid.eq(uid)))
+                diesel::update(status::table.find(uid))
                     .set(status::sent_acked_seqnum.eq(ack))
-                    .execute(&conn)?;
+                    .execute(conn_b)?;
                 // delete outgoing chunk if it exists
-                diesel::delete(outgoing_chunk::table.filter((
-                    outgoing_chunk::to_friend.eq(uid),
-                    outgoing_chunk::sequence_number.eq(ack),
-                )))
-                .execute(&conn)?;
+                diesel::delete(outgoing_chunk::table.find((uid, ack))).execute(conn_b)?;
             }
             return Ok(old_acked_seqnum);
         });
@@ -471,31 +408,35 @@ impl DB {
         }
     }
 
-    fn receive_chunk(&self, chunk: db::IncomingChunk, num_chunks: i32) -> Result<(), DbError> {
-        let conn = self.connect()?;
+    fn receive_chunk(
+        &self,
+        chunk: db::IncomingChunkFragment,
+        num_chunks: i32,
+    ) -> Result<(), DbError> {
+        let mut conn = self.connect()?;
         use self::schema::incoming_chunk;
         use self::schema::message;
         use self::schema::received;
 
-        let r = conn.transaction::<_, diesel::result::Error, _>(|| {
+        let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
             // if already exists, we are happy! don't need to do anything :))
+            // TODO: check!!
             if let Ok(_) = incoming_chunk::table
-                .filter((
-                    incoming_chunk::from_friend.eq(chunk.from_friend),
-                    incoming_chunk::sequence_number.eq(chunk.sequence_number),
-                ))
-                .first(&conn)
+                .find((chunk.from_friend, chunk.sequence_number))
+                .first::<db::IncomingChunk>(conn_b)
             {
                 return Ok(());
             }
 
             // check if there is already a message uid associated with this chunk sequence
-            let q = incoming_chunk::table.filter((
-                incoming_chunk::from_friend.eq(chunk.from_friend),
-                incoming_chunk::chunks_start_sequence_number.eq(chunk.chunks_start_sequence_number),
-            ));
+            let q = incoming_chunk::table.filter(
+                incoming_chunk::from_friend.eq(chunk.from_friend).and(
+                    incoming_chunk::chunks_start_sequence_number
+                        .eq(chunk.chunks_start_sequence_number),
+                ),
+            );
             let message_uid;
-            match q.first(&conn) {
+            match q.first::<db::IncomingChunk>(conn_b) {
                 Ok(ref_chunk) => {
                     message_uid = ref_chunk.message_uid;
                     // ok now we want to simply insert this chunk!
@@ -504,77 +445,83 @@ impl DB {
                         sequence_number: chunk.sequence_number,
                         chunks_start_sequence_number: chunk.chunks_start_sequence_number,
                         message_uid: message_uid,
-                        s: chunk.s,
+                        content: chunk.content,
                     };
                     diesel::insert_into(incoming_chunk::table)
                         .values(&insertable_chunk)
-                        .execute(&conn)?;
+                        .execute(conn_b)?;
                 }
                 Err(_) => {
                     // if there is no message uid associated with this chunk sequence, we need to create a new message
                     let new_msg = diesel::insert_into(message::table)
                         .values(message::content.eq(""))
-                        .get_result(&conn)?;
+                        .get_result::<Message>(conn_b)?;
+
                     message_uid = new_msg.uid;
                     let new_received = Received {
                         uid: message_uid,
                         from_friend: chunk.from_friend,
-                        num_chunks: chunk.num_chunks,
-                        received_at: Utc::now().timestamp(),
+                        num_chunks: num_chunks,
+                        received_at: Utc::now(),
                         delivered: false,
                         delivered_at: None,
                         seen: false,
                     };
                     diesel::insert_into(received::table)
                         .values(&new_received)
-                        .execute(&conn)?;
+                        .execute(conn_b)?;
+
                     let insertable_chunk = db::IncomingChunk {
                         from_friend: chunk.from_friend,
                         sequence_number: chunk.sequence_number,
                         chunks_start_sequence_number: chunk.chunks_start_sequence_number,
                         message_uid: message_uid,
-                        s: chunk.s,
+                        content: chunk.content,
                     };
                     diesel::insert_into(incoming_chunk::table)
                         .values(&insertable_chunk)
-                        .execute(&conn)?;
+                        .execute(conn_b)?;
                 }
             };
             // check if we have received all chunks!
-            let q = incoming_chunk::table.filter((
-                incoming_chunk::from_friend.eq(chunk.from_friend),
-                incoming_chunk::chunks_start_sequence_number.eq(chunk.chunks_start_sequence_number),
-            ));
-            let count = q.count().get_result(&conn)?;
-            if count == chunk.num_chunks {
+            let q = incoming_chunk::table.filter(
+                incoming_chunk::from_friend.eq(chunk.from_friend).and(
+                    incoming_chunk::chunks_start_sequence_number
+                        .eq(chunk.chunks_start_sequence_number),
+                ),
+            );
+
+            let count: i64 = q.count().get_result(conn_b)?;
+            if count == num_chunks as i64 {
                 // we have received all chunks!
                 // now assemble the message, write it, and be happy!
                 let all_chunks = q
                     .order_by(incoming_chunk::sequence_number)
-                    .load::<db::IncomingChunk>(&conn)?;
+                    .load::<db::IncomingChunk>(conn_b)?;
                 let msg = all_chunks.iter().fold(String::new(), |mut acc, chunk| {
-                    acc.push_str(&chunk.s);
+                    acc.push_str(&chunk.content);
                     acc
                 });
                 diesel::update(message::table.find(message_uid))
                     .set((message::content.eq(msg),))
-                    .execute(&conn)?;
+                    .execute(conn_b)?;
                 // update the receive table
                 diesel::update(received::table.find(message_uid))
                     .set((
                         received::delivered.eq(true),
-                        received::delivered_at.eq(Utc::now().timestamp()),
+                        received::delivered_at.eq(Utc::now()),
                     ))
-                    .execute(&conn)?;
+                    .execute(conn_b)?;
                 // finally, delete the chunks
                 diesel::delete(
-                    incoming_chunk::table.filter((
-                        incoming_chunk::from_friend.eq(chunk.from_friend),
-                        incoming_chunk::chunks_start_sequence_number
-                            .eq(chunk.chunks_start_sequence_number),
-                    )),
+                    incoming_chunk::table.filter(
+                        incoming_chunk::from_friend.eq(chunk.from_friend).and(
+                            incoming_chunk::chunks_start_sequence_number
+                                .eq(chunk.chunks_start_sequence_number),
+                        ),
+                    ),
                 )
-                .execute(&conn)?;
+                .execute(conn_b)?;
             }
 
             Ok(())
@@ -586,7 +533,7 @@ impl DB {
         }
     }
 
-    fn chunk_to_send(&self, uid_priority: Vec<i32>) -> Result<db::OutgoingChunkPlusPlus, DbError> {
+    fn chunk_to_send(&self, _uid_priority: Vec<i32>) -> Result<db::OutgoingChunkPlusPlus, DbError> {
         // TODO: implement this.
         Err(DbError::Unknown(
             "chunk_to_send not implemented".to_string(),
@@ -594,29 +541,29 @@ impl DB {
     }
 
     fn acks_to_send(&self) -> Result<Vec<db::OutgoingAck>, DbError> {
-        let conn = self.connect()?;
+        let mut conn = self.connect()?;
         use self::schema::address;
         use self::schema::friend;
         use self::schema::status;
         let wide_friends = friend::table
-            .filter((friend::enabled.eq(true), friend::deleted.eq(false)))
+            .filter(friend::enabled.eq(true).and(friend::deleted.eq(false)))
             .inner_join(status::table)
             .inner_join(address::table);
         let q = wide_friends.select((
             friend::uid,
             status::received_seqnum,
-            address::ack_index,
             address::write_key,
+            address::ack_index,
         ));
-        let r = q.load::<db::OutgoingAck>(&conn);
+        let r = q.load::<db::OutgoingAck>(&mut conn);
         match r {
             Ok(acks) => Ok(acks),
             Err(e) => Err(DbError::Unknown(format!("acks_to_send: {}", e))),
         }
     }
 
-    fn get_friend_address(&self, uid: i32) -> Result<db::Address, DbError> {
-        let conn = self.connect()?;
+    fn get_friend_address(&self, _uid: i32) -> Result<db::Address, DbError> {
+        // let mut conn = self.connect()?;
 
         // not implemented
         Err(DbError::Unknown(
@@ -626,7 +573,7 @@ impl DB {
 
     fn get_random_enabled_friend_address_excluding(
         &self,
-        uids: Vec<i32>,
+        _uids: Vec<i32>,
     ) -> Result<db::Address, DbError> {
         // not implemented yet
         Err(DbError::Unknown(

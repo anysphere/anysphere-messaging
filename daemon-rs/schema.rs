@@ -1,4 +1,6 @@
-table! {
+// @generated automatically by Diesel CLI.
+
+diesel::table! {
     address (uid) {
         uid -> Integer,
         read_index -> Integer,
@@ -8,26 +10,24 @@ table! {
     }
 }
 
-table! {
+diesel::table! {
     config (uid) {
         uid -> Integer,
-        server_address -> Nullable<Text>,
-        server_address_default -> Bool,
-        latency -> Nullable<Integer>,
-        latency_default -> Bool,
+        server_address -> Text,
+        latency -> Integer,
         has_registered -> Bool,
         registration_uid -> Nullable<Integer>,
     }
 }
 
-table! {
+diesel::table! {
     draft (uid) {
         uid -> Integer,
         to_friend -> Integer,
     }
 }
 
-table! {
+diesel::table! {
     friend (uid) {
         uid -> Integer,
         unique_name -> Text,
@@ -37,46 +37,46 @@ table! {
     }
 }
 
-table! {
+diesel::table! {
     incoming_chunk (from_friend, sequence_number) {
         from_friend -> Integer,
         sequence_number -> Integer,
         chunks_start_sequence_number -> Integer,
         message_uid -> Integer,
-        s -> Text,
+        content -> Text,
     }
 }
 
-table! {
+diesel::table! {
     message (uid) {
         uid -> Integer,
         content -> Text,
     }
 }
 
-table! {
+diesel::table! {
     outgoing_chunk (to_friend, sequence_number) {
         to_friend -> Integer,
         sequence_number -> Integer,
         chunks_start_sequence_number -> Integer,
         message_uid -> Integer,
-        s -> Text,
+        content -> Text,
     }
 }
 
-table! {
+diesel::table! {
     received (uid) {
         uid -> Integer,
         from_friend -> Integer,
         num_chunks -> Integer,
-        received_at -> Timestamp,
+        received_at -> TimestamptzSqlite,
         delivered -> Bool,
-        delivered_at -> Nullable<Timestamp>,
+        delivered_at -> Nullable<TimestamptzSqlite>,
         seen -> Bool,
     }
 }
 
-table! {
+diesel::table! {
     registration (uid) {
         uid -> Integer,
         public_key -> Binary,
@@ -88,18 +88,18 @@ table! {
     }
 }
 
-table! {
+diesel::table! {
     sent (uid) {
         uid -> Integer,
         to_friend -> Integer,
         num_chunks -> Integer,
-        sent_at -> Timestamp,
+        sent_at -> TimestamptzSqlite,
         delivered -> Bool,
-        delivered_at -> Nullable<Timestamp>,
+        delivered_at -> Nullable<TimestamptzSqlite>,
     }
 }
 
-table! {
+diesel::table! {
     status (uid) {
         uid -> Integer,
         sent_acked_seqnum -> Integer,
@@ -107,21 +107,21 @@ table! {
     }
 }
 
-joinable!(address -> friend (uid));
-joinable!(config -> registration (registration_uid));
-joinable!(draft -> friend (to_friend));
-joinable!(draft -> message (uid));
-joinable!(incoming_chunk -> friend (from_friend));
-joinable!(incoming_chunk -> received (message_uid));
-joinable!(outgoing_chunk -> friend (to_friend));
-joinable!(outgoing_chunk -> sent (message_uid));
-joinable!(received -> friend (from_friend));
-joinable!(received -> message (uid));
-joinable!(sent -> friend (to_friend));
-joinable!(sent -> message (uid));
-joinable!(status -> friend (uid));
+diesel::joinable!(address -> friend (uid));
+diesel::joinable!(config -> registration (registration_uid));
+diesel::joinable!(draft -> friend (to_friend));
+diesel::joinable!(draft -> message (uid));
+diesel::joinable!(incoming_chunk -> friend (from_friend));
+diesel::joinable!(incoming_chunk -> received (message_uid));
+diesel::joinable!(outgoing_chunk -> friend (to_friend));
+diesel::joinable!(outgoing_chunk -> sent (message_uid));
+diesel::joinable!(received -> friend (from_friend));
+diesel::joinable!(received -> message (uid));
+diesel::joinable!(sent -> friend (to_friend));
+diesel::joinable!(sent -> message (uid));
+diesel::joinable!(status -> friend (uid));
 
-allow_tables_to_appear_in_same_query!(
+diesel::allow_tables_to_appear_in_same_query!(
     address,
     config,
     draft,

@@ -279,7 +279,7 @@ auto Transmitter::retrieve() -> void {
                 .sequence_number = static_cast<int>(chunk.sequence_number()),
                 .chunks_start_sequence_number =
                     static_cast<int>(chunk.chunks_start_sequence_number()),
-                .s = chunk.msg()},
+                .content = chunk.msg()},
             static_cast<int>(chunk.num_chunks()));
 
         previous_success_receive_friend = std::optional<int>(f.uid);

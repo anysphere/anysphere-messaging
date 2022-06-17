@@ -3,7 +3,7 @@
 Install the CLI:
 
 ```
-cargo install diesel_cli --no-default-features --features sqlite
+cargo install diesel_cli --version 2.0.0-rc.0 --no-default-features --features sqlite --features chrono
 ```
 
 We want to create a migration! Get the `diesel` CLI and run
