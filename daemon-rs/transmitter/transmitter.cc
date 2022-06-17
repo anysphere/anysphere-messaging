@@ -236,20 +236,28 @@ auto Transmitter::send() -> void {
     prioritized_friends.push_back(just_acked_friend.value());
   }
   string write_key;
-  string chunk;
+  asphrclient::Message message;
   try {
     auto chunk_to_send = G.db->chunk_to_send(prioritized_friends);
     just_sent_friend = chunk_to_send.to_friend;
     write_key = chunk_to_send.write_key;
-    chunk = std::string(chunk_to_send.message);
+
+    message.set_sequence_number(chunk_to_send.sequence_number);
+    message.set_msg(chunk_to_send.s);
+    if (chunk_to_send.num_chunks > 1) {
+      message.set_num_chunks(chunk_to_send.num_chunks);
+      message.set_chunks_start_sequence_number(
+          chunk_to_send.chunks_start_sequence_number);
+    }
   } catch (const rust::Error& e) {
     ASPHR_LOG_INFO("No chunks to send (probably).", error_msg, e.what());
     just_sent_friend = std::nullopt;
     write_key = dummy_address.value().write_key;
-    chunk = "";
+    message.set_sequence_number(0);
+    message.set_msg("fake message");
   }
 
-  auto encrypted_chunk_status = crypto::encrypt_send(chunk, write_key);
+  auto encrypted_chunk_status = crypto::encrypt_send(message, write_key);
   if (!encrypted_chunk_status.ok()) {
     ASPHR_LOG_ERR("Could not encrypt message.", error_msg,
                   encrypted_chunk_status.status().message());

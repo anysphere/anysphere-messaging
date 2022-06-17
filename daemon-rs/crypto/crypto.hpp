@@ -10,11 +10,10 @@
 #include <stdexcept>
 #include <string>
 
+#include "../db.hpp"
 #include "asphr/asphr.hpp"
 #include "client_lib/client_lib.hpp"
 #include "schema/message.pb.h"
-
-#include "../db.hpp"
 
 using std::string;
 
@@ -56,18 +55,16 @@ auto derive_read_write_keys(string my_public_key, string my_private_key,
 // schemes do support this out of the box, but it is important to keep in
 // mind because it is a somewhat nonstandard requirement.
 auto encrypt_send(const asphrclient::Message& message_in,
-                  const db::Address& friend_info)
-    -> asphr::StatusOr<pir_value_t>;
+                  const string& write_key) -> asphr::StatusOr<pir_value_t>;
 
-auto decrypt_receive(const pir_value_t& ciphertext,
-                     const db::Address& friend_info)
+auto decrypt_receive(const pir_value_t& ciphertext, const string& read_key)
     -> asphr::StatusOr<asphrclient::Message>;
 
 // encrypt_ack encrypts the ack_id to the friend
-auto encrypt_ack(uint32_t ack_id, const db::Address& friend_info)
+auto encrypt_ack(uint32_t ack_id, const string& write_key)
     -> asphr::StatusOr<string>;
 // decrypt_ack undoes encrypt_ack
-auto decrypt_ack(const string& ciphertext, const db::Address& friend_info)
+auto decrypt_ack(const string& ciphertext, const string& read_key)
     -> asphr::StatusOr<uint32_t>;
 
 };  // namespace crypto
