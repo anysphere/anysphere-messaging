@@ -163,13 +163,14 @@ pub mod db {
     }
 
     #[derive(Queryable)]
-    struct OutgoingChunk {
+    struct OutgoingChunkPlusPlus {
         pub to_friend: i32,
         pub sequence_number: i32,
         pub chunks_start_sequence_number: i32,
         pub message_uid: i32,
-        pub message: Vec<u8>,
+        pub s: Vec<u8>,
         pub write_key: Vec<u8>,
+        pub num_chunks: i32,
     }
 
     #[derive(Queryable)]
@@ -218,7 +219,7 @@ pub mod db {
 
         // fails if there is no chunk to send
         // prioritizes by the given uid in order from first to last try
-        fn chunk_to_send(&self, uid_priority: Vec<i32>) -> Result<OutgoingChunk>;
+        fn chunk_to_send(&self, uid_priority: Vec<i32>) -> Result<OutgoingChunkPlusPlus>;
         fn acks_to_send(&self) -> Result<Vec<OutgoingAck>>;
     }
 

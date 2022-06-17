@@ -57,7 +57,8 @@ auto Transmitter::setup_registration_caching() -> void {
       cached_pir_client_secret_key.value() != pir_secret_key_str) {
     auto reg = G.db->get_registration();
     cached_pir_client = std::optional(std::make_unique<FastPIRClient>(
-        reg.pir_secret_key, reg.pir_galois_key));
+        rust_u8Vec_to_string(reg.pir_secret_key),
+        rust_u8Vec_to_string(reg.pir_galois_key)));
 
     cached_pir_client_secret_key = rust_u8Vec_to_string(reg.pir_secret_key);
     dummy_address = generate_dummy_address(G, reg);
@@ -97,7 +98,8 @@ auto Transmitter::encrypt_ack_row(const vector<db::OutgoingAck>& acks,
     auto ack = crypto::encrypt_ack(wrapped_ack.ack,
                                    rust_u8Vec_to_string(wrapped_ack.write_key));
     if (!ack.ok()) {
-      ASPHR_LOG_ERR("Could not encrypt ack.", ack_status, ack.status());
+      ASPHR_LOG_ERR("Could not encrypt ack.", error_code, ack.status().code(),
+                    error_message, ack.status().message());
       return absl::UnknownError("encryption failed");
     }
     encrypted_acks.at(wrapped_ack.ack_index) = ack.value();
@@ -106,7 +108,9 @@ auto Transmitter::encrypt_ack_row(const vector<db::OutgoingAck>& acks,
     if (encrypted_acks.at(i).empty()) {
       auto ack = crypto::encrypt_ack(0, write_key);
       if (!ack.ok()) {
-        ASPHR_LOG_ERR("Could not dummy encrypt ack.", ack_status, ack.status());
+        ASPHR_LOG_ERR("Could not encrypt dummy ack.", error_code,
+                      ack.status().code(), error_message,
+                      ack.status().message());
         return absl::UnknownError("encryption failed");
       }
       encrypted_acks.at(i) = ack.value();
@@ -156,8 +160,9 @@ auto Transmitter::retrieve() -> void {
   // Get the proritized addresses if we can.
   vector<db::Address> receive_addresses;
   vector<bool> receive_addresses_is_dummy;
-  for (auto i = 0; i < std::min(size_t(RECEIVE_FRIENDS_PER_ROUND),
-                                priority_receive_friends.size());
+  for (auto i = 0;
+       i < std::min(RECEIVE_FRIENDS_PER_ROUND,
+                    static_cast<int>(priority_receive_friends.size()));
        i++) {
     try {
       auto f = G.db->get_friend_address(priority_receive_friends.at(i));
@@ -259,21 +264,23 @@ auto Transmitter::retrieve() -> void {
       if (decrypted.ok()) {
         auto& chunk = decrypted.value();
 
-        if (chunk.id() == 0) {
+        if (chunk.sequence_number() == 0) {
           ASPHR_LOG_INFO(
               "Received empty garbage-message for security purposes.",
               friend_uid, f.uid);
           return;
         }
 
+        // TODO: we probably don't want to cast to int32 here... let's use
+        // int64s everywhere
         G.db->receive_chunk(
-            f.uid,
-            (db::IncomingChunk){.from_friend = f.uid,
-                                .sequence_number = chunk.sequence_number(),
-                                .chunks_start_sequence_number =
-                                    chunk.chunks_start_sequence_number,
-                                .num_chunks = chunk.num_chunks(),
-                                .s = chunk.msg()});
+            (db::IncomingChunkFragment){
+                .from_friend = f.uid,
+                .sequence_number = static_cast<int>(chunk.sequence_number()),
+                .chunks_start_sequence_number =
+                    static_cast<int>(chunk.chunks_start_sequence_number()),
+                .s = chunk.msg()},
+            static_cast<int>(chunk.num_chunks()));
 
         previous_success_receive_friend = std::optional<int>(f.uid);
       } else {
@@ -281,7 +288,8 @@ auto Transmitter::retrieve() -> void {
             "Failed to decrypt message (message was probably not for us, "
             "which "
             "is okay).",
-            decrypted_status, decrypted.status());
+            decrypted_error_code, decrypted.status().code(),
+            decrypted_error_message, decrypted.status().message());
       }
     } else {
       ASPHR_LOG_ERR("Could not retrieve PIR reply from server.", friend_uid,
@@ -303,11 +311,10 @@ auto Transmitter::send() -> void {
   }
 
   setup_registration_caching();
-  auto& client = *cached_pir_client;
 
   auto send_info = G.db->get_send_info();
 
-  vector<int> prioritized_friends;
+  rust::Vec<int> prioritized_friends;
   if (just_acked_friend.has_value()) {
     prioritized_friends.push_back(just_acked_friend.value());
   }
@@ -316,10 +323,10 @@ auto Transmitter::send() -> void {
   try {
     auto chunk_to_send = G.db->chunk_to_send(prioritized_friends);
     just_sent_friend = chunk_to_send.to_friend;
-    write_key = std::string(chunk_to_send.write_key.data());
+    write_key = rust_u8Vec_to_string(chunk_to_send.write_key);
 
     message.set_sequence_number(chunk_to_send.sequence_number);
-    message.set_msg(chunk_to_send.s);
+    message.set_msg(rust_u8Vec_to_string(chunk_to_send.s));
     if (chunk_to_send.num_chunks > 1) {
       message.set_num_chunks(chunk_to_send.num_chunks);
       message.set_chunks_start_sequence_number(
@@ -328,7 +335,7 @@ auto Transmitter::send() -> void {
   } catch (const rust::Error& e) {
     ASPHR_LOG_INFO("No chunks to send (probably).", error_msg, e.what());
     just_sent_friend = std::nullopt;
-    write_key = std::string(dummy_address.value().write_key.data());
+    write_key = rust_u8Vec_to_string(dummy_address.value().write_key);
     message.set_sequence_number(0);
     message.set_msg("fake message");
   }
