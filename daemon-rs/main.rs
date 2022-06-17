@@ -109,16 +109,35 @@ pub mod db {
         type DB;
         fn init(address: &str, default_server_address: &str, default_latency: i32) -> Result<Box<DB>>;
 
-        fn has_registered(&self) -> bool;
-        fn get_registration(&self) -> Result<Registration>;
-        fn get_pir_secret_key(&self) -> Result<Vec<u8>>;
-
+        //
+        // Config
+        //
         fn set_latency(&self, latency: i32, default_latency: i32) -> Result<()>;
         fn get_latency(&self) -> Result<i32>;
         fn set_server_address(&self, server_address: &str, default_server_address: &str) -> Result<()>;
         fn get_server_address(&self) -> Result<String>;
 
+        //
+        // Registration
+        //
+        fn has_registered(&self) -> bool;
+        fn get_registration(&self) -> Result<Registration>;
+        fn get_pir_secret_key(&self) -> Result<Vec<u8>>;
+
+        //
+        // Friends
+        //
         fn get_friend(&self, uid: i32) -> Result<Friend>;
+        // returns address iff enabled && !deleted
+        fn get_friend_address(&self, uid: i32) -> Result<Address>;
+        // fails if no such friend exists
+        fn get_random_enabled_friend_address_excluding(&self, uids: Vec<i32>) -> Result<Address>;
+
+        //
+        // Messages
+        //
+        fn receive_ack(&self, uid: i32, index: i32);
+        fn receive_chunk(&self, uid: i32, chunk: Vec<u8>);
     }
 
 }

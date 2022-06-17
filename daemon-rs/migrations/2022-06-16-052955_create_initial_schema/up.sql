@@ -21,6 +21,9 @@ CREATE TABLE registration (
     authentication_token text NOT NULL
 );
 
+-- never delete a friend! instead, set `deleted` to true, or else we will lose history!
+-- (if you actually do delete, you need to also delete from the message tables, or else 
+-- the foreign key constraints will fail)
 CREATE TABLE friend (
     uid integer PRIMARY KEY NOT NULL,
     unique_name text NOT NULL,
@@ -32,6 +35,9 @@ CREATE TABLE friend (
 CREATE TABLE address (
     uid integer PRIMARY KEY NOT NULL,
     read_index integer NOT NULL,
+  -- ack_index is the index into the acking data for this friend
+  -- this NEEDS to be unique for every friend!!
+  -- This needs to be between 0 <= ack_index < MAX_FRIENDS
     ack_index integer NOT NULL,
     read_key blob NOT NULL,
     write_key blob NOT NULL,
@@ -40,8 +46,12 @@ CREATE TABLE address (
 
 CREATE TABLE status (
     uid integer PRIMARY KEY NOT NULL,
-    sent_acked_seqnum integer NOT NULL, -- the maximum ACK from this friend
-    received_seqnum integer NOT NULL, -- we have received all messages up and including this seqnum
+  -- sent_acked_seqnum is the latest sequence number that was ACKed by the friend
+  -- any message with seqnum > sent_acked_seqnum MUST be retried.
+    sent_acked_seqnum integer NOT NULL, 
+  -- received_seqnum is the value that should be ACKed. we acknowledge that we
+  -- have received all sequence numbers up to and including this value.
+    received_seqnum integer NOT NULL,
     FOREIGN KEY(uid) REFERENCES friend(uid)
 );
 
