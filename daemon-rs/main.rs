@@ -178,6 +178,7 @@ pub mod db {
         pub to_friend: i32,
         pub ack: i32,
         pub write_key: Vec<u8>,
+        pub ack_index: i32,
     }
 
     extern "Rust" {
@@ -288,6 +289,15 @@ impl DB {
         Ok(pir_secret_key)
     }
 
+    fn get_send_info(&self) -> Result<SendInfo> {
+        let conn = self.connect()?;
+        use self::schema::registration;
+
+        let q = registration::table.select((registration::allocation, registration::authentication_token));
+        let send_info = q.first(&conn).map_err(|e| DbError::Unknown(format!("failed to query send_info: {}", e)))?;
+        Ok(send_info)
+    }
+
     fn get_friend(&self, uid: i32) -> Result<db::Friend, DbError> {
         let conn = self.connect()?;
         use self::schema::friend;
@@ -392,80 +402,99 @@ impl DB {
         }
     }
 
-    // fn receive_chunk(&self, chunk: IncomingChunk) -> Result<(), DbError> {
-    //     let conn = self.connect()?;
-    //     use self::schema::incoming_chunk;
-    //     use self::schema::message;
-    //     use self::schema::received;
+    fn receive_chunk(&self, chunk: IncomingChunk) -> Result<(), DbError> {
+        let conn = self.connect()?;
+        use self::schema::incoming_chunk;
+        use self::schema::message;
+        use self::schema::received;
 
-    //     let r = conn.transaction::<_, diesel::result::Error, _>(|| {
-    //         // if already exists, we are happy! don't need to do anything :))
-    //         if let Ok(_) = incoming_chunk::table.filter((incoming_chunk::from_friend.eq(chunk.from_friend), incoming_chunk::sequence_number.eq(chunk.sequence_number))).first(&conn) {
-    //             return Ok(());
-    //         }
+        let r = conn.transaction::<_, diesel::result::Error, _>(|| {
+            // if already exists, we are happy! don't need to do anything :))
+            if let Ok(_) = incoming_chunk::table.filter((incoming_chunk::from_friend.eq(chunk.from_friend), incoming_chunk::sequence_number.eq(chunk.sequence_number))).first(&conn) {
+                return Ok(());
+            }
 
-    //         // check if there is already a message uid associated with this chunk sequence
-    //         let q = incoming_chunk::table.filter((incoming_chunk::from_friend.eq(chunk.from_friend),incoming_chunk::chunks_start_sequence_number.eq(chunk.chunks_start_sequence_number)));
-    //         let message_uid;
-    //         match q.first(&conn) {
-    //             Ok(ref_chunk) => {
-    //                 message_uid = ref_chunk.message_uid;
-    //                 // ok now we want to simply insert this chunk!
-    //                 let insertable_chunk = IncomingChunk {
-    //                     from_friend: chunk.from_friend,
-    //                     sequence_number: chunk.sequence_number,
-    //                     chunks_start_sequence_number: chunk.chunks_start_sequence_number,
-    //                     message_uid: message_uid,
-    //                     s: chunk.s,
-    //                 };
-    //                 diesel::insert_into(incoming_chunk::table).values(&insertable_chunk).execute(&conn)?;
-    //             },
-    //             Err(_) => {
-    //                 // if there is no message uid associated with this chunk sequence, we need to create a new message
-    //                 let new_msg = diesel::insert_into(message::table).values(message::s.eq("")).get_result(&conn)?;
-    //                 message_uid = new_msg.uid;
-    //                 let new_received = Received {
-    //                     uid: message_uid,
-    //                     from_friend: chunk.from_friend,
-    //                     num_chunks: chunk.num_chunks,
-    //                     received_at: Utc::now().timestamp(),
-    //                     delivered: false,
-    //                     delivered_at: None,
-    //                     seen: false
-    //                 };
-    //                 diesel::insert_into(received::table).values(&new_received).execute(&conn)?;
-    //                 let insertable_chunk = IncomingChunk {
-    //                     from_friend: chunk.from_friend,
-    //                     sequence_number: chunk.sequence_number,
-    //                     chunks_start_sequence_number: chunk.chunks_start_sequence_number,
-    //                     message_uid: message_uid,
-    //                     s: chunk.s,
-    //                 };
-    //                 diesel::insert_into(incoming_chunk::table).values(&insertable_chunk).execute(&conn)?;
-    //             }
-    //         };
-    //         // check if we have received all chunks!
-    //         let q = incoming_chunk::table.filter((incoming_chunk::from_friend.eq(chunk.from_friend),incoming_chunk::chunks_start_sequence_number.eq(chunk.chunks_start_sequence_number)));
-    //         let count = q.count().get_result(&conn)?;
-    //         if count == chunk.num_chunks {
-    //             // we have received all chunks!
-    //             // now assemble the message, write it, and be happy!
-    //             let all_chunks = q.order_by(incoming_chunk::sequence_number).load::<IncomingChunk>(&conn)?;
-    //             let msg = all_chunks.iter().fold(String::new(), |mut acc, chunk| {
-    //                 acc.push_str(&chunk.s);
-    //                 acc
-    //             });
-    //             diesel::update(message::table.find(message_uid)).set((message::s.eq(msg), message::delivered.eq(true), message::delivered_at(Utc::now().timestamp()))).execute(&conn)?;
-    //             // finally, delete the chunks
-    //             diesel::delete(incoming_chunk::table.filter((incoming_chunk::from_friend.eq(chunk.from_friend), incoming_chunk::chunks_start_sequence_number.eq(chunk.chunks_start_sequence_number)))).execute(&conn)?;
-    //         }
-    //     };
+            // check if there is already a message uid associated with this chunk sequence
+            let q = incoming_chunk::table.filter((incoming_chunk::from_friend.eq(chunk.from_friend),incoming_chunk::chunks_start_sequence_number.eq(chunk.chunks_start_sequence_number)));
+            let message_uid;
+            match q.first(&conn) {
+                Ok(ref_chunk) => {
+                    message_uid = ref_chunk.message_uid;
+                    // ok now we want to simply insert this chunk!
+                    let insertable_chunk = IncomingChunk {
+                        from_friend: chunk.from_friend,
+                        sequence_number: chunk.sequence_number,
+                        chunks_start_sequence_number: chunk.chunks_start_sequence_number,
+                        message_uid: message_uid,
+                        s: chunk.s,
+                    };
+                    diesel::insert_into(incoming_chunk::table).values(&insertable_chunk).execute(&conn)?;
+                },
+                Err(_) => {
+                    // if there is no message uid associated with this chunk sequence, we need to create a new message
+                    let new_msg = diesel::insert_into(message::table).values(message::s.eq("")).get_result(&conn)?;
+                    message_uid = new_msg.uid;
+                    let new_received = Received {
+                        uid: message_uid,
+                        from_friend: chunk.from_friend,
+                        num_chunks: chunk.num_chunks,
+                        received_at: Utc::now().timestamp(),
+                        delivered: false,
+                        delivered_at: None,
+                        seen: false
+                    };
+                    diesel::insert_into(received::table).values(&new_received).execute(&conn)?;
+                    let insertable_chunk = IncomingChunk {
+                        from_friend: chunk.from_friend,
+                        sequence_number: chunk.sequence_number,
+                        chunks_start_sequence_number: chunk.chunks_start_sequence_number,
+                        message_uid: message_uid,
+                        s: chunk.s,
+                    };
+                    diesel::insert_into(incoming_chunk::table).values(&insertable_chunk).execute(&conn)?;
+                }
+            };
+            // check if we have received all chunks!
+            let q = incoming_chunk::table.filter((incoming_chunk::from_friend.eq(chunk.from_friend),incoming_chunk::chunks_start_sequence_number.eq(chunk.chunks_start_sequence_number)));
+            let count = q.count().get_result(&conn)?;
+            if count == chunk.num_chunks {
+                // we have received all chunks!
+                // now assemble the message, write it, and be happy!
+                let all_chunks = q.order_by(incoming_chunk::sequence_number).load::<IncomingChunk>(&conn)?;
+                let msg = all_chunks.iter().fold(String::new(), |mut acc, chunk| {
+                    acc.push_str(&chunk.s);
+                    acc
+                });
+                diesel::update(message::table.find(message_uid)).set((message::s.eq(msg), message::delivered.eq(true), message::delivered_at(Utc::now().timestamp()))).execute(&conn)?;
+                // finally, delete the chunks
+                diesel::delete(incoming_chunk::table.filter((incoming_chunk::from_friend.eq(chunk.from_friend), incoming_chunk::chunks_start_sequence_number.eq(chunk.chunks_start_sequence_number)))).execute(&conn)?;
+            }
+        });
 
-    //     match r {
-    //         Ok(_) => Ok(()),
-    //         Err(e) => Err(DbError::Unknown(format!("receive_chunk: {}", e))),
-    //     }
-    // }
+        match r {
+            Ok(_) => Ok(()),
+            Err(e) => Err(DbError::Unknown(format!("receive_chunk: {}", e))),
+        }
+    }
+
+    fn chunk_to_send(&self, uid_priority: Vec<i32>) -> Result<OutgoingChunk> {
+        // TODO: implement this.
+        Err(DbError::Unknown("chunk_to_send not implemented".to_string()))
+    }
+
+    fn acks_to_send(&self) -> Result<Vec<OutgoingAck>> {
+        let conn = self.connect()?;
+        use self::schema::friend;
+        use self::schema::status;
+        use self::schema::address;
+        let wide_friends = friend::table.filter((friend::enabled.eq(true), friend::deleted.eq(false))).inner_join(status::table).inner_join(address::table);
+        let q = wide_friends.select((friend::uid, status::received_seqnum, address::ack_index, address::wried_key));
+        let r = q.load::<OutgoingAck>(&conn);
+        match r {
+            Ok(acks) => Ok(acks),
+            Err(e) => Err(DbError::Unknown(format!("acks_to_send: {}", e))),
+        }
+    }
 
     
 

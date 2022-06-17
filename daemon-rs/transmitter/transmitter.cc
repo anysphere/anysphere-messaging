@@ -62,6 +62,40 @@ auto decrypt_ack_row(pir_value_t& acks_row, const string& read_key)
   return absl::NotFoundError("Could not decrypt any ack.");
 }
 
+auto encrypt_ack_row(const vector<db::OutgoingAck>& acks,
+                     const string& write_key) -> asphr::StatusOr<pir_value_t> {
+  assert(acks.size() <= MAX_FRIENDS);
+  check_rep();
+
+  vector<string> encrypted_acks(MAX_FRIENDS);
+  for (auto& wrapped_ack : acks) {
+    auto ack = crypto.encrypt_ack(wrapped_ack.ack, wrapped_ack.write_key);
+    if (!ack.ok()) {
+      ASPHR_LOG_ERR("Could not encrypt ack.", ack_status, ack.status());
+      return absl::UnknownError("encryption failed");
+    }
+    encrypted_acks.at(wrapped_ack.ack_index) = ack.value();
+  }
+  for (size_t i = 0; i < MAX_FRIENDS; i++) {
+    if (encrypted_acks.at(i).empty()) {
+      auto ack = crypto.encrypt_ack(0, write_key);
+      if (!ack.ok()) {
+        ASPHR_LOG_ERR("Could not dummy encrypt ack.", ack_status, ack.status());
+        return absl::UnknownError("encryption failed");
+      }
+      encrypted_acks.at(i) = ack.value();
+    }
+  }
+  pir_value_t pir_acks;
+  for (size_t i = 0; i < MAX_FRIENDS; i++) {
+    std::copy(encrypted_acks.at(i).begin(), encrypted_acks.at(i).end(),
+              pir_acks.begin() + i * ENCRYPTED_ACKING_BYTES);
+  }
+
+  check_rep();
+  return pir_acks;
+}
+
 auto Transmitter::retrieve() -> void {
   check_rep();
 
@@ -116,7 +150,7 @@ auto Transmitter::retrieve() -> void {
     // for liveness
     try {
       auto f = G.db->get_random_enabled_friend_address_excluding(
-          receive_addresses.map([](auto& a) { return a.uid; }));
+          receive_addresses.into_iter().map([](auto& a) { return a.uid; }));
       receive_addresses.push_back(f);
       receive_addresses_is_dummy.push_back(false);
     } catch (const rust::Error& e) {
@@ -131,7 +165,8 @@ auto Transmitter::retrieve() -> void {
   // Step 2: execute the PIR queries
   // -----
   auto pir_replies = batch_retrieve_pir(
-      client, receive_addresses.map([](auto& a) { return a.read_index; }));
+      client,
+      receive_addresses.into_iter().map([](auto& a) { return a.read_index; }));
 
   assert(pir_replies.size() == RECEIVE_FRIENDS_PER_ROUND);
 
@@ -203,7 +238,8 @@ auto Transmitter::retrieve() -> void {
         previous_success_receive_friend = std::optional<int>(f.uid);
       } else {
         ASPHR_LOG_INFO(
-            "Failed to decrypt message (message was probably not for us, which "
+            "Failed to decrypt message (message was probably not for us, "
+            "which "
             "is okay).",
             decrypted_status, decrypted.status());
       }
@@ -240,7 +276,7 @@ auto Transmitter::send() -> void {
   try {
     auto chunk_to_send = G.db->chunk_to_send(prioritized_friends);
     just_sent_friend = chunk_to_send.to_friend;
-    write_key = chunk_to_send.write_key;
+    write_key = std::string(chunk_to_send.write_key.data());
 
     message.set_sequence_number(chunk_to_send.sequence_number);
     message.set_msg(chunk_to_send.s);
@@ -252,7 +288,7 @@ auto Transmitter::send() -> void {
   } catch (const rust::Error& e) {
     ASPHR_LOG_INFO("No chunks to send (probably).", error_msg, e.what());
     just_sent_friend = std::nullopt;
-    write_key = dummy_address.value().write_key;
+    write_key = std::string(dummy_address.value().write_key.data());
     message.set_sequence_number(0);
     message.set_msg("fake message");
   }
@@ -265,8 +301,10 @@ auto Transmitter::send() -> void {
   }
   auto encrypted_chunk = encrypted_chunk_status.value();
 
-  auto acks_to_send = G.db->acks_to_send();
-  auto encrypted_acks_status = crypto::encrypt_acks(acks_to_send, write_key);
+  auto acks_to_send_rustvec = G.db->acks_to_send();
+  auto acks_to_send =
+      std::vector(acks_to_send_rustvec.begin(), acks_to_send_rustvec.end());
+  auto encrypted_acks_status = encrypt_ack_row(acks_to_send, write_key);
   if (!encrypted_acks_status.ok()) {
     ASPHR_LOG_ERR("Could not encrypt ACKs.", error_msg,
                   encrypted_acks_status.status().message());
@@ -276,7 +314,7 @@ auto Transmitter::send() -> void {
 
   ASPHR_LOG_INFO("Sending chunk.", friend_uid, just_sent_friend.value_or(-1),
                  index, send_info.allocation, auth_token,
-                 send_info.authentication_token);
+                 std::string(send_info.authentication_token));
 
   check_rep();
 
@@ -284,7 +322,7 @@ auto Transmitter::send() -> void {
   asphrserver::SendMessageInfo request;
 
   request.set_index(send_info.allocation);
-  request.set_authentication_token(send_info.authentication_token);
+  request.set_authentication_token(std::string(send_info.authentication_token));
 
   string encrypted_chunk_string = "";
   for (auto& c : encrypted_chunk) {
@@ -307,11 +345,11 @@ auto Transmitter::send() -> void {
   if (status.ok()) {
     ASPHR_LOG_INFO("Sent chunk.", friend_uid, just_sent_friend.value_or(-1),
                    index, send_info.allocation, auth_token,
-                   send_info.authentication_token);
+                   std::string(send_info.authentication_token));
   } else {
     ASPHR_LOG_ERR("Could not send chunk.", friend_uid,
                   just_sent_friend.value_or(-1), index, send_info.allocation,
-                  auth_token, send_info.authentication_token,
+                  auth_token, std::string(send_info.authentication_token),
                   server_status_code, status.error_code(),
                   server_status_message, status.error_message());
   }
