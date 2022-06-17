@@ -9,15 +9,36 @@
 
 #include "schema/server.grpc.pb.h"
 
+// TODO: check that they are moved.
+auto string_to_rust_u8Vec(const std::string& str) -> rust::Vec<uint8_t> {
+  auto vec = rust::Vec<uint8_t>();
+  for (auto c : str) {
+    vec.push_back(c);
+  }
+  return vec;
+}
+
+auto rust_u8Vec_to_string(const rust::Vec<uint8_t>& vec) -> std::string {
+  std::string str(vec.begin(), vec.end());
+  return str;
+}
+
 auto generate_dummy_address(const Global& G, const db::Registration& reg)
     -> db::Address {
   auto dummy_friend_keypair = crypto::generate_keypair();
-  auto dummy_read_write_keys = crypto::derive_read_write_keys(
-      std::string(reg.public_key.data()), std::string(reg.private_key.data()),
-      dummy_friend_keypair.first);
 
-  return (db::Address){-1, 0, 0, dummy_read_write_keys.first,
-                       dummy_read_write_keys.second};
+  // convert reg.public_key, private_key to a string
+  auto public_key_str = rust_u8Vec_to_string(reg.public_key);
+  auto private_key_str = rust_u8Vec_to_string(reg.private_key);
+
+  auto dummy_read_write_keys = crypto::derive_read_write_keys(
+      public_key_str, private_key_str, dummy_friend_keypair.first);
+
+  // convert dummy_read_write_keys to a rust::Vec<uint8_t>
+  auto read_key_vec_rust = string_to_rust_u8Vec(dummy_read_write_keys.first);
+  auto write_key_vec_rust = string_to_rust_u8Vec(dummy_read_write_keys.second);
+
+  return (db::Address){-1, 0, 0, read_key_vec_rust, write_key_vec_rust};
 }
 
 Transmitter::Transmitter(const Global& G,
@@ -29,13 +50,16 @@ Transmitter::Transmitter(const Global& G,
 auto Transmitter::setup_registration_caching() -> void {
   check_rep();
 
+  // MAY throw if we are not registered.
+  auto pir_secret_key_str = rust_u8Vec_to_string(G.db->get_pir_secret_key());
+
   if (!cached_pir_client.has_value() ||
-      cached_pir_client_secret_key.value() !=
-          std::string(G.db->get_pir_secret_key())) {
+      cached_pir_client_secret_key.value() != pir_secret_key_str) {
     auto reg = G.db->get_registration();
-    cached_pir_client = std::make_optional<FastPIRClient>(reg.pir_secret_key,
-                                                          reg.pir_galois_key);
-    cached_pir_client_secret_key = reg.pir_secret_key;
+    cached_pir_client = std::optional(std::make_unique<FastPIRClient>(
+        reg.pir_secret_key, reg.pir_galois_key));
+
+    cached_pir_client_secret_key = rust_u8Vec_to_string(reg.pir_secret_key);
     dummy_address = generate_dummy_address(G, reg);
   }
 
@@ -62,14 +86,16 @@ auto decrypt_ack_row(pir_value_t& acks_row, const string& read_key)
   return absl::NotFoundError("Could not decrypt any ack.");
 }
 
-auto encrypt_ack_row(const vector<db::OutgoingAck>& acks,
-                     const string& write_key) -> asphr::StatusOr<pir_value_t> {
+auto Transmitter::encrypt_ack_row(const vector<db::OutgoingAck>& acks,
+                                  const string& write_key)
+    -> asphr::StatusOr<pir_value_t> {
   assert(acks.size() <= MAX_FRIENDS);
   check_rep();
 
   vector<string> encrypted_acks(MAX_FRIENDS);
   for (auto& wrapped_ack : acks) {
-    auto ack = crypto.encrypt_ack(wrapped_ack.ack, wrapped_ack.write_key);
+    auto ack = crypto::encrypt_ack(wrapped_ack.ack,
+                                   rust_u8Vec_to_string(wrapped_ack.write_key));
     if (!ack.ok()) {
       ASPHR_LOG_ERR("Could not encrypt ack.", ack_status, ack.status());
       return absl::UnknownError("encryption failed");
@@ -78,7 +104,7 @@ auto encrypt_ack_row(const vector<db::OutgoingAck>& acks,
   }
   for (size_t i = 0; i < MAX_FRIENDS; i++) {
     if (encrypted_acks.at(i).empty()) {
-      auto ack = crypto.encrypt_ack(0, write_key);
+      auto ack = crypto::encrypt_ack(0, write_key);
       if (!ack.ok()) {
         ASPHR_LOG_ERR("Could not dummy encrypt ack.", ack_status, ack.status());
         return absl::UnknownError("encryption failed");
@@ -105,7 +131,7 @@ auto Transmitter::retrieve() -> void {
   }
 
   setup_registration_caching();
-  auto& client = *cached_pir_client;
+  auto& client = **cached_pir_client;
 
   // -----
   // Step 1: choose RECEIVE_FRIENDS_PER_ROUND friends to receive from!!
@@ -130,8 +156,8 @@ auto Transmitter::retrieve() -> void {
   // Get the proritized addresses if we can.
   vector<db::Address> receive_addresses;
   vector<bool> receive_addresses_is_dummy;
-  for (auto i = 0;
-       i < std::min(RECEIVE_FRIENDS_PER_ROUND, priority_receive_friends.size());
+  for (auto i = 0; i < std::min(size_t(RECEIVE_FRIENDS_PER_ROUND),
+                                priority_receive_friends.size());
        i++) {
     try {
       auto f = G.db->get_friend_address(priority_receive_friends.at(i));
@@ -148,9 +174,16 @@ auto Transmitter::retrieve() -> void {
        i++) {
     // note: we do not need cryptographic randomness here. randomness is only
     // for liveness
+
+    // get a vector of recieve uids
+    rust::Vec<int> receive_uids;
+    for (auto& r : receive_addresses) {
+      receive_uids.push_back(r.uid);
+    }
+
     try {
-      auto f = G.db->get_random_enabled_friend_address_excluding(
-          receive_addresses.into_iter().map([](auto& a) { return a.uid; }));
+      auto f = G.db->get_random_enabled_friend_address_excluding(receive_uids);
+
       receive_addresses.push_back(f);
       receive_addresses_is_dummy.push_back(false);
     } catch (const rust::Error& e) {
@@ -164,9 +197,14 @@ auto Transmitter::retrieve() -> void {
   // -----
   // Step 2: execute the PIR queries
   // -----
-  auto pir_replies = batch_retrieve_pir(
-      client,
-      receive_addresses.into_iter().map([](auto& a) { return a.read_index; }));
+
+  // create a vector of read_indices
+  vector<uint32_t> read_indices;
+  for (auto& r : receive_addresses) {
+    read_indices.push_back(r.read_index);
+  }
+
+  auto pir_replies = batch_retrieve_pir(client, read_indices);
 
   assert(pir_replies.size() == RECEIVE_FRIENDS_PER_ROUND);
 
@@ -195,7 +233,8 @@ auto Transmitter::retrieve() -> void {
       auto ack_answer = reply.pir_answer_acks();
       auto ack_answer_obj = client.answer_from_string(ack_answer);
       auto ack_decoded = client.decode(ack_answer_obj, f.read_index);
-      auto decrypted_ack_status = decrypt_ack_row(ack_decoded, f.read_key);
+      auto decrypted_ack_status =
+          decrypt_ack_row(ack_decoded, rust_u8Vec_to_string(f.read_key));
       if (decrypted_ack_status.ok()) {
         auto decrypted_ack = decrypted_ack_status.value();
 
@@ -215,7 +254,8 @@ auto Transmitter::retrieve() -> void {
       auto answer_obj = client.answer_from_string(answer);
       auto decoded = client.decode(answer_obj, f.read_index);
 
-      auto decrypted = crypto::decrypt_receive(decoded, f.read_key);
+      auto decrypted =
+          crypto::decrypt_receive(decoded, rust_u8Vec_to_string(f.read_key));
       if (decrypted.ok()) {
         auto& chunk = decrypted.value();
 

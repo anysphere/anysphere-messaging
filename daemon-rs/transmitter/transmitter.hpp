@@ -33,13 +33,13 @@ class Transmitter {
   shared_ptr<asphrserver::Server::Stub> stub;
 
   // We cache the pir_client here, because it takes some time to create it.
-  std::optional<FastPIRClient> cached_pir_client;
-  std::optional<string> cached_pir_client_secret_key;
+  optional<unique_ptr<FastPIRClient>> cached_pir_client;
+  optional<string> cached_pir_client_secret_key;
 
   // We create a dummy-address which we send to whenever we don't have an
   // actual friend to send to. This is critically important in order to
   // not leak metadata!!
-  std::optional<db::Address> dummy_address;
+  optional<db::Address> dummy_address;
 
   // some caching work the first time we set up, setting up the things above
   auto setup_registration_caching() -> void;
@@ -48,13 +48,16 @@ class Transmitter {
   // optimizations. Heuristics.
   // TODO: do we want to get rid of this optimization, because it relies on the
   // trusted third friend assumption?
-  std::optional<int> just_sent_friend;
-  std::optional<int> previous_success_receive_friend;
-  std::optional<int> just_acked_friend;
+  optional<int> just_sent_friend;
+  optional<int> previous_success_receive_friend;
+  optional<int> just_acked_friend;
 
   // for each index, get the PIR response for that index
   auto batch_retrieve_pir(FastPIRClient& client, vector<pir_index_t> indices)
       -> vector<asphr::StatusOr<asphrserver::ReceiveMessageResponse>>;
+
+  auto encrypt_ack_row(const vector<db::OutgoingAck>& acks,
+                       const string& write_key) -> asphr::StatusOr<pir_value_t>;
 
   auto check_rep() const noexcept -> void;
 };

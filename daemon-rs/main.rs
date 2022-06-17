@@ -155,11 +155,10 @@ pub mod db {
         pub s: String,
     }
 
-    struct IncomingIncomingChunk {
+    struct IncomingChunkFragment {
         pub from_friend: i32,
         pub sequence_number: i32,
         pub chunks_start_sequence_number: i32,
-        pub num_chunks: i32,
         pub s: String,
     }
 
@@ -215,7 +214,7 @@ pub mod db {
         //
         // returns true iff the ack was novel
         fn receive_ack(&self, uid: i32, ack: i32) -> Result<bool>;
-        fn receive_chunk(&self, chunk: IncomingIncomingChunk) -> Result<()>;
+        fn receive_chunk(&self, chunk: IncomingChunkFragment, num_chunks: i32) -> Result<()>;
 
         // fails if there is no chunk to send
         // prioritizes by the given uid in order from first to last try
