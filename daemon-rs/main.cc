@@ -5,18 +5,128 @@
 
 #include "main.hpp"
 
-#include <iostream>
+#include <grpcpp/grpcpp.h>
 
-#include "daemon-rs/main.rs.h"
+#include "asphr/asphr.hpp"
+#include "client_lib/client_lib.hpp"
+#include "db.hpp"
+#include "global.hpp"
+#include "rpc/daemon_rpc.hpp"
+#include "schema/server.grpc.pb.h"
+#include "transmitter/transmitter.hpp"
 
-int main_cc() {
-  std::cout << "hi" << std::endl;
-  std::cout << db::get_friend_uid(4) << std::endl;
-  try {
-    std::cout << db::get_friend(4).uid << std::endl;
-    std::cout << std::string(db::get_friend(3).unique_name) << std::endl;
-  } catch (const rust::Error& e) {
-    std::cout << e.what() << std::endl;
+auto get_db_address() noexcept(false) -> std::filesystem::path {
+  return get_daemon_config_dir() / "asphr.db";
+}
+
+int main_cc_impl(rust::Vec<rust::String> args) {
+  vector<string> args_vec;
+  for (auto i = args.begin() + 1; i != args.end(); ++i) {
+    args_vec.push_back(std::string(*i));
   }
+
+  auto server_address = string("");
+  auto socket_address = string("");
+  auto db_address = string("");
+  auto tls = true;
+
+  string infname;
+  string outfname;
+
+  auto override_default_round_delay = -1;
+
+  // Loop over command-line args
+  for (auto i = args_vec.begin(); i != args_vec.end(); ++i) {
+    if (*i == "-h" || *i == "--help") {
+      cout << "Syntax: daemon -s <server_address> -d <socket_address>"
+              " -c <db_address>"
+           << endl;
+      cout << "  -s <server_address>  Address to listen on (default: "
+           << server_address << ")" << endl;
+      cout << "  -d <socket_address>  Address of socket (default: "
+           << socket_address << ")" << endl;
+      cout << "  -c <db_address>  Absolute path of db file (default: "
+           << db_address << ")" << endl;
+      cout << "  -r <round_delay>  Round delay in seconds (default: 60 seconds)"
+           << endl;
+      cout << "  --no-tls  Don't use TLS (default: use tls)" << endl;
+      return 0;
+    } else if (*i == "-s") {
+      server_address = *++i;
+    } else if (*i == "-d") {
+      socket_address = *++i;
+    } else if (*i == "-c") {
+      db_address = *++i;
+    } else if (*i == "-r") {
+      override_default_round_delay = std::stoi(*++i);
+    } else if (*i == "--no-tls") {
+      tls = false;
+    } else {
+      ASPHR_LOG_ERR("Unknown argument.", argument, *i);
+      return 1;
+    }
+  }
+
+  if (socket_address.empty()) {
+    socket_address = get_socket_path().string();
+  }
+  if (db_address.empty()) {
+    db_address = get_db_address().string();
+  }
+
+  ASPHR_LOG_INFO("Parsed args.", db_address, db_address, socket_address,
+                 socket_address)
+
+  // Promise: G is NEVER destructed. That is, we promise that the main
+  // thread will never die before any other threads die.
+  auto G = Global(db_address);
+
+  if (server_address.empty()) {
+    server_address = std::string(G.db->get_server_address());
+  }
+
+  ASPHR_LOG_INFO("Querying server.", server_address, server_address)
+
+  auto channel_creds = grpc::SslCredentials(
+      grpc::SslCredentialsOptions{.pem_root_certs = AMAZON_ROOT_CERTS});
+
+  if (!tls) {
+    channel_creds = grpc::InsecureChannelCredentials();
+  }
+  shared_ptr<grpc::Channel> channel =
+      grpc::CreateChannel(server_address, channel_creds);
+  shared_ptr<asphrserver::Server::Stub> stub =
+      asphrserver::Server::NewStub(channel);
+
+  Transmitter transmitter(G, stub);
+
+  // TODO(arvid-NOW): add daemon RPC
+
+  while (true) {
+    auto killed = G.wait_until_killed_or_seconds(G.db->get_latency());
+    if (killed) {
+      // TODO(arvid-NOW): daemon_server->Shutdown();
+      ASPHR_LOG_INFO("Daemon killed.");
+      break;
+    }
+
+    // do a round
+    ASPHR_LOG_INFO("Client round.");
+
+    // receive and then send! it is important! 2x speedup
+    transmitter.retrieve_messages();
+    transmitter.send_messages();
+  }
+
   return 0;
+}
+
+int main_cc(rust::Vec<rust::String> args) {
+  try {
+    return main_cc_impl(args);
+  } catch (const std::exception& e) {
+    ASPHR_LOG_ERR("Main failing fatally :(, probably with a database error.",
+                  exception, e.what());
+    throw;
+  }
 }

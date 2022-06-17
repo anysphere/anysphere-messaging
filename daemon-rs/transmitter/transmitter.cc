@@ -9,26 +9,29 @@
 
 // TODO: make an actual directory structure here! do not just do giant .ndjson
 // files
-Transmitter::Transmitter(const Crypto crypto, shared_ptr<Config> config,
-                         shared_ptr<asphrserver::Server::Stub> stub,
-                         shared_ptr<Msgstore> msgstore)
-    : crypto(crypto),
-      config(config),
-      stub(stub),
-      msgstore(msgstore),
-      inbox(config->data_dir_address() / "inbox.json"),
-      outbox(config->data_dir_address() / "outbox.json", msgstore) {
+Transmitter::Transmitter(const Global& G,
+                         shared_ptr<asphrserver::Server::Stub> stub)
+    : G(G), stub(stub), inbox(G), outbox(G) {
   check_rep();
 }
 
 auto Transmitter::retrieve_messages() -> void {
   check_rep();
-  if (!config->has_registered()) {
-    cout << "hasn't registered yet, so cannot retrieve messages" << endl;
+
+  if (!G.db->has_registered()) {
+    ASPHR_LOG_INFO("Not registered, so not retrieving messages.");
     return;
   }
 
-  auto& client = config->pir_client();
+  if (cached_pir_client == nullptr ||
+      cached_pir_client_secret_key != std::string(G.db->get_pir_secret_key())) {
+    auto reg = G.db->get_registration();
+    cached_pir_client =
+        std::make_unique<FastPIRClient>(reg.pir_secret_key, reg.pir_galois_key);
+    cached_pir_client_secret_key = reg.pir_secret_key;
+  }
+
+  auto& client = *cached_pir_client;
 
   // choose RECEIVE_FRIENDS_PER_ROUND friends to receive from!!
   // priority 1: the friend that we just sent a message to
@@ -89,9 +92,8 @@ auto Transmitter::retrieve_messages() -> void {
       auto& reply = pir_replies.at(i).value();
       // TODO: inbox.receive_message and msgstore->add_incoming_message need to
       // be atomic!!!
-      auto message_opt =
-          inbox.receive_message(client, *config, reply, friend_info, crypto,
-                                &previous_success_receive_friend);
+      auto message_opt = inbox.receive_message(
+          client, reply, friend_info, &previous_success_receive_friend);
       if (message_opt.has_value()) {
         auto message = message_opt.value();
         msgstore->add_incoming_message(message.id, message.friend_name,
@@ -111,8 +113,9 @@ auto Transmitter::retrieve_messages() -> void {
 
 auto Transmitter::send_messages() -> void {
   check_rep();
-  if (!config->has_registered()) {
-    cout << "hasn't registered yet, so don't send a message" << endl;
+
+  if (!G.db->has_registered()) {
+    ASPHR_LOG_INFO("Not registered, so not sending messages.");
     return;
   }
 
@@ -233,6 +236,4 @@ auto Transmitter::batch_retrieve_pir(FastPIRClient& client,
   return pir_replies;
 }
 
-auto Transmitter::check_rep() const noexcept -> void {
-  assert(config->has_registered() || !config->has_registered());
-}
+auto Transmitter::check_rep() const noexcept -> void { assert(G.alive()); }

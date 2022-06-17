@@ -5,9 +5,7 @@
 
 #pragma once
 
-#include "config.hpp"
-#include "crypto.hpp"
-#include "msgstore.hpp"
+#include "../crypto/crypto.hpp"
 #include "schema/daemon.grpc.pb.h"
 #include "schema/server.grpc.pb.h"
 

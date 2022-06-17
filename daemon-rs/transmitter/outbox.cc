@@ -7,45 +7,6 @@
 
 #include "client_lib/client_lib.hpp"
 
-auto MessageToSend::from_json(const asphr::json& json) -> MessageToSend {
-  auto message = MessageToSend{
-      .to = Friend::from_json(json.at("to")),
-      .sequence_number = json.at("sequence_number").get<uint32_t>(),
-      .msg = json.at("msg").get<string>(),
-      .chunked = json.at("chunked").get<bool>(),
-      .num_chunks = json.at("num_chunks").get<uint32_t>(),
-      .chunks_start_id = json.at("chunks_start_id").get<uint32_t>(),
-      .full_message_id = json.at("full_message_id").get<string>()};
-  return message;
-}
-
-auto MessageToSend::to_json() -> asphr::json {
-  return asphr::json{
-      {"to", to.to_json()},
-      {"sequence_number", sequence_number},
-      {"msg", msg},
-      {"chunked", chunked},
-      {"num_chunks", num_chunks},
-      {"chunks_start_id", chunks_start_id},
-      {"full_message_id", full_message_id},
-  };
-}
-
-auto read_outbox_json(const string& file_address) -> asphr::json {
-  if (!std::filesystem::exists(file_address) ||
-      std::filesystem::file_size(file_address) == 0) {
-    auto dir_path =
-        std::filesystem::path(file_address).parent_path().u8string();
-    std::filesystem::create_directories(dir_path);
-    cout << "creating new outbox asphr::json!" << endl;
-    asphr::json j = {{"outbox", asphr::json::array()}};
-    std::ofstream o(file_address);
-    o << std::setw(4) << j.dump(4) << std::endl;
-  }
-  auto json = asphr::json::parse(std::ifstream(file_address));
-  return json;
-}
-
 Outbox::Outbox(const string& file_address, shared_ptr<Msgstore> msgstore)
     : Outbox(read_outbox_json(file_address), file_address, msgstore) {}
 

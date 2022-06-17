@@ -6,8 +6,6 @@
 #pragma once
 
 #include "asphr/asphr.hpp"
-#include "config.hpp"
-#include "msgstore.hpp"
 #include "schema/message.pb.h"
 
 struct MessageToSend {
@@ -29,9 +27,6 @@ struct MessageToSend {
     }
     return message;
   }
-
-  auto to_json() -> asphr::json;
-  static auto from_json(const asphr::json& j) -> MessageToSend;
 };
 
 /**
@@ -42,9 +37,7 @@ struct MessageToSend {
  */
 class Outbox {
  public:
-  Outbox(const string& file_address, shared_ptr<Msgstore> msgstore);
-  Outbox(const asphr::json& serialized_json, const string& file_address,
-         shared_ptr<Msgstore> msgstore);
+  Outbox(const Global& G);
 
   // the message here can be any size! Outbox takes care of splitting it into
   // chunks.
@@ -57,22 +50,12 @@ class Outbox {
   // only returns a message sent to a friend if the friend is enabled
   // if there are no real messages, returns a message sent to
   // registrationInfo.name
-  auto message_to_send(const Config& config, const Friend& dummyMe)
-      -> MessageToSend;
+  auto message_to_send(const Friend& dummyMe) -> MessageToSend;
 
  private:
-  shared_ptr<Msgstore> msgstore;
-
-  const string saved_file_address;
-  // stores a mapping from friend -> message to send. the vector is sorted by
-  // ID, such that the first element has the lowest ID, i.e., is the first that
-  // should be sent
-  std::unordered_map<string, std::vector<MessageToSend>> outbox;
-  // stores the IDs of the messages currently in the outbox
-  std::unordered_set<string> outbox_ids;
+  const Global& G;
 
   absl::BitGen rand_bitgen_;
 
   auto check_rep() const noexcept -> void;
-  auto save() noexcept(false) -> void;
 };

@@ -5,9 +5,10 @@
 
 #include "crypto.hpp"
 
-#include "constants.hpp"
+#include "../constants.hpp"
 
-auto Crypto::generate_keypair() -> std::pair<string, string> {
+namespace crypto {
+auto generate_keypair() -> std::pair<string, string> {
   unsigned char public_key[crypto_kx_PUBLICKEYBYTES];
   unsigned char secret_key[crypto_kx_SECRETKEYBYTES];
   crypto_kx_keypair(public_key, secret_key);
@@ -16,8 +17,7 @@ auto Crypto::generate_keypair() -> std::pair<string, string> {
       string(reinterpret_cast<char*>(secret_key), crypto_kx_SECRETKEYBYTES)};
 }
 
-auto Crypto::generate_friend_key(const string& my_public_key, int index)
-    -> string {
+auto generate_friend_key(const string& my_public_key, int index) -> string {
   string public_key_b64;
   public_key_b64.resize(sodium_base64_ENCODED_LEN(
       my_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
@@ -30,7 +30,7 @@ auto Crypto::generate_friend_key(const string& my_public_key, int index)
   return asphr::StrCat(index, "a", public_key_b64);
 }
 
-auto Crypto::decode_friend_key(const string& friend_key) const
+auto decode_friend_key(const string& friend_key)
     -> asphr::StatusOr<std::pair<int, string>> {
   string index_str;
   string public_key_b64;
@@ -60,8 +60,8 @@ auto Crypto::decode_friend_key(const string& friend_key) const
   return make_pair(index, public_key);
 }
 
-auto Crypto::derive_read_write_keys(string my_public_key, string my_private_key,
-                                    string friend_public_key) const
+auto derive_read_write_keys(string my_public_key, string my_private_key,
+                            string friend_public_key)
     -> std::pair<string, string> {
   if (my_public_key.size() != crypto_kx_PUBLICKEYBYTES) {
     throw std::runtime_error("my_public_key is not the correct size");
@@ -107,8 +107,8 @@ auto Crypto::derive_read_write_keys(string my_public_key, string my_private_key,
   return std::make_pair(read_key, write_key);
 }
 
-auto Crypto::encrypt_send(const asphrclient::Message& message_in,
-                          const Friend& friend_info) const
+auto encrypt_send(const asphrclient::Message& message_in,
+                  const db::Address& friend_info)
     -> asphr::StatusOr<pir_value_t> {
   auto message = message_in;
   if (friend_info.write_key.size() !=
@@ -176,8 +176,8 @@ auto Crypto::encrypt_send(const asphrclient::Message& message_in,
   return pir_ciphertext;
 }
 
-auto Crypto::decrypt_receive(const pir_value_t& ciphertext,
-                             const Friend& friend_info) const
+auto decrypt_receive(const pir_value_t& ciphertext,
+                     const db::Address& friend_info)
     -> asphr::StatusOr<asphrclient::Message> {
   auto ciphertext_len =
       MESSAGE_SIZE - crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
@@ -233,7 +233,7 @@ auto Crypto::decrypt_receive(const pir_value_t& ciphertext,
 }
 
 // encrypt_ack encrypts the ack_id to the friend
-auto Crypto::encrypt_ack(uint32_t ack_id, const Friend& friend_info) const
+auto encrypt_ack(uint32_t ack_id, const db::Address& friend_info)
     -> asphr::StatusOr<string> {
   if (friend_info.write_key.size() !=
       crypto_aead_xchacha20poly1305_ietf_KEYBYTES) {
@@ -272,8 +272,7 @@ auto Crypto::encrypt_ack(uint32_t ack_id, const Friend& friend_info) const
   return ciphertext;
 }
 // decrypt_ack undoes encrypt_ack
-auto Crypto::decrypt_ack(const string& ciphertext,
-                         const Friend& friend_info) const
+auto decrypt_ack(const string& ciphertext, const db::Address& friend_info)
     -> asphr::StatusOr<uint32_t> {
   if (friend_info.read_key.size() !=
       crypto_aead_xchacha20poly1305_ietf_KEYBYTES) {
@@ -309,3 +308,4 @@ auto Crypto::decrypt_ack(const string& ciphertext,
 
   return ack_id;
 }
+}  // namespace crypto

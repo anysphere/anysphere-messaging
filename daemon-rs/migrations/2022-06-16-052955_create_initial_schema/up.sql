@@ -1,9 +1,10 @@
 -- exactly 1 element always!
 CREATE TABLE config (
     uid integer PRIMARY KEY NOT NULL,
-    server_address text NOT NULL,
-    latency integer NOT NULL,
-    db_rows integer NOT NULL,
+    server_address text,
+    server_address_default boolean NOT NULL, -- whether the user is using the default server address! if so we replace from code at every startup
+    latency integer,
+    latency_default boolean NOT NULL, -- whether the user is using the default latency! if so we replace from code at every startup
     has_registered boolean NOT NULL,
     registration_uid integer,
     FOREIGN KEY(registration_uid) REFERENCES registration(uid)
@@ -103,3 +104,14 @@ CREATE TABLE incoming_chunk (
     FOREIGN KEY(message_uid) REFERENCES received(uid),
     FOREIGN KEY(from_friend) REFERENCES friend(uid)
 );
+
+
+
+
+
+
+------------------END OF SCHEMA------------------
+------------------START OF DATA------------------
+
+
+INSERT INTO config (uid, server_address_default, latency_default, has_registered) VALUES (1, true, true, false);

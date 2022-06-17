@@ -11,9 +11,10 @@ table! {
 table! {
     config (uid) {
         uid -> Integer,
-        server_address -> Text,
-        latency -> Integer,
-        db_rows -> Integer,
+        server_address -> Nullable<Text>,
+        server_address_default -> Bool,
+        latency -> Nullable<Integer>,
+        latency_default -> Bool,
         has_registered -> Bool,
         registration_uid -> Nullable<Integer>,
     }

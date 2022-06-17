@@ -5,7 +5,7 @@
 
 #include "inbox.hpp"
 
-#include "constants.hpp"
+#include "../constants.hpp"
 
 auto read_inbox_json(const string& file_address) -> asphr::json {
   if (!std::filesystem::exists(file_address) ||
