@@ -39,6 +39,9 @@ class Transmitter {
   // not leak metadata!!
   std::optional<db::Address> dummy_address;
 
+  // some caching work the first time we set up, setting up the things above
+  auto setup_registration_caching() -> void;
+
   // Cached values that are not necessary, but might be useful for
   // optimizations. Heuristics.
   // TODO: do we want to get rid of this optimization, because it relies on the

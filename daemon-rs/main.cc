@@ -11,7 +11,7 @@
 #include "client_lib/client_lib.hpp"
 #include "db.hpp"
 #include "global.hpp"
-#include "rpc/daemon_rpc.hpp"
+// #include "rpc/daemon_rpc.hpp"
 #include "schema/server.grpc.pb.h"
 #include "transmitter/transmitter.hpp"
 
@@ -115,8 +115,8 @@ int main_cc_impl(rust::Vec<rust::String> args) {
       ASPHR_LOG_INFO("Client round.");
 
       // receive and then send! it is important! 2x speedup
-      transmitter.retrieve_messages();
-      transmitter.send_messages();
+      transmitter.retrieve();
+      transmitter.send();
     } catch (const rust::Error& e) {
       ASPHR_LOG_ERR("Error in database.", error_msg, e.what());
       ASPHR_LOG_INFO("Retrying in 30 seconds...");

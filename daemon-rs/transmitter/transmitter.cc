@@ -26,13 +26,8 @@ Transmitter::Transmitter(const Global& G,
   check_rep();
 }
 
-auto Transmitter::retrieve() -> void {
+auto Transmitter::setup_registration_caching() -> void {
   check_rep();
-
-  if (!G.db->has_registered()) {
-    ASPHR_LOG_INFO("Not registered, so not retrieving messages.");
-    return;
-  }
 
   if (!cached_pir_client.has_value() ||
       cached_pir_client_secret_key.value() !=
@@ -45,6 +40,17 @@ auto Transmitter::retrieve() -> void {
   }
 
   check_rep();
+}
+
+auto Transmitter::retrieve() -> void {
+  check_rep();
+
+  if (!G.db->has_registered()) {
+    ASPHR_LOG_INFO("Not registered, so not retrieving messages.");
+    return;
+  }
+
+  setup_registration_caching();
 
   auto& client = *cached_pir_client;
 
@@ -96,7 +102,7 @@ auto Transmitter::retrieve() -> void {
       receive_addresses_is_dummy.push_back(false);
     } catch (const rust::Error& e) {
       // dummy if no friends left :')
-      receive_addresses.push_back(dummy_address);
+      receive_addresses.push_back(dummy_address.value());
       receive_addresses_is_dummy.push_back(true);
     }
   }
@@ -180,6 +186,9 @@ auto Transmitter::send() -> void {
     ASPHR_LOG_INFO("Not registered, so not sending messages.");
     return;
   }
+
+  setup_registration_caching();
+
   auto send_info = G.db->get_send_info();
 
   vector<int> prioritized_friends;
@@ -196,7 +205,7 @@ auto Transmitter::send() -> void {
   } catch (const rust::Error& e) {
     ASPHR_LOG_INFO("No chunks to send (probably).", error_msg, e.what());
     just_sent_friend = std::nullopt;
-    write_key = dummy_address.write_key;
+    write_key = dummy_address.value().write_key;
     chunk = "";
   }
 
