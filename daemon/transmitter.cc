@@ -199,6 +199,10 @@ auto Transmitter::send_messages() -> void {
     std::cerr << status.error_code() << ": " << status.error_message()
               << " details:" << status.error_details() << std::endl;
   }
+
+  // Tranmit the async friend request
+  transmit_async_friend_request();
+  // check rep and finish
   check_rep();
 }
 
@@ -231,6 +235,42 @@ auto Transmitter::batch_retrieve_pir(FastPIRClient& client,
   }
 
   return pir_replies;
+}
+
+auto Transmitter::transmit_async_friend_request() -> void {
+  // retrieve the friend request from config
+  auto async_friend_request_ = config->get_async_friend_request();
+  if (!async_friend_request_.ok()) {
+    std::cerr << "Error retrieving async friend request: "
+              << async_friend_request_.status() << std::endl;
+    return;
+  }
+  auto [friend_public_key, friend_info] = async_friend_request_.value();
+  // encrypt the friend request
+  auto encrypted_friend_request_status_ = crypto.encrypt_async_friend_request(
+      config->registration_info(), friend_public_key);
+  if (!encrypted_friend_request_status_.ok()) {
+    std::cerr << "Error encrypting async friend request: "
+              << encrypted_friend_request_status_.status() << std::endl;
+    return;
+  }
+  auto encrypted_friend_request = encrypted_friend_request_status_.value();
+  // Send to server
+  asphrserver::AddFriendAsyncInfo request;
+  request.set_index(config->registration_info().allocation.at(0));
+  request.set_authentication_token(
+      config->registration_info().authentication_token);
+  request.set_request(encrypted_friend_request);
+  asphrserver::AddFriendAsyncResponse reply;
+  grpc::ClientContext context;
+  grpc::Status status = stub->AddFriendAsync(&context, request, &reply);
+  if (status.ok()) {
+    std::cout << "Async Request sent to server!" << std::endl;
+  } else {
+    std::cerr << status.error_code() << ": " << status.error_message()
+              << " details:" << status.error_details() << std::endl;
+  }
+  return;
 }
 
 auto Transmitter::check_rep() const noexcept -> void {

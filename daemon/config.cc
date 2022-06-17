@@ -282,6 +282,31 @@ auto Config::add_async_friend_request(const string& friend_public_key,
   check_rep();
 }
 
+// returns a async request if one exists, otherwise returns a rando request
+auto Config::get_async_friend_request()
+    -> asphr::StatusOr<pair<string, Friend>> {
+  const std::lock_guard<std::mutex> l(config_mtx);
+
+  check_rep();
+  // a dummy public key to return if no async friend requests exist
+  auto [friend_public_key, _] = Crypto::generate_friend_request_keypair();
+  // a dummy friend to return if no async friend requests exist
+  Friend friend_info = Friend("default", vector<Friend>{}, "");
+  // if there exist async friend requests, return one of them
+  if (pending_async_friend_requests.size() != 0) {
+    // get random element from pending_async_friend_requests
+    auto random_index =
+        absl::Uniform(rand_bitgen_, 0u, pending_async_friend_requests.size());
+    auto it = pending_async_friend_requests.begin();
+    std::advance(it, random_index);
+    friend_public_key = it->first;
+    friend_info = it->second;
+  }
+  check_rep();
+
+  return std::pair<string, Friend>(friend_public_key, friend_info);
+}
+
 auto Config::friends() const -> vector<Friend> {
   const std::lock_guard<std::mutex> l(config_mtx);
 

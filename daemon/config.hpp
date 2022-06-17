@@ -69,6 +69,9 @@ class Config {
   auto num_enabled_friends() -> int;
   auto random_enabled_friend(const std::unordered_set<string>& excluded)
       -> asphr::StatusOr<Friend>;
+
+  auto get_async_friend_request() -> asphr::StatusOr<pair<string, Friend>>;
+
   auto dummy_me() -> Friend;
 
   auto has_registered() -> bool;

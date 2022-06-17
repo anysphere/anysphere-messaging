@@ -200,13 +200,34 @@ Status DaemonRpc::SendFriendRequestAsync(
     return Status(grpc::StatusCode::INVALID_ARGUMENT,
                   "too many simultaneous async requests");
   }
+  if (!config->has_registered()) {
+    return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
+  }
   // use the kx key to initiate a friend instance
+  string friend_request_public_key = request->friend_request_public_key();
   string friend_kx_public_key = request->kx_public_key();
   string my_kx_public_key = config->registration_info().public_key;
   string my_kx_private_key = config->registration_info().private_key;
+  // check the keys are correct
+  if (friend_kx_public_key.size() != crypto_kx_PUBLICKEYBYTES) {
+    return Status(grpc::StatusCode::INVALID_ARGUMENT,
+                  "wrong friend_kx_public_key size");
+  }
+  if (friend_request_public_key.size() != crypto_box_PUBLICKEYBYTES) {
+    return Status(grpc::StatusCode::INVALID_ARGUMENT,
+                  "wrong friend_request_public_key size");
+  }
+  if (my_kx_public_key.size() != crypto_kx_PUBLICKEYBYTES) {
+    return Status(grpc::StatusCode::INVALID_ARGUMENT,
+                  "wrong my_kx_public_key size");
+  }
+  if (my_kx_private_key.size() != crypto_kx_SECRETKEYBYTES) {
+    return Status(grpc::StatusCode::INVALID_ARGUMENT,
+                  "wrong_my_kx_private_key size");
+  }
+
   auto friend_instance =
       Friend(request->name(), config->friends(), friend_kx_public_key);
-
   // we can generate the read write key now
   auto [read_key, write_key] = crypto.derive_read_write_keys(
       my_kx_public_key, my_kx_private_key, friend_kx_public_key);
@@ -215,8 +236,7 @@ Status DaemonRpc::SendFriendRequestAsync(
   friend_instance.write_key = write_key;
 
   // push the request to the config
-  config->add_async_friend_request(request->friend_request_public_key(),
-                                   friend_instance);
+  config->add_async_friend_request(friend_request_public_key, friend_instance);
 
   return Status::OK;
 }

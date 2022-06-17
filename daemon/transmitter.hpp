@@ -48,5 +48,9 @@ class Transmitter {
   auto batch_retrieve_pir(FastPIRClient& client, vector<pir_index_t> indices)
       -> vector<asphr::StatusOr<asphrserver::ReceiveMessageResponse>>;
 
+  // transmit async friend request to the server
+  // we must reencrypt each round, to avoid
+  auto transmit_async_friend_request() -> void;
+
   auto check_rep() const noexcept -> void;
 };
