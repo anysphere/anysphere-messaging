@@ -13,7 +13,7 @@ auto generate_dummy_address(const Global& G, const db::Registration& reg)
     -> db::Address {
   auto dummy_friend_keypair = crypto::generate_keypair();
   auto dummy_read_write_keys = crypto::derive_read_write_keys(
-      std::string(reg.public_key), std::string(reg.private_key),
+      std::string(reg.public_key.data()), std::string(reg.private_key.data()),
       dummy_friend_keypair.first);
 
   return (db::Address){-1, 0, 0, dummy_read_write_keys.first,

@@ -10,6 +10,8 @@
 #include "../global.hpp"
 #include "asphr/asphr.hpp"
 #include "pir/fast_pir/fast_pir_client.hpp"
+#include "schema/daemon.grpc.pb.h"
+#include "schema/server.grpc.pb.h"
 
 /**
  * @brief Transmitter manages sending and receiving messages.
