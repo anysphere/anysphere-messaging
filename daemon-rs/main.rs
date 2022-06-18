@@ -615,7 +615,8 @@ impl DB {
         use self::schema::friend;
         use self::schema::status;
         let wide_friends = friend::table
-            .filter(friend::enabled.eq(true).and(friend::deleted.eq(false)))
+            .filter(friend::enabled.eq(true))
+            .filter(friend::deleted.eq(false))
             .inner_join(status::table)
             .inner_join(address::table);
         let q = wide_friends.select((
