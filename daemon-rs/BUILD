@@ -7,14 +7,21 @@ rust_binary(
         "main.rs",
         "schema.rs",
     ],
+    compile_data = [":migrations"],
     deps = [
         ":bridge",
         ":cpp-imp",
-        "@crate_index//:diesel",
         "@crate_index//:chrono",
+        "@crate_index//:diesel",
+        "@crate_index//:diesel_migrations",
         "@crate_index//:rand",
         "@cxx.rs//:cxx",
     ],
+)
+
+filegroup(
+    name = "migrations",
+    srcs = glob(["migrations/**/*.sql"]),
 )
 
 rust_cxx_bridge(

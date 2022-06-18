@@ -233,13 +233,14 @@ pub mod db {
     }
 }
 
+pub const MIGRATIONS: diesel_migrations::EmbeddedMigrations = diesel_migrations::embed_migrations!();
+
 fn init(address: &str) -> Result<Box<DB>, DbError> {
     let db = DB {
         address: address.to_string(),
     };
-    // We want to connect to fail early.
-    let _ = db.connect()?;
-    // TODO(urgent, arvid): run migration
+    let conn = db.connect()?;
+    conn.run_pending_migrations(MIGRATIONS).map_err(|e| DbError::Unavailable(e))?;
 
     Ok(Box::new(db))
 }
