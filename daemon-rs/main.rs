@@ -239,8 +239,9 @@ fn init(address: &str) -> Result<Box<DB>, DbError> {
     let db = DB {
         address: address.to_string(),
     };
-    let conn = db.connect()?;
-    conn.run_pending_migrations(MIGRATIONS).map_err(|e| DbError::Unavailable(e))?;
+    let mut conn = db.connect()?;
+    use diesel_migrations::MigrationHarness;
+    conn.run_pending_migrations(MIGRATIONS).map_err(|e| DbError::Unavailable(e.to_string()))?;
 
     Ok(Box::new(db))
 }
