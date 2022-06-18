@@ -112,6 +112,17 @@ struct Received {
 #[cxx::bridge(namespace = "db")]
 pub mod db {
 
+    //
+    // WARNING: Diesel checks types. That's awesome. But IT DOES NOT CHECK THE ORDER.
+    // For example: in Friend, the order of enabled and deleted is not checked,
+    // so we need to make sure that the order here matches the order in schema.rs.
+    //
+    // NEVER EVER CHANGE THE ORDER OF THE FIELDS HERE WITHOUT LOOKING AT ALL QUERIES WHERE
+    // THEY ARE USED. @code_review
+    //
+    // TODO: try to write a macro for enforcing this in code.
+    //
+
     #[derive(Queryable, Insertable)]
     #[diesel(table_name = crate::schema::friend)]
     struct Friend {
@@ -172,12 +183,13 @@ pub mod db {
         pub content: String,
     }
 
+    #[derive(Queryable)]
     struct OutgoingChunkPlusPlus {
         pub to_friend: i32,
         pub sequence_number: i32,
         pub chunks_start_sequence_number: i32,
         pub message_uid: i32,
-        pub s: Vec<u8>,
+        pub content: String,
         pub write_key: Vec<u8>,
         pub num_chunks: i32,
     }
@@ -228,6 +240,7 @@ pub mod db {
 
         // fails if there is no chunk to send
         // prioritizes by the given uid in order from first to last try
+        // if none of the priority people have a chunk to send, pick a random chunk
         fn chunk_to_send(&self, uid_priority: Vec<i32>) -> Result<OutgoingChunkPlusPlus>;
         fn acks_to_send(&self) -> Result<Vec<OutgoingAck>>;
     }
@@ -537,11 +550,63 @@ impl DB {
         }
     }
 
-    fn chunk_to_send(&self, _uid_priority: Vec<i32>) -> Result<db::OutgoingChunkPlusPlus, DbError> {
-        // TODO: implement this.
-        Err(DbError::Unknown(
-            "chunk_to_send not implemented".to_string(),
-        ))
+    fn chunk_to_send(&self, uid_priority: Vec<i32>) -> Result<db::OutgoingChunkPlusPlus, DbError> {
+        let mut conn = self.connect()?;
+
+        use self::schema::outgoing_chunk;
+        use self::schema::address;
+        use self::schema::sent;
+        use self::schema::friend;
+
+
+        // We could do probably this in one query, by joining on the select statement
+        // and then joining. Diesel doesn't typecheck this, and maybe it is unsafe, so
+        // let's just do a transaction.
+        let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+            let q = outgoing_chunk::table
+                .group_by(outgoing_chunk::to_friend)
+                .select((outgoing_chunk::to_friend, diesel::dsl::min(outgoing_chunk::sequence_number)));
+            let first_chunk_per_friend: Vec<(i32, Option<i32>)> = q.load::<(i32, Option<i32>)>(conn_b)?;
+            let mut first_chunk_per_friend: Vec<(i32, i32)> = first_chunk_per_friend.iter().fold(vec![], |mut acc, &x| {
+                match x.1 {
+                    Some(seq) => acc.push((x.0, seq)),
+                    None => (),
+                };
+                acc
+            });
+            if first_chunk_per_friend.len() == 0 {
+                return Err(diesel::result::Error::NotFound);
+            }
+            let chosen_chunk: (i32, i32) = (|| {
+                for uid in uid_priority {
+                    if let Some(index) = first_chunk_per_friend.iter().position(|c| c.0 == uid) {
+                        return first_chunk_per_friend.remove(index);
+                    }
+                }
+                let rng: usize = rand::random();
+                let index = rng % first_chunk_per_friend.len();
+                first_chunk_per_friend.remove(index)
+            })();
+            let chunk_plusplus =  outgoing_chunk::table.find(chosen_chunk)
+                .inner_join(friend::table.inner_join(address::table))
+                .inner_join(sent::table)
+                .select((
+                    outgoing_chunk::to_friend,
+                    outgoing_chunk::sequence_number,
+                    outgoing_chunk::chunks_start_sequence_number,
+                    outgoing_chunk::message_uid,
+                    outgoing_chunk::content,
+                    address::write_key,
+                    sent::num_chunks,
+                ))
+                .first::<db::OutgoingChunkPlusPlus>(conn_b)?;
+            Ok(chunk_plusplus)
+        });
+
+        match r {
+            Ok(chunk_plusplus) => Ok(chunk_plusplus),
+            Err(e) => Err(DbError::NotFound(format!("chunk_to_send: {}", e))),
+        }
     }
 
     fn acks_to_send(&self) -> Result<Vec<db::OutgoingAck>, DbError> {

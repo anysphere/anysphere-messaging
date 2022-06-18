@@ -326,7 +326,7 @@ auto Transmitter::send() -> void {
     write_key = rust_u8Vec_to_string(chunk_to_send.write_key);
 
     message.set_sequence_number(chunk_to_send.sequence_number);
-    message.set_msg(rust_u8Vec_to_string(chunk_to_send.s));
+    message.set_msg(std::string(chunk_to_send.content));
     if (chunk_to_send.num_chunks > 1) {
       message.set_num_chunks(chunk_to_send.num_chunks);
       message.set_chunks_start_sequence_number(
