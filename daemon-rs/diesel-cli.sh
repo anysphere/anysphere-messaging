@@ -12,6 +12,6 @@ fi
 diesel $@ --database-url "${ANYSPHEREROOT}"/client/daemon-rs/test.db
 
 if [[ $@ == *"migration"* ]]; then
-    echo "Replacing Timestamp with TimestamptzSqlite"
+    echo "Replacing Timestamp with TimestamptzSqlite..."
     sd Timestamp TimestamptzSqlite "${ANYSPHEREROOT}"/client/daemon-rs/schema.rs
 fi
