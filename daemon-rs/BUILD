@@ -12,6 +12,7 @@ rust_binary(
         ":cpp-imp",
         "@crate_index//:diesel",
         "@crate_index//:chrono",
+        "@crate_index//:rand",
         "@cxx.rs//:cxx",
     ],
 )

@@ -22,6 +22,7 @@ use chrono::{DateTime, Utc};
 use std::{error::Error, fmt};
 
 #[derive(Debug)]
+#[allow(dead_code)]
 enum DbError {
     Ok(String),
     Cancelled(String),
@@ -243,6 +244,7 @@ fn init(address: &str) -> Result<Box<DB>, DbError> {
     Ok(Box::new(db))
 }
 
+#[allow(dead_code)]
 fn print_query<T: diesel::query_builder::QueryFragment<diesel::sqlite::Sqlite>>(q: &T) {
     println!(
         "print_query: {}",
@@ -562,22 +564,52 @@ impl DB {
         }
     }
 
-    fn get_friend_address(&self, _uid: i32) -> Result<db::Address, DbError> {
-        // let mut conn = self.connect()?;
+    fn get_friend_address(&self, uid: i32) -> Result<db::Address, DbError> {
+        let mut conn = self.connect()?;
 
-        // not implemented
-        Err(DbError::Unknown(
-            "get_friend_address not implemented".to_string(),
-        ))
+        use self::schema::address;
+        
+        match address::table
+            .find(uid)
+            .first(&mut conn) {
+            Ok(address) => {
+                Ok(address)
+            }
+            Err(e) => Err(DbError::Unknown(format!("get_friend_address: {}", e))),
+        }       
     }
 
     fn get_random_enabled_friend_address_excluding(
         &self,
-        _uids: Vec<i32>,
+        uids: Vec<i32>,
     ) -> Result<db::Address, DbError> {
-        // not implemented yet
-        Err(DbError::Unknown(
-            "get_random_enabled_friend_address_excluding not implemented".to_string(),
-        ))
+        let mut conn = self.connect()?;
+        use self::schema::address;
+        use self::schema::friend;
+
+        // get a random friend that is not deleted excluding the ones in the uids list
+        let q = friend::table
+            .filter(friend::enabled.eq(true))
+            .filter(friend::deleted.eq(false));
+
+        // Inner join to get the (friend, address) pairs and then select the address.
+        let q = q.inner_join(address::table)
+            .select(address::all_columns);
+        let addresses = q.load::<db::Address>(&mut conn);
+
+        match addresses {
+            Ok(addresses) => {
+                let rng: usize = rand::random();
+                let mut filtered_addresses = addresses
+                    .into_iter()
+                    .filter(|address| {
+                        !uids.contains(&address.uid)
+                    })
+                    .collect::<Vec<_>>();
+                let index = rng % filtered_addresses.len();
+                Ok(filtered_addresses.remove(index))
+            }
+            Err(e) => Err(DbError::Unknown(format!("get_random_enabled_friend_address_excluding: {}", e))),
+        }
     }
 }
