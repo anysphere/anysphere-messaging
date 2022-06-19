@@ -15,10 +15,10 @@ Status DaemonRpc::RegisterUser(
     ServerContext* context,
     const asphrdaemon::RegisterUserRequest* registerUserRequest,
     asphrdaemon::RegisterUserResponse* registerUserResponse) {
-  ASPHR_LOG_INFO("RegisterUser() called.");
+  ASPHR_LOG_INFO("RegisterUser() called.", rpc_call, "RegisterUser");
 
   if (!G.db->has_registered()) {
-    ASPHR_LOG_INFO("Already registered.");
+    ASPHR_LOG_INFO("Already registered.", rpc_call, "RegisterUser");
     return Status(grpc::StatusCode::ALREADY_EXISTS, "already registered");
   }
 
@@ -39,7 +39,7 @@ Status DaemonRpc::RegisterUser(
   Status status = stub->Register(&client_context, request, &reply);
 
   if (status.ok()) {
-    ASPHR_LOG_INFO("Register success.");
+    ASPHR_LOG_INFO("Register success.", rpc_call, "RegisterUser");
 
     const auto authentication_token = reply.authentication_token();
     auto alloc_repeated = reply.allocation();
@@ -47,17 +47,20 @@ Status DaemonRpc::RegisterUser(
         vector<int>(alloc_repeated.begin(), alloc_repeated.end());
 
     if (reply.authentication_token() == "") {
-      ASPHR_LOG_ERR("Register failed: authentication token is empty.");
+      ASPHR_LOG_ERR("Register failed: authentication token is empty.", rpc_call,
+                    "RegisterUser");
       return Status(grpc::StatusCode::UNKNOWN, "authentication token is empty");
     }
     if (reply.allocation().empty()) {
-      ASPHR_LOG_ERR("Register failed: allocation is empty.");
+      ASPHR_LOG_ERR("Register failed: allocation is empty.", rpc_call,
+                    "RegisterUser");
       return Status(grpc::StatusCode::UNKNOWN, "allocation is empty");
     }
     if (reply.allocation().size() != 1) {
       ASPHR_LOG_ERR(
           "Register failed: allocation is not 1. We currently only support 1 "
-          "allocation.");
+          "allocation.",
+          rpc_call, "RegisterUser");
       return Status(grpc::StatusCode::UNKNOWN, "allocation is empty");
     }
 
@@ -71,13 +74,15 @@ Status DaemonRpc::RegisterUser(
           .authentication_token = authentication_token,
       }});
     } catch (const rust::Error& e) {
-      ASPHR_LOG_ERR("Register failed in database.", error, e.what());
+      ASPHR_LOG_ERR("Register failed in database.", error, e.what(), rpc_call,
+                    "RegisterUser");
       return Status(grpc::StatusCode::UNKNOWN, e.what());
     }
 
   } else {
     ASPHR_LOG_ERR("Register failed.", error_code, status.error_code(),
-                  error_message, status.error_message());
+                  error_message, status.error_message(), rpc_call,
+                  "RegisterUser");
     return Status(grpc::StatusCode::UNAVAILABLE, status.error_message());
   }
 
@@ -90,15 +95,21 @@ Status DaemonRpc::GetFriendList(
     asphrdaemon::GetFriendListResponse* getFriendListResponse) {
   ASPHR_LOG_INFO("GetFriendList() called.");
 
-  if (!config->has_registered()) {
-    ASPHR_LOG_INFO("need to register first");
+  if (!G.db->has_registered()) {
+    ASPHR_LOG_INFO("Need to register first.", rpc_call, "GetFriendList");
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  for (auto& s : config->friends()) {
-    auto new_friend = getFriendListResponse->add_friend_infos();
-    new_friend->set_name(s.name);
-    new_friend->set_enabled(s.enabled);
+  try {
+    for (auto& s : G.db->get_friends()) {
+      auto new_friend = getFriendListResponse->add_friend_infos();
+      new_friend->set_name(s.name);
+      new_friend->set_enabled(s.enabled);
+    }
+  } catch (const rust::Error& e) {
+    ASPHR_LOG_ERR("Database failed.", error, e.what(), rpc_call,
+                  "GetFriendList");
+    return Status(grpc::StatusCode::UNKNOWN, e.what());
   }
 
   return Status::OK;
@@ -108,10 +119,10 @@ Status DaemonRpc::GenerateFriendKey(
     ServerContext* context,
     const asphrdaemon::GenerateFriendKeyRequest* generateFriendKeyRequest,
     asphrdaemon::GenerateFriendKeyResponse* generateFriendKeyResponse) {
-  ASPHR_LOG_INFO("GenerateFriendKey() called.");
+  ASPHR_LOG_INFO("GenerateFriendKey() called.", rpc_call, "GenerateFriendKey");
 
-  if (!config->has_registered()) {
-    ASPHR_LOG_INFO("need to register first");
+  if (!G.db->has_registered()) {
+    ASPHR_LOG_INFO("Need to register first.", rpc_call, "GenerateFriendKey");
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
