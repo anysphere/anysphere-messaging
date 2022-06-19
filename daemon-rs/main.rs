@@ -1,4 +1,5 @@
 mod cli;
+use db;
 
 fn main() {
     use std::env;
