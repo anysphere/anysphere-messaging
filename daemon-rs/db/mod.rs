@@ -2,8 +2,8 @@ use diesel::prelude::*;
 
 mod schema;
 
-use chrono::{DateTime, Utc};
 use std::{error::Error, fmt};
+
 
 #[derive(Debug)]
 #[allow(dead_code)]
@@ -59,43 +59,39 @@ struct DB {
     address: String,
 }
 
-#[derive(Queryable, Insertable)]
-#[diesel(table_name = schema::message)]
-struct Message {
-    uid: i32,
-    content: String,
+
+#[cxx::bridge]
+mod util {
+    unsafe extern "C++" {
+        // we use absl::Time because it is SUCH a well-thought out library
+        // we trust it more than chrono or rust's time
+        include!("daemon-rs/util.hpp");
+        fn unix_micros_now() -> i64;
+    }
 }
 
-#[derive(Queryable, Insertable)]
-#[diesel(table_name = schema::sent)]
+#[derive(Insertable)]
+#[diesel(table_name = crate::db::schema::sent)]
 struct Sent {
     pub uid: i32,
     pub to_friend: i32,
     pub num_chunks: i32,
-    pub sent_at: DateTime<Utc>,
+    pub sent_at: i64, // unix micros
     pub delivered: bool,
-    pub delivered_at: Option<DateTime<Utc>>,
+    pub delivered_at: Option<i64>, // unix micros
 }
 
-#[derive(Queryable, Insertable)]
-#[diesel(table_name = schema::received)]
+#[derive(Insertable)]
+#[diesel(table_name = crate::db::schema::received)]
 struct Received {
     pub uid: i32,
     pub from_friend: i32,
     pub num_chunks: i32,
-    pub received_at: DateTime<Utc>,
+    pub received_at: i64, // unix micros
     pub delivered: bool,
-    pub delivered_at: Option<DateTime<Utc>>,
+    pub delivered_at: Option<i64>, // unix micros
     pub seen: bool,
 }
-
-#[derive(Queryable, Insertable)]
-#[diesel(table_name = schema::received)]
-struct Draft {
-    pub uid: i32,
-    pub to_friend: i32,
-}
-
 
 //
 // Source of truth is in the migrations folder. Schema.rs is generated from them.
@@ -148,7 +144,8 @@ pub mod db {
         pub write_key: Vec<u8>,
     }
 
-    #[derive(Queryable)]
+    #[derive(Queryable, Insertable)]
+    #[diesel(table_name = crate::db::schema::status)]
     struct Status {
         pub uid: i32,
         pub sent_acked_seqnum: i32,
@@ -239,9 +236,9 @@ pub mod db {
         pub from_unique_name: String,
         pub from_display_name: String,
         pub num_chunks: i32,
-        pub received_at: String,
+        pub received_at: i64,
         pub delivered: bool,
-        pub delivered_at: Option<String>,
+        pub delivered_at: i64, // 0 iff !delivered (cxx.rs doesn't support Option)
         pub seen: bool,
         pub content: String,
     }
@@ -250,9 +247,9 @@ pub mod db {
         pub to_unique_name: String,
         pub to_display_name: String,
         pub num_chunks: i32,
-        pub sent_at: String,
+        pub sent_at: i64,
         pub delivered: bool,
-        pub delivered_at: Option<String>,
+        pub delivered_at: i64, // 0 iff !delivered (cxx.rs doesn't support Option)
         pub content: String,
     }
     struct DraftPlusPlus {
@@ -260,6 +257,20 @@ pub mod db {
         pub to_unique_name: String,
         pub to_display_name: String,
         pub content: String,
+    }
+
+    #[derive(Queryable, Insertable)]
+    #[diesel(table_name = crate::db::schema::message)]
+    struct Message {
+        uid: i32,
+        content: String,
+    }
+
+    #[derive(Queryable, Insertable)]
+    #[diesel(table_name = crate::db::schema::draft)]
+    struct Draft {
+        pub uid: i32,
+        pub to_friend: i32,
     }
 
 
@@ -298,6 +309,7 @@ pub mod db {
             display_name: &str,
             max_friends: i32,
         ) -> Result<Friend>;
+        // adds a friend address and also makes the friend enabled
         fn add_friend_address(&self, add_address: AddAddress, max_friends: i32) -> Result<()>;
         fn delete_friend(&self, unique_name: &str) -> Result<()>;
         // returns address iff enabled && !deleted
@@ -326,6 +338,7 @@ pub mod db {
         fn get_sent_messages(&self, query: MessageQuery) -> Result<Vec<SentPlusPlus>>;
         fn get_draft_messages(&self, query: MessageQuery) -> Result<Vec<DraftPlusPlus>>;
     }
+
 }
 
 pub const MIGRATIONS: diesel_migrations::EmbeddedMigrations =
@@ -376,7 +389,7 @@ impl DB {
         Ok(registration)
     }
 
-    fn get_small_registration(&self) -> Result<SmallRegistrationFragment, DbError> {
+    fn get_small_registration(&self) -> Result<db::SmallRegistrationFragment, DbError> {
         let mut conn = self.connect()?;
         use self::schema::registration;
 
@@ -388,7 +401,7 @@ impl DB {
             registration::authentication_token,
         ));
         let registration = q
-            .first::<SmallRegistrationFragment>(&mut conn)
+            .first::<db::SmallRegistrationFragment>(&mut conn)
             .map_err(|e| DbError::Unknown(format!("failed to query registration: {}", e)))?;
         Ok(registration)
     }
@@ -471,7 +484,7 @@ impl DB {
         unique_name: &str,
         display_name: &str,
         max_friends: i32,
-    ) -> Result<Friend, DbError> {
+    ) -> Result<db::Friend, DbError> {
         let mut conn = self.connect()?;
         use self::schema::friend;
 
@@ -481,7 +494,7 @@ impl DB {
             enabled: false,
             deleted: false,
         };
-        conn.transaction(|conn_b| {
+        let r = conn.transaction(|conn_b| {
             // check if a friend with this name already exists
             let count = friend::table
                 .filter(friend::unique_name.eq(unique_name))
@@ -491,11 +504,11 @@ impl DB {
                 return Err(diesel::result::Error::RollbackTransaction);
             }
             let count = friend::table.count().get_result::<i64>(conn_b)?;
-            if count >= max_friends {
+            if count >= max_friends.into() {
                 return Err(diesel::result::Error::RollbackTransaction);
             }
 
-            diesel::insert_into(friend::table).values(&f).get_result::<Friend>(conn_b)?
+            diesel::insert_into(friend::table).values(&f).get_result::<db::Friend>(conn_b)
         });
 
         r.map_err(|e| match e {
@@ -524,7 +537,8 @@ impl DB {
                 .first::<i32>(conn_b)?;
 
             let ack_indices = address::table
-                .inner_join(friend::table.filter(friend::deleted.eq(false)))
+                .inner_join(friend::table)
+                .filter(friend::deleted.eq(false))
                 .select(address::ack_index)
                 .load::<i32>(conn_b)?;
             let mut possible_ack_indices = Vec::<i32>::new();
@@ -533,18 +547,30 @@ impl DB {
                     possible_ack_indices.push(i);
                 }
             }
-            if possible_ack_indices.is_empty() {
-                return Err(diesel::result::Error::RollbackTransaction);
-            }
-            let ack_index = possible_ack_indices.choose(&mut rand::thread_rng())?;
+            use rand::seq::SliceRandom;
+            let ack_index_opt = possible_ack_indices.choose(&mut rand::thread_rng());
+            let ack_index = ack_index_opt.ok_or(diesel::result::Error::RollbackTransaction)?;
             let address = db::Address {
                 uid: uid,
                 read_index: add_address.read_index,
-                ack_index: ack_index,
+                ack_index: ack_index.clone(),
                 read_key: add_address.read_key,
                 write_key: add_address.write_key,
             };
-            diesel::insert_into(address::table).values(&address).execute(conn_b)
+            diesel::insert_into(address::table).values(&address).execute(conn_b)?;
+
+            diesel::update(friend::table.find(uid))
+                .set(friend::enabled.eq(true))
+                .execute(conn_b)?;
+            
+            let status = db::Status {
+                uid: uid,
+                sent_acked_seqnum: 0,
+                received_seqnum: 0,
+            };
+            diesel::insert_into(status::table).values(&status).execute(conn_b)?;
+
+            Ok(())
         })
         .map_err(|e| match e {
             diesel::result::Error::RollbackTransaction => {
@@ -558,10 +584,10 @@ impl DB {
         let mut conn = self.connect()?;
         use self::schema::friend;
 
-        friend::table
-            .filter(friend::unique_name.eq(unique_name))
+        diesel::update(friend::table
+            .filter(friend::unique_name.eq(unique_name)))
             .set(friend::deleted.eq(false))
-            .select(friend::uid)
+            .returning(friend::uid)
             .get_result::<i32>(&mut conn)
             .map_err(|e| match e {
                 diesel::result::Error::NotFound => {
@@ -623,6 +649,7 @@ impl DB {
     fn receive_ack(&self, uid: i32, ack: i32) -> Result<bool, DbError> {
         let mut conn = self.connect()?;
         use self::schema::outgoing_chunk;
+        use self::schema::sent;
         use self::schema::status;
 
         let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
@@ -632,8 +659,31 @@ impl DB {
                 diesel::update(status::table.find(uid))
                     .set(status::sent_acked_seqnum.eq(ack))
                     .execute(conn_b)?;
-                // delete outgoing chunk if it exists
-                diesel::delete(outgoing_chunk::table.find((uid, ack))).execute(conn_b)?;
+                // delete all outgoing chunks with seqnum <= ack
+                diesel::delete(outgoing_chunk::table
+                    .filter(outgoing_chunk::to_friend.eq(uid))
+                    .filter(outgoing_chunk::sequence_number.le(ack)))
+                    .execute(conn_b)?;
+                // potentially transition messages to delivered status!
+                // when? when there are messages in received that aren't
+                // delivered but also do not have incoming chunks
+                let newly_delivered = sent::table
+                    .filter(sent::to_friend.eq(uid))
+                    .filter(sent::delivered.eq(false))
+                    .left_outer_join(outgoing_chunk::table)
+                    .filter(outgoing_chunk::sequence_number.nullable().is_null())
+                    .select(sent::uid)
+                    .load::<i32>(conn_b)?;
+                
+                // we use ii to make sure that times are guaranteed to be unique
+                let mut ii: i64 = 0;
+                for uid in newly_delivered {
+                    diesel::update(sent::table.find(uid))
+                        .set((sent::delivered.eq(true),
+                        sent::delivered_at.eq(util::unix_micros_now() + ii)))
+                        .execute(conn_b)?;
+                    ii += 1;
+                }
             }
             return Ok(old_acked_seqnum);
         });
@@ -699,14 +749,14 @@ impl DB {
                     // if there is no message uid associated with this chunk sequence, we need to create a new message
                     let new_msg = diesel::insert_into(message::table)
                         .values(message::content.eq(""))
-                        .get_result::<Message>(conn_b)?;
+                        .get_result::<db::Message>(conn_b)?;
 
                     message_uid = new_msg.uid;
                     let new_received = Received {
                         uid: message_uid,
                         from_friend: chunk.from_friend,
                         num_chunks: num_chunks,
-                        received_at: Utc::now(),
+                        received_at: util::unix_micros_now(),
                         delivered: false,
                         delivered_at: None,
                         seen: false,
@@ -749,7 +799,7 @@ impl DB {
                     .execute(conn_b)?;
                 // update the receive table
                 diesel::update(received::table.find(message_uid))
-                    .set((received::delivered.eq(true), received::delivered_at.eq(Utc::now())))
+                    .set((received::delivered.eq(true), received::delivered_at.eq(util::unix_micros_now())))
                     .execute(conn_b)?;
                 // finally, delete the chunks
                 diesel::delete(
@@ -902,6 +952,19 @@ impl DB {
 
     fn send_message(&self, to_unique_name: &str, message: &str) -> Result<(), DbError> {
         // TODO: implement this
-        Err(DbError::Unimplemented("send_message not implemented"))
+        Err(DbError::Unimplemented("send_message not implemented".to_string()))
+    }
+
+    fn get_received_messages(&self, query: db::MessageQuery) -> Result<Vec<db::ReceivedPlusPlus>, DbError> {
+        // TODO: implement this
+        Err(DbError::Unimplemented("not implemented".to_string()))
+    }
+    fn get_sent_messages(&self, query: db::MessageQuery) -> Result<Vec<db::SentPlusPlus>, DbError> {
+        // TODO: implement this
+        Err(DbError::Unimplemented("not implemented".to_string()))
+    }
+    fn get_draft_messages(&self, query: db::MessageQuery) -> Result<Vec<db::DraftPlusPlus>, DbError> {
+        // TODO: implement this
+        Err(DbError::Unimplemented("not implemented".to_string()))
     }
 }

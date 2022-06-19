@@ -269,7 +269,7 @@ auto Transmitter::retrieve() -> void {
             static_cast<int>(chunk.num_chunks()));
         if (received_full_message) {
           std::lock_guard<std::mutex> l(G.message_notification_cv_mutex);
-          message_notification_cv.notify_all();
+          G.message_notification_cv.notify_all();
         }
 
         previous_success_receive_friend = std::optional<int>(f.uid);

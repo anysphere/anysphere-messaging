@@ -128,11 +128,19 @@ int main_cc_impl(rust::Vec<rust::String> args) {
 }
 
 int main_cc(rust::Vec<rust::String> args) {
-  try {
-    return main_cc_impl(args);
-  } catch (const std::exception& e) {
-    ASPHR_LOG_ERR("Main failing fatally :(, probably with a database error.",
-                  exception, e.what());
-    throw;
-  }
+  // try {
+  //   return main_cc_impl(args);
+  // } catch (const std::exception& e) {
+  //   ASPHR_LOG_ERR("Main failing fatally :(, probably with a database error.",
+  //                 exception, e.what());
+  //   throw;
+  // }
+
+  auto t1 = absl::Now();
+  auto t2 = absl::Now();
+  auto utc = absl::UTCTimeZone();
+  cout << "Time1: " << absl::FormatTime(absl::RFC3339_full, t1, utc) << endl;
+  cout << "Time2: " << absl::FormatTime(absl::RFC3339_full, t2, utc) << endl;
+  cout << "Time1: " << absl::ToUnixMicros(t1) << endl;
+  cout << "Time2: " << absl::ToUnixMicros(t2) << endl;
 }

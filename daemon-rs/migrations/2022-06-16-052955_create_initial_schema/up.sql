@@ -76,7 +76,7 @@ CREATE TABLE sent (
     num_chunks integer NOT NULL,
     sent_at timestamp NOT NULL, -- time when the user pressed 'Send'
     delivered boolean NOT NULL, -- true when the entire message has been delivered and acked
-    delivered_at timestamp, -- time when the message was delivered
+    delivered_at timestamp UNIQUE, -- time when the message was delivered. 
     FOREIGN KEY(uid) REFERENCES message(uid),
     FOREIGN KEY(to_friend) REFERENCES friend(uid)
 );
@@ -88,7 +88,7 @@ CREATE TABLE received (
     num_chunks integer NOT NULL,
     received_at timestamp NOT NULL, -- timestamp when the first chunk was received
     delivered boolean NOT NULL, -- true when the entire message has been delivered
-    delivered_at timestamp, -- timestamp when the last chunk was delivered
+    delivered_at timestamp UNIQUE, -- timestamp when the last chunk was delivered. unique because we want to use it as a monotonically increasing index in the order that messages are delivered. since we use microseconds collisions are unlikely, and if there is a collision we can just retry the entire transaction.
     seen boolean NOT NULL,
     FOREIGN KEY(uid) REFERENCES message(uid),
     FOREIGN KEY(from_friend) REFERENCES friend(uid)

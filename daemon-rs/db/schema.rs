@@ -69,9 +69,9 @@ diesel::table! {
         uid -> Integer,
         from_friend -> Integer,
         num_chunks -> Integer,
-        received_at -> TimestamptzSqlite,
+        received_at -> BigInt,
         delivered -> Bool,
-        delivered_at -> Nullable<TimestamptzSqlite>,
+        delivered_at -> Nullable<BigInt>,
         seen -> Bool,
     }
 }
@@ -93,9 +93,9 @@ diesel::table! {
         uid -> Integer,
         to_friend -> Integer,
         num_chunks -> Integer,
-        sent_at -> TimestamptzSqlite,
+        sent_at -> BigInt,
         delivered -> Bool,
-        delivered_at -> Nullable<TimestamptzSqlite>,
+        delivered_at -> Nullable<BigInt>,
     }
 }
 

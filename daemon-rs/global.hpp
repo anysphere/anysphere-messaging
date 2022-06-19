@@ -32,11 +32,11 @@ class Global {
 
   // the following are for notifying someone when an incoming message has
   // been added
-  std::mutex message_notification_cv_mutex;
-  std::condition_variable message_notification_cv;
+  mutable std::mutex message_notification_cv_mutex;
+  mutable std::condition_variable message_notification_cv;
 
  private:
   mutable std::mutex kill_mtx;
-  std::condition_variable kill_cv;
+  mutable std::condition_variable kill_cv;
   bool kill_ = false;
 };

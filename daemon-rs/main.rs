@@ -13,7 +13,6 @@ fn main() {
 mod ffi {
     unsafe extern "C++" {
         include!("daemon-rs/main.hpp");
-
         fn main_cc(args: Vec<String>) -> i32;
     }
 }
