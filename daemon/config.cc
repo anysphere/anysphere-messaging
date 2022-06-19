@@ -273,8 +273,6 @@ auto Config::add_async_friend_request(const string& friend_public_key,
   const std::lock_guard<std::mutex> l(config_mtx);
 
   check_rep();
-
-  assert(has_space_for_async_friend_requests());
   assert(!pending_async_friend_requests.contains(friend_public_key));
   pending_async_friend_requests.try_emplace(friend_public_key, friend_info);
 
@@ -291,7 +289,9 @@ auto Config::get_async_friend_request()
   // a dummy public key to return if no async friend requests exist
   auto [friend_public_key, _] = Crypto::generate_friend_request_keypair();
   // a dummy friend to return if no async friend requests exist
-  Friend friend_info = Friend("default", vector<Friend>{}, "");
+  // TODO: is this safe?
+  Friend friend_info = Friend("dummy", vector<Friend>{}, "dummy_key");
+
   // if there exist async friend requests, return one of them
   if (pending_async_friend_requests.size() != 0) {
     // get random element from pending_async_friend_requests

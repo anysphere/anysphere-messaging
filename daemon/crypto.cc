@@ -346,14 +346,32 @@ auto Crypto::encrypt_async_friend_request(
 
   // We now encrypt the message, using a clone of the code above
   std::string plaintext = message;
+  size_t unpadded_plaintext_size = plaintext.size();
   // I couldn't find any documentation on what the max length is for this
   // so i'll leave it for now
-  // assert(padded_plaintext_len == plaintext.size());
+
+  // Here we need to pad the plaintext to the max length
+  // to prevent length attack
+  // since the public key crypto protocol asserts that
+  // "ciphertextlength = plaintextlength + const"
+
+  size_t plaintext_size = ASYNC_FRIEND_REQUEST_SIZE;
+  plaintext.resize(plaintext_size);
+
+  // use libsodium to pad the plaintext
+  if (sodium_pad(&plaintext_size,
+                 reinterpret_cast<unsigned char*>(plaintext.data()),
+                 unpadded_plaintext_size, ASYNC_FRIEND_REQUEST_SIZE,
+                 plaintext.size()) != 0) {
+    return absl::UnknownError("failed to pad message");
+  }
+
+  cout << plaintext << endl;
 
   // encrypt it!
   std::string ciphertext;
-  unsigned long long ciphertext_len = plaintext.size() + crypto_box_MACBYTES;
-  ciphertext.resize(ciphertext_len + crypto_box_NONCEBYTES);
+  unsigned long long ciphertext_size = plaintext_size + crypto_box_MACBYTES;
+  ciphertext.resize(ciphertext_size + crypto_box_NONCEBYTES);
 
   unsigned char nonce[crypto_box_NONCEBYTES];
   randombytes_buf(nonce, sizeof nonce);
@@ -370,11 +388,14 @@ auto Crypto::encrypt_async_friend_request(
   // append the nounce to the end of the ciphertext
 
   for (size_t i = 0; i < crypto_box_NONCEBYTES; i++) {
-    ciphertext[i + ciphertext_len] += nonce[i];
+    ciphertext[i + ciphertext_size] += nonce[i];
   }
 
-  // the ciphertext length is exactly equal to the plaintext length
-  assert(ciphertext_len == plaintext.size() + crypto_box_MACBYTES);
+  // Sanity check the length of everything
+  assert(ciphertext.size() == ciphertext_size + crypto_box_NONCEBYTES);
+  assert(ciphertext_size == plaintext_size + crypto_box_MACBYTES);
+  assert(plaintext.size() == plaintext_size);
+  assert(plaintext_size == ASYNC_FRIEND_REQUEST_SIZE);
 
   return ciphertext;
 }
@@ -395,7 +416,11 @@ auto Crypto::decrypt_async_friend_request(
         "self_private_key is not the correct size");
   }
   auto ciphertext_len = ciphertext.size() - crypto_box_NONCEBYTES;
-  auto plaintext_len = ciphertext_len - crypto_box_MACBYTES;
+  auto padded_plaintext_len = ciphertext_len - crypto_box_MACBYTES;
+
+  // make sure the plaintext is of the correct length
+  assert(padded_plaintext_len == ASYNC_FRIEND_REQUEST_SIZE);
+
   // Extract the nounce from the end of the ciphertext
   unsigned char nonce[crypto_box_NONCEBYTES];
   for (size_t i = 0; i < crypto_box_NONCEBYTES; i++) {
@@ -408,7 +433,7 @@ auto Crypto::decrypt_async_friend_request(
   }
   // decrypt it!!
   std::string plaintext;
-  plaintext.resize(plaintext_len);
+  plaintext.resize(padded_plaintext_len);
   if (crypto_box_open_easy(
           reinterpret_cast<unsigned char*>(plaintext.data()),
           reinterpret_cast<const unsigned char*>(ciphertext_str.data()),
@@ -417,8 +442,18 @@ auto Crypto::decrypt_async_friend_request(
           reinterpret_cast<const unsigned char*>(my_private_key.data())) != 0) {
     return absl::UnknownError("failed to decrypt friend request");
   }
+  assert(padded_plaintext_len == plaintext.size());
 
-  // stream the message into a stringstream
+  // remove padding
+  size_t unpadded_plaintext_len = 0;
+  plaintext.resize(padded_plaintext_len);
+  if (sodium_unpad(&unpadded_plaintext_len,
+                   reinterpret_cast<unsigned char*>(plaintext.data()),
+                   padded_plaintext_len, ASYNC_FRIEND_REQUEST_SIZE) != 0) {
+    return absl::UnknownError("failed to unpad message");
+  }
+
+  // stream the message through a stringstream
   std::stringstream ss;
   ss << plaintext;
   std::string name;

@@ -226,6 +226,12 @@ Status DaemonRpc::SendFriendRequestAsync(
                   "wrong_my_kx_private_key size");
   }
 
+  // check we have space
+  if (!config->has_space_for_async_friend_requests()) {
+    return Status(grpc::StatusCode::INVALID_ARGUMENT,
+                  "too many simultaneous async requests");
+  }
+
   auto friend_instance =
       Friend(request->name(), config->friends(), friend_kx_public_key);
   // we can generate the read write key now
