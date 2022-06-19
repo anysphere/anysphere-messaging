@@ -1,6 +1,6 @@
 #pragma once
 
-#include "daemon-rs/db/mod.rs.h"
+#include "daemon-rs/db/src/lib.rs.h"
 #include "rust/cxx.h"
 
 // TODO: check that they are moved.

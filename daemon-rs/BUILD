@@ -1,23 +1,40 @@
 load("@cxx.rs//tools/bazel:rust_cxx_bridge.bzl", "rust_cxx_bridge")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
-load("@rules_rust//rust:defs.bzl", "rust_binary")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
+
+# package(
+#     default_visibility = ["//:__pkg__"],
+# )
+
+rust_library(
+    name = "db-lib",
+    srcs = [
+        "db/src/lib.rs",
+        "db/src/schema.rs",
+    ],
+    compile_data = [":migrations"],
+    crate_features = ["default"],
+    deps = [
+        ":bridge",
+        "@crate_index//:diesel",
+        "@crate_index//:diesel_migrations",
+        "@crate_index//:rand",
+        "@cxx.rs//:cxx",
+    ],
+)
 
 rust_binary(
     name = "main",
     srcs = [
-        "db/mod.rs",
-        "db/schema.rs",
+        "cli.rs",
         "main.rs",
-        "cli.rs"
     ],
     compile_data = [":migrations"],
     deps = [
-        ":bridge",
+        ":db-lib",
         ":cpp-imp",
         ":main-bridge",
-        "@crate_index//:diesel",
-        "@crate_index//:diesel_migrations",
-        "@crate_index//:rand",
+        ":bridge",
         "@cxx.rs//:cxx",
     ],
 )
@@ -37,7 +54,7 @@ rust_cxx_bridge(
 
 rust_cxx_bridge(
     name = "bridge",
-    src = "db/mod.rs",
+    src = "db/src/lib.rs",
     deps = [":cpp-include"],
 )
 
@@ -90,7 +107,7 @@ cc_library(
 
 cc_library(
     name = "cpp-db",
-    hdrs = ["db/db.hpp"],
+    hdrs = ["db/src/db.hpp"],
     linkstatic = True,
     deps = [
         ":bridge",

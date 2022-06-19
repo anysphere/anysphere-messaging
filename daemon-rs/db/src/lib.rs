@@ -1,9 +1,11 @@
+#[macro_use]
+extern crate diesel;
+
 use diesel::prelude::*;
 
-mod schema;
+pub mod schema;
 
 use std::{error::Error, fmt};
-
 
 #[derive(Debug)]
 #[allow(dead_code)]
@@ -71,7 +73,7 @@ mod util {
 }
 
 #[derive(Insertable)]
-#[diesel(table_name = crate::db::schema::sent)]
+#[diesel(table_name = schema::sent)]
 struct Sent {
     pub uid: i32,
     pub to_friend: i32,
@@ -82,7 +84,7 @@ struct Sent {
 }
 
 #[derive(Insertable)]
-#[diesel(table_name = crate::db::schema::received)]
+#[diesel(table_name = schema::received)]
 struct Received {
     pub uid: i32,
     pub from_friend: i32,
@@ -120,7 +122,7 @@ pub mod db {
         pub deleted: bool,
     }
     #[derive(Insertable)]
-    #[diesel(table_name = crate::db::schema::friend)]
+    #[diesel(table_name = crate::schema::friend)]
     struct FriendFragment {
         pub unique_name: String,
         pub display_name: String,
@@ -129,7 +131,7 @@ pub mod db {
     }
 
     #[derive(Queryable, Insertable)]
-    #[diesel(table_name = crate::db::schema::address)]
+    #[diesel(table_name = crate::schema::address)]
     struct Address {
         pub uid: i32,
         pub read_index: i32,
@@ -145,7 +147,7 @@ pub mod db {
     }
 
     #[derive(Queryable, Insertable)]
-    #[diesel(table_name = crate::db::schema::status)]
+    #[diesel(table_name = crate::schema::status)]
     struct Status {
         pub uid: i32,
         pub sent_acked_seqnum: i32,
@@ -163,7 +165,7 @@ pub mod db {
         pub authentication_token: String,
     }
     #[derive(Insertable)]
-    #[diesel(table_name = crate::db::schema::registration)]
+    #[diesel(table_name = crate::schema::registration)]
     struct RegistrationFragment {
         pub public_key: Vec<u8>,
         pub private_key: Vec<u8>,
@@ -187,7 +189,7 @@ pub mod db {
     }
 
     #[derive(Queryable, Insertable)]
-    #[diesel(table_name = crate::db::schema::incoming_chunk)]
+    #[diesel(table_name = crate::schema::incoming_chunk)]
     struct IncomingChunk {
         pub from_friend: i32,
         pub sequence_number: i32,
@@ -272,14 +274,14 @@ pub mod db {
     }
 
     #[derive(Queryable, Insertable)]
-    #[diesel(table_name = crate::db::schema::message)]
+    #[diesel(table_name = crate::schema::message)]
     struct Message {
         uid: i32,
         content: String,
     }
 
     #[derive(Queryable, Insertable)]
-    #[diesel(table_name = crate::db::schema::draft)]
+    #[diesel(table_name = crate::schema::draft)]
     struct Draft {
         pub uid: i32,
         pub to_friend: i32,

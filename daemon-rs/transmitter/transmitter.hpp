@@ -7,7 +7,7 @@
 
 #include "asphr/asphr.hpp"
 #include "daemon-rs/crypto/crypto.hpp"
-#include "daemon-rs/db/db.hpp"
+#include "daemon-rs/db/src/db.hpp"
 #include "daemon-rs/global.hpp"
 #include "pir/fast_pir/fast_pir_client.hpp"
 #include "schema/daemon.grpc.pb.h"

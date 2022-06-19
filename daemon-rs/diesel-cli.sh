@@ -13,5 +13,5 @@ DIESEL_CONFIG_FILE="${ANYSPHEREROOT}"/client/daemon-rs/diesel.toml DATABASE_URL=
 
 if [[ $@ == *"migration"* ]]; then
 	echo "Replacing Timestamp with BigInt (UNIX microseconds stored as i64s)"
-	sd Timestamp BigInt "${ANYSPHEREROOT}"/client/daemon-rs/db/schema.rs
+	sd Timestamp BigInt "${ANYSPHEREROOT}"/client/daemon-rs/db/src/schema.rs
 fi

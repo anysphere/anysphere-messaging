@@ -2,7 +2,7 @@
 
 #include "constants.hpp"
 #include "crypto/crypto.hpp"
-#include "db/db.hpp"
+#include "db/src/db.hpp"
 
 // Global is a thread safe singleton that all threads should have
 // access to. It exists to provide notifications as well as set up the database.

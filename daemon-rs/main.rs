@@ -1,7 +1,3 @@
-#[macro_use]
-extern crate diesel;
-
-mod db;
 mod cli;
 
 fn main() {
