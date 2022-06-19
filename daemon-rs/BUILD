@@ -1,6 +1,6 @@
 load("@cxx.rs//tools/bazel:rust_cxx_bridge.bzl", "rust_cxx_bridge")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
-load("@rules_rust//rust:defs.bzl", "rust_binary")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_test")
 
 rust_binary(
     name = "main",
@@ -15,6 +15,23 @@ rust_binary(
         ":bridge",
         ":cpp-imp",
         ":main-bridge",
+        "@crate_index//:diesel",
+        "@crate_index//:diesel_migrations",
+        "@crate_index//:rand",
+        "@cxx.rs//:cxx",
+    ],
+)
+
+rust_test(
+    name = "tests",
+    srcs = [
+        "db/mod.rs",
+        "db/schema.rs",
+        "lib.rs",
+        "db_test/tests.rs"
+    ],
+    compile_data = [":migrations"],
+    deps = [
         "@crate_index//:diesel",
         "@crate_index//:diesel_migrations",
         "@crate_index//:rand",

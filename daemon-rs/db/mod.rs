@@ -1,6 +1,6 @@
 use diesel::prelude::*;
 
-mod schema;
+pub mod schema;
 
 use std::{error::Error, fmt};
 
