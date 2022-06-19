@@ -477,7 +477,7 @@ impl DB {
             };
             diesel::insert_into(address::table)
                 .values(&address)
-                .execute(conn_b)?;
+                .execute(conn_b)
         }).map_err(|e| match e {
             diesel::result::Error::RollbackTransaction => DbError::AlreadyExists("no free ack index".to_string()),
             _ => DbError::Unknown(format!("failed to insert address: {}", e)),
