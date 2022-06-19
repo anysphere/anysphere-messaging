@@ -191,26 +191,20 @@ Status DaemonRpc::RemoveFriend(
     ServerContext* context,
     const asphrdaemon::RemoveFriendRequest* removeFriendRequest,
     asphrdaemon::RemoveFriendResponse* removeFriendResponse) {
-  cout << "RemoveFriend() called" << endl;
+  ASPHR_LOG_INFO("RemoveFriend() called.", rpc_call, "RemoveFriend",
+                 "friend_unique_name", removeFriendRequest->unique_name());
 
-  if (!config->has_registered()) {
-    cout << "need to register first!" << endl;
+  if (!G.db->has_registered()) {
+    ASPHR_LOG_INFO("Need to register first.", rpc_call, "RemoveFriend");
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  auto friend_info_status = config->get_friend(removeFriendRequest->name());
-
-  if (!friend_info_status.ok()) {
-    cout << "friend not found" << endl;
-    return Status(grpc::StatusCode::INVALID_ARGUMENT, "friend not found");
-  }
-
-  // remove friend from friend table
-  auto status = config->remove_friend(removeFriendRequest->name());
-
-  if (!status.ok()) {
-    cout << "remove friend failed" << endl;
-    return Status(grpc::StatusCode::INVALID_ARGUMENT, "remove friend failed");
+  try {
+    G.db->delete_friend(removeFriendRequest->unique_name());
+  } catch (const rust::Error& e) {
+    ASPHR_LOG_ERR("Failed to remove friend.", error, e.what(), rpc_call,
+                  "RemoveFriend");
+    return Status(grpc::StatusCode::UNKNOWN, e.what());
   }
 
   return Status::OK;

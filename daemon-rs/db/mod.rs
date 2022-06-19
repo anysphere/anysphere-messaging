@@ -249,6 +249,7 @@ pub mod db {
         // fails if a friend with unique_name already exists
         fn create_friend(&self, unique_name: &str, display_name: &str, max_friends: i32) -> Result<Friend>;
         fn add_friend_address(&self, add_address: AddAddress, max_friends: i32) -> Result<()>;
+        fn delete_friend(&self, unique_name: &str) -> Result<()>;
         // returns address iff enabled && !deleted
         fn get_friend_address(&self, uid: i32) -> Result<Address>;
         // fails if no such friend exists
@@ -477,6 +478,23 @@ impl DB {
             diesel::result::Error::RollbackTransaction => DbError::AlreadyExists("no free ack index".to_string()),
             _ => DbError::Unknown(format!("failed to insert address: {}", e)),
         })
+    }
+
+    fn delete_friend(&self, unique_name: &str) -> Result<(), DbError> {
+        let mut conn = self.connect()?;
+        use self::schema::friend;
+
+        friend::table
+            .filter(friend::unique_name.eq(unique_name))
+            .set(friend::deleted.eq(false))
+            .select(friend::uid)
+            .get_result::<i32>(&mut conn)
+            .map_err(|e| match e {
+                diesel::result::Error::NotFound => DbError::NotFound("friend not found".to_string()),
+                _ => DbError::Unknown(format!("failed to delete friend: {}", e)),
+            })?;
+
+        Ok(())
     }
 
     fn set_latency(&self, latency: i32) -> Result<(), DbError> {
