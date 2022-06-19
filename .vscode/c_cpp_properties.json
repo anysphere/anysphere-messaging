@@ -1,0 +1,28 @@
+{
+  "configurations": [
+    {
+      "name": "Mac",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "${workspaceFolder}/../bazel-anysphere/external/**/**",
+        "${workspaceFolder}/../bazel-out/**/**",
+        "${workspaceFolder}/../bazel-bin/external/**/**",
+        "${workspaceFolder}/../bazel-bin/external/asphr/third_party/**/**",
+        "${workspaceFolder}/../bazel-out/darwin_arm64-fastbuild/bin/external/asphr/third_party/seal/copy_seal/seal/include",
+        "${workspaceFolder}/bazel-out/darwin_arm64-fastbuild/bin/external/**/**/**/**",
+        "${workspaceFolder}/bazel-out/darwin_arm64-fastbuild/bin/daemon-rs/**/**/**/**",
+        "/home/gitpod/.cache/bazel/_bazel_gitpod/**",
+        "/private/var/tmp/_bazel_sualeh/39d7406b82f7235a3fefe5e0e301d280/execroot/__main__/bazel-out/darwin_arm64-fastbuild-ST-368686e6f71f/bin/external/asphr/third_party/libsodium/copy_libsodium_/libsodium_/include"
+      ],
+      "defines": [],
+      "macFrameworkPath": [],
+      "compilerPath": "/usr/bin/clang++",
+      "cStandard": "c17",
+      "cppStandard": "c++20",
+      "intelliSenseMode": "${default}",
+      "compilerArgs": []
+      // "compileCommands": "${workspaceFolder}/compile_commands.json"
+    }
+  ],
+  "version": 4
+}
