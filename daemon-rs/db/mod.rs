@@ -270,6 +270,7 @@ pub mod db {
 
         // fails if the friend does not exist, or does not satisfy enabled && !deleted
         fn send_message(&self, to_unique_name: &str, message: &str) -> Result<()>;
+
     }
 }
 
