@@ -153,7 +153,7 @@ Status DaemonRpc::AddFriend(
     const asphrdaemon::AddFriendRequest* addFriendRequest,
     asphrdaemon::AddFriendResponse* addFriendResponse) {
   ASPHR_LOG_INFO("AddFriend() called.", rpc_call, "AddFriend",
-                 "friend_unique_name", addFriendRequest->unique_name());
+                 friend_unique_name, addFriendRequest->unique_name());
 
   if (!G.db->has_registered()) {
     ASPHR_LOG_INFO("Need to register first.", rpc_call, "AddFriend");
@@ -192,7 +192,7 @@ Status DaemonRpc::RemoveFriend(
     const asphrdaemon::RemoveFriendRequest* removeFriendRequest,
     asphrdaemon::RemoveFriendResponse* removeFriendResponse) {
   ASPHR_LOG_INFO("RemoveFriend() called.", rpc_call, "RemoveFriend",
-                 "friend_unique_name", removeFriendRequest->unique_name());
+                 friend_unique_name, removeFriendRequest->unique_name());
 
   if (!G.db->has_registered()) {
     ASPHR_LOG_INFO("Need to register first.", rpc_call, "RemoveFriend");
@@ -215,9 +215,9 @@ Status DaemonRpc::SendMessage(
     const asphrdaemon::SendMessageRequest* sendMessageRequest,
     asphrdaemon::SendMessageResponse* sendMessageResponse) {
   ASPHR_LOG_INFO("SendMessage() called.", rpc_call, "SendMessage",
-                 "friend_unique_name", sendMessageRequest->unique_name(),
-                 "message_length", sendMessageRequest->message().size(),
-                 "message", sendMessageRequest->message());
+                 friend_unique_name, sendMessageRequest->unique_name(),
+                 message_length, sendMessageRequest->message().size(), message,
+                 sendMessageRequest->message());
 
   if (!G.db->has_registered()) {
     ASPHR_LOG_INFO("Need to register first.", rpc_call, "SendMessage");
@@ -252,34 +252,42 @@ Status DaemonRpc::GetMessages(
 
   auto filter = getMessagesRequest->filter();
 
-  vector<IncomingMessage> messages;
-
-  if (filter == asphrdaemon::GetMessagesRequest::ALL) {
-    messages = msgstore->get_all_incoming_messages_sorted();
-  } else if (filter == asphrdaemon::GetMessagesRequest::NEW) {
-    messages = msgstore->get_new_incoming_messages_sorted();
-  } else {
-    cout << "filter: INVALID" << endl;
+  if (filter != asphrdaemon::GetMessagesRequest::ALL &&
+      filter != asphrdaemon::GetMessagesRequest::NEW) {
+    ASPHR_LOG_ERR("Invalid filter.", rpc_call, "GetMessages", filter, filter);
     return Status(grpc::StatusCode::INVALID_ARGUMENT, "invalid filter");
   }
 
-  for (auto& m : messages) {
-    auto message_info = getMessagesResponse->add_messages();
+  try {
+    auto messages = G.db->get_received_messages(db::MessageQuery{
+        .limit = 100,  // TODO: make this configurable
+        .filter = filter == asphrdaemon::GetMessagesRequest::ALL
+                      ? db::MessageFilter::All
+                      : db::MessageFilter::New,
+    });
 
-    auto baseMessage = message_info->mutable_m();
-    baseMessage->set_id(m.id);
-    baseMessage->set_message(m.message);
-    message_info->set_from(m.from);
-    message_info->set_seen(m.seen);
+    for (auto& m : messages) {
+      auto message_info = getMessagesResponse->add_messages();
 
-    // TODO(arvid): do this conversion not through strings....
-    auto timestamp_str = absl::FormatTime(m.received_timestamp);
-    auto timestamp = message_info->mutable_received_timestamp();
-    auto success = TimeUtil::FromString(timestamp_str, timestamp);
-    if (!success) {
-      cout << "invalid timestamp" << endl;
-      return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+      auto baseMessage = message_info->mutable_m();
+      baseMessage->set_id(m.uid);
+      baseMessage->set_message(m.content);
+      baseMessage->set_unique_name(m.from_unique_name);
+      baseMessage->set_display_name(m.from_display_name);
+      message_info->set_seen(m.seen);
+      message_info->set_delivered(m.delivered);
+      auto timestamp = message_info->mutable_received_timestamp();
+      auto success = TimeUtil::FromString(timestamp_str, timestamp);
+      if (!success) {
+        ASPHR_LOG_ERR("Failed to parse timestamp.", error, timestamp_str,
+                      rpc_call, "GetMessages");
+        return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+      }
     }
+  } catch (const rust::Error& e) {
+    ASPHR_LOG_ERR("Failed to get messages.", error, e.what(), rpc_call,
+                  "GetMessages");
+    return Status(grpc::StatusCode::UNKNOWN, e.what());
   }
 
   return Status::OK;

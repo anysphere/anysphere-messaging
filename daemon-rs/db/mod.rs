@@ -90,6 +90,14 @@ struct Received {
     pub seen: bool,
 }
 
+#[derive(Queryable, Insertable)]
+#[diesel(table_name = schema::received)]
+struct Draft {
+    pub uid: i32,
+    pub to_friend: i32,
+}
+
+
 //
 // Source of truth is in the migrations folder. Schema.rs is generated from them.
 // This right here is just a query interface. It will not correspond exactly. It should not.
@@ -218,6 +226,44 @@ pub mod db {
         pub ack_index: i32,
     }
 
+    enum MessageFilter {
+        New,
+        All
+    }
+    struct MessageQuery {
+        pub limit: i32,
+        pub filter: MessageFilter,
+    }
+
+    struct ReceivedPlusPlus {
+        pub uid: i32,
+        pub from_unique_name: String,
+        pub from_display_name: String,
+        pub num_chunks: i32,
+        pub received_at: String,
+        pub delivered: bool,
+        pub delivered_at: Option<String>,
+        pub seen: bool,
+        pub content: String,
+    }
+    struct SentPlusPlus {
+        pub uid: i32,
+        pub to_unique_name: String,
+        pub to_display_name: String,
+        pub num_chunks: i32,
+        pub sent_at: String,
+        pub delivered: bool,
+        pub delivered_at: Option<String>,
+        pub content: String,
+    }
+    struct DraftPlusPlus {
+        pub uid: i32,
+        pub to_unique_name: String,
+        pub to_display_name: String,
+        pub content: String,
+    }
+
+
     extern "Rust" {
         type DB;
         fn init(address: &str) -> Result<Box<DB>>;
@@ -271,6 +317,9 @@ pub mod db {
         // fails if the friend does not exist, or does not satisfy enabled && !deleted
         fn send_message(&self, to_unique_name: &str, message: &str) -> Result<()>;
 
+        fn get_received_messages(&self, query: MessageQuery) -> Result<Vec<ReceivedPlusPlus>>;
+        fn get_sent_messages(&self, query: MessageQuery) -> Result<Vec<SentPlusPlus>>;
+        fn get_draft_messages(&self, query: MessageQuery) -> Result<Vec<DraftPlusPlus>>;
     }
 }
 
