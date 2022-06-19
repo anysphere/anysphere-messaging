@@ -1,4 +1,3 @@
-
 use diesel::prelude::*;
 
 mod schema;
@@ -293,7 +292,12 @@ pub mod db {
         fn get_friend(&self, unique_name: &str) -> Result<Friend>;
         fn get_friends(&self) -> Result<Vec<Friend>>;
         // fails if a friend with unique_name already exists
-        fn create_friend(&self, unique_name: &str, display_name: &str, max_friends: i32) -> Result<Friend>;
+        fn create_friend(
+            &self,
+            unique_name: &str,
+            display_name: &str,
+            max_friends: i32,
+        ) -> Result<Friend>;
         fn add_friend_address(&self, add_address: AddAddress, max_friends: i32) -> Result<()>;
         fn delete_friend(&self, unique_name: &str) -> Result<()>;
         // returns address iff enabled && !deleted
@@ -323,12 +327,11 @@ pub mod db {
     }
 }
 
-pub const MIGRATIONS: diesel_migrations::EmbeddedMigrations = diesel_migrations::embed_migrations!();
+pub const MIGRATIONS: diesel_migrations::EmbeddedMigrations =
+    diesel_migrations::embed_migrations!();
 
 fn init(address: &str) -> Result<Box<DB>, DbError> {
-    let db = DB {
-        address: address.to_string(),
-    };
+    let db = DB { address: address.to_string() };
     let mut conn = db.connect()?;
     use diesel_migrations::MigrationHarness;
     conn.run_pending_migrations(MIGRATIONS).map_err(|e| DbError::Unavailable(e.to_string()))?;
@@ -338,10 +341,7 @@ fn init(address: &str) -> Result<Box<DB>, DbError> {
 
 #[allow(dead_code)]
 fn print_query<T: diesel::query_builder::QueryFragment<diesel::sqlite::Sqlite>>(q: &T) {
-    println!(
-        "print_query: {}",
-        diesel::debug_query::<diesel::sqlite::Sqlite, _>(&q)
-    );
+    println!("print_query: {}", diesel::debug_query::<diesel::sqlite::Sqlite, _>(&q));
 }
 
 impl DB {
@@ -349,10 +349,7 @@ impl DB {
         match SqliteConnection::establish(&self.address) {
             Ok(c) => return Ok(c),
             Err(e) => {
-                return Err(DbError::Unknown(format!(
-                    "failed to connect to database, {}",
-                    e,
-                )))
+                return Err(DbError::Unknown(format!("failed to connect to database, {}", e,)))
             }
         }
     }
@@ -382,18 +379,13 @@ impl DB {
         let mut conn = self.connect()?;
         use self::schema::registration;
 
-        let q = registration::table.select((registration::uid, registration::public_key, registration::private_key, registration::allocation, 
-
-
-
-
-
-
-
-
-
-            registration::authentication_token
-                   ) );
+        let q = registration::table.select((
+            registration::uid,
+            registration::public_key,
+            registration::private_key,
+            registration::allocation,
+            registration::authentication_token,
+        ));
         let registration = q
             .first::<SmallRegistrationFragment>(&mut conn)
             .map_err(|e| DbError::Unknown(format!("failed to query registration: {}", e)))?;
@@ -433,17 +425,17 @@ impl DB {
             if count > 0 {
                 return Err(diesel::result::Error::RollbackTransaction);
             }
-            
-            diesel::insert_into(registration::table)
-                .values(&reg)
-                .execute(conn_b)?;
+
+            diesel::insert_into(registration::table).values(&reg).execute(conn_b)?;
 
             Ok(())
         });
-            
+
         match r {
             Ok(_) => Ok(()),
-            Err(diesel::result::Error::RollbackTransaction) => Err(DbError::AlreadyExists("registration already exists".to_string())),
+            Err(diesel::result::Error::RollbackTransaction) => {
+                Err(DbError::AlreadyExists("registration already exists".to_string()))
+            }
             Err(e) => Err(DbError::Unknown(format!("failed to insert registration: {}", e))),
         }
     }
@@ -452,7 +444,9 @@ impl DB {
         let mut conn = self.connect()?;
         use self::schema::friend;
 
-        if let Ok(f) = friend::table.filter(friend::unique_name.eq(unique_name)).first::<db::Friend>(&mut conn) {
+        if let Ok(f) =
+            friend::table.filter(friend::unique_name.eq(unique_name)).first::<db::Friend>(&mut conn)
+        {
             Ok(f)
         } else {
             Err(DbError::NotFound("failed to get friend".to_string()))
@@ -463,14 +457,20 @@ impl DB {
         let mut conn = self.connect()?;
         use self::schema::friend;
 
-        if let Ok(v) = friend::table.filter(friend::deleted.eq(false)).load::<db::Friend>(&mut conn) {
+        if let Ok(v) = friend::table.filter(friend::deleted.eq(false)).load::<db::Friend>(&mut conn)
+        {
             Ok(v)
         } else {
             Err(DbError::Unknown("failed to get friends".to_string()))
         }
     }
 
-    fn create_friend(&self, unique_name: &str, display_name: &str, max_friends: i32) -> Result<Friend, DbError> {
+    fn create_friend(
+        &self,
+        unique_name: &str,
+        display_name: &str,
+        max_friends: i32,
+    ) -> Result<Friend, DbError> {
         let mut conn = self.connect()?;
         use self::schema::friend;
 
@@ -489,36 +489,44 @@ impl DB {
             if count > 0 {
                 return Err(diesel::result::Error::RollbackTransaction);
             }
-            let count = friend::table
-                .count()
-                .get_result::<i64>(conn_b)?;
+            let count = friend::table.count().get_result::<i64>(conn_b)?;
             if count >= max_friends {
                 return Err(diesel::result::Error::RollbackTransaction);
             }
-            
-            diesel::insert_into(friend::table)
-                .values(&f)
-                .get_result::<Friend>(conn_b)?
+
+            diesel::insert_into(friend::table).values(&f).get_result::<Friend>(conn_b)?
         });
-        
+
         r.map_err(|e| match e {
-            diesel::result::Error::RollbackTransaction => DbError::AlreadyExists("friend already exists, or too many friends".to_string()),
+            diesel::result::Error::RollbackTransaction => {
+                DbError::AlreadyExists("friend already exists, or too many friends".to_string())
+            }
             _ => DbError::Unknown(format!("failed to insert friend: {}", e)),
         })
     }
 
-    fn add_friend_address(&self, add_address: db::AddAddress, max_friends: i32) -> Result<(), DbError> {
+    fn add_friend_address(
+        &self,
+        add_address: db::AddAddress,
+        max_friends: i32,
+    ) -> Result<(), DbError> {
         let mut conn = self.connect()?;
-        use self::schema::friend;
         use self::schema::address;
+        use self::schema::friend;
         use self::schema::status;
 
         // transaction because we need to pick a new ack_index
         conn.transaction(|conn_b| {
-            let uid = friend::table.filter(friend::unique_name.eq(add_address.unique_name)).select(friend::uid).first::<i32>(conn_b)?;
+            let uid = friend::table
+                .filter(friend::unique_name.eq(add_address.unique_name))
+                .select(friend::uid)
+                .first::<i32>(conn_b)?;
 
-            let ack_indices = address::table.inner_join(friend::table.filter(friend::deleted.eq(false))).select(address::ack_index).load::<i32>(conn_b)?;
-            let mut possible_ack_indices = Vec<i32>::new();
+            let ack_indices = address::table
+                .inner_join(friend::table.filter(friend::deleted.eq(false)))
+                .select(address::ack_index)
+                .load::<i32>(conn_b)?;
+            let mut possible_ack_indices = Vec::<i32>::new();
             for i in 0..max_friends {
                 if !ack_indices.contains(&i) {
                     possible_ack_indices.push(i);
@@ -535,11 +543,12 @@ impl DB {
                 read_key: add_address.read_key,
                 write_key: add_address.write_key,
             };
-            diesel::insert_into(address::table)
-                .values(&address)
-                .execute(conn_b)
-        }).map_err(|e| match e {
-            diesel::result::Error::RollbackTransaction => DbError::AlreadyExists("no free ack index".to_string()),
+            diesel::insert_into(address::table).values(&address).execute(conn_b)
+        })
+        .map_err(|e| match e {
+            diesel::result::Error::RollbackTransaction => {
+                DbError::AlreadyExists("no free ack index".to_string())
+            }
             _ => DbError::Unknown(format!("failed to insert address: {}", e)),
         })
     }
@@ -554,7 +563,9 @@ impl DB {
             .select(friend::uid)
             .get_result::<i32>(&mut conn)
             .map_err(|e| match e {
-                diesel::result::Error::NotFound => DbError::NotFound("friend not found".to_string()),
+                diesel::result::Error::NotFound => {
+                    DbError::NotFound("friend not found".to_string())
+                }
                 _ => DbError::Unknown(format!("failed to delete friend: {}", e)),
             })?;
 
@@ -565,9 +576,7 @@ impl DB {
         let mut conn = self.connect()?;
         use self::schema::config;
 
-        let r = diesel::update(config::table)
-            .set(config::latency.eq(latency))
-            .execute(&mut conn);
+        let r = diesel::update(config::table).set(config::latency.eq(latency)).execute(&mut conn);
 
         match r {
             Ok(_) => Ok(()),
@@ -604,10 +613,7 @@ impl DB {
         let mut conn = self.connect()?;
         use self::schema::config;
 
-        match config::table
-            .select(config::server_address)
-            .first(&mut conn)
-        {
+        match config::table.select(config::server_address).first(&mut conn) {
             Ok(server_address) => Ok(server_address),
             Err(e) => Err(DbError::Unknown(format!("get_server_address: {}", e))),
         }
@@ -619,10 +625,8 @@ impl DB {
         use self::schema::status;
 
         let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
-            let old_acked_seqnum = status::table
-                .find(uid)
-                .select(status::sent_acked_seqnum)
-                .first(conn_b)?;
+            let old_acked_seqnum =
+                status::table.find(uid).select(status::sent_acked_seqnum).first(conn_b)?;
             if ack > old_acked_seqnum {
                 diesel::update(status::table.find(uid))
                     .set(status::sent_acked_seqnum.eq(ack))
@@ -706,9 +710,7 @@ impl DB {
                         delivered_at: None,
                         seen: false,
                     };
-                    diesel::insert_into(received::table)
-                        .values(&new_received)
-                        .execute(conn_b)?;
+                    diesel::insert_into(received::table).values(&new_received).execute(conn_b)?;
 
                     let insertable_chunk = db::IncomingChunk {
                         from_friend: chunk.from_friend,
@@ -746,10 +748,7 @@ impl DB {
                     .execute(conn_b)?;
                 // update the receive table
                 diesel::update(received::table.find(message_uid))
-                    .set((
-                        received::delivered.eq(true),
-                        received::delivered_at.eq(Utc::now()),
-                    ))
+                    .set((received::delivered.eq(true), received::delivered_at.eq(Utc::now())))
                     .execute(conn_b)?;
                 // finally, delete the chunks
                 diesel::delete(
@@ -775,27 +774,29 @@ impl DB {
     fn chunk_to_send(&self, uid_priority: Vec<i32>) -> Result<db::OutgoingChunkPlusPlus, DbError> {
         let mut conn = self.connect()?;
 
-        use self::schema::outgoing_chunk;
         use self::schema::address;
-        use self::schema::sent;
         use self::schema::friend;
-
+        use self::schema::outgoing_chunk;
+        use self::schema::sent;
 
         // We could do probably this in one query, by joining on the select statement
         // and then joining. Diesel doesn't typecheck this, and maybe it is unsafe, so
         // let's just do a transaction.
         let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
-            let q = outgoing_chunk::table
-                .group_by(outgoing_chunk::to_friend)
-                .select((outgoing_chunk::to_friend, diesel::dsl::min(outgoing_chunk::sequence_number)));
-            let first_chunk_per_friend: Vec<(i32, Option<i32>)> = q.load::<(i32, Option<i32>)>(conn_b)?;
-            let mut first_chunk_per_friend: Vec<(i32, i32)> = first_chunk_per_friend.iter().fold(vec![], |mut acc, &x| {
-                match x.1 {
-                    Some(seq) => acc.push((x.0, seq)),
-                    None => (),
-                };
-                acc
-            });
+            let q = outgoing_chunk::table.group_by(outgoing_chunk::to_friend).select((
+                outgoing_chunk::to_friend,
+                diesel::dsl::min(outgoing_chunk::sequence_number),
+            ));
+            let first_chunk_per_friend: Vec<(i32, Option<i32>)> =
+                q.load::<(i32, Option<i32>)>(conn_b)?;
+            let mut first_chunk_per_friend: Vec<(i32, i32)> =
+                first_chunk_per_friend.iter().fold(vec![], |mut acc, &x| {
+                    match x.1 {
+                        Some(seq) => acc.push((x.0, seq)),
+                        None => (),
+                    };
+                    acc
+                });
             if first_chunk_per_friend.len() == 0 {
                 return Err(diesel::result::Error::NotFound);
             }
@@ -809,7 +810,8 @@ impl DB {
                 let index = rng % first_chunk_per_friend.len();
                 first_chunk_per_friend.remove(index)
             })();
-            let chunk_plusplus =  outgoing_chunk::table.find(chosen_chunk)
+            let chunk_plusplus = outgoing_chunk::table
+                .find(chosen_chunk)
                 .inner_join(friend::table.inner_join(address::table))
                 .inner_join(sent::table)
                 .select((
@@ -858,15 +860,11 @@ impl DB {
         let mut conn = self.connect()?;
 
         use self::schema::address;
-        
-        match address::table
-            .find(uid)
-            .first(&mut conn) {
-            Ok(address) => {
-                Ok(address)
-            }
+
+        match address::table.find(uid).first(&mut conn) {
+            Ok(address) => Ok(address),
             Err(e) => Err(DbError::Unknown(format!("get_friend_address: {}", e))),
-        }       
+        }
     }
 
     fn get_random_enabled_friend_address_excluding(
@@ -878,13 +876,10 @@ impl DB {
         use self::schema::friend;
 
         // get a random friend that is not deleted excluding the ones in the uids list
-        let q = friend::table
-            .filter(friend::enabled.eq(true))
-            .filter(friend::deleted.eq(false));
+        let q = friend::table.filter(friend::enabled.eq(true)).filter(friend::deleted.eq(false));
 
         // Inner join to get the (friend, address) pairs and then select the address.
-        let q = q.inner_join(address::table)
-            .select(address::all_columns);
+        let q = q.inner_join(address::table).select(address::all_columns);
         let addresses = q.load::<db::Address>(&mut conn);
 
         match addresses {
@@ -892,14 +887,14 @@ impl DB {
                 let rng: usize = rand::random();
                 let mut filtered_addresses = addresses
                     .into_iter()
-                    .filter(|address| {
-                        !uids.contains(&address.uid)
-                    })
+                    .filter(|address| !uids.contains(&address.uid))
                     .collect::<Vec<_>>();
                 let index = rng % filtered_addresses.len();
                 Ok(filtered_addresses.remove(index))
             }
-            Err(e) => Err(DbError::Unknown(format!("get_random_enabled_friend_address_excluding: {}", e))),
+            Err(e) => {
+                Err(DbError::Unknown(format!("get_random_enabled_friend_address_excluding: {}", e)))
+            }
         }
     }
 

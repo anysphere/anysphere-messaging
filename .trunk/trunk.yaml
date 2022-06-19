@@ -12,6 +12,7 @@ lint:
     - prettier@2.4.1
     - shellcheck@0.7.2
     - shfmt@3.4.0
+    - rustfmt@1.58.1
 repo:
   repo:
     host: github.com
