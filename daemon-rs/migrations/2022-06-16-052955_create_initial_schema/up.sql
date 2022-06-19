@@ -5,6 +5,7 @@ CREATE TABLE config (
     uid integer PRIMARY KEY NOT NULL,
     server_address text NOT NULL,
     latency integer NOT NULL,
+  -- invariant: has_registered can never become false after being true.
     has_registered boolean NOT NULL,
     registration_uid integer,
     FOREIGN KEY(registration_uid) REFERENCES registration(uid)
