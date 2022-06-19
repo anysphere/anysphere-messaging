@@ -18,12 +18,13 @@ Status DaemonRpc::RegisterUser(
   ASPHR_LOG_INFO("RegisterUser() called.");
 
   if (!G.db->has_registered()) {
-    ASPHR_LOG_INFO("already registered");
+    ASPHR_LOG_INFO("Already registered.");
     return Status(grpc::StatusCode::ALREADY_EXISTS, "already registered");
   }
 
   const auto name = registerUserRequest->name();
-  const auto [public_key, secret_key] = crypto.generate_keypair();
+  const auto [public_key, secret_key] = crypto::generate_keypair();
+  const auto [pir_secret_key, pir_galois_keys] = generate_keys();
 
   auto beta_key = registerUserRequest->beta_key();
 
@@ -38,7 +39,7 @@ Status DaemonRpc::RegisterUser(
   Status status = stub->Register(&client_context, request, &reply);
 
   if (status.ok()) {
-    ASPHR_LOG_INFO("register success");
+    ASPHR_LOG_INFO("Register success.");
 
     const auto authentication_token = reply.authentication_token();
     auto alloc_repeated = reply.allocation();
@@ -46,20 +47,36 @@ Status DaemonRpc::RegisterUser(
         vector<int>(alloc_repeated.begin(), alloc_repeated.end());
 
     if (reply.authentication_token() == "") {
-      ASPHR_LOG_ERR("authentication token is empty");
-      return Status(grpc::StatusCode::UNAUTHENTICATED,
-                    "authentication token is empty");
+      ASPHR_LOG_ERR("Register failed: authentication token is empty.");
+      return Status(grpc::StatusCode::UNKNOWN, "authentication token is empty");
     }
     if (reply.allocation().empty()) {
-      ASPHR_LOG_ERR("allocation is empty");
+      ASPHR_LOG_ERR("Register failed: allocation is empty.");
+      return Status(grpc::StatusCode::UNKNOWN, "allocation is empty");
+    }
+    if (reply.allocation().size() != 1) {
+      ASPHR_LOG_ERR(
+          "Register failed: allocation is not 1. We currently only support 1 "
+          "allocation.");
       return Status(grpc::StatusCode::UNKNOWN, "allocation is empty");
     }
 
-    config->do_register(name, public_key, secret_key, authentication_token,
-                        allocation);
+    try {
+      G.db->do_register({db::RegistrationFragment{
+          .public_key = string_to_rust_u8Vec(public_key),
+          .private_key = string_to_rust_u8Vec(secret_key),
+          .allocation = allocation.at(0),
+          .pir_secret_key = string_to_rust_u8Vec(pir_secret_key),
+          .pir_galois_key = string_to_rust_u8Vec(pir_galois_keys),
+          .authentication_token = authentication_token,
+      }});
+    } catch (const rust::Error& e) {
+      ASPHR_LOG_ERR("Register failed in database.", error, e.what());
+      return Status(grpc::StatusCode::UNKNOWN, e.what());
+    }
 
   } else {
-    ASPHR_LOG_ERR("register failed", error_code, status.error_code(),
+    ASPHR_LOG_ERR("Register failed.", error_code, status.error_code(),
                   error_message, status.error_message());
     return Status(grpc::StatusCode::UNAVAILABLE, status.error_message());
   }

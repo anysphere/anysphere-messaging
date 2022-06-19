@@ -159,6 +159,16 @@ pub mod db {
         pub pir_galois_key: Vec<u8>,
         pub authentication_token: String,
     }
+    #[derive(Insertable)]
+    #[diesel(table_name = crate::schema::registration)]
+    struct RegistrationFragment {
+        pub public_key: Vec<u8>,
+        pub private_key: Vec<u8>,
+        pub allocation: i32,
+        pub pir_secret_key: Vec<u8>,
+        pub pir_galois_key: Vec<u8>,
+        pub authentication_token: String,
+    }
 
     #[derive(Queryable)]
     struct SendInfo {
@@ -221,6 +231,7 @@ pub mod db {
         fn get_registration(&self) -> Result<Registration>;
         fn get_pir_secret_key(&self) -> Result<Vec<u8>>;
         fn get_send_info(&self) -> Result<SendInfo>;
+        fn do_register(&self, reg: RegistrationFragment) -> Result<()>;
 
         //
         // Friends
@@ -323,6 +334,31 @@ impl DB {
             .first(&mut conn)
             .map_err(|e| DbError::Unknown(format!("failed to query send_info: {}", e)))?;
         Ok(send_info)
+    }
+
+    fn do_register(&self, reg: db::RegistrationFragment) -> Result<(), DbError> {
+        let mut conn = self.connect()?;
+
+        use self::schema::registration;
+
+        let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+            let count = registration::table.count().get_result::<i64>(conn_b)?;
+            if count > 0 {
+                return Err(diesel::result::Error::RollbackTransaction);
+            }
+            
+            diesel::insert_into(registration::table)
+                .values(&reg)
+                .execute(conn_b)?;
+
+            Ok(())
+        });
+            
+        match r {
+            Ok(_) => Ok(()),
+            Err(diesel::result::Error::RollbackTransaction) => Err(DbError::AlreadyExists("registration already exists".to_string())),
+            Err(e) => Err(DbError::Unknown(format!("failed to insert registration: {}", e))),
+        }
     }
 
     fn get_friend(&self, uid: i32) -> Result<db::Friend, DbError> {

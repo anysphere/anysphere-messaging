@@ -9,20 +9,6 @@
 
 #include "schema/server.grpc.pb.h"
 
-// TODO: check that they are moved.
-auto string_to_rust_u8Vec(const std::string& str) -> rust::Vec<uint8_t> {
-  auto vec = rust::Vec<uint8_t>();
-  for (auto c : str) {
-    vec.push_back(c);
-  }
-  return vec;
-}
-
-auto rust_u8Vec_to_string(const rust::Vec<uint8_t>& vec) -> std::string {
-  std::string str(vec.begin(), vec.end());
-  return str;
-}
-
 auto generate_dummy_address(const Global& G, const db::Registration& reg)
     -> db::Address {
   auto dummy_friend_keypair = crypto::generate_keypair();
