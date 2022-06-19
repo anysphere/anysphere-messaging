@@ -214,10 +214,13 @@ Status DaemonRpc::SendMessage(
     ServerContext* context,
     const asphrdaemon::SendMessageRequest* sendMessageRequest,
     asphrdaemon::SendMessageResponse* sendMessageResponse) {
-  cout << "SendMessage() called" << endl;
+  ASPHR_LOG_INFO("SendMessage() called.", rpc_call, "SendMessage",
+                 "friend_unique_name", sendMessageRequest->unique_name(),
+                 "message_length", sendMessageRequest->message().size(),
+                 "message", sendMessageRequest->message());
 
-  if (!config->has_registered()) {
-    cout << "need to register first!" << endl;
+  if (!G.db->has_registered()) {
+    ASPHR_LOG_INFO("Need to register first.", rpc_call, "SendMessage");
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
