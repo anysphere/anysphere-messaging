@@ -344,7 +344,7 @@ pub mod db {
         fn acks_to_send(&self) -> Result<Vec<OutgoingAck>>;
 
         // fails if the friend does not exist, or does not satisfy enabled && !deleted
-        fn send_message(&self, to_unique_name: &str, message: &str) -> Result<()>;
+        fn queue_message_to_send(&self, to_unique_name: &str, message: &str) -> Result<()>;
 
         fn get_received_messages(&self, query: MessageQuery) -> Result<Vec<ReceivedPlusPlus>>;
         // returns 0 if no such message exists
@@ -965,7 +965,7 @@ impl DB {
         }
     }
 
-    fn send_message(&self, to_unique_name: &str, message: &str) -> Result<(), DbError> {
+    fn queue_message_to_send(&self, to_unique_name: &str, message: &str) -> Result<(), DbError> {
         // TODO: implement this
         Err(DbError::Unimplemented("send_message not implemented".to_string()))
     }
