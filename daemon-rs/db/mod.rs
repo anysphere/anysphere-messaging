@@ -310,7 +310,8 @@ pub mod db {
         //
         // returns true iff the ack was novel
         fn receive_ack(&self, uid: i32, ack: i32) -> Result<bool>;
-        fn receive_chunk(&self, chunk: IncomingChunkFragment, num_chunks: i32) -> Result<()>;
+        // returns true iff a new full message was received
+        fn receive_chunk(&self, chunk: IncomingChunkFragment, num_chunks: i32) -> Result<bool>;
 
         // fails if there is no chunk to send
         // prioritizes by the given uid in order from first to last try
@@ -655,7 +656,7 @@ impl DB {
         &self,
         chunk: db::IncomingChunkFragment,
         num_chunks: i32,
-    ) -> Result<(), DbError> {
+    ) -> Result<bool, DbError> {
         let mut conn = self.connect()?;
         use self::schema::incoming_chunk;
         use self::schema::message;
@@ -668,7 +669,7 @@ impl DB {
                 .find((chunk.from_friend, chunk.sequence_number))
                 .first::<db::IncomingChunk>(conn_b)
             {
-                return Ok(());
+                return Ok(false);
             }
 
             // check if there is already a message uid associated with this chunk sequence
@@ -760,13 +761,14 @@ impl DB {
                     ),
                 )
                 .execute(conn_b)?;
+                return Ok(true);
             }
 
-            Ok(())
+            Ok(false)
         });
 
         match r {
-            Ok(_) => Ok(()),
+            Ok(b) => Ok(b),
             Err(e) => Err(DbError::Unknown(format!("receive_chunk: {}", e))),
         }
     }

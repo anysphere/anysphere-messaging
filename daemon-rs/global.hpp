@@ -30,6 +30,11 @@ class Global {
   const string db_address;
   const rust::Box<db::DB> db;
 
+  // the following are for notifying someone when an incoming message has
+  // been added
+  std::mutex message_notification_cv_mutex;
+  std::condition_variable message_notification_cv;
+
  private:
   mutable std::mutex kill_mtx;
   std::condition_variable kill_cv;

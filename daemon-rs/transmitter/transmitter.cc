@@ -259,7 +259,7 @@ auto Transmitter::retrieve() -> void {
 
         // TODO: we probably don't want to cast to int32 here... let's use
         // int64s everywhere
-        G.db->receive_chunk(
+        auto received_full_message = G.db->receive_chunk(
             (db::IncomingChunkFragment){
                 .from_friend = f.uid,
                 .sequence_number = static_cast<int>(chunk.sequence_number()),
@@ -267,6 +267,10 @@ auto Transmitter::retrieve() -> void {
                     static_cast<int>(chunk.chunks_start_sequence_number()),
                 .content = chunk.msg()},
             static_cast<int>(chunk.num_chunks()));
+        if (received_full_message) {
+          std::lock_guard<std::mutex> l(G.message_notification_cv_mutex);
+          message_notification_cv.notify_all();
+        }
 
         previous_success_receive_friend = std::optional<int>(f.uid);
       } else {

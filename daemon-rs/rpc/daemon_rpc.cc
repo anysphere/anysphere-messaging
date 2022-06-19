@@ -300,10 +300,11 @@ Status DaemonRpc::GetMessagesStreamed(
     const asphrdaemon::GetMessagesRequest* getMessagesRequest,
     ServerWriter<asphrdaemon::GetMessagesResponse>* writer) {
   using TimeUtil = google::protobuf::util::TimeUtil;
-  cout << "GetMessagesStreamed() called" << endl;
+  ASPHR_LOG_INFO("GetStreamedMessages() called.", rpc_call,
+                 "GetStreamedMessages");
 
-  if (!config->has_registered()) {
-    cout << "need to register first!" << endl;
+  if (!G.db->has_registered()) {
+    ASPHR_LOG_ERR("Need to register first.", rpc_call, "GetStreamedMessages");
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
