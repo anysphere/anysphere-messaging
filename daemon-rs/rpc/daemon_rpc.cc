@@ -226,24 +226,13 @@ Status DaemonRpc::SendMessage(
 
   auto friend_info_status = config->get_friend(sendMessageRequest->name());
 
-  if (!friend_info_status.ok()) {
-    cout << "friend not found" << endl;
-    return Status(grpc::StatusCode::INVALID_ARGUMENT, "friend not found");
-  }
-
-  auto friend_info = friend_info_status.value();
-
-  if (!friend_info.enabled) {
-    cout << "friend disabled" << endl;
-    return Status(grpc::StatusCode::INVALID_ARGUMENT, "friend disabled");
-  }
-
-  auto message = sendMessageRequest->message();
-
-  auto status = msgstore->add_outgoing_message(friend_info.name, message);
-  if (!status.ok()) {
-    cout << "write message to file failed" << endl;
-    return Status(grpc::StatusCode::UNKNOWN, "write message failed");
+  try {
+    G.db->send_message(sendMessageRequest->unique_name(),
+                       sendMessageRequest->message());
+  } catch (const rust::Error& e) {
+    ASPHR_LOG_ERR("Failed to send message.", error, e.what(), rpc_call,
+                  "SendMessage");
+    return Status(grpc::StatusCode::UNKNOWN, e.what());
   }
 
   return Status::OK;

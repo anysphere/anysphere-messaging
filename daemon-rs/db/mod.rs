@@ -267,6 +267,9 @@ pub mod db {
         // if none of the priority people have a chunk to send, pick a random chunk
         fn chunk_to_send(&self, uid_priority: Vec<i32>) -> Result<OutgoingChunkPlusPlus>;
         fn acks_to_send(&self) -> Result<Vec<OutgoingAck>>;
+
+        // fails if the friend does not exist, or does not satisfy enabled && !deleted
+        fn send_message(&self, to_unique_name: &str, message: &str) -> Result<()>;
     }
 }
 
@@ -837,5 +840,10 @@ impl DB {
             }
             Err(e) => Err(DbError::Unknown(format!("get_random_enabled_friend_address_excluding: {}", e))),
         }
+    }
+
+    fn send_message(&self, to_unique_name: &str, message: &str) -> Result<(), DbError> {
+        // TODO: implement this
+        Err(DbError::Unimplemented("send_message not implemented"))
     }
 }
