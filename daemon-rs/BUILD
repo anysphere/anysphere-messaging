@@ -4,15 +4,15 @@ load("@cxx.rs//tools/bazel:rust_cxx_bridge.bzl", "rust_cxx_bridge")
 rust_binary(
     name = "main",
     srcs = [
-        "main.rs",
+        "db/mod.rs",
         "db/schema.rs",
-        "db/mod.rs"
+        "main.rs",
     ],
     compile_data = [":migrations"],
     deps = [
         ":bridge",
-        ":main-bridge",
         ":cpp-imp",
+        ":main-bridge",
         "@crate_index//:chrono",
         "@crate_index//:diesel",
         "@crate_index//:diesel_migrations",
@@ -43,31 +43,33 @@ rust_cxx_bridge(
 cc_library(
     name = "crypto-lib",
     srcs = ["crypto/crypto.cc"],
-    hdrs = ["crypto/crypto.hpp",
-            "constants.hpp",],
+    hdrs = [
+        "constants.hpp",
+        "crypto/crypto.hpp",
+    ],
     deps = [
-        "@asphr//third_party/libsodium",
+        "@asphr//asphr:asphr_lib",
         "@asphr//schema:daemon_cc_grpc",
         "@asphr//schema:message_proto_cc",
         "@asphr//schema:server_cc_grpc",
-        "@asphr//asphr:asphr_lib",
-    ]
+        "@asphr//third_party/libsodium",
+    ],
 )
 
 cc_library(
     name = "cpp-imp",
     srcs = [
         "crypto/crypto.cc",
-        "main.cc",
-        # "rpc/daemon_rpc.cc",
-        "transmitter/transmitter.cc",
         "global.cc",
+        "main.cc",
+        "rpc/daemon_rpc.cc",
+        "transmitter/transmitter.cc",
     ],
     hdrs = [
         "constants.hpp",
         "crypto/crypto.hpp",
         "global.hpp",
-        # "rpc/daemon_rpc.hpp",
+        "rpc/daemon_rpc.hpp",
         "transmitter/transmitter.hpp",
     ],
     linkstatic = True,

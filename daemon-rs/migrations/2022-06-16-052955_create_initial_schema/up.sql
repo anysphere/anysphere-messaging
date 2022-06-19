@@ -27,7 +27,7 @@ CREATE TABLE registration (
 -- the foreign key constraints will fail)
 CREATE TABLE friend (
     uid integer PRIMARY KEY NOT NULL,
-    unique_name text NOT NULL,
+    unique_name text UNIQUE NOT NULL,
     display_name text NOT NULL,
     enabled boolean NOT NULL,
     deleted boolean NOT NULL

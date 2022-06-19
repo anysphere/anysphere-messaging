@@ -108,8 +108,7 @@ pub mod db {
     // TODO: try to write a macro for enforcing this in code.
     //
 
-    #[derive(Queryable, Insertable)]
-    #[diesel(table_name = crate::db::schema::friend)]
+    #[derive(Queryable)]
     struct Friend {
         pub uid: i32,
         pub unique_name: String,
@@ -117,12 +116,27 @@ pub mod db {
         pub enabled: bool,
         pub deleted: bool,
     }
+    #[derive(Insertable)]
+    #[diesel(table_name = crate::db::schema::friend)]
+    struct FriendFragment {
+        pub unique_name: String,
+        pub display_name: String,
+        pub enabled: bool,
+        pub deleted: bool,
+    }
 
-    #[derive(Queryable)]
+    #[derive(Queryable, Insertable)]
+    #[diesel(table_name = crate::db::schema::address)]
     struct Address {
         pub uid: i32,
         pub read_index: i32,
         pub ack_index: i32,
+        pub read_key: Vec<u8>,
+        pub write_key: Vec<u8>,
+    }
+    struct AddAddress {
+        pub unique_name: String,
+        pub read_index: i32,
         pub read_key: Vec<u8>,
         pub write_key: Vec<u8>,
     }
@@ -154,10 +168,16 @@ pub mod db {
         pub pir_galois_key: Vec<u8>,
         pub authentication_token: String,
     }
-
-
     #[derive(Queryable)]
     struct SendInfo {
+        pub allocation: i32,
+        pub authentication_token: String,
+    }
+    #[derive(Queryable)]
+    struct SmallRegistrationFragment {
+        pub uid: i32,
+        pub public_key: Vec<u8>,
+        pub private_key: Vec<u8>,
         pub allocation: i32,
         pub authentication_token: String,
     }
@@ -215,6 +235,8 @@ pub mod db {
         //
         fn has_registered(&self) -> Result<bool>;
         fn get_registration(&self) -> Result<Registration>;
+        // the galois key is HUGE so we most often don't want to get it
+        fn get_small_registration(&self) -> Result<SmallRegistrationFragment>;
         fn get_pir_secret_key(&self) -> Result<Vec<u8>>;
         fn get_send_info(&self) -> Result<SendInfo>;
         fn do_register(&self, reg: RegistrationFragment) -> Result<()>;
@@ -222,7 +244,11 @@ pub mod db {
         //
         // Friends
         //
-        fn get_friend(&self, uid: i32) -> Result<Friend>;
+        fn get_friend(&self, unique_name: &str) -> Result<Friend>;
+        fn get_friends(&self) -> Result<Vec<Friend>>;
+        // fails if a friend with unique_name already exists
+        fn create_friend(&self, unique_name: &str, display_name: &str, max_friends: i32) -> Result<Friend>;
+        fn add_friend_address(&self, add_address: AddAddress, max_friends: i32) -> Result<()>;
         // returns address iff enabled && !deleted
         fn get_friend_address(&self, uid: i32) -> Result<Address>;
         // fails if no such friend exists
@@ -292,9 +318,19 @@ impl DB {
         let mut conn = self.connect()?;
         use self::schema::registration;
 
-        let q = registration::table.select(registration::all_columns);
-        let registration = q
+        let registration = registration::table
             .first(&mut conn)
+            .map_err(|e| DbError::Unknown(format!("failed to query registration: {}", e)))?;
+        Ok(registration)
+    }
+
+    fn get_small_registration(&self) -> Result<SmallRegistrationFragment, DbError> {
+        let mut conn = self.connect()?;
+        use self::schema::registration;
+
+        let q = registration::table.select(registration::uid, registration::public_key, registration::private_key, registration::allocation, registration::authentication_token);
+        let registration = q
+            .first::<SmallRegistrationFragment>(&mut conn)
             .map_err(|e| DbError::Unknown(format!("failed to query registration: {}", e)))?;
         Ok(registration)
     }
@@ -347,18 +383,100 @@ impl DB {
         }
     }
 
-    fn get_friend(&self, uid: i32) -> Result<db::Friend, DbError> {
+    fn get_friend(&self, unique_name: &str) -> Result<db::Friend, DbError> {
         let mut conn = self.connect()?;
         use self::schema::friend;
 
-        if let Ok(mut v) = friend::table.find(uid).load::<db::Friend>(&mut conn) {
-            if v.len() == 0 {
-                return Err(DbError::NotFound("friend not found".to_string()));
-            }
-            Ok(v.remove(0))
+        if let Ok(f) = friend::table.filter(friend::unique_name.eq(unique_name)).first::<db::Friend>(&mut conn) {
+            Ok(f)
         } else {
-            Err(DbError::Unknown("failed to get friend".to_string()))
+            Err(DbError::NotFound("failed to get friend".to_string()))
         }
+    }
+
+    fn get_friends(&self) -> Result<Vec<db::Friend>, DbError> {
+        let mut conn = self.connect()?;
+        use self::schema::friend;
+
+        if let Ok(v) = friend::table.filter(friend::deleted.eq(false)).load::<db::Friend>(&mut conn) {
+            Ok(v)
+        } else {
+            Err(DbError::Unknown("failed to get friends".to_string()))
+        }
+    }
+
+    fn create_friend(&self, unique_name: &str, display_name: &str, max_friends: i32) -> Result<Friend, DbError> {
+        let mut conn = self.connect()?;
+        use self::schema::friend;
+
+        let f = db::FriendFragment {
+            unique_name: unique_name.to_string(),
+            display_name: display_name.to_string(),
+            enabled: false,
+            deleted: false,
+        };
+        conn.transaction(|conn_b| {
+            // check if a friend with this name already exists
+            let count = friend::table
+                .filter(friend::unique_name.eq(unique_name))
+                .count()
+                .get_result::<i64>(conn_b)?;
+            if count > 0 {
+                return Err(diesel::result::Error::RollbackTransaction);
+            }
+            let count = friend::table
+                .count()
+                .get_result::<i64>(conn_b)?;
+            if count >= max_friends {
+                return Err(diesel::result::Error::RollbackTransaction);
+            }
+            
+            diesel::insert_into(friend::table)
+                .values(&f)
+                .get_result::<Friend>(conn_b)?
+        });
+        
+        r.map_err(|e| match e {
+            diesel::result::Error::RollbackTransaction => DbError::AlreadyExists("friend already exists, or too many friends".to_string()),
+            _ => DbError::Unknown(format!("failed to insert friend: {}", e)),
+        })
+    }
+
+    fn add_friend_address(&self, add_address: db::AddAddress, max_friends: i32) -> Result<(), DbError> {
+        let mut conn = self.connect()?;
+        use self::schema::friend;
+        use self::schema::address;
+        use self::schema::status;
+
+        // transaction because we need to pick a new ack_index
+        conn.transaction(|conn_b| {
+            let uid = friend::table.filter(friend::unique_name.eq(add_address.unique_name)).select(friend::uid).first::<i32>(conn_b)?;
+
+            let ack_indices = address::table.inner_join(friend::table.filter(friend::deleted.eq(false))).select(address::ack_index).load::<i32>(conn_b)?;
+            let mut possible_ack_indices = Vec<i32>::new();
+            for i in 0..max_friends {
+                if !ack_indices.contains(&i) {
+                    possible_ack_indices.push(i);
+                }
+            }
+            if possible_ack_indices.is_empty() {
+                return Err(diesel::result::Error::RollbackTransaction);
+            }
+            let ack_index = possible_ack_indices.choose(&mut rand::thread_rng())?;
+            let address = db::Address {
+                uid: uid,
+                read_index: add_address.read_index,
+                ack_index: ack_index,
+                read_key: add_address.read_key,
+                write_key: add_address.write_key,
+            };
+            diesel::insert_into(address::table)
+                .values(&address)
+                .execute(conn_b)?;
+        }).map_err(|e| match e {
+            diesel::result::Error::RollbackTransaction => DbError::AlreadyExists("no free ack index".to_string()),
+            _ => DbError::Unknown(format!("failed to insert address: {}", e)),
+        })
     }
 
     fn set_latency(&self, latency: i32) -> Result<(), DbError> {

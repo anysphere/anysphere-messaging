@@ -9,9 +9,9 @@ if [[ $(sd --version) != *"sd"* ]]; then
     cargo install sd
 fi
 
-diesel $@ --database-url "${ANYSPHEREROOT}"/client/daemon-rs/test.db
+DIESEL_CONFIG_FILE="${ANYSPHEREROOT}"/client/daemon-rs/diesel.toml DATABASE_URL="${ANYSPHEREROOT}"/client/daemon-rs/test.db diesel $@
 
 if [[ $@ == *"migration"* ]]; then
-    echo "Replacing Timestamp with TimestamptzSqlite..."
-    sd Timestamp TimestamptzSqlite "${ANYSPHEREROOT}"/client/daemon-rs/schema.rs
+    echo "Replacing Timestamp with TimestamptzSqlite"
+    sd Timestamp TimestamptzSqlite "${ANYSPHEREROOT}"/client/daemon-rs/db/schema.rs
 fi

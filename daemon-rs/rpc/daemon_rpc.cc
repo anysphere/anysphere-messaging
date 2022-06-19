@@ -65,14 +65,14 @@ Status DaemonRpc::RegisterUser(
     }
 
     try {
-      G.db->do_register({db::RegistrationFragment{
+      G.db->do_register(db::RegistrationFragment{
           .public_key = string_to_rust_u8Vec(public_key),
           .private_key = string_to_rust_u8Vec(secret_key),
           .allocation = allocation.at(0),
           .pir_secret_key = string_to_rust_u8Vec(pir_secret_key),
           .pir_galois_key = string_to_rust_u8Vec(pir_galois_keys),
           .authentication_token = authentication_token,
-      }});
+      });
     } catch (const rust::Error& e) {
       ASPHR_LOG_ERR("Register failed in database.", error, e.what(), rpc_call,
                     "RegisterUser");
@@ -103,7 +103,8 @@ Status DaemonRpc::GetFriendList(
   try {
     for (auto& s : G.db->get_friends()) {
       auto new_friend = getFriendListResponse->add_friend_infos();
-      new_friend->set_name(s.name);
+      new_friend->set_unique_name(s.unique_name);
+      new_friend->set_display_name(s.display_name);
       new_friend->set_enabled(s.enabled);
     }
   } catch (const rust::Error& e) {
@@ -126,37 +127,24 @@ Status DaemonRpc::GenerateFriendKey(
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  const auto friend_info_status =
-      config->get_friend(generateFriendKeyRequest->name());
-  if (friend_info_status.ok()) {
-    const auto friend_info = friend_info_status.value();
-    if (friend_info.enabled) {
-      cout << "friend already exists" << endl;
-      return Status(grpc::StatusCode::ALREADY_EXISTS, "friend already exists");
-    } else {
-      generateFriendKeyResponse->set_key(friend_info.add_key);
-      return Status::OK;
-    }
-  }
-
-  if (!config->has_space_for_friends()) {
-    cout << "no more allocation" << endl;
-    return Status(grpc::StatusCode::INVALID_ARGUMENT, "no more allocation");
-  }
-
   // note: for now, we only support the first index ever!
-  auto registration_info = config->registration_info();
-  auto index = registration_info.allocation.at(0);
+  auto reg = G.db->get_small_registration();
+  auto index = reg.allocation;
+  auto friend_key = crypto::generate_friend_key(reg.public_key, index);
 
-  auto friend_key =
-      crypto.generate_friend_key(registration_info.public_key, index);
+  try {
+    const auto f = G.db->create_friend(generateFriendKeyRequest->unique_name(),
+                                       generateFriendKeyRequest->display_name(),
+                                       MAX_FRIENDS);
+    generateFriendKeyResponse->set_key(friend_key);
+    return Status::OK;
+  } catch (const rust::Error& e) {
+    // If the friend doesn't exist, great!
+    ASPHR_LOG_INFO("Friend already exists, or you have too many friends.",
+                   error, e.what(), rpc_call, "GenerateFriendKey");
+    return Status(grpc::StatusCode::ALREADY_EXISTS, "friend already exists");
+  }
 
-  auto friend_info =
-      Friend(generateFriendKeyRequest->name(), config->friends(), friend_key);
-
-  config->add_friend(friend_info);
-
-  generateFriendKeyResponse->set_key(friend_key);
   return Status::OK;
 }
 
@@ -164,38 +152,37 @@ Status DaemonRpc::AddFriend(
     ServerContext* context,
     const asphrdaemon::AddFriendRequest* addFriendRequest,
     asphrdaemon::AddFriendResponse* addFriendResponse) {
-  cout << "AddFriend() called" << endl;
-  cout << "name: " << addFriendRequest->name() << endl;
+  ASPHR_LOG_INFO("AddFriend() called.", rpc_call, "AddFriend",
+                 "friend_unique_name", addFriendRequest->unique_name());
 
-  if (!config->has_registered()) {
-    cout << "need to register first!" << endl;
+  if (!G.db->has_registered()) {
+    ASPHR_LOG_INFO("Need to register first.", rpc_call, "AddFriend");
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  auto friend_info_status = config->get_friend(addFriendRequest->name());
-
-  if (!friend_info_status.ok()) {
-    cout << "friend not found; call generatefriendkey first!" << endl;
-    return Status(grpc::StatusCode::INVALID_ARGUMENT,
-                  "friend not found; call generatefriendkey first!");
-  }
-
-  auto decoded_friend_key = crypto.decode_friend_key(addFriendRequest->key());
+  auto decoded_friend_key = crypto::decode_friend_key(addFriendRequest->key());
   if (!decoded_friend_key.ok()) {
-    cout << "invalid friend key" << endl;
+    ASPHR_LOG_ERR("Invalid friend key.", rpc_call, "AddFriend");
     return Status(grpc::StatusCode::INVALID_ARGUMENT, "invalid friend key");
   }
+  auto [read_index, friend_public_key] = decoded_friend_key.value();
 
-  auto& [read_index, friend_public_key] = decoded_friend_key.value();
+  auto reg = G.db->get_small_registration();
+  auto [read_key, write_key] = crypto::derive_read_write_keys(
+      reg.public_key, reg.private_key, friend_public_key);
 
-  auto [read_key, write_key] = crypto.derive_read_write_keys(
-      config->registration_info().public_key,
-      config->registration_info().private_key, friend_public_key);
-
-  config->update_friend(addFriendRequest->name(), {.read_index = read_index,
-                                                   .read_key = read_key,
-                                                   .write_key = write_key,
-                                                   .enabled = true});
+  try {
+    G.db->add_friend_address((db::AddressFragment){
+        .unique_name = addFriendRequest->unique_name(),
+        .read_index = read_index,
+        .read_key = read_key,
+        .write_key = write_key,
+    });
+  } catch (const rust::Error& e) {
+    ASPHR_LOG_ERR("Failed to add friend.", error, e.what(), rpc_call,
+                  "AddFriend");
+    return Status(grpc::StatusCode::UNKNOWN, e.what());
+  }
 
   return Status::OK;
 }
