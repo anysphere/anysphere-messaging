@@ -2,11 +2,14 @@
 extern crate diesel;
 
 mod db;
+mod cli;
 
 fn main() {
     use std::env;
     let args: Vec<String> = env::args().collect();
-    ffi::main_cc(args);
+
+    let result = cli::cli(args);
+    ffi::main_cc(result);
 }
 
 #[cxx::bridge]

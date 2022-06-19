@@ -8,6 +8,7 @@ rust_binary(
         "db/mod.rs",
         "db/schema.rs",
         "main.rs",
+        "cli.rs"
     ],
     compile_data = [":migrations"],
     deps = [
