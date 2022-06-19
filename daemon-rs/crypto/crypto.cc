@@ -5,8 +5,6 @@
 
 #include "crypto.hpp"
 
-#include "../constants.hpp"
-
 namespace crypto {
 auto generate_keypair() -> std::pair<string, string> {
   unsigned char public_key[crypto_kx_PUBLICKEYBYTES];

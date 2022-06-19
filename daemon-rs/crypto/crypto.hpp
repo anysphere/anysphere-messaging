@@ -10,12 +10,8 @@
 #include <stdexcept>
 #include <string>
 
-#include "../db.hpp"
-#include "asphr/asphr.hpp"
-#include "client_lib/client_lib.hpp"
+#include "../constants.hpp"
 #include "schema/message.pb.h"
-
-using std::string;
 
 /* Crypto implements an IND-CCA2 secure scheme.
 
@@ -25,7 +21,8 @@ attacker that compromises the keys will also be able to read messages.
 */
 namespace crypto {
 
-auto init() -> void {
+// MUST be called before any other function.
+inline auto init() -> void {
   if (sodium_init() < 0) {
     throw std::runtime_error("sodium_init failed");
   }

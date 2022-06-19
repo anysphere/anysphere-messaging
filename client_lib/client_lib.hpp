@@ -24,13 +24,6 @@ using json = nlohmann::json;
 using absl::StrCat;
 using absl::Time;
 
-// MAC bytes
-extern const size_t CRYPTO_ABYTES;
-// nonce bytes
-extern const size_t CRYPTO_NPUBBYTES;
-// the maximum size of a message such that it can be sent in a single message
-extern const size_t GUARANTEED_SINGLE_MESSAGE_SIZE;
-
 auto get_last_line(const string& filename);
 
 auto get_last_lines(const string& filename, int n);

@@ -31,6 +31,20 @@ rust_cxx_bridge(
 )
 
 cc_library(
+    name = "crypto-lib",
+    srcs = ["crypto/crypto.cc"],
+    hdrs = ["crypto/crypto.hpp",
+            "constants.hpp",],
+    deps = [
+        "@asphr//third_party/libsodium",
+        "@asphr//schema:daemon_cc_grpc",
+        "@asphr//schema:message_proto_cc",
+        "@asphr//schema:server_cc_grpc",
+        "@asphr//asphr:asphr_lib",
+    ]
+)
+
+cc_library(
     name = "cpp-imp",
     srcs = [
         "crypto/crypto.cc",
@@ -77,4 +91,15 @@ cc_library(
     hdrs = ["main.hpp"],
     linkstatic = True,
     deps = ["@cxx.rs//:core"],
+)
+
+cc_test(
+    name = "crypto_test",
+    srcs = [
+        "crypto/crypto_test.cc",
+    ],
+    deps = [
+        ":crypto-lib",
+        "@com_google_googletest//:gtest_main",
+    ],
 )
