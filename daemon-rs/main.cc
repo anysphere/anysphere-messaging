@@ -11,7 +11,7 @@
 #include "client_lib/client_lib.hpp"
 #include "daemon-rs/db/db.hpp"
 #include "global.hpp"
-// #include "rpc/daemon_rpc.hpp"
+#include "rpc/daemon_rpc.hpp"
 #include "schema/server.grpc.pb.h"
 #include "transmitter/transmitter.hpp"
 
@@ -100,13 +100,20 @@ int main_cc_impl(rust::Vec<rust::String> args) {
 
   Transmitter transmitter(G, stub);
 
-  // TODO(arvid-NOW): add daemon RPC
+  // set up the daemon rpc server
+  auto daemon = DaemonRpc(G, stub);
+  grpc::ServerBuilder builder;
+  builder.AddListeningPort(socket_address, grpc::InsecureServerCredentials());
+  builder.RegisterService(&daemon);
+
+  // start the daemon rpc server
+  auto daemon_server = unique_ptr<grpc::Server>(builder.BuildAndStart());
 
   while (true) {
     try {
       auto killed = G.wait_until_killed_or_seconds(G.db->get_latency());
       if (killed) {
-        // TODO(arvid-NOW): daemon_server->Shutdown();
+        daemon_server->Shutdown();
         ASPHR_LOG_INFO("Daemon killed.");
         break;
       }
@@ -128,19 +135,11 @@ int main_cc_impl(rust::Vec<rust::String> args) {
 }
 
 int main_cc(rust::Vec<rust::String> args) {
-  // try {
-  //   return main_cc_impl(args);
-  // } catch (const std::exception& e) {
-  //   ASPHR_LOG_ERR("Main failing fatally :(, probably with a database error.",
-  //                 exception, e.what());
-  //   throw;
-  // }
-
-  auto t1 = absl::Now();
-  auto t2 = absl::Now();
-  auto utc = absl::UTCTimeZone();
-  cout << "Time1: " << absl::FormatTime(absl::RFC3339_full, t1, utc) << endl;
-  cout << "Time2: " << absl::FormatTime(absl::RFC3339_full, t2, utc) << endl;
-  cout << "Time1: " << absl::ToUnixMicros(t1) << endl;
-  cout << "Time2: " << absl::ToUnixMicros(t2) << endl;
+  try {
+    return main_cc_impl(args);
+  } catch (const std::exception& e) {
+    ASPHR_LOG_ERR("Main failing fatally :(, probably with a database error.",
+                  exception, e.what());
+    throw;
+  }
 }

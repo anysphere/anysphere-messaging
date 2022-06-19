@@ -21,7 +21,7 @@ class Global {
   Global& operator=(const Global& other) = delete;
   Global& operator=(Global&& other) noexcept = delete;
 
-  auto alive() const noexcept -> bool { return true; }
+  auto alive() const noexcept -> bool { return !kill_; }
 
   auto kill() -> void;
   // returns true iff killed
@@ -32,11 +32,11 @@ class Global {
 
   // the following are for notifying someone when an incoming message has
   // been added
-  mutable std::mutex message_notification_cv_mutex;
-  mutable std::condition_variable message_notification_cv;
+  std::mutex message_notification_cv_mutex;
+  std::condition_variable message_notification_cv;
 
  private:
-  mutable std::mutex kill_mtx;
-  mutable std::condition_variable kill_cv;
+  std::mutex kill_mtx;
+  std::condition_variable kill_cv;
   bool kill_ = false;
 };

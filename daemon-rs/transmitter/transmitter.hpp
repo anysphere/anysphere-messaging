@@ -20,7 +20,7 @@
  */
 class Transmitter {
  public:
-  Transmitter(const Global& G, shared_ptr<asphrserver::Server::Stub> stub);
+  Transmitter(Global& G, shared_ptr<asphrserver::Server::Stub> stub);
 
   // may throw rust::Error if there is a database problem
   auto retrieve() -> void;
@@ -29,7 +29,7 @@ class Transmitter {
   auto send() -> void;
 
  private:
-  const Global& G;
+  Global& G;
   shared_ptr<asphrserver::Server::Stub> stub;
 
   // We cache the pir_client here, because it takes some time to create it.

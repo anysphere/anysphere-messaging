@@ -103,8 +103,8 @@ Status DaemonRpc::GetFriendList(
   try {
     for (auto& s : G.db->get_friends()) {
       auto new_friend = getFriendListResponse->add_friend_infos();
-      new_friend->set_unique_name(s.unique_name);
-      new_friend->set_display_name(s.display_name);
+      new_friend->set_unique_name(std::string(s.unique_name));
+      new_friend->set_display_name(std::string(s.display_name));
       new_friend->set_enabled(s.enabled);
     }
   } catch (const rust::Error& e) {
@@ -130,7 +130,8 @@ Status DaemonRpc::GenerateFriendKey(
   // note: for now, we only support the first index ever!
   auto reg = G.db->get_small_registration();
   auto index = reg.allocation;
-  auto friend_key = crypto::generate_friend_key(reg.public_key, index);
+  auto friend_key =
+      crypto::generate_friend_key(rust_u8Vec_to_string(reg.public_key), index);
 
   try {
     const auto f = G.db->create_friend(generateFriendKeyRequest->unique_name(),
@@ -169,15 +170,18 @@ Status DaemonRpc::AddFriend(
 
   auto reg = G.db->get_small_registration();
   auto [read_key, write_key] = crypto::derive_read_write_keys(
-      reg.public_key, reg.private_key, friend_public_key);
+      rust_u8Vec_to_string(reg.public_key),
+      rust_u8Vec_to_string(reg.private_key), friend_public_key);
 
   try {
-    G.db->add_friend_address((db::AddressFragment){
-        .unique_name = addFriendRequest->unique_name(),
-        .read_index = read_index,
-        .read_key = read_key,
-        .write_key = write_key,
-    });
+    G.db->add_friend_address(
+        (db::AddAddress){
+            .unique_name = addFriendRequest->unique_name(),
+            .read_index = read_index,
+            .read_key = string_to_rust_u8Vec(read_key),
+            .write_key = string_to_rust_u8Vec(write_key),
+        },
+        MAX_FRIENDS);
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Failed to add friend.", error, e.what(), rpc_call,
                   "AddFriend");
@@ -224,8 +228,6 @@ Status DaemonRpc::SendMessage(
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  auto friend_info_status = config->get_friend(sendMessageRequest->name());
-
   try {
     G.db->send_message(sendMessageRequest->unique_name(),
                        sendMessageRequest->message());
@@ -260,23 +262,28 @@ Status DaemonRpc::GetMessages(
 
   try {
     auto messages = G.db->get_received_messages(db::MessageQuery{
-        .limit = 100,  // TODO: make this configurable
+        .limit = -1,  // TODO: make this configurable
         .filter = filter == asphrdaemon::GetMessagesRequest::ALL
                       ? db::MessageFilter::All
                       : db::MessageFilter::New,
-    });
+        .delivery_status = db::DeliveryStatus::Delivered,
+        .sort_by = db::SortBy::DeliveredAt,
+        .after = 0});
 
     for (auto& m : messages) {
       auto message_info = getMessagesResponse->add_messages();
 
       auto baseMessage = message_info->mutable_m();
       baseMessage->set_id(m.uid);
-      baseMessage->set_message(m.content);
-      baseMessage->set_unique_name(m.from_unique_name);
-      baseMessage->set_display_name(m.from_display_name);
+      baseMessage->set_message(std::string(m.content));
+      baseMessage->set_unique_name(std::string(m.from_unique_name));
+      baseMessage->set_display_name(std::string(m.from_display_name));
       message_info->set_seen(m.seen);
       message_info->set_delivered(m.delivered);
-      auto timestamp = message_info->mutable_received_timestamp();
+
+      auto delivered_at = absl::FromUnixMicros(m.delivered_at);
+      auto timestamp_str = absl::FormatTime(delivered_at);
+      auto timestamp = message_info->mutable_delivered_at();
       auto success = TimeUtil::FromString(timestamp_str, timestamp);
       if (!success) {
         ASPHR_LOG_ERR("Failed to parse timestamp.", error, timestamp_str,
@@ -310,105 +317,117 @@ Status DaemonRpc::GetMessagesStreamed(
 
   auto filter = getMessagesRequest->filter();
 
-  // the messages may not be added in the right order. so what we do is
-  // we wait until the last_mono_index has changed, and then get all messages
-  // from that point on.
-  // this needs to happen before we get all the messages below.
-  //
-  // the caller will always get *each message EXACTLY ONCE*, in the order of
-  // the mono index. *this may or may not correspond to the timestamp order.*
-  int last_mono_index;
-  {
-    std::lock_guard<std::mutex> l(msgstore->add_cv_mtx);
-    last_mono_index = msgstore->last_mono_index;
-  }
+  // guarantee: the caller will get each message in the order of the
+  // delivered_at timestamp. each message will be delivered exactly once.
+  absl::Time last_delivered_at = absl::InfinitePast();
 
-  {
-    vector<IncomingMessage> messages;
+  const auto base_query = db::MessageQuery{
+      .limit = -1,  // TODO: make this configurable
+      .filter = filter == asphrdaemon::GetMessagesRequest::ALL
+                    ? db::MessageFilter::All
+                    : db::MessageFilter::New,
+      .delivery_status = db::DeliveryStatus::Delivered,
+      .sort_by = db::SortBy::DeliveredAt,
+      .after = 0,
+  };
 
-    if (filter == asphrdaemon::GetMessagesRequest::ALL) {
-      messages = msgstore->get_all_incoming_messages_sorted();
-    } else if (filter == asphrdaemon::GetMessagesRequest::NEW) {
-      messages = msgstore->get_new_incoming_messages_sorted();
-    } else {
-      cout << "filter: INVALID" << endl;
-      return Status(grpc::StatusCode::INVALID_ARGUMENT, "invalid filter");
-    }
+  try {
+    auto messages = G.db->get_received_messages(base_query);
 
     asphrdaemon::GetMessagesResponse response;
 
     for (auto& m : messages) {
-      // let last_mono_index be the maximum
-      last_mono_index =
-          m.mono_index > last_mono_index ? m.mono_index : last_mono_index;
-
       auto message_info = response.add_messages();
 
       auto baseMessage = message_info->mutable_m();
-      baseMessage->set_id(m.id);
-      baseMessage->set_message(m.message);
-      message_info->set_from(m.from);
+      baseMessage->set_id(m.uid);
+      baseMessage->set_message(std::string(m.content));
+      baseMessage->set_unique_name(std::string(m.from_unique_name));
+      baseMessage->set_display_name(std::string(m.from_display_name));
       message_info->set_seen(m.seen);
+      message_info->set_delivered(m.delivered);
 
-      // TODO(arvid): do this conversion not through strings....
-      auto timestamp_str = absl::FormatTime(m.received_timestamp);
-      auto timestamp = message_info->mutable_received_timestamp();
+      auto delivered_at = absl::FromUnixMicros(m.delivered_at);
+      if (delivered_at > last_delivered_at) {
+        last_delivered_at = delivered_at;
+      }
+      auto timestamp_str = absl::FormatTime(delivered_at);
+      auto timestamp = message_info->mutable_delivered_at();
       auto success = TimeUtil::FromString(timestamp_str, timestamp);
       if (!success) {
-        cout << "invalid timestamp" << endl;
+        ASPHR_LOG_ERR("Failed to parse timestamp.", error, timestamp_str,
+                      rpc_call, "GetMessagesStreamed");
         return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
       }
     }
 
     writer->Write(response);
+  } catch (const rust::Error& e) {
+    ASPHR_LOG_ERR("Failed to get messages.", error, e.what(), rpc_call,
+                  "GetMessagesStreamed");
+    return Status(grpc::StatusCode::UNKNOWN, e.what());
   }
 
   // keep the connection open forever
   while (!context->IsCancelled()) {
-    int last_mono_index_here;
     {
-      std::unique_lock<std::mutex> l(msgstore->add_cv_mtx);
-      msgstore->add_cv.wait_for(l, std::chrono::seconds(60 * 60), [&] {
-        return msgstore->last_mono_index != last_mono_index;
+      std::unique_lock<std::mutex> l(G.message_notification_cv_mutex);
+      G.message_notification_cv.wait_for(l, std::chrono::seconds(60 * 60), [&] {
+        return G.db->get_most_recent_delivered_at(base_query) !=
+               absl::ToUnixMicros(last_delivered_at);
       });
-      if (msgstore->last_mono_index == last_mono_index) {
-        continue;  // continue the loop to check if we are cancelled
-      }
-      last_mono_index_here = msgstore->last_mono_index;
-    }
-
-    auto messages =
-        msgstore->get_incoming_messages_sorted_after(last_mono_index);
-
-    asphrdaemon::GetMessagesResponse response;
-
-    for (auto& m : messages) {
-      // let last_mono_index_here be the maximum
-      last_mono_index_here = m.mono_index > last_mono_index_here
-                                 ? m.mono_index
-                                 : last_mono_index_here;
-
-      auto message_info = response.add_messages();
-
-      auto baseMessage = message_info->mutable_m();
-      baseMessage->set_id(m.id);
-      baseMessage->set_message(m.message);
-      message_info->set_from(m.from);
-      message_info->set_seen(m.seen);
-
-      // TODO(arvid): do this conversion not through strings....
-      auto timestamp_str = absl::FormatTime(m.received_timestamp);
-      auto timestamp = message_info->mutable_received_timestamp();
-      auto success = TimeUtil::FromString(timestamp_str, timestamp);
-      if (!success) {
-        cout << "invalid timestamp" << endl;
-        return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+      if (G.db->get_most_recent_delivered_at(base_query) ==
+          absl::ToUnixMicros(last_delivered_at)) {
+        continue;  // continue the loop to check if we are cancelled, because it
+                   // has been an hour
       }
     }
 
-    writer->Write(response);
+    // same code as above. only difference: the .after = last_delivered_at
+    try {
+      auto messages = G.db->get_received_messages(db::MessageQuery{
+          .limit = -1,  // TODO: make this configurable
+          .filter = filter == asphrdaemon::GetMessagesRequest::ALL
+                        ? db::MessageFilter::All
+                        : db::MessageFilter::New,
+          .delivery_status = db::DeliveryStatus::Delivered,
+          .sort_by = db::SortBy::DeliveredAt,
+          .after = absl::ToUnixMicros(last_delivered_at),
+      });
 
-    last_mono_index = last_mono_index_here;
+      asphrdaemon::GetMessagesResponse response;
+
+      for (auto& m : messages) {
+        auto message_info = response.add_messages();
+
+        auto baseMessage = message_info->mutable_m();
+        baseMessage->set_id(m.uid);
+        baseMessage->set_message(std::string(m.content));
+        baseMessage->set_unique_name(std::string(m.from_unique_name));
+        baseMessage->set_display_name(std::string(m.from_display_name));
+        message_info->set_seen(m.seen);
+        message_info->set_delivered(m.delivered);
+
+        auto delivered_at = absl::FromUnixMicros(m.delivered_at);
+        if (delivered_at > last_delivered_at) {
+          last_delivered_at = delivered_at;
+        }
+        auto timestamp_str = absl::FormatTime(delivered_at);
+        auto timestamp = message_info->mutable_delivered_at();
+        auto success = TimeUtil::FromString(timestamp_str, timestamp);
+        if (!success) {
+          ASPHR_LOG_ERR("Failed to parse timestamp.", error, timestamp_str,
+                        rpc_call, "GetMessagesStreamed");
+          return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+        }
+      }
+
+      writer->Write(response);
+    } catch (const rust::Error& e) {
+      ASPHR_LOG_ERR("Failed to get messages.", error, e.what(), rpc_call,
+                    "GetMessagesStreamed");
+      return Status(grpc::StatusCode::UNKNOWN, e.what());
+    }
   }
 
   return Status::OK;
@@ -418,32 +437,60 @@ Status DaemonRpc::GetOutboxMessages(
     ServerContext* context,
     const asphrdaemon::GetOutboxMessagesRequest* getOutboxMessagesRequest,
     asphrdaemon::GetOutboxMessagesResponse* getOutboxMessagesResponse) {
+  // TODO: somehow merge this with GetSentMessaegs because they are very similar
   using TimeUtil = google::protobuf::util::TimeUtil;
-  cout << "GetOutboxMessages() called" << endl;
+  ASPHR_LOG_INFO("GetOutboxMessages() called.", rpc_call, "GetOutboxMessages");
 
-  if (!config->has_registered()) {
-    cout << "need to register first!" << endl;
+  if (!G.db->has_registered()) {
+    ASPHR_LOG_ERR("Need to register first.", rpc_call, "GetOutboxMessages");
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  auto messages = msgstore->get_undelivered_outgoing_messages_sorted();
+  try {
+    auto messages = G.db->get_sent_messages(
+        db::MessageQuery{.limit = -1,  // TODO: make this configurable
+                         .filter = db::MessageFilter::New,
+                         .delivery_status = db::DeliveryStatus::Undelivered,
+                         .sort_by = db::SortBy::DeliveredAt,
+                         .after = 0});
 
-  for (auto& m : messages) {
-    auto message_info = getOutboxMessagesResponse->add_messages();
+    for (auto& m : messages) {
+      auto message_info = getOutboxMessagesResponse->add_messages();
 
-    auto baseMessage = message_info->mutable_m();
-    baseMessage->set_id(m.id);
-    baseMessage->set_message(m.message);
-    message_info->set_to(m.to);
-    message_info->set_delivered(m.delivered);
+      auto baseMessage = message_info->mutable_m();
+      baseMessage->set_id(m.uid);
+      baseMessage->set_message(std::string(m.content));
+      baseMessage->set_unique_name(std::string(m.to_unique_name));
+      baseMessage->set_display_name(std::string(m.to_display_name));
+      message_info->set_delivered(m.delivered);
 
-    auto timestamp_str = absl::FormatTime(m.written_timestamp);
-    auto timestamp = message_info->mutable_written_timestamp();
-    auto success = TimeUtil::FromString(timestamp_str, timestamp);
-    if (!success) {
-      cout << "invalid timestamp" << endl;
-      return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+      {
+        auto delivered_at = absl::FromUnixMicros(m.delivered_at);
+        auto timestamp_str = absl::FormatTime(delivered_at);
+        auto timestamp = message_info->mutable_delivered_at();
+        auto success = TimeUtil::FromString(timestamp_str, timestamp);
+        if (!success) {
+          ASPHR_LOG_ERR("Failed to parse timestamp.", error, timestamp_str,
+                        rpc_call, "GetSentMessages");
+          return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+        }
+      }
+      {
+        auto sent_at = absl::FromUnixMicros(m.sent_at);
+        auto timestamp_str = absl::FormatTime(sent_at);
+        auto timestamp = message_info->mutable_sent_at();
+        auto success = TimeUtil::FromString(timestamp_str, timestamp);
+        if (!success) {
+          ASPHR_LOG_ERR("Failed to parse timestamp.", error, timestamp_str,
+                        rpc_call, "GetSentMessages");
+          return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+        }
+      }
     }
+  } catch (const rust::Error& e) {
+    ASPHR_LOG_ERR("Failed to get messages.", error, e.what(), rpc_call,
+                  "GetMessages");
+    return Status(grpc::StatusCode::UNKNOWN, e.what());
   }
 
   return Status::OK;
@@ -454,31 +501,58 @@ Status DaemonRpc::GetSentMessages(
     const asphrdaemon::GetSentMessagesRequest* getSentMessagesRequest,
     asphrdaemon::GetSentMessagesResponse* getSentMessagesResponse) {
   using TimeUtil = google::protobuf::util::TimeUtil;
-  cout << "GetSentMessages() called" << endl;
+  ASPHR_LOG_INFO("GetSentMessages() called.", rpc_call, "GetSentMessages");
 
-  if (!config->has_registered()) {
-    cout << "need to register first!" << endl;
+  if (!G.db->has_registered()) {
+    ASPHR_LOG_ERR("Need to register first.", rpc_call, "GetSentMessages");
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  auto messages = msgstore->get_delivered_outgoing_messages_sorted();
+  try {
+    auto messages = G.db->get_sent_messages(
+        db::MessageQuery{.limit = -1,  // TODO: make this configurable
+                         .filter = db::MessageFilter::New,
+                         .delivery_status = db::DeliveryStatus::Delivered,
+                         .sort_by = db::SortBy::DeliveredAt,
+                         .after = 0});
 
-  for (auto& m : messages) {
-    auto message_info = getSentMessagesResponse->add_messages();
+    for (auto& m : messages) {
+      auto message_info = getSentMessagesResponse->add_messages();
 
-    auto baseMessage = message_info->mutable_m();
-    baseMessage->set_id(m.id);
-    baseMessage->set_message(m.message);
-    message_info->set_to(m.to);
-    message_info->set_delivered(m.delivered);
+      auto baseMessage = message_info->mutable_m();
+      baseMessage->set_id(m.uid);
+      baseMessage->set_message(std::string(m.content));
+      baseMessage->set_unique_name(std::string(m.to_unique_name));
+      baseMessage->set_display_name(std::string(m.to_display_name));
+      message_info->set_delivered(m.delivered);
 
-    auto timestamp_str = absl::FormatTime(m.written_timestamp);
-    auto timestamp = message_info->mutable_written_timestamp();
-    auto success = TimeUtil::FromString(timestamp_str, timestamp);
-    if (!success) {
-      cout << "invalid timestamp" << endl;
-      return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+      {
+        auto delivered_at = absl::FromUnixMicros(m.delivered_at);
+        auto timestamp_str = absl::FormatTime(delivered_at);
+        auto timestamp = message_info->mutable_delivered_at();
+        auto success = TimeUtil::FromString(timestamp_str, timestamp);
+        if (!success) {
+          ASPHR_LOG_ERR("Failed to parse timestamp.", error, timestamp_str,
+                        rpc_call, "GetSentMessages");
+          return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+        }
+      }
+      {
+        auto sent_at = absl::FromUnixMicros(m.sent_at);
+        auto timestamp_str = absl::FormatTime(sent_at);
+        auto timestamp = message_info->mutable_sent_at();
+        auto success = TimeUtil::FromString(timestamp_str, timestamp);
+        if (!success) {
+          ASPHR_LOG_ERR("Failed to parse timestamp.", error, timestamp_str,
+                        rpc_call, "GetSentMessages");
+          return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+        }
+      }
     }
+  } catch (const rust::Error& e) {
+    ASPHR_LOG_ERR("Failed to get messages.", error, e.what(), rpc_call,
+                  "GetMessages");
+    return Status(grpc::StatusCode::UNKNOWN, e.what());
   }
 
   return Status::OK;
@@ -488,19 +562,21 @@ Status DaemonRpc::MessageSeen(
     ServerContext* context,
     const asphrdaemon::MessageSeenRequest* messageSeenRequest,
     asphrdaemon::MessageSeenResponse* messageSeenResponse) {
-  cout << "MessageSeen() called" << endl;
+  ASPHR_LOG_INFO("MessageSeen() called.", rpc_call, "MessageSeen");
 
-  if (!config->has_registered()) {
-    cout << "need to register first!" << endl;
+  if (!G.db->has_registered()) {
+    ASPHR_LOG_INFO("Need to register first.", rpc_call, "MessageSeen");
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
   auto message_id = messageSeenRequest->id();
 
-  auto status = msgstore->mark_message_as_seen(message_id);
-  if (!status.ok()) {
-    cout << "mark message as seen failed" << endl;
-    return Status(grpc::StatusCode::UNKNOWN, "mark message as seen failed");
+  try {
+    G.db->mark_message_as_seen(message_id);
+  } catch (const rust::Error& e) {
+    ASPHR_LOG_ERR("Failed to mark message as seen.", error, e.what(), rpc_call,
+                  "MessageSeen");
+    return Status(grpc::StatusCode::UNKNOWN, e.what());
   }
 
   return Status::OK;
@@ -510,11 +586,19 @@ auto DaemonRpc::GetStatus(ServerContext* context,
                           const asphrdaemon::GetStatusRequest* getStatusRequest,
                           asphrdaemon::GetStatusResponse* getStatusResponse)
     -> Status {
-  cout << "GetStatus() called" << endl;
+  ASPHR_LOG_INFO("GetStatus() called.", rpc_call, "GetStatus");
 
-  getStatusResponse->set_registered(config->has_registered());
-  getStatusResponse->set_release_hash(RELEASE_COMMIT_HASH);
-  getStatusResponse->set_latency_seconds(config->get_latency_seconds());
+  try {
+    getStatusResponse->set_registered(G.db->has_registered());
+    getStatusResponse->set_release_hash(RELEASE_COMMIT_HASH);
+    getStatusResponse->set_latency_seconds(G.db->get_latency());
+    getStatusResponse->set_server_address(
+        std::string(G.db->get_server_address()));
+  } catch (const rust::Error& e) {
+    ASPHR_LOG_ERR("Failed to get status.", error, e.what(), rpc_call,
+                  "GetStatus");
+    return Status(grpc::StatusCode::RESOURCE_EXHAUSTED, e.what());
+  }
 
   return Status::OK;
 }
@@ -523,9 +607,15 @@ auto DaemonRpc::GetLatency(
     ServerContext* context,
     const asphrdaemon::GetLatencyRequest* getLatencyRequest,
     asphrdaemon::GetLatencyResponse* getLatencyResponse) -> Status {
-  cout << "GetLatency() called" << endl;
+  ASPHR_LOG_INFO("GetLatency() called.", rpc_call, "GetLatency");
 
-  getLatencyResponse->set_latency_seconds(config->get_latency_seconds());
+  try {
+    getLatencyResponse->set_latency_seconds(G.db->get_latency());
+  } catch (const rust::Error& e) {
+    ASPHR_LOG_ERR("Failed to get latency.", error, e.what(), rpc_call,
+                  "GetLatency");
+    return Status(grpc::StatusCode::RESOURCE_EXHAUSTED, "get latency failed");
+  }
 
   return Status::OK;
 }
@@ -534,18 +624,21 @@ auto DaemonRpc::ChangeLatency(
     grpc::ServerContext* context,
     const asphrdaemon::ChangeLatencyRequest* changeLatencyRequest,
     asphrdaemon::ChangeLatencyResponse* changeLatencyResponse) -> Status {
-  cout << "ChangeLatency() called" << endl;
+  ASPHR_LOG_INFO("ChangeLatency() called.", rpc_call, "ChangeLatency");
 
   auto new_latency = changeLatencyRequest->latency_seconds();
 
   if (new_latency <= 0) {
-    cout << "invalid latency" << endl;
+    ASPHR_LOG_ERR("Invalid latency <= 0.", new_latency, new_latency, rpc_call,
+                  "ChangeLatency");
     return Status(grpc::StatusCode::INVALID_ARGUMENT, "invalid latency");
   }
 
-  auto status = config->set_latency(new_latency);
-  if (!status.ok()) {
-    cout << "set latency failed" << endl;
+  try {
+    G.db->set_latency(new_latency);
+  } catch (const rust::Error& e) {
+    ASPHR_LOG_ERR("Failed to change latency.", error, e.what(), rpc_call,
+                  "ChangeLatency");
     return Status(grpc::StatusCode::RESOURCE_EXHAUSTED, "set latency failed");
   }
 
@@ -555,8 +648,8 @@ auto DaemonRpc::ChangeLatency(
 auto DaemonRpc::Kill(ServerContext* context,
                      const asphrdaemon::KillRequest* killRequest,
                      asphrdaemon::KillResponse* killResponse) -> Status {
-  cout << "Kill() called" << endl;
-  config->kill();
-  cout << "Will kill daemon ASAP" << endl;
+  ASPHR_LOG_INFO("Kill() called.", rpc_call, "Kill");
+  G.kill();
+  ASPHR_LOG_INFO("Daemon is shutting down asap.", rpc_call, "Kill");
   return Status::OK;
 }

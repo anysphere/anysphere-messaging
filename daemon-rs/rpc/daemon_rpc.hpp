@@ -13,7 +13,7 @@
 
 class DaemonRpc final : public asphrdaemon::Daemon::Service {
  public:
-  DaemonRpc(const Global& G, shared_ptr<asphrserver::Server::Stub> stub)
+  DaemonRpc(Global& G, shared_ptr<asphrserver::Server::Stub> stub)
       : G(G), stub(stub) {}
 
   grpc::Status RegisterUser(
@@ -93,6 +93,6 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
                     asphrdaemon::KillResponse* killResponse) override;
 
  private:
-  const Global& G;
+  Global& G;
   shared_ptr<asphrserver::Server::Stub> stub;
 };

@@ -226,9 +226,21 @@ pub mod db {
         New,
         All
     }
+    enum DeliveryStatus {
+        Delivered,
+        Undelivered
+    }
+    enum SortBy {
+        SentAt,
+        ReceivedAt,
+        DeliveredAt
+    }
     struct MessageQuery {
-        pub limit: i32,
+        pub limit: i32, // use -1 to get all
         pub filter: MessageFilter,
+        pub delivery_status: DeliveryStatus,
+        pub sort_by: SortBy, // descending, always. newest first
+        pub after: i64, // unix micros. return all messages with a sort_by strictly greater than this. use 0 to disable.
     }
 
     struct ReceivedPlusPlus {
@@ -335,8 +347,11 @@ pub mod db {
         fn send_message(&self, to_unique_name: &str, message: &str) -> Result<()>;
 
         fn get_received_messages(&self, query: MessageQuery) -> Result<Vec<ReceivedPlusPlus>>;
+        // returns 0 if no such message exists
+        fn get_most_recent_delivered_at(&self, query: MessageQuery) -> Result<i64>;
         fn get_sent_messages(&self, query: MessageQuery) -> Result<Vec<SentPlusPlus>>;
         fn get_draft_messages(&self, query: MessageQuery) -> Result<Vec<DraftPlusPlus>>;
+        fn mark_message_as_seen(&self, uid: i32) -> Result<()>;
     }
 
 }
@@ -959,11 +974,19 @@ impl DB {
         // TODO: implement this
         Err(DbError::Unimplemented("not implemented".to_string()))
     }
+    fn get_most_recent_delivered_at(&self, query: db::MessageQuery) -> Result<i64, DbError> {
+        // TODO: implement this
+        Err(DbError::Unimplemented("not implemented".to_string()))
+    }
     fn get_sent_messages(&self, query: db::MessageQuery) -> Result<Vec<db::SentPlusPlus>, DbError> {
         // TODO: implement this
         Err(DbError::Unimplemented("not implemented".to_string()))
     }
     fn get_draft_messages(&self, query: db::MessageQuery) -> Result<Vec<db::DraftPlusPlus>, DbError> {
+        // TODO: implement this
+        Err(DbError::Unimplemented("not implemented".to_string()))
+    }
+    fn mark_message_as_seen(&self, uid: i32) -> Result<(), DbError> {
         // TODO: implement this
         Err(DbError::Unimplemented("not implemented".to_string()))
     }

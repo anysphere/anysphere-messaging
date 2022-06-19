@@ -27,8 +27,7 @@ auto generate_dummy_address(const Global& G, const db::Registration& reg)
   return (db::Address){-1, 0, 0, read_key_vec_rust, write_key_vec_rust};
 }
 
-Transmitter::Transmitter(const Global& G,
-                         shared_ptr<asphrserver::Server::Stub> stub)
+Transmitter::Transmitter(Global& G, shared_ptr<asphrserver::Server::Stub> stub)
     : G(G), stub(stub) {
   check_rep();
 }
