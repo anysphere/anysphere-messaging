@@ -333,7 +333,18 @@ impl DB {
         let mut conn = self.connect()?;
         use self::schema::registration;
 
-        let q = registration::table.select(registration::uid, registration::public_key, registration::private_key, registration::allocation, registration::authentication_token);
+        let q = registration::table.select((registration::uid, registration::public_key, registration::private_key, registration::allocation, 
+
+
+
+
+
+
+
+
+
+            registration::authentication_token
+                   ) );
         let registration = q
             .first::<SmallRegistrationFragment>(&mut conn)
             .map_err(|e| DbError::Unknown(format!("failed to query registration: {}", e)))?;
