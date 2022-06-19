@@ -5,11 +5,13 @@ rust_binary(
     name = "main",
     srcs = [
         "main.rs",
-        "schema.rs",
+        "db/schema.rs",
+        "db/mod.rs"
     ],
     compile_data = [":migrations"],
     deps = [
         ":bridge",
+        ":main-bridge",
         ":cpp-imp",
         "@crate_index//:chrono",
         "@crate_index//:diesel",
@@ -25,8 +27,16 @@ filegroup(
 )
 
 rust_cxx_bridge(
-    name = "bridge",
+    name = "main-bridge",
     src = "main.rs",
+    deps = [
+        ":cpp-imp",
+    ],
+)
+
+rust_cxx_bridge(
+    name = "bridge",
+    src = "db/mod.rs",
     deps = [":cpp-include"],
 )
 
@@ -78,7 +88,7 @@ cc_library(
 
 cc_library(
     name = "cpp-db",
-    hdrs = ["db.hpp"],
+    hdrs = ["db/db.hpp"],
     linkstatic = True,
     deps = [
         ":bridge",
