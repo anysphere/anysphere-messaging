@@ -1,13 +1,10 @@
-pub use crate::db;
-
 #[cfg(test)]
 mod registration_tests {
 
-  use crate::db::db::*;
-  use crate::db::DB;
+  use crate::db::*;
   use rand::Rng;
 
-  fn get_registration_fragment() -> RegistrationFragment {
+  fn get_registration_fragment() -> db::RegistrationFragment {
     let public_key: Vec<u8> = br#"zIUWz21AsWme9KxgS43TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
     let private_key: Vec<u8> = br#""EUSOOwjVEHRD1XzruR93LcK8YosZ3gWUkrrk8yjrpIQ="#.to_vec();
     let allocation: i32 = 34;
@@ -15,7 +12,7 @@ mod registration_tests {
     let pir_galois_key: Vec<u8> = br#""hi hi hi"#.to_vec();
     let authentication_token: String = "X6H3ILWIrDGThjbi4IpYfWGtJ3YWdMIf".to_string();
 
-    RegistrationFragment {
+    db::RegistrationFragment {
       public_key,
       private_key,
       allocation,
@@ -55,7 +52,7 @@ mod registration_tests {
 
     let db_file = gen_temp_file();
     println!("db_file: {}", db_file);
-    let db = crate::db::init(db_file.as_str()).unwrap();
+    let db = init(db_file.as_str()).unwrap();
 
     db.delete_registration().unwrap();
     assert!(db.has_registered().unwrap() == false);

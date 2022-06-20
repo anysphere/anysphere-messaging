@@ -1,8 +1,4 @@
-#[macro_use]
-extern crate diesel;
-
 mod cli;
-mod db;
 
 fn main() {
   use std::env;

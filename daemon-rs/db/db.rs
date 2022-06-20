@@ -1,8 +1,4 @@
-extern crate libsqlite3_sys;
-
 use diesel::prelude::*;
-
-pub mod schema;
 
 use std::{error::Error, fmt};
 
@@ -71,7 +67,7 @@ mod util {
 }
 
 #[derive(Insertable)]
-#[diesel(table_name = crate::db::schema::sent)]
+#[diesel(table_name = crate::schema::sent)]
 struct Sent {
   pub uid: i32,
   pub to_friend: i32,
@@ -82,7 +78,7 @@ struct Sent {
 }
 
 #[derive(Insertable)]
-#[diesel(table_name = crate::db::schema::received)]
+#[diesel(table_name = crate::schema::received)]
 struct Received {
   pub uid: i32,
   pub from_friend: i32,
@@ -121,7 +117,7 @@ pub mod db {
     pub deleted: bool,
   }
   #[derive(Insertable)]
-  #[diesel(table_name = crate::db::schema::friend)]
+  #[diesel(table_name = crate::schema::friend)]
   struct FriendFragment {
     pub unique_name: String,
     pub display_name: String,
@@ -130,7 +126,7 @@ pub mod db {
   }
 
   #[derive(Queryable, Insertable)]
-  #[diesel(table_name = crate::db::schema::address)]
+  #[diesel(table_name = crate::schema::address)]
   struct Address {
     pub uid: i32,
     pub read_index: i32,
@@ -146,7 +142,7 @@ pub mod db {
   }
 
   #[derive(Queryable, Insertable)]
-  #[diesel(table_name = crate::db::schema::status)]
+  #[diesel(table_name = crate::schema::status)]
   struct Status {
     pub uid: i32,
     pub sent_acked_seqnum: i32,
@@ -164,7 +160,7 @@ pub mod db {
     pub authentication_token: String,
   }
   #[derive(Insertable)]
-  #[diesel(table_name = crate::db::schema::registration)]
+  #[diesel(table_name = crate::schema::registration)]
   struct RegistrationFragment {
     pub public_key: Vec<u8>,
     pub private_key: Vec<u8>,
@@ -188,7 +184,7 @@ pub mod db {
   }
 
   #[derive(Queryable, Insertable)]
-  #[diesel(table_name = crate::db::schema::incoming_chunk)]
+  #[diesel(table_name = crate::schema::incoming_chunk)]
   struct IncomingChunk {
     pub from_friend: i32,
     pub sequence_number: i32,
@@ -274,14 +270,14 @@ pub mod db {
   }
 
   #[derive(Queryable, Insertable)]
-  #[diesel(table_name = crate::db::schema::message)]
+  #[diesel(table_name = crate::schema::message)]
   struct Message {
     uid: i32,
     content: String,
   }
 
   #[derive(Queryable, Insertable)]
-  #[diesel(table_name = crate::db::schema::draft)]
+  #[diesel(table_name = crate::schema::draft)]
   struct Draft {
     pub uid: i32,
     pub to_friend: i32,
@@ -479,7 +475,7 @@ impl DB {
 
   pub fn has_registered(&self) -> Result<bool, DbError> {
     let mut conn = self.connect()?;
-    use self::schema::config;
+    use crate::schema::config;
 
     let q = config::table.select(config::has_registered);
     let has_registered = q
@@ -491,8 +487,8 @@ impl DB {
   pub fn do_register(&self, reg: db::RegistrationFragment) -> Result<(), DbError> {
     let mut conn = self.connect()?;
 
-    use self::schema::config;
-    use self::schema::registration;
+    use crate::schema::config;
+    use crate::schema::registration;
 
     let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
       let count = registration::table.count().get_result::<i64>(conn_b)?;
@@ -523,7 +519,7 @@ impl DB {
 
   pub fn get_registration(&self) -> Result<db::Registration, DbError> {
     let mut conn = self.connect()?;
-    use self::schema::registration;
+    use crate::schema::registration;
 
     let registration = registration::table
       .first(&mut conn)
@@ -534,8 +530,8 @@ impl DB {
   pub fn delete_registration(&self) -> Result<(), DbError> {
     let mut conn = self.connect()?;
 
-    use self::schema::config;
-    use self::schema::registration;
+    use crate::schema::config;
+    use crate::schema::registration;
 
     conn
       .transaction::<_, diesel::result::Error, _>(|conn_b| {
@@ -553,7 +549,7 @@ impl DB {
 
   pub fn get_small_registration(&self) -> Result<db::SmallRegistrationFragment, DbError> {
     let mut conn = self.connect()?;
-    use self::schema::registration;
+    use crate::schema::registration;
 
     let q = registration::table.select((
       registration::uid,
@@ -570,7 +566,7 @@ impl DB {
 
   pub fn get_pir_secret_key(&self) -> Result<Vec<u8>, DbError> {
     let mut conn = self.connect()?;
-    use self::schema::registration;
+    use crate::schema::registration;
 
     let q = registration::table.select(registration::pir_secret_key);
     let pir_secret_key = q
@@ -581,7 +577,7 @@ impl DB {
 
   pub fn get_send_info(&self) -> Result<db::SendInfo, DbError> {
     let mut conn = self.connect()?;
-    use self::schema::registration;
+    use crate::schema::registration;
 
     let q =
       registration::table.select((registration::allocation, registration::authentication_token));
@@ -593,7 +589,7 @@ impl DB {
 
   pub fn get_friend(&self, unique_name: &str) -> Result<db::Friend, DbError> {
     let mut conn = self.connect()?;
-    use self::schema::friend;
+    use crate::schema::friend;
 
     if let Ok(f) =
       friend::table.filter(friend::unique_name.eq(unique_name)).first::<db::Friend>(&mut conn)
@@ -606,7 +602,7 @@ impl DB {
 
   pub fn get_friends(&self) -> Result<Vec<db::Friend>, DbError> {
     let mut conn = self.connect()?;
-    use self::schema::friend;
+    use crate::schema::friend;
 
     if let Ok(v) = friend::table.filter(friend::deleted.eq(false)).load::<db::Friend>(&mut conn) {
       Ok(v)
@@ -622,7 +618,7 @@ impl DB {
     max_friends: i32,
   ) -> Result<db::Friend, DbError> {
     let mut conn = self.connect()?;
-    use self::schema::friend;
+    use crate::schema::friend;
 
     let f = db::FriendFragment {
       unique_name: unique_name.to_string(),
@@ -661,9 +657,9 @@ impl DB {
     max_friends: i32,
   ) -> Result<(), DbError> {
     let mut conn = self.connect()?;
-    use self::schema::address;
-    use self::schema::friend;
-    use self::schema::status;
+    use crate::schema::address;
+    use crate::schema::friend;
+    use crate::schema::status;
 
     // transaction because we need to pick a new ack_index
     conn
@@ -713,7 +709,7 @@ impl DB {
 
   pub fn delete_friend(&self, unique_name: &str) -> Result<(), DbError> {
     let mut conn = self.connect()?;
-    use self::schema::friend;
+    use crate::schema::friend;
 
     diesel::update(friend::table.filter(friend::unique_name.eq(unique_name)))
       .set(friend::deleted.eq(false))
@@ -729,7 +725,7 @@ impl DB {
 
   pub fn set_latency(&self, latency: i32) -> Result<(), DbError> {
     let mut conn = self.connect()?;
-    use self::schema::config;
+    use crate::schema::config;
 
     let r = diesel::update(config::table).set(config::latency.eq(latency)).execute(&mut conn);
 
@@ -741,7 +737,7 @@ impl DB {
 
   pub fn get_latency(&self) -> Result<i32, DbError> {
     let mut conn = self.connect()?;
-    use self::schema::config;
+    use crate::schema::config;
 
     let q = config::table.select(config::latency);
     let latency = q
@@ -752,7 +748,7 @@ impl DB {
 
   pub fn set_server_address(&self, server_address: &str) -> Result<(), DbError> {
     let mut conn = self.connect()?;
-    use self::schema::config;
+    use crate::schema::config;
 
     let r = diesel::update(config::table)
       .set(config::server_address.eq(server_address))
@@ -766,7 +762,7 @@ impl DB {
 
   pub fn get_server_address(&self) -> Result<String, DbError> {
     let mut conn = self.connect()?;
-    use self::schema::config;
+    use crate::schema::config;
 
     match config::table.select(config::server_address).first(&mut conn) {
       Ok(server_address) => Ok(server_address),
@@ -776,9 +772,9 @@ impl DB {
 
   pub fn receive_ack(&self, uid: i32, ack: i32) -> Result<bool, DbError> {
     let mut conn = self.connect()?;
-    use self::schema::outgoing_chunk;
-    use self::schema::sent;
-    use self::schema::status;
+    use crate::schema::outgoing_chunk;
+    use crate::schema::sent;
+    use crate::schema::status;
 
     let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
       let old_acked_seqnum =
@@ -837,9 +833,9 @@ impl DB {
     num_chunks: i32,
   ) -> Result<bool, DbError> {
     let mut conn = self.connect()?;
-    use self::schema::incoming_chunk;
-    use self::schema::message;
-    use self::schema::received;
+    use crate::schema::incoming_chunk;
+    use crate::schema::message;
+    use crate::schema::received;
 
     let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
       // if already exists, we are happy! don't need to do anything :))
@@ -946,10 +942,10 @@ impl DB {
   ) -> Result<db::OutgoingChunkPlusPlus, DbError> {
     let mut conn = self.connect()?;
 
-    use self::schema::address;
-    use self::schema::friend;
-    use self::schema::outgoing_chunk;
-    use self::schema::sent;
+    use crate::schema::address;
+    use crate::schema::friend;
+    use crate::schema::outgoing_chunk;
+    use crate::schema::sent;
 
     // We could do probably this in one query, by joining on the select statement
     // and then joining. Diesel doesn't typecheck this, and maybe it is unsafe, so
@@ -1005,9 +1001,9 @@ impl DB {
 
   pub fn acks_to_send(&self) -> Result<Vec<db::OutgoingAck>, DbError> {
     let mut conn = self.connect()?;
-    use self::schema::address;
-    use self::schema::friend;
-    use self::schema::status;
+    use crate::schema::address;
+    use crate::schema::friend;
+    use crate::schema::status;
     let wide_friends = friend::table
       .filter(friend::enabled.eq(true))
       .filter(friend::deleted.eq(false))
@@ -1029,7 +1025,7 @@ impl DB {
   pub fn get_friend_address(&self, uid: i32) -> Result<db::Address, DbError> {
     let mut conn = self.connect()?;
 
-    use self::schema::address;
+    use crate::schema::address;
 
     match address::table.find(uid).first(&mut conn) {
       Ok(address) => Ok(address),
@@ -1042,8 +1038,8 @@ impl DB {
     uids: Vec<i32>,
   ) -> Result<db::Address, DbError> {
     let mut conn = self.connect()?;
-    use self::schema::address;
-    use self::schema::friend;
+    use crate::schema::address;
+    use crate::schema::friend;
 
     // get a random friend that is not deleted excluding the ones in the uids list
     let q = friend::table.filter(friend::enabled.eq(true)).filter(friend::deleted.eq(false));

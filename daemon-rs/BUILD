@@ -1,24 +1,16 @@
 load("@cxx.rs//tools/bazel:rust_cxx_bridge.bzl", "rust_cxx_bridge")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
-load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library", "rust_static_library", "rust_test")
 
 rust_binary(
     name = "main",
     srcs = [
         "cli.rs",
-        "db/mod.rs",
-        "db/schema.rs",
         "main.rs",
     ],
-    compile_data = [":migrations"],
     deps = [
-        ":bridge",
         ":cpp-imp",
         ":main-bridge",
-        "@crate_index//:diesel",
-        "@crate_index//:diesel_migrations",
-        "@crate_index//:libsqlite3-sys",
-        "@crate_index//:rand",
         "@cxx.rs//:cxx",
     ],
 )
@@ -38,8 +30,28 @@ rust_cxx_bridge(
 
 rust_cxx_bridge(
     name = "bridge",
-    src = "db/mod.rs",
+    src = "db/db.rs",
     deps = [":cpp-include"],
+)
+
+# static because depended upon by c++!
+rust_static_library(
+    name = "db_lib",
+    srcs = [
+        "db/db.rs",
+        "db/lib.rs",
+        "db/schema.rs",
+        "db/tests.rs",
+    ],
+    compile_data = [":migrations"],
+    deps = [
+        ":bridge",
+        "@crate_index//:diesel",
+        "@crate_index//:diesel_migrations",
+        "@crate_index//:libsqlite3-sys",
+        "@crate_index//:rand",
+        "@cxx.rs//:cxx",
+    ],
 )
 
 cc_library(
@@ -49,6 +61,7 @@ cc_library(
         "constants.hpp",
         "crypto/crypto.hpp",
     ],
+    linkstatic = True,
     deps = [
         "@asphr//asphr:asphr_lib",
         "@asphr//schema:daemon_cc_grpc",
@@ -79,6 +92,7 @@ cc_library(
         ":bridge",
         ":cpp-db",
         ":cpp-include",
+        ":db_lib",
         "//client_lib",
         "@asphr//pir/fast_pir:fast_pir_lib",
         "@asphr//schema:daemon_cc_grpc",
@@ -123,27 +137,7 @@ cc_test(
     ],
 )
 
-# filegroup(
-#     name = "test_data",
-#     srcs = glob(["db_test/**/*.json"]),
-# )
-
 rust_test(
-    name = "db_tests",
-    srcs = [
-        "db/mod.rs",
-        "db/schema.rs",
-        "db_test/mod.rs",
-        "lib.rs",
-    ],
-    compile_data = [
-        ":migrations",
-    ],
-    deps = [
-        "@crate_index//:diesel",
-        "@crate_index//:diesel_migrations",
-        "@crate_index//:libsqlite3-sys",
-        "@crate_index//:rand",
-        "@cxx.rs//:cxx",
-    ],
+    name = "db_test",
+    crate = ":db_lib",
 )

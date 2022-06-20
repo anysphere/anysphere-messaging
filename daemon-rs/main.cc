@@ -109,9 +109,15 @@ int main_cc_impl(rust::Vec<rust::String> args) {
   // start the daemon rpc server
   auto daemon_server = unique_ptr<grpc::Server>(builder.BuildAndStart());
 
+  auto initial_latency = G.db->get_latency();
+
   while (true) {
     try {
-      auto killed = G.wait_until_killed_or_seconds(G.db->get_latency());
+      auto latency = G.db->get_latency();
+      if (latency == initial_latency && override_default_round_delay != -1) {
+        latency = override_default_round_delay;
+      }
+      auto killed = G.wait_until_killed_or_seconds(latency);
       if (killed) {
         daemon_server->Shutdown();
         ASPHR_LOG_INFO("Daemon killed.");
