@@ -226,6 +226,7 @@ pub mod db {
   enum DeliveryStatus {
     Delivered,
     Undelivered,
+    All,
   }
 
   enum SortBy {
@@ -342,7 +343,12 @@ pub mod db {
     fn acks_to_send(&self) -> Result<Vec<OutgoingAck>>;
 
     // fails if the friend does not exist, or does not satisfy enabled && !deleted
-    fn queue_message_to_send(&self, to_unique_name: &str, message: &str, chunks: Vec<String>) -> Result<()>;
+    fn queue_message_to_send(
+      &self,
+      to_unique_name: &str,
+      message: &str,
+      chunks: Vec<String>,
+    ) -> Result<()>;
 
     fn get_received_messages(&self, query: MessageQuery) -> Result<Vec<ReceivedPlusPlus>>;
     // returns 0 if no such message exists
@@ -1055,21 +1061,22 @@ impl DB {
     }
   }
 
-  fn get_friend_uid_by_unique_name(&self, conn: &mut SqliteConnection, unique_name: &str) -> Result<i32, diesel::result::Error> {
+  fn get_friend_uid_by_unique_name(
+    &self,
+    conn: &mut SqliteConnection,
+    unique_name: &str,
+  ) -> Result<i32, diesel::result::Error> {
     use crate::schema::friend;
 
-    let q = friend::table
-      .filter(friend::unique_name.eq(unique_name))
-      .select(friend::uid);
+    let q = friend::table.filter(friend::unique_name.eq(unique_name)).select(friend::uid);
     q.first(conn)
   }
-
 
   pub fn queue_message_to_send(
     &self,
     to_unique_name: &str,
     message: &str,
-    chunks: Vec<String>
+    chunks: Vec<String>,
   ) -> Result<(), DbError> {
     // TODO: implement this
     // We chunk in C++ because we potentially need to do things with protobuf
@@ -1078,73 +1085,180 @@ impl DB {
     // 2. Create a new sent message.
     // 1. Take in all chunks, create outgoing_chunks.
     let mut conn = self.connect()?;
+    use crate::schema::message;
     use crate::schema::outgoing_chunk;
     use crate::schema::sent;
-    use crate::schema::message;
     use crate::schema::status;
 
-    conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+    conn
+      .transaction::<_, diesel::result::Error, _>(|conn_b| {
+        let friend_uid = self.get_friend_uid_by_unique_name(conn_b, to_unique_name)?;
 
-      let friend_uid = self.get_friend_uid_by_unique_name(conn_b, to_unique_name)?;
+        let message_uid = diesel::insert_into(message::table)
+          .values((message::content.eq(message),))
+          .returning(message::uid)
+          .get_result::<i32>(conn_b)?;
 
-      let message_uid = diesel::insert_into(message::table)
-        .values((
-          message::content.eq(message),
-        ))
-        .returning(message::uid)
-        .get_result::<i32>(conn_b)?;
-      
-      diesel::insert_into(sent::table)
-        .values((
-          sent::uid.eq(message_uid),
-          sent::to_friend.eq(friend_uid),
-          sent::num_chunks.eq(chunks.len() as i32),
-          sent::sent_at.eq(util::unix_micros_now()),
-          sent::delivered.eq(false),
-        ))
-        .execute(conn_b)?;
-      
-      // get the correct sequence number. This is the last sequence number + 1.
-      // this is either the maximum sequence number in the table + 1,
-      // or the sent_acked_seqnum + 1 if there are no outgoing chunks.
-      let maybe_old_seqnum = outgoing_chunk::table
-        .filter(outgoing_chunk::to_friend.eq(friend_uid))
-        .select(outgoing_chunk::sequence_number)
-        .order_by(outgoing_chunk::sequence_number.desc())
-        .limit(1)
-        .load::<i32>(conn_b)?;
-      let old_seqnum = match maybe_old_seqnum.len() {
-        0 => status::table.find(friend_uid).select(status::sent_acked_seqnum).first::<i32>(conn_b)?,
-        _ => maybe_old_seqnum[0],
-      };
-      let new_seqnum = old_seqnum + 1;
-      
-      for (i, chunk) in chunks.iter().enumerate() {
-        diesel::insert_into(outgoing_chunk::table)
+        diesel::insert_into(sent::table)
           .values((
-            outgoing_chunk::to_friend.eq(friend_uid),
-            outgoing_chunk::sequence_number.eq(new_seqnum + i as i32),
-            outgoing_chunk::chunks_start_sequence_number.eq(new_seqnum),
-            outgoing_chunk::message_uid.eq(message_uid),
-            outgoing_chunk::content.eq(chunk),
+            sent::uid.eq(message_uid),
+            sent::to_friend.eq(friend_uid),
+            sent::num_chunks.eq(chunks.len() as i32),
+            sent::sent_at.eq(util::unix_micros_now()),
+            sent::delivered.eq(false),
           ))
           .execute(conn_b)?;
-      }
 
-      Ok(())
+        // get the correct sequence number. This is the last sequence number + 1.
+        // this is either the maximum sequence number in the table + 1,
+        // or the sent_acked_seqnum + 1 if there are no outgoing chunks.
+        let maybe_old_seqnum = outgoing_chunk::table
+          .filter(outgoing_chunk::to_friend.eq(friend_uid))
+          .select(outgoing_chunk::sequence_number)
+          .order_by(outgoing_chunk::sequence_number.desc())
+          .limit(1)
+          .load::<i32>(conn_b)?;
+        let old_seqnum = match maybe_old_seqnum.len() {
+          0 => {
+            status::table.find(friend_uid).select(status::sent_acked_seqnum).first::<i32>(conn_b)?
+          }
+          _ => maybe_old_seqnum[0],
+        };
+        let new_seqnum = old_seqnum + 1;
 
-    }).map_err(|e| DbError::Unknown(format!("queue_message_to_send: {}", e)))?;
+        for (i, chunk) in chunks.iter().enumerate() {
+          diesel::insert_into(outgoing_chunk::table)
+            .values((
+              outgoing_chunk::to_friend.eq(friend_uid),
+              outgoing_chunk::sequence_number.eq(new_seqnum + i as i32),
+              outgoing_chunk::chunks_start_sequence_number.eq(new_seqnum),
+              outgoing_chunk::message_uid.eq(message_uid),
+              outgoing_chunk::content.eq(chunk),
+            ))
+            .execute(conn_b)?;
+        }
+
+        Ok(())
+      })
+      .map_err(|e| DbError::Unknown(format!("queue_message_to_send: {}", e)))?;
 
     Ok(())
   }
 
   pub fn get_received_messages(
     &self,
-    _query: db::MessageQuery,
+    query: db::MessageQuery,
   ) -> Result<Vec<db::ReceivedPlusPlus>, DbError> {
-    // TODO: implement this
-    Err(DbError::Unimplemented("not implemented".to_string()))
+    let mut conn = self.connect()?;
+    use crate::schema::friend;
+    use crate::schema::message;
+    use crate::schema::received;
+
+    let q = received::table.inner_join(message::table).inner_join(friend::table).into_boxed();
+
+    let q = match query.limit {
+      -1 => q,
+      x => q.limit(x as i64),
+    };
+
+    let q = match query.filter {
+      db::MessageFilter::New => q.filter(received::seen.eq(false)),
+      db::MessageFilter::All => q,
+      _ => {
+        return Err(DbError::InvalidArgument("get_received_messages: invalid filter".to_string()))
+      }
+    };
+
+    let q = match query.delivery_status {
+      db::DeliveryStatus::Delivered => q.filter(received::delivered.eq(true)),
+      db::DeliveryStatus::Undelivered => q.filter(received::delivered.eq(false)),
+      db::DeliveryStatus::All => q,
+      _ => {
+        return Err(DbError::InvalidArgument(
+          "get_received_messages: invalid delivery status".to_string(),
+        ))
+      }
+    };
+
+    let q = match query.sort_by {
+      db::SortBy::ReceivedAt => q.order_by(received::received_at.desc()),
+      db::SortBy::DeliveredAt => q.order_by(received::delivered_at.desc()),
+      db::SortBy::SentAt => {
+        return Err(DbError::InvalidArgument(
+          "Cannot sort by sent_at when getting received_messages".to_string(),
+        ))
+      }
+      _ => {
+        return Err(DbError::InvalidArgument("get_received_messages: invalid sort_by".to_string()))
+      }
+    };
+
+    let q = match query.after {
+      0 => q,
+      x => match query.sort_by {
+        db::SortBy::ReceivedAt => q.filter(received::received_at.gt(x)),
+        db::SortBy::DeliveredAt => q.filter(received::delivered_at.gt(x)),
+        db::SortBy::SentAt => {
+          return Err(DbError::InvalidArgument(
+            "Cannot sort by sent_at when getting received_messages".to_string(),
+          ))
+        }
+        _ => {
+          return Err(DbError::InvalidArgument(
+            "get_received_messages: invalid sort_by".to_string(),
+          ))
+        }
+      },
+    };
+
+    // repeated because we can only deserialize into an Option but we cannot send
+    // an Option over the wire because of cxx.rs limitations.
+    #[derive(Queryable)]
+    struct ReceivedPlusPlusInternal {
+      pub uid: i32,
+      pub from_unique_name: String,
+      pub from_display_name: String,
+      pub num_chunks: i32,
+      pub received_at: i64,
+      pub delivered: bool,
+      pub delivered_at: Option<i64>,
+      pub seen: bool,
+      pub content: String,
+    }
+
+    let messages = q
+      .select((
+        received::uid,
+        friend::unique_name,
+        friend::display_name,
+        received::num_chunks,
+        received::received_at,
+        received::delivered,
+        received::delivered_at,
+        received::seen,
+        message::content,
+      ))
+      .load::<ReceivedPlusPlusInternal>(&mut conn)
+      .map_err(|e| DbError::Unknown(format!("get_received_messages: {}", e)))?;
+
+    Ok(
+      messages
+        .iter()
+        .map(|x| db::ReceivedPlusPlus {
+          uid: x.uid,
+          from_unique_name: x.from_unique_name.clone(),
+          from_display_name: x.from_display_name.clone(),
+          num_chunks: x.num_chunks,
+          received_at: x.received_at,
+          delivered: x.delivered,
+          delivered_at: x.delivered_at.unwrap_or(0),
+          seen: x.seen,
+          content: x.content.clone(),
+        })
+        .collect(),
+    )
   }
+
   pub fn get_most_recent_delivered_at(&self, _query: db::MessageQuery) -> Result<i64, DbError> {
     // TODO: implement this
     Err(DbError::Unimplemented("not implemented".to_string()))
