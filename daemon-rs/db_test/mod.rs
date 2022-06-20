@@ -1,13 +1,7 @@
 pub use crate::db;
 
-pub mod constants;
-
 #[cfg(test)]
 mod registration_tests {
-  // use std::error::Error;
-  // use std::fs::File;
-  // use std::io::BufReader;
-  use std::path::Path;
 
   use crate::db::db::*;
   use crate::db::DB;
@@ -43,7 +37,7 @@ mod registration_tests {
     temp_file_name
   }
 
-  // #[test]
+  #[test]
   fn test_connection() {
     // TODO: fix this to be generic like a real test lol
     let db_file = gen_temp_file();
@@ -63,7 +57,7 @@ mod registration_tests {
     println!("db_file: {}", db_file);
     let db = crate::db::init(db_file.as_str()).unwrap();
 
-    let did_unregister = db.delete_registration();
+    db.delete_registration().unwrap();
     assert!(db.has_registered().unwrap() == false);
 
     let did_register = db.do_register(config_data);

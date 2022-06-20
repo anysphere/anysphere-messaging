@@ -133,7 +133,6 @@ rust_test(
     srcs = [
         "db/mod.rs",
         "db/schema.rs",
-        "db_test/constants.rs",
         "db_test/mod.rs",
         "lib.rs",
     ],

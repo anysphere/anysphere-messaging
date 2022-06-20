@@ -4,12 +4,7 @@ use diesel::prelude::*;
 
 pub mod schema;
 
-use std::{
-  error::Error,
-  ffi::{CStr, CString},
-  fmt,
-  sync::Arc,
-};
+use std::{error::Error, fmt};
 
 #[derive(Debug)]
 #[allow(dead_code)]
@@ -379,13 +374,8 @@ fn print_query<T: diesel::query_builder::QueryFragment<diesel::sqlite::Sqlite>>(
   println!("print_query: {}", diesel::debug_query::<diesel::sqlite::Sqlite, _>(&q));
 }
 
-struct TableName {
-  table_name: String,
-}
-
 unsafe fn errmsg_to_string(errmsg: *const std::os::raw::c_char) -> String {
   use std::ffi::CStr;
-
   let c_slice = CStr::from_ptr(errmsg).to_bytes();
   String::from_utf8_lossy(c_slice).into_owned()
 }
@@ -398,7 +388,8 @@ impl DB {
     }
   }
 
-  // dump the database table
+  // dump everything to stdout
+  #[allow(dead_code)]
   pub unsafe fn dump(&self) -> Result<(), DbError> {
     use libsqlite3_sys::*;
     use std::ffi::CString;
@@ -406,84 +397,88 @@ impl DB {
 
     println!("------ Dumping DB ------");
 
-    unsafe {
-      let mut db: *mut sqlite3 = std::ptr::null_mut();
-      let success = sqlite3_open_v2(
-        CString::new(self.address.clone()).unwrap().as_ptr(),
-        &mut db,
-        SQLITE_OPEN_READONLY,
-        std::ptr::null(),
-      );
+    let mut db: *mut sqlite3 = std::ptr::null_mut();
+    let c_address = CString::new(self.address.clone()).unwrap();
+    let success = sqlite3_open_v2(
+      c_address.as_ptr(),
+      &mut db,
+      SQLITE_OPEN_READONLY,
+      std::ptr::null(),
+    );
 
-      if success != SQLITE_OK {
+    if success != SQLITE_OK {
+      return Err(DbError::Unknown(errmsg_to_string(sqlite3_errmsg(db))));
+    }
+
+    // do the table query
+    // "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
+    let mut raw_smt: *mut sqlite3_stmt = std::ptr::null_mut();
+    let c_query = CString::new("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").unwrap();
+    let prepare_result = sqlite3_prepare_v2(
+      db,
+      c_query
+      .as_ptr(),
+      500,
+      &mut raw_smt,
+      std::ptr::null_mut(),
+    );
+    if prepare_result != SQLITE_OK {
+      return Err(DbError::Unknown(errmsg_to_string(sqlite3_errmsg(db))));
+    }
+
+    // iterate over the results
+    let mut table_names = Vec::new();
+    while sqlite3_step(raw_smt) == SQLITE_ROW {
+      let table_name = std::ffi::CStr::from_ptr(sqlite3_column_text(raw_smt, 0) as *const i8)
+        .to_string_lossy()
+        .into_owned();
+      table_names.push(table_name);
+    }
+
+    // close the statement
+    sqlite3_finalize(raw_smt);
+
+    // iterate over the tables
+    for table_name in table_names {
+      // print the table name
+      println!("{}", table_name);
+
+      let query: String = format!("SELECT * FROM {}", table_name);
+      let c_query = CString::new(query).unwrap();
+
+      // do the query
+      let mut raw_stmt: *mut sqlite3_stmt = std::ptr::null_mut();
+      let prepare_result = sqlite3_prepare_v2(
+        db,
+        c_query.as_ptr(),
+        500,
+        &mut raw_stmt,
+        std::ptr::null_mut(),
+      );
+      if prepare_result != SQLITE_OK {
         return Err(DbError::Unknown(errmsg_to_string(sqlite3_errmsg(db))));
       }
 
-      // do the table query
-      // "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
-      let mut raw_smt: *mut sqlite3_stmt = std::ptr::null_mut();
-      let mut stmt = sqlite3_prepare_v2(
-        db,
-        CString::new(
-          "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'",
-        )
-        .unwrap()
-        .as_ptr(),
-        500,
-        &mut raw_smt,
-        std::ptr::null_mut(),
-      );
-
       // iterate over the results
-      let mut table_names = Vec::new();
-      while sqlite3_step(raw_smt) == SQLITE_ROW {
-        let table_name = std::ffi::CStr::from_ptr(sqlite3_column_text(raw_smt, 0) as *const i8)
-          .to_string_lossy()
-          .into_owned();
-        table_names.push(table_name);
+      while sqlite3_step(raw_stmt) == SQLITE_ROW {
+        let mut s = String::new();
+        for i in 0..sqlite3_column_count(raw_stmt) {
+          write!(
+            s,
+            "{}",
+            std::ffi::CStr::from_ptr(sqlite3_column_text(raw_stmt, i) as *const i8)
+              .to_string_lossy()
+              .into_owned()
+          )
+          .unwrap();
+          write!(s, " ").unwrap();
+        }
+        println!(">> {}", s);
+        println!("");
       }
 
       // close the statement
-      sqlite3_finalize(raw_smt);
-
-      // iterate over the tables
-      for table_name in table_names {
-        // print the table name
-        println!("{}", table_name);
-
-        let query: String = format!("SELECT * FROM {}", table_name);
-
-        // do the query
-        let mut raw_stmt: *mut sqlite3_stmt = std::ptr::null_mut();
-        let mut stmt = sqlite3_prepare_v2(
-          db,
-          CString::new(query.clone()).unwrap().as_ptr(),
-          500,
-          &mut raw_stmt,
-          std::ptr::null_mut(),
-        );
-
-        // iterate over the results
-        while sqlite3_step(raw_stmt) == SQLITE_ROW {
-          let mut s = String::new();
-          for i in 0..sqlite3_column_count(raw_stmt) {
-            write!(
-              s,
-              "{}",
-              std::ffi::CStr::from_ptr(sqlite3_column_text(raw_stmt, i) as *const i8)
-                .to_string_lossy()
-                .into_owned()
-            )
-            .unwrap();
-            write!(s, " ").unwrap();
-          }
-          println!(">> {}", s);
-          println!("");
-        }
-
-        // close the statement
-        sqlite3_finalize(raw_stmt);
-      }
+      sqlite3_finalize(raw_stmt);
     }
 
     println!("------ Dump complete ------");
@@ -551,7 +546,8 @@ impl DB {
     use self::schema::config;
     use self::schema::registration;
 
-    conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+    conn
+      .transaction::<_, diesel::result::Error, _>(|conn_b| {
         diesel::update(config::table)
           .set((config::has_registered.eq(false), config::registration_uid.eq::<Option<i32>>(None)))
           .execute(conn_b)?;
