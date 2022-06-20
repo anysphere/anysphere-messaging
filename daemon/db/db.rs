@@ -1042,7 +1042,9 @@ impl DB {
         let mut filtered_addresses =
           addresses.into_iter().filter(|address| !uids.contains(&address.uid)).collect::<Vec<_>>();
         if filtered_addresses.len() == 0 {
-          return Err(DbError::NotFound("No enabled friends not in the excluded list found.".to_string()));
+          return Err(DbError::NotFound(
+            "No enabled friends not in the excluded list found.".to_string(),
+          ));
         }
         let index = rng % filtered_addresses.len();
         Ok(filtered_addresses.remove(index))
