@@ -17,7 +17,7 @@ Status DaemonRpc::RegisterUser(
     asphrdaemon::RegisterUserResponse* registerUserResponse) {
   ASPHR_LOG_INFO("RegisterUser() called.", rpc_call, "RegisterUser");
 
-  if (!G.db->has_registered()) {
+  if (G.db->has_registered()) {
     ASPHR_LOG_INFO("Already registered.", rpc_call, "RegisterUser");
     return Status(grpc::StatusCode::ALREADY_EXISTS, "already registered");
   }

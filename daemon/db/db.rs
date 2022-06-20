@@ -61,7 +61,7 @@ mod util {
   unsafe extern "C++" {
     // we use absl::Time because it is SUCH a well-thought out library
     // we trust it more than chrono or rust's time
-    include!("daemon-rs/util.hpp");
+    include!("daemon/util.hpp");
     fn unix_micros_now() -> i64;
   }
 }

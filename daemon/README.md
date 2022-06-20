@@ -3,7 +3,7 @@
 Set up VSCode rust-analyzer (very recommended!):
 
 ```
-bazel run @rules_rust//tools/rust_analyzer:gen_rust_project
+bazelisk run @rules_rust//tools/rust_analyzer:gen_rust_project
 ```
 
 # Database changes

@@ -10,7 +10,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "daemon-rs/constants.hpp"
+#include "daemon/constants.hpp"
 #include "schema/message.pb.h"
 
 /* Crypto implements an IND-CCA2 secure scheme.

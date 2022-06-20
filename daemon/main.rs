@@ -11,7 +11,7 @@ fn main() {
 #[cxx::bridge]
 mod ffi {
   unsafe extern "C++" {
-    include!("daemon-rs/main.hpp");
+    include!("daemon/main.hpp");
     fn main_cc(args: Vec<String>) -> i32;
   }
 }

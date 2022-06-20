@@ -9,9 +9,9 @@ if [[ $(sd --version) != *"sd"* ]]; then
 	cargo install sd
 fi
 
-DIESEL_CONFIG_FILE="${ANYSPHEREROOT}"/client/daemon-rs/diesel.toml DATABASE_URL="${ANYSPHEREROOT}"/client/daemon-rs/test.db diesel $@
+DIESEL_CONFIG_FILE="${ANYSPHEREROOT}"/client/daemon/diesel.toml DATABASE_URL="${ANYSPHEREROOT}"/client/daemon/test.db diesel $@
 
 if [[ $@ == *"migration"* ]]; then
 	echo "Replacing Timestamp with BigInt (UNIX microseconds stored as i64s)"
-	sd Timestamp BigInt "${ANYSPHEREROOT}"/client/daemon-rs/db/schema.rs
+	sd Timestamp BigInt "${ANYSPHEREROOT}"/client/daemon/db/schema.rs
 fi
