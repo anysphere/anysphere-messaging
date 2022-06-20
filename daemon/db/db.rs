@@ -395,27 +395,20 @@ impl DB {
 
     let mut db: *mut sqlite3 = std::ptr::null_mut();
     let c_address = CString::new(self.address.clone()).unwrap();
-    let success = sqlite3_open_v2(
-      c_address.as_ptr(),
-      &mut db,
-      SQLITE_OPEN_READONLY,
-      std::ptr::null(),
-    );
+    let success =
+      sqlite3_open_v2(c_address.as_ptr(), &mut db, SQLITE_OPEN_READONLY, std::ptr::null());
 
     if success != SQLITE_OK {
       return Err(DbError::Unknown(errmsg_to_string(sqlite3_errmsg(db))));
     }
 
     let mut raw_smt: *mut sqlite3_stmt = std::ptr::null_mut();
-    let c_query = CString::new("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").unwrap();
-    let prepare_result = sqlite3_prepare_v2(
-      db,
-      c_query
-      .as_ptr(),
-      500,
-      &mut raw_smt,
-      std::ptr::null_mut(),
-    );
+    let c_query = CString::new(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'",
+    )
+    .unwrap();
+    let prepare_result =
+      sqlite3_prepare_v2(db, c_query.as_ptr(), 500, &mut raw_smt, std::ptr::null_mut());
     if prepare_result != SQLITE_OK {
       return Err(DbError::Unknown(errmsg_to_string(sqlite3_errmsg(db))));
     }
@@ -437,13 +430,8 @@ impl DB {
       let c_query = CString::new(query).unwrap();
 
       let mut raw_stmt: *mut sqlite3_stmt = std::ptr::null_mut();
-      let prepare_result = sqlite3_prepare_v2(
-        db,
-        c_query.as_ptr(),
-        500,
-        &mut raw_stmt,
-        std::ptr::null_mut(),
-      );
+      let prepare_result =
+        sqlite3_prepare_v2(db, c_query.as_ptr(), 500, &mut raw_stmt, std::ptr::null_mut());
       if prepare_result != SQLITE_OK {
         return Err(DbError::Unknown(errmsg_to_string(sqlite3_errmsg(db))));
       }
