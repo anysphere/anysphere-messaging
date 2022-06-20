@@ -342,7 +342,7 @@ pub mod db {
     fn acks_to_send(&self) -> Result<Vec<OutgoingAck>>;
 
     // fails if the friend does not exist, or does not satisfy enabled && !deleted
-    fn queue_message_to_send(&self, to_unique_name: &str, message: &str) -> Result<()>;
+    fn queue_message_to_send(&self, to_unique_name: &str, message: &str, chunks: Vec<String>) -> Result<()>;
 
     fn get_received_messages(&self, query: MessageQuery) -> Result<Vec<ReceivedPlusPlus>>;
     // returns 0 if no such message exists
@@ -1055,13 +1055,87 @@ impl DB {
     }
   }
 
+  fn get_friend_uid_by_unique_name(&self, conn: &mut SqliteConnection, unique_name: &str) -> Result<i32, diesel::result::Error> {
+    use crate::schema::friend;
+
+    let q = friend::table
+      .filter(friend::unique_name.eq(unique_name))
+      .select(friend::uid);
+    q.first(conn)
+  }
+
+
   pub fn queue_message_to_send(
     &self,
-    _to_unique_name: &str,
-    _message: &str,
+    to_unique_name: &str,
+    message: &str,
+    chunks: Vec<String>
   ) -> Result<(), DbError> {
     // TODO: implement this
-    Err(DbError::Unimplemented("send_message not implemented".to_string()))
+    // We chunk in C++ because we potentially need to do things with protobuf
+    // What do we do here?
+    // 1. Create a new message.
+    // 2. Create a new sent message.
+    // 1. Take in all chunks, create outgoing_chunks.
+    let mut conn = self.connect()?;
+    use crate::schema::outgoing_chunk;
+    use crate::schema::sent;
+    use crate::schema::message;
+    use crate::schema::status;
+
+    conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+
+      let friend_uid = self.get_friend_uid_by_unique_name(conn_b, to_unique_name)?;
+
+      let message_uid = diesel::insert_into(message::table)
+        .values((
+          message::content.eq(message),
+        ))
+        .returning(message::uid)
+        .get_result::<i32>(conn_b)?;
+      
+      diesel::insert_into(sent::table)
+        .values((
+          sent::uid.eq(message_uid),
+          sent::to_friend.eq(friend_uid),
+          sent::num_chunks.eq(chunks.len() as i32),
+          sent::sent_at.eq(util::unix_micros_now()),
+          sent::delivered.eq(false),
+        ))
+        .execute(conn_b)?;
+      
+      // get the correct sequence number. This is the last sequence number + 1.
+      // this is either the maximum sequence number in the table + 1,
+      // or the sent_acked_seqnum + 1 if there are no outgoing chunks.
+      let maybe_old_seqnum = outgoing_chunk::table
+        .filter(outgoing_chunk::to_friend.eq(friend_uid))
+        .select(outgoing_chunk::sequence_number)
+        .order_by(outgoing_chunk::sequence_number.desc())
+        .limit(1)
+        .load::<i32>(conn_b)?;
+      let old_seqnum = match maybe_old_seqnum.len() {
+        0 => status::table.find(friend_uid).select(status::sent_acked_seqnum).first::<i32>(conn_b)?,
+        _ => maybe_old_seqnum[0],
+      };
+      let new_seqnum = old_seqnum + 1;
+      
+      for (i, chunk) in chunks.iter().enumerate() {
+        diesel::insert_into(outgoing_chunk::table)
+          .values((
+            outgoing_chunk::to_friend.eq(friend_uid),
+            outgoing_chunk::sequence_number.eq(new_seqnum + i as i32),
+            outgoing_chunk::chunks_start_sequence_number.eq(new_seqnum),
+            outgoing_chunk::message_uid.eq(message_uid),
+            outgoing_chunk::content.eq(chunk),
+          ))
+          .execute(conn_b)?;
+      }
+
+      Ok(())
+
+    }).map_err(|e| DbError::Unknown(format!("queue_message_to_send: {}", e)))?;
+
+    Ok(())
   }
 
   pub fn get_received_messages(

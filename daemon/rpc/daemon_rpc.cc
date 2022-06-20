@@ -228,9 +228,22 @@ Status DaemonRpc::SendMessage(
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
+  auto message = sendMessageRequest->message();
+
+  // chunk up the message and add it!
+  // TODO: we probably want to use a protobuf for the entire message
+  // and then chunk the resulting protobuf bytestring.
+  // this is necessary for when we start supporting images, for example
+  // for now, this is fine.
+  rust::Vec<rust::String> chunked_message;
+  for (size_t i = 0; i < message.size(); i += GUARANTEED_SINGLE_MESSAGE_SIZE) {
+    chunked_message.push_back(
+        message.substr(i, GUARANTEED_SINGLE_MESSAGE_SIZE));
+  }
+
   try {
-    G.db->queue_message_to_send(sendMessageRequest->unique_name(),
-                                sendMessageRequest->message());
+    G.db->queue_message_to_send(sendMessageRequest->unique_name(), message,
+                                chunked_message);
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Failed to send message.", error, e.what(), rpc_call,
                   "SendMessage");
