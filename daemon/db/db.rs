@@ -89,11 +89,29 @@ struct Received {
   pub seen: bool,
 }
 
+pub struct I64ButZeroIsNone(i64);
+
+impl Into<i64> for I64ButZeroIsNone {
+    fn into(self) -> i64 {
+        self.0
+    }
+}
+
+impl<DB> Queryable<diesel::sql_types::Nullable<diesel::sql_types::BigInt>, DB> for I64ButZeroIsNone
+where
+    DB: diesel::backend::Backend,
+    Option<i64>: diesel::deserialize::FromSql<diesel::sql_types::Nullable<diesel::sql_types::BigInt>, DB>
+{
+  type Row = Option<i64>;
+    fn build(s: Option<i64>) -> diesel::deserialize::Result<Self> {
+        Ok(I64ButZeroIsNone(s.unwrap_or(0)))
+    }
+}
+
 //
 // Source of truth is in the migrations folder. Schema.rs is generated from them.
 // This right here is just a query interface. It will not correspond exactly. It should not.
 //
-#[allow(dead_code)]
 #[cxx::bridge(namespace = "db")]
 pub mod db {
 
@@ -242,6 +260,7 @@ pub mod db {
     pub after: i64, // unix micros. return all messages with a sort_by strictly greater than this. use 0 to disable.
   }
 
+  #[derive(Queryable)]
   struct ReceivedPlusPlus {
     pub uid: i32,
     pub from_unique_name: String,
@@ -249,10 +268,12 @@ pub mod db {
     pub num_chunks: i32,
     pub received_at: i64,
     pub delivered: bool,
+    #[diesel(deserialize_as = crate::db::I64ButZeroIsNone)]
     pub delivered_at: i64, // 0 iff !delivered (cxx.rs doesn't support Option)
     pub seen: bool,
     pub content: String,
   }
+  #[derive(Queryable)]
   struct SentPlusPlus {
     pub uid: i32,
     pub to_unique_name: String,
@@ -260,6 +281,7 @@ pub mod db {
     pub num_chunks: i32,
     pub sent_at: i64,
     pub delivered: bool,
+    #[diesel(deserialize_as = crate::db::I64ButZeroIsNone)]
     pub delivered_at: i64, // 0 iff !delivered (cxx.rs doesn't support Option)
     pub content: String,
   }
@@ -1211,22 +1233,7 @@ impl DB {
       },
     };
 
-    // repeated because we can only deserialize into an Option but we cannot send
-    // an Option over the wire because of cxx.rs limitations.
-    #[derive(Queryable)]
-    struct ReceivedPlusPlusInternal {
-      pub uid: i32,
-      pub from_unique_name: String,
-      pub from_display_name: String,
-      pub num_chunks: i32,
-      pub received_at: i64,
-      pub delivered: bool,
-      pub delivered_at: Option<i64>,
-      pub seen: bool,
-      pub content: String,
-    }
-
-    let messages = q
+    q
       .select((
         received::uid,
         friend::unique_name,
@@ -1238,25 +1245,8 @@ impl DB {
         received::seen,
         message::content,
       ))
-      .load::<ReceivedPlusPlusInternal>(&mut conn)
-      .map_err(|e| DbError::Unknown(format!("get_received_messages: {}", e)))?;
-
-    Ok(
-      messages
-        .iter()
-        .map(|x| db::ReceivedPlusPlus {
-          uid: x.uid,
-          from_unique_name: x.from_unique_name.clone(),
-          from_display_name: x.from_display_name.clone(),
-          num_chunks: x.num_chunks,
-          received_at: x.received_at,
-          delivered: x.delivered,
-          delivered_at: x.delivered_at.unwrap_or(0),
-          seen: x.seen,
-          content: x.content.clone(),
-        })
-        .collect(),
-    )
+      .load::<db::ReceivedPlusPlus>(&mut conn)
+      .map_err(|e| DbError::Unknown(format!("get_received_messages: {}", e)))
   }
 
   pub fn get_most_recent_delivered_at(&self, _query: db::MessageQuery) -> Result<i64, DbError> {
