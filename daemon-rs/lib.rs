@@ -2,3 +2,4 @@
 extern crate diesel;
 
 pub mod db;
+pub mod db_test;

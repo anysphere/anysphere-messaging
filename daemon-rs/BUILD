@@ -22,23 +22,6 @@ rust_binary(
     ],
 )
 
-rust_test(
-    name = "tests",
-    srcs = [
-        "db/mod.rs",
-        "db/schema.rs",
-        "lib.rs",
-        "db_test/tests.rs"
-    ],
-    compile_data = [":migrations"],
-    deps = [
-        "@crate_index//:diesel",
-        "@crate_index//:diesel_migrations",
-        "@crate_index//:rand",
-        "@cxx.rs//:cxx",
-    ],
-)
-
 filegroup(
     name = "migrations",
     srcs = glob(["migrations/**/*.sql"]),
@@ -136,5 +119,22 @@ cc_test(
     deps = [
         ":crypto-lib",
         "@com_google_googletest//:gtest_main",
+    ],
+)
+
+rust_test(
+    name = "db_tests",
+    srcs = [
+        "db/mod.rs",
+        "db/schema.rs",
+        "lib.rs",
+        "db_test/mod.rs"
+    ],
+    compile_data = [":migrations"],
+    deps = [
+        "@crate_index//:diesel",
+        "@crate_index//:diesel_migrations",
+        "@crate_index//:rand",
+        "@cxx.rs//:cxx",
     ],
 )
