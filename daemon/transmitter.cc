@@ -265,7 +265,7 @@ auto Transmitter::transmit_async_friend_request() -> void {
   grpc::ClientContext context;
   grpc::Status status = stub->AddFriendAsync(&context, request, &reply);
   if (status.ok()) {
-    std::cout << "Async Request sent to server!" << std::endl;
+    std::cout << "Async Friend Request sent to server!" << std::endl;
   } else {
     std::cerr << status.error_code() << ": " << status.error_message()
               << " details:" << status.error_details() << std::endl;

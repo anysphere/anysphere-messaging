@@ -189,8 +189,7 @@ Status DaemonRpc::SendFriendRequestAsync(
     asphrdaemon::SendFriendRequestAsyncResponse* response) {
   ASPHR_LOG_INFO("SendFriendRequestAsync() called.");
   // TODO: for simplicity, we only support adding one friend asynchronously at a
-  // time This can be easily addressed later, but I need to finish testing
-  // before 4pm
+  // time.
 
   // TODO: the architecture here will be refactored with the new inbox
   // so we need to change this later

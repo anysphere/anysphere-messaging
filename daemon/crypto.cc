@@ -366,7 +366,7 @@ auto Crypto::encrypt_async_friend_request(
     return absl::UnknownError("failed to pad message");
   }
 
-  cout << plaintext << endl;
+  cout << "Friend Request Plaintext: " << plaintext << endl;
 
   // encrypt it!
   std::string ciphertext;
@@ -396,6 +396,9 @@ auto Crypto::encrypt_async_friend_request(
   assert(ciphertext_size == plaintext_size + crypto_box_MACBYTES);
   assert(plaintext.size() == plaintext_size);
   assert(plaintext_size == ASYNC_FRIEND_REQUEST_SIZE);
+
+  // the ciphertext consists of non-utf-8 characters
+  // cout << "Friend Request Ciphertext: " << ciphertext << endl;
 
   return ciphertext;
 }
@@ -453,7 +456,8 @@ auto Crypto::decrypt_async_friend_request(
     return absl::UnknownError("failed to unpad message");
   }
 
-  // stream the message through a stringstream
+  // stream the plaintext through a stringstream
+  // in order to split the plaintext
   std::stringstream ss;
   ss << plaintext;
   std::string name;
