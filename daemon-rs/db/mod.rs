@@ -7,7 +7,7 @@ use std::{error::Error, fmt};
 
 #[derive(Debug)]
 #[allow(dead_code)]
-enum DbError {
+pub enum DbError {
     Ok(String),
     Cancelled(String),
     Unknown(String),
@@ -55,8 +55,8 @@ impl fmt::Display for DbError {
 
 // TODO(arvid): manage a connection pool for the DB here?
 // i.e. pool: Box<ConnectionPool> or something
-struct DB {
-    address: String,
+pub struct DB {
+    pub address: String,
 }
 
 
@@ -97,6 +97,7 @@ struct Received {
 // Source of truth is in the migrations folder. Schema.rs is generated from them.
 // This right here is just a query interface. It will not correspond exactly. It should not.
 //
+#[allow(dead_code)]
 #[cxx::bridge(namespace = "db")]
 pub mod db {
 
@@ -230,6 +231,7 @@ pub mod db {
         Delivered,
         Undelivered
     }
+
     enum SortBy {
         SentAt,
         ReceivedAt,
@@ -374,7 +376,7 @@ fn print_query<T: diesel::query_builder::QueryFragment<diesel::sqlite::Sqlite>>(
 }
 
 impl DB {
-    fn connect(&self) -> Result<SqliteConnection, DbError> {
+    pub fn connect(&self) -> Result<SqliteConnection, DbError> {
         match SqliteConnection::establish(&self.address) {
             Ok(c) => return Ok(c),
             Err(e) => {
@@ -383,7 +385,7 @@ impl DB {
         }
     }
 
-    fn has_registered(&self) -> Result<bool, DbError> {
+    pub fn has_registered(&self) -> Result<bool, DbError> {
         let mut conn = self.connect()?;
         use self::schema::config;
 
@@ -394,7 +396,7 @@ impl DB {
         Ok(has_registered)
     }
 
-    fn get_registration(&self) -> Result<db::Registration, DbError> {
+    pub fn get_registration(&self) -> Result<db::Registration, DbError> {
         let mut conn = self.connect()?;
         use self::schema::registration;
 
@@ -404,7 +406,7 @@ impl DB {
         Ok(registration)
     }
 
-    fn get_small_registration(&self) -> Result<db::SmallRegistrationFragment, DbError> {
+    pub fn get_small_registration(&self) -> Result<db::SmallRegistrationFragment, DbError> {
         let mut conn = self.connect()?;
         use self::schema::registration;
 
@@ -421,7 +423,7 @@ impl DB {
         Ok(registration)
     }
 
-    fn get_pir_secret_key(&self) -> Result<Vec<u8>, DbError> {
+    pub fn get_pir_secret_key(&self) -> Result<Vec<u8>, DbError> {
         let mut conn = self.connect()?;
         use self::schema::registration;
 
@@ -432,7 +434,7 @@ impl DB {
         Ok(pir_secret_key)
     }
 
-    fn get_send_info(&self) -> Result<db::SendInfo, DbError> {
+    pub fn get_send_info(&self) -> Result<db::SendInfo, DbError> {
         let mut conn = self.connect()?;
         use self::schema::registration;
 
@@ -444,7 +446,7 @@ impl DB {
         Ok(send_info)
     }
 
-    fn do_register(&self, reg: db::RegistrationFragment) -> Result<(), DbError> {
+    pub fn do_register(&self, reg: db::RegistrationFragment) -> Result<(), DbError> {
         let mut conn = self.connect()?;
 
         use self::schema::registration;
@@ -469,7 +471,7 @@ impl DB {
         }
     }
 
-    fn get_friend(&self, unique_name: &str) -> Result<db::Friend, DbError> {
+    pub fn get_friend(&self, unique_name: &str) -> Result<db::Friend, DbError> {
         let mut conn = self.connect()?;
         use self::schema::friend;
 
@@ -482,7 +484,7 @@ impl DB {
         }
     }
 
-    fn get_friends(&self) -> Result<Vec<db::Friend>, DbError> {
+    pub fn get_friends(&self) -> Result<Vec<db::Friend>, DbError> {
         let mut conn = self.connect()?;
         use self::schema::friend;
 
@@ -494,7 +496,7 @@ impl DB {
         }
     }
 
-    fn create_friend(
+    pub fn create_friend(
         &self,
         unique_name: &str,
         display_name: &str,
@@ -534,7 +536,7 @@ impl DB {
         })
     }
 
-    fn add_friend_address(
+    pub fn add_friend_address(
         &self,
         add_address: db::AddAddress,
         max_friends: i32,
@@ -595,7 +597,7 @@ impl DB {
         })
     }
 
-    fn delete_friend(&self, unique_name: &str) -> Result<(), DbError> {
+    pub fn delete_friend(&self, unique_name: &str) -> Result<(), DbError> {
         let mut conn = self.connect()?;
         use self::schema::friend;
 
@@ -614,7 +616,7 @@ impl DB {
         Ok(())
     }
 
-    fn set_latency(&self, latency: i32) -> Result<(), DbError> {
+    pub fn set_latency(&self, latency: i32) -> Result<(), DbError> {
         let mut conn = self.connect()?;
         use self::schema::config;
 
@@ -626,7 +628,7 @@ impl DB {
         }
     }
 
-    fn get_latency(&self) -> Result<i32, DbError> {
+    pub fn get_latency(&self) -> Result<i32, DbError> {
         let mut conn = self.connect()?;
         use self::schema::config;
 
@@ -637,7 +639,7 @@ impl DB {
         Ok(latency)
     }
 
-    fn set_server_address(&self, server_address: &str) -> Result<(), DbError> {
+    pub fn set_server_address(&self, server_address: &str) -> Result<(), DbError> {
         let mut conn = self.connect()?;
         use self::schema::config;
 
@@ -651,7 +653,7 @@ impl DB {
         }
     }
 
-    fn get_server_address(&self) -> Result<String, DbError> {
+    pub fn get_server_address(&self) -> Result<String, DbError> {
         let mut conn = self.connect()?;
         use self::schema::config;
 
@@ -661,7 +663,7 @@ impl DB {
         }
     }
 
-    fn receive_ack(&self, uid: i32, ack: i32) -> Result<bool, DbError> {
+    pub fn receive_ack(&self, uid: i32, ack: i32) -> Result<bool, DbError> {
         let mut conn = self.connect()?;
         use self::schema::outgoing_chunk;
         use self::schema::sent;
@@ -717,7 +719,7 @@ impl DB {
         }
     }
 
-    fn receive_chunk(
+    pub fn receive_chunk(
         &self,
         chunk: db::IncomingChunkFragment,
         num_chunks: i32,
@@ -838,7 +840,7 @@ impl DB {
         }
     }
 
-    fn chunk_to_send(&self, uid_priority: Vec<i32>) -> Result<db::OutgoingChunkPlusPlus, DbError> {
+    pub fn chunk_to_send(&self, uid_priority: Vec<i32>) -> Result<db::OutgoingChunkPlusPlus, DbError> {
         let mut conn = self.connect()?;
 
         use self::schema::address;
@@ -900,7 +902,7 @@ impl DB {
         }
     }
 
-    fn acks_to_send(&self) -> Result<Vec<db::OutgoingAck>, DbError> {
+    pub fn acks_to_send(&self) -> Result<Vec<db::OutgoingAck>, DbError> {
         let mut conn = self.connect()?;
         use self::schema::address;
         use self::schema::friend;
@@ -923,7 +925,7 @@ impl DB {
         }
     }
 
-    fn get_friend_address(&self, uid: i32) -> Result<db::Address, DbError> {
+    pub fn get_friend_address(&self, uid: i32) -> Result<db::Address, DbError> {
         let mut conn = self.connect()?;
 
         use self::schema::address;
@@ -934,7 +936,7 @@ impl DB {
         }
     }
 
-    fn get_random_enabled_friend_address_excluding(
+    pub fn get_random_enabled_friend_address_excluding(
         &self,
         uids: Vec<i32>,
     ) -> Result<db::Address, DbError> {
@@ -965,28 +967,28 @@ impl DB {
         }
     }
 
-    fn queue_message_to_send(&self, to_unique_name: &str, message: &str) -> Result<(), DbError> {
+    pub fn queue_message_to_send(&self, _to_unique_name: &str, _message: &str) -> Result<(), DbError> {
         // TODO: implement this
         Err(DbError::Unimplemented("send_message not implemented".to_string()))
     }
 
-    fn get_received_messages(&self, query: db::MessageQuery) -> Result<Vec<db::ReceivedPlusPlus>, DbError> {
+    pub fn get_received_messages(&self, _query: db::MessageQuery) -> Result<Vec<db::ReceivedPlusPlus>, DbError> {
         // TODO: implement this
         Err(DbError::Unimplemented("not implemented".to_string()))
     }
-    fn get_most_recent_delivered_at(&self, query: db::MessageQuery) -> Result<i64, DbError> {
+    pub fn get_most_recent_delivered_at(&self, _query: db::MessageQuery) -> Result<i64, DbError> {
         // TODO: implement this
         Err(DbError::Unimplemented("not implemented".to_string()))
     }
-    fn get_sent_messages(&self, query: db::MessageQuery) -> Result<Vec<db::SentPlusPlus>, DbError> {
+    pub fn get_sent_messages(&self, _query: db::MessageQuery) -> Result<Vec<db::SentPlusPlus>, DbError> {
         // TODO: implement this
         Err(DbError::Unimplemented("not implemented".to_string()))
     }
-    fn get_draft_messages(&self, query: db::MessageQuery) -> Result<Vec<db::DraftPlusPlus>, DbError> {
+    pub fn get_draft_messages(&self, _query: db::MessageQuery) -> Result<Vec<db::DraftPlusPlus>, DbError> {
         // TODO: implement this
         Err(DbError::Unimplemented("not implemented".to_string()))
     }
-    fn mark_message_as_seen(&self, uid: i32) -> Result<(), DbError> {
+    pub fn mark_message_as_seen(&self, _uid: i32) -> Result<(), DbError> {
         // TODO: implement this
         Err(DbError::Unimplemented("not implemented".to_string()))
     }

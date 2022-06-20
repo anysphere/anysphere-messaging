@@ -1,13 +1,19 @@
-use crate::db;
+pub use crate::db;
 
-#[test]
-fn test_registration_insert() {
-  let result = 2 + 2;
-  assert_eq!(result, 4);
+#[cfg(test)]
+mod registration_tests {
+
+  #[test]
+  fn test_connection() {
+    // TODO: fix this to be generic like a real test lol
+    let db = crate::db::DB {
+      address: "/Users/sualeh/code/anysphere/client/daemon-rs/test.db".to_string(),
+    };
+
+    let connection = db.connect();
+    assert!(connection.is_ok());
+  }
+
+
+
 }
-
-// #[cfg(test)]
-// mod registration_tests {
-//   #[test]
-  
-// }
