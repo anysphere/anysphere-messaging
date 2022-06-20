@@ -8,6 +8,7 @@ rust_binary(
         "cli.rs",
         "main.rs",
     ],
+    visibility = ["//visibility:public"],  # for release
     deps = [
         ":main_bridge",
         ":main_lib",
