@@ -7,3 +7,4 @@
 use_small_heuristics = "Max"
 # Prevent carriage returns
 newline_style = "Unix"
+tab_spaces = 2

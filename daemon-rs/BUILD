@@ -5,10 +5,10 @@ load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_test")
 rust_binary(
     name = "main",
     srcs = [
+        "cli.rs",
         "db/mod.rs",
         "db/schema.rs",
         "main.rs",
-        "cli.rs"
     ],
     compile_data = [":migrations"],
     deps = [
@@ -17,6 +17,7 @@ rust_binary(
         ":main-bridge",
         "@crate_index//:diesel",
         "@crate_index//:diesel_migrations",
+        "@crate_index//:libsqlite3-sys",
         "@crate_index//:rand",
         "@cxx.rs//:cxx",
     ],
@@ -122,18 +123,27 @@ cc_test(
     ],
 )
 
+# filegroup(
+#     name = "test_data",
+#     srcs = glob(["db_test/**/*.json"]),
+# )
+
 rust_test(
     name = "db_tests",
     srcs = [
         "db/mod.rs",
         "db/schema.rs",
+        "db_test/constants.rs",
+        "db_test/mod.rs",
         "lib.rs",
-        "db_test/mod.rs"
     ],
-    compile_data = [":migrations"],
+    compile_data = [
+        ":migrations",
+    ],
     deps = [
         "@crate_index//:diesel",
         "@crate_index//:diesel_migrations",
+        "@crate_index//:libsqlite3-sys",
         "@crate_index//:rand",
         "@cxx.rs//:cxx",
     ],
