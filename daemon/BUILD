@@ -69,6 +69,7 @@ cc_library(
         "@asphr//schema:message_proto_cc",
         "@asphr//schema:server_cc_grpc",
         "@asphr//third_party/libsodium",
+        "@com_github_grpc_grpc//:grpc++",
     ],
 )
 
