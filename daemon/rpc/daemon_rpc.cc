@@ -334,18 +334,16 @@ Status DaemonRpc::GetMessagesStreamed(
   // delivered_at timestamp. each message will be delivered exactly once.
   absl::Time last_delivered_at = absl::InfinitePast();
 
-  const auto base_query = db::MessageQuery{
-      .limit = -1,  // TODO: make this configurable
-      .filter = filter == asphrdaemon::GetMessagesRequest::ALL
-                    ? db::MessageFilter::All
-                    : db::MessageFilter::New,
-      .delivery_status = db::DeliveryStatus::Delivered,
-      .sort_by = db::SortBy::DeliveredAt,
-      .after = 0,
-  };
-
   try {
-    auto messages = G.db->get_received_messages(base_query);
+    auto messages = G.db->get_received_messages(db::MessageQuery{
+        .limit = -1,  // TODO: make this configurable
+        .filter = filter == asphrdaemon::GetMessagesRequest::ALL
+                      ? db::MessageFilter::All
+                      : db::MessageFilter::New,
+        .delivery_status = db::DeliveryStatus::Delivered,
+        .sort_by = db::SortBy::DeliveredAt,
+        .after = 0,
+    });
 
     asphrdaemon::GetMessagesResponse response;
 
@@ -386,10 +384,10 @@ Status DaemonRpc::GetMessagesStreamed(
     {
       std::unique_lock<std::mutex> l(G.message_notification_cv_mutex);
       G.message_notification_cv.wait_for(l, std::chrono::seconds(60 * 60), [&] {
-        return G.db->get_most_recent_delivered_at(base_query) !=
+        return G.db->get_most_recent_received_delivered_at() !=
                absl::ToUnixMicros(last_delivered_at);
       });
-      if (G.db->get_most_recent_delivered_at(base_query) ==
+      if (G.db->get_most_recent_received_delivered_at() ==
           absl::ToUnixMicros(last_delivered_at)) {
         continue;  // continue the loop to check if we are cancelled, because it
                    // has been an hour

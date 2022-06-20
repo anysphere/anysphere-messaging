@@ -251,6 +251,7 @@ pub mod db {
     SentAt,
     ReceivedAt,
     DeliveredAt,
+    None,
   }
   struct MessageQuery {
     pub limit: i32, // use -1 to get all
@@ -285,6 +286,7 @@ pub mod db {
     pub delivered_at: i64, // 0 iff !delivered (cxx.rs doesn't support Option)
     pub content: String,
   }
+  #[derive(Queryable)]
   struct DraftPlusPlus {
     pub uid: i32,
     pub to_unique_name: String,
@@ -374,9 +376,10 @@ pub mod db {
 
     fn get_received_messages(&self, query: MessageQuery) -> Result<Vec<ReceivedPlusPlus>>;
     // returns 0 if no such message exists
-    fn get_most_recent_delivered_at(&self, query: MessageQuery) -> Result<i64>;
+    fn get_most_recent_received_delivered_at(&self) -> Result<i64>;
     fn get_sent_messages(&self, query: MessageQuery) -> Result<Vec<SentPlusPlus>>;
     fn get_draft_messages(&self, query: MessageQuery) -> Result<Vec<DraftPlusPlus>>;
+    // no-op if already seen
     fn mark_message_as_seen(&self, uid: i32) -> Result<()>;
   }
 }
@@ -1167,6 +1170,7 @@ impl DB {
     Ok(())
   }
 
+
   pub fn get_received_messages(
     &self,
     query: db::MessageQuery,
@@ -1203,6 +1207,7 @@ impl DB {
     };
 
     let q = match query.sort_by {
+      db::SortBy::None => q,
       db::SortBy::ReceivedAt => q.order_by(received::received_at.desc()),
       db::SortBy::DeliveredAt => q.order_by(received::delivered_at.desc()),
       db::SortBy::SentAt => {
@@ -1218,6 +1223,7 @@ impl DB {
     let q = match query.after {
       0 => q,
       x => match query.sort_by {
+      db::SortBy::None => q,
         db::SortBy::ReceivedAt => q.filter(received::received_at.gt(x)),
         db::SortBy::DeliveredAt => q.filter(received::delivered_at.gt(x)),
         db::SortBy::SentAt => {
@@ -1249,26 +1255,169 @@ impl DB {
       .map_err(|e| DbError::Unknown(format!("get_received_messages: {}", e)))
   }
 
-  pub fn get_most_recent_delivered_at(&self, _query: db::MessageQuery) -> Result<i64, DbError> {
-    // TODO: implement this
-    Err(DbError::Unimplemented("not implemented".to_string()))
+  pub fn get_most_recent_received_delivered_at(&self) -> Result<i64, DbError> {
+    let mut conn = self.connect()?;
+    use crate::schema::received;
+
+    let q = received::table.filter(received::delivered.eq(true)).order_by(received::delivered_at.desc()).limit(1);
+
+    let res = q.select(received::delivered_at).load::<Option<i64>>(&mut conn).map_err(|e| {
+      DbError::Unknown(format!("get_most_recent_received_delivered_at: {}", e))
+    })?;
+
+    match res.len() {
+      0 => Ok(0),
+      _ => match res[0] {
+        Some(x) => Ok(x),
+        None => Err(DbError::Unknown("get_most_recent_received_delivered_at: None".to_string())),
+      },
+    }
   }
+
   pub fn get_sent_messages(
     &self,
-    _query: db::MessageQuery,
+    query: db::MessageQuery,
   ) -> Result<Vec<db::SentPlusPlus>, DbError> {
-    // TODO: implement this
-    Err(DbError::Unimplemented("not implemented".to_string()))
+    let mut conn = self.connect()?;
+    use crate::schema::friend;
+    use crate::schema::message;
+    use crate::schema::sent;
+
+    let q = sent::table.inner_join(message::table).inner_join(friend::table).into_boxed();
+
+    let q = match query.limit {
+      -1 => q,
+      x => q.limit(x as i64),
+    };
+
+    let q = match query.filter {
+      db::MessageFilter::All => q,
+      _ => {
+        return Err(DbError::InvalidArgument("get_sent_messages_query: invalid filter".to_string()))
+      }
+    };
+
+    let q = match query.delivery_status {
+      db::DeliveryStatus::Delivered => q.filter(sent::delivered.eq(true)),
+      db::DeliveryStatus::Undelivered => q.filter(sent::delivered.eq(false)),
+      db::DeliveryStatus::All => q,
+      _ => {
+        return Err(DbError::InvalidArgument(
+          "get_sent_messages_query: invalid delivery status".to_string(),
+        ))
+      }
+    };
+
+    let q = match query.sort_by {
+      db::SortBy::None => q,
+      db::SortBy::SentAt => q.order_by(sent::sent_at.desc()),
+      db::SortBy::DeliveredAt => q.order_by(sent::delivered_at.desc()),
+      db::SortBy::ReceivedAt => {
+        return Err(DbError::InvalidArgument(
+          "Cannot sort by received_at when getting sent messages".to_string(),
+        ))
+      }
+      _ => {
+        return Err(DbError::InvalidArgument("get_sent_messages_query: invalid sort_by".to_string()))
+      }
+    };
+
+    let q = match query.after {
+      0 => q,
+      x => match query.sort_by {
+        db::SortBy::None => q,
+        db::SortBy::SentAt => q.filter(sent::sent_at.gt(x)),
+        db::SortBy::DeliveredAt => q.filter(sent::delivered_at.gt(x)),
+        db::SortBy::ReceivedAt => {
+          return Err(DbError::InvalidArgument(
+            "Cannot sort by received_at when getting sent_messages".to_string(),
+          ))
+        }
+        _ => {
+          return Err(DbError::InvalidArgument(
+            "get_sent_messages_query: invalid sort_by".to_string(),
+          ))
+        }
+      },
+    };
+
+    q
+      .select((
+        sent::uid,
+        friend::unique_name,
+        friend::display_name,
+        sent::num_chunks,
+        sent::sent_at,
+        sent::delivered,
+        sent::delivered_at,
+        message::content,
+      ))
+      .load::<db::SentPlusPlus>(&mut conn)
+      .map_err(|e| DbError::Unknown(format!("get_sent_messages: {}", e)))
   }
+
   pub fn get_draft_messages(
     &self,
-    _query: db::MessageQuery,
+    query: db::MessageQuery,
   ) -> Result<Vec<db::DraftPlusPlus>, DbError> {
-    // TODO: implement this
-    Err(DbError::Unimplemented("not implemented".to_string()))
+    let mut conn = self.connect()?;
+    use crate::schema::friend;
+    use crate::schema::message;
+    use crate::schema::draft;
+
+    let q = draft::table.inner_join(message::table).inner_join(friend::table).into_boxed();
+
+    let q = match query.limit {
+      -1 => q,
+      x => q.limit(x as i64),
+    };
+
+    let q = match query.filter {
+      db::MessageFilter::All => q,
+      _ => {
+        return Err(DbError::InvalidArgument("get_draft_messages: invalid filter".to_string()))
+      }
+    };
+
+    let q = match query.delivery_status {
+      db::DeliveryStatus::All => q,
+      _ => {
+        return Err(DbError::InvalidArgument(
+          "get_draft_messages: invalid delivery status".to_string(),
+        ))
+      }
+    };
+
+    let q = match query.sort_by {
+      db::SortBy::None => q,
+      _ => {
+        return Err(DbError::InvalidArgument("get_draft_messages: invalid sort_by".to_string()))
+      }
+    };
+
+    q
+      .select((
+        draft::uid,
+        friend::unique_name,
+        friend::display_name,
+        message::content,
+      ))
+      .load::<db::DraftPlusPlus>(&mut conn)
+      .map_err(|e| DbError::Unknown(format!("get_draft_messages: {}", e)))
   }
-  pub fn mark_message_as_seen(&self, _uid: i32) -> Result<(), DbError> {
-    // TODO: implement this
-    Err(DbError::Unimplemented("not implemented".to_string()))
+
+  pub fn mark_message_as_seen(&self, uid: i32) -> Result<(), DbError> {
+    let mut conn = self.connect()?;
+    use crate::schema::received;
+
+    let r = diesel::update(received::table.find(uid))
+      .set(received::seen.eq(true))
+      .returning(received::uid)
+      .get_result::<i32>(&mut conn);
+    
+    match r {
+      Ok(_) => Ok(()),
+      Err(e) => Err(DbError::Unknown(format!("mark_message_as_seen, no message with that uid: {}", e))),
+    }
   }
 }
