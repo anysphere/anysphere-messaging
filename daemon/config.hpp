@@ -70,7 +70,15 @@ class Config {
   auto random_enabled_friend(const std::unordered_set<string>& excluded)
       -> asphr::StatusOr<Friend>;
 
-  auto get_async_friend_request() -> asphr::StatusOr<pair<string, Friend>>;
+  auto get_outgoing_async_friend_request()
+      -> asphr::StatusOr<pair<string, Friend>>;
+  auto add_incoming_async_friend_requests(
+      const std::map<string, Friend> friend_info) -> void;
+  auto get_incoming_async_friend_requests()
+      -> asphr::StatusOr<std::map<string, Friend>>;
+  auto approve_async_friend_request(const string& friend_public_key,
+                                    const string& custom_name) -> void;
+  auto deny_async_friend_request(const string& friend_public_key) -> void;
 
   auto dummy_me() -> Friend;
 
@@ -124,6 +132,9 @@ class Config {
   // maps public key to a friend struct that describes the friend
   // as soon as this is answered we can add it to the friendTable struct
   std::unordered_map<string, Friend> pending_async_friend_requests;
+
+  // a list of async friend_requests sent by other clients to me
+  std::map<string, Friend> incoming_async_friend_requests;
 
   // latency in seconds
   int latency_;

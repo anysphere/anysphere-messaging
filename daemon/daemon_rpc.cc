@@ -33,6 +33,7 @@ Status DaemonRpc::RegisterUser(
   asphrserver::RegisterInfo request;
   request.set_public_key(public_key);
   request.set_beta_key(beta_key);
+  request.set_friend_request_public_key(friend_request_public_key);
 
   asphrserver::RegisterResponse reply;
   grpc::ClientContext client_context;
@@ -93,6 +94,8 @@ Status DaemonRpc::GetFriendList(
   return Status::OK;
 }
 
+// TODO: Currently, this method uses the same public key for all friends.
+// Is this secure? Do we want to have a custom key for each friend?
 Status DaemonRpc::GenerateFriendKey(
     ServerContext* context,
     const asphrdaemon::GenerateFriendKeyRequest* generateFriendKeyRequest,

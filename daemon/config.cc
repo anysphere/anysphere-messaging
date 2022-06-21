@@ -280,8 +280,9 @@ auto Config::add_async_friend_request(const string& friend_public_key,
   check_rep();
 }
 
-// returns a async request if one exists, otherwise returns a rando request
-auto Config::get_async_friend_request()
+// returns an outgoing(me to someone else) async request if one exists,
+// otherwise returns a rando request
+auto Config::get_outgoing_async_friend_request()
     -> asphr::StatusOr<pair<string, Friend>> {
   const std::lock_guard<std::mutex> l(config_mtx);
 
@@ -305,6 +306,95 @@ auto Config::get_async_friend_request()
   check_rep();
 
   return std::pair<string, Friend>(friend_public_key, friend_info);
+}
+
+// Add incoming friend requests to config's incoming asyncrequest table
+// which maps "friend_request_public_key" to friends
+auto Config::add_incoming_async_friend_requests(
+    const std::map<string, Friend> friend_info) -> void {
+  const std::lock_guard<std::mutex> l(config_mtx);
+
+  for (auto& friend_pair : friend_info) {
+    auto& friend_request_public_key = friend_pair.first;
+    auto& friend_request_info = friend_pair.second;
+    // if the friend request public key is already in the table,
+    // check if the info agrees
+    if (incoming_async_friend_requests.contains(friend_request_public_key)) {
+      auto& existing_friend_info =
+          incoming_async_friend_requests.at(friend_request_public_key);
+      if (existing_friend_info.add_key != friend_request_info.add_key) {
+        // if the info doesn't agree, throw an error
+        std::cerr << "Conflicting friend request received" << std::endl;
+      }
+    } else {
+      // if the friend request public key is not in the table,
+      // add it to the table
+      incoming_async_friend_requests.try_emplace(friend_request_public_key,
+                                                 friend_request_info);
+    }
+  }
+  check_rep();
+}
+auto Config::get_incoming_async_friend_requests()
+    -> asphr::StatusOr<std::map<string, Friend>> {
+  const std::lock_guard<std::mutex> l(config_mtx);
+  // just return the incoming_async_friend_requests table
+  return incoming_async_friend_requests;
+}
+
+auto Config::approve_async_friend_request(const string& friend_public_key,
+                                          const string& custom_name) -> void {
+  const std::lock_guard<std::mutex> l(config_mtx);
+  // if the friend request public key is not in the table,
+  // throw an error
+  if (!incoming_async_friend_requests.contains(friend_public_key)) {
+    std::cerr << "Friend request not found" << std::endl;
+    return;
+  }
+  // else, get the friend request info
+  auto& friend_request_info =
+      incoming_async_friend_requests.at(friend_public_key);
+  // we allocate an available ack slot
+  {
+    // copied from friend.hpp
+    auto rng = std::default_random_engine{};
+    auto all_ack_indexes_not_used = asphr::unordered_set<int>{};
+    for (size_t i = 0; i < MAX_FRIENDS; i++) {
+      all_ack_indexes_not_used.insert(i);
+    }
+
+    // get all the ack_indexes from the FriendTable
+    for (const auto& f : friendTable) {
+      all_ack_indexes_not_used.erase(f.second.ack_index);
+    }
+    // get a random ack_index that is not used
+    std::uniform_int_distribution<int> dist(
+        0, all_ack_indexes_not_used.size() - 1);
+    auto random_ack_index = dist(rng);
+    // TODO: do this a better way
+    friend_request_info.ack_index =
+        *std::next(all_ack_indexes_not_used.begin(), random_ack_index);
+  }
+  // set the name of the friend to the custom name
+  friend_request_info.name = custom_name;
+  // remove the friend request from the table
+  incoming_async_friend_requests.erase(friend_public_key);
+  // add the friend request to the friend table
+  friendTable.try_emplace(friend_request_info.name, friend_request_info);
+  return;
+}
+
+auto Config::deny_async_friend_request(const string& friend_public_key)
+    -> void {
+  const std::lock_guard<std::mutex> l(config_mtx);
+  // if the friend request public key is not in the table,
+  // throw an error
+  if (!incoming_async_friend_requests.contains(friend_public_key)) {
+    std::cerr << "Friend request not found" << std::endl;
+    return;
+  }
+  // else, remove the friend request from the table
+  incoming_async_friend_requests.erase(friend_public_key);
 }
 
 auto Config::friends() const -> vector<Friend> {
@@ -421,8 +511,8 @@ auto Config::wait_until_killed_or_seconds(int seconds) -> bool {
 
   kill_l.unlock();
 
-  // kill only ever changes false -> true, so we are fine returning this here
-  // even after unlocking
+  // kill only ever changes false -> true, so we are fine returning this
+  // here even after unlocking
   return kill_;
 }
 
@@ -497,8 +587,8 @@ auto Config::initialize_dummy_me() -> void {
   dummyMe = Friend("dummyMe", 0, "add_key", dummy_read_write_keys.first,
                    dummy_read_write_keys.second, 0, false, 0, 0, 0, true);
 
-  // don't save at the end because initialize_dummy_me is called before other
-  // things are initialized, so if we saved here we would save an invalid
-  // config. that's why we also don't have a check-rep here: check-rep is not
-  // guaranteed to pass!
+  // don't save at the end because initialize_dummy_me is called before
+  // other things are initialized, so if we saved here we would save an
+  // invalid config. that's why we also don't have a check-rep here:
+  // check-rep is not guaranteed to pass!
 }

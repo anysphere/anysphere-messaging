@@ -17,7 +17,8 @@ Transmitter::Transmitter(const Crypto crypto, shared_ptr<Config> config,
       stub(stub),
       msgstore(msgstore),
       inbox(config->data_dir_address() / "inbox.json"),
-      outbox(config->data_dir_address() / "outbox.json", msgstore) {
+      outbox(config->data_dir_address() / "outbox.json", msgstore),
+      next_async_friend_request_retrieve_index(0) {
   check_rep();
 }
 
@@ -106,6 +107,37 @@ auto Transmitter::retrieve_messages() -> void {
     }
   }
 
+  // Crawl the async friend request database
+  // TODO: currently, batch_size = 1,000
+  // client_db_rows = 360,000
+  // so it takes 360 rounds to scan the entire database
+  // Is there anyway to make this more efficient?
+  // We can compute that
+  // Latency = CLIENT_DB_ROWS * SIZE / DOWNLOAD_RATE
+  int start_index = next_async_friend_request_retrieve_index;
+  int end_index = std::min(next_async_friend_request_retrieve_index +
+                               ASYNC_FRIEND_REQUEST_BATCH_SIZE,
+                           CLIENT_DB_ROWS);
+  // call the server to retrieve the async friend requests
+  auto async_friend_request_replies_status =
+      retrieve_async_friend_request(start_index, end_index);
+  if (!async_friend_request_replies_status.ok()) {
+    // throw an error
+    cerr << "could not retrieve async friend requests" << endl;
+    cerr << async_friend_request_replies_status.status().code() << ": "
+         << async_friend_request_replies_status.status().message() << endl;
+    return;
+  }
+  auto async_friend_request_replies =
+      async_friend_request_replies_status.value();
+  // add them to the config
+  config->add_incoming_async_friend_requests(async_friend_request_replies);
+  // update the next_async_friend_request_retrieve_index
+  if (end_index == CLIENT_DB_ROWS) {
+    next_async_friend_request_retrieve_index = 0;
+  } else {
+    next_async_friend_request_retrieve_index = end_index;
+  }
   check_rep();
 }
 
@@ -200,7 +232,6 @@ auto Transmitter::send_messages() -> void {
               << " details:" << status.error_details() << std::endl;
   }
 
-  // Tranmit the async friend request
   transmit_async_friend_request();
   // check rep and finish
   check_rep();
@@ -237,9 +268,15 @@ auto Transmitter::batch_retrieve_pir(FastPIRClient& client,
   return pir_replies;
 }
 
+//----------------------------------------------------------------
+//----------------------------------------------------------------
+//|||      BELOW ARE METHODS FOR ASYNC FRIEND REQUESTS         |||
+//----------------------------------------------------------------
+//----------------------------------------------------------------
+
 auto Transmitter::transmit_async_friend_request() -> void {
   // retrieve the friend request from config
-  auto async_friend_request_ = config->get_async_friend_request();
+  auto async_friend_request_ = config->get_outgoing_async_friend_request();
   if (!async_friend_request_.ok()) {
     std::cerr << "Error retrieving async friend request: "
               << async_friend_request_.status() << std::endl;
@@ -273,6 +310,69 @@ auto Transmitter::transmit_async_friend_request() -> void {
   return;
 }
 
+// Retrieves async friend requests from the server
+// Returns a map of friend public key to friend info, aimed at the client
+auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
+    -> asphr::StatusOr<std::map<string, Friend>> {
+  // check input
+  if (start_index < 0 || end_index < 0 || start_index > end_index ||
+      end_index - start_index > ASYNC_FRIEND_REQUEST_BATCH_SIZE) {
+    return absl::InvalidArgumentError("Invalid indices");
+  }
+
+  asphrserver::GetAsyncFriendRequestsInfo request;
+  request.set_start_index(start_index);
+  request.set_end_index(end_index);
+  asphrserver::GetAsyncFriendRequestsResponse reply;
+  // transmit
+  grpc::ClientContext context;
+  grpc::Status status = stub->GetAsyncFriendRequests(&context, request, &reply);
+  if (!status.ok()) {
+    std::cerr << status.error_code() << ": " << status.error_message()
+              << " details:" << status.error_details() << std::endl;
+    return {
+        absl::UnknownError("GetAsyncFriendRequests RPC failed with error: " +
+                           status.error_message())};
+  }
+
+  assert(reply.friend_request_public_key_size() == reply.requests_size());
+  // iterate over the returned friend requests
+  std::map<string, Friend> friends = {};
+  for (int i = 0; i < reply.requests_size(); i++) {
+    // TODO: we need to get the friend's public_friend_key via a PKI
+    // decrypt the friend request
+    string friend_request = reply.requests(i);
+    string friend_public_key = reply.friend_request_public_key(i);
+    auto decrypted_friend_request_status = crypto.decrypt_async_friend_request(
+        config->registration_info(), friend_public_key, friend_request);
+    if (!decrypted_friend_request_status.ok()) {
+      // not meant for us!
+      continue;
+    }
+    // the friend request is meant for us
+    // unpack the return value
+    auto decrypted_friend_request = decrypted_friend_request_status.value();
+    // create a friend object
+    string name = std::get<0>(decrypted_friend_request);
+    int allocation = std::get<1>(decrypted_friend_request);
+    string friend_kx_public_key = std::get<2>(decrypted_friend_request);
+    // derive read and write keys. TODO: do we do this here?
+    auto [read_key, write_key] = crypto.derive_read_write_keys(
+        config->registration_info().public_key,
+        config->registration_info().private_key, friend_kx_public_key);
+
+    // TODO: there's gotta be a better way than passing 11 arguments RIGHT?
+    // Also, I'm not setting the ack index here.
+    Friend friend_instance(
+        name, allocation,
+        crypto.generate_friend_key(friend_kx_public_key, allocation), read_key,
+        write_key, 0, true, 0, 0, 0, false);
+
+    // add the friend to the map
+    friends.insert({friend_public_key, friend_instance});
+  }
+  return friends;
+}
 auto Transmitter::check_rep() const noexcept -> void {
   assert(config->has_registered() || !config->has_registered());
 }
