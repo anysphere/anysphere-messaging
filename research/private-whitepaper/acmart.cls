@@ -2579,11 +2579,13 @@
     Page \thepage\ of \@startPage--\pageref*{TotPages}.%
   }
 \fi
-\def\@shortauthors{%
-  \if@ACM@anonymous
-    Anon.
-    \ifx\@acmSubmissionID\@empty\else Submission Id: \@acmSubmissionID\fi
-  \else\shortauthors\fi}
+% \def\@shortauthors{%
+%   \if@ACM@anonymous
+%     Anon.
+%     \ifx\@acmSubmissionID\@empty\else Submission Id: \@acmSubmissionID\fi
+%   \else\shortauthors\fi}
+  \newcommand{\setshortauthors}[1]{\def\@shortauthors{#1}}
+  \newcommand{\setshorttitle}[1]{\def\@shorttitle{#1}}
 \def\@headfootfont{\sffamily\footnotesize}
 \AtBeginDocument{%
 \fancypagestyle{standardpagestyle}{%
@@ -2632,14 +2634,14 @@
       \fancyhead[LO]{\ACM@linecountL}%
       \fancyhead[RE]{\ACM@linecountR}%
       \fancyhead[RO]{\@headfootfont
-        \shorttitle\quad\textbullet\quad\@acmArticlePage\ACM@linecountR}%
+        \@shorttitle\quad\textbullet\quad\@acmArticlePage\ACM@linecountR}%
       \if@ACM@nonacm\else%
         \fancyfoot[RO,LE]{\footnotesize \@journalNameShort, Vol. \@acmVolume, No.
         \@acmNumber, Article \@acmArticle.  Publication date: \@acmPubDate.}%
       \fi
     \else % Proceedings
       \fancyfoot[C]{\if@ACM@printfolios\footnotesize\thepage\fi}%
-      \fancyhead[LO]{\ACM@linecountL\@headfootfont\shorttitle}%
+      \fancyhead[LO]{\ACM@linecountL\@headfootfont\@shorttitle}%
       \fancyhead[RE]{\@headfootfont\@shortauthors\ACM@linecountR}%
       \if@ACM@nonacm
         \fancyhead[LE]{\ACM@linecountL}%
@@ -2655,11 +2657,11 @@
     \fi
   \else % Proceedings
     \fancyfoot[C]{\if@ACM@printfolios\footnotesize\thepage\fi}%
-    \fancyhead[LO]{\ACM@linecountL\@headfootfont\shorttitle}%
-    \fancyhead[RE]{\@headfootfont\@shortauthors\ACM@linecountR}%
+    \fancyhead[L]{\ACM@linecountL\@headfootfont\@shorttitle}%
+    \fancyhead[R]{\@headfootfont\@shortauthors\ACM@linecountR}%
     \if@ACM@nonacm
-      \fancyhead[LE]{\ACM@linecountL}%
-      \fancyhead[RO]{\ACM@linecountR}%
+      % \fancyhead[LE]{\ACM@linecountL}%
+      % \fancyhead[RO]{\ACM@linecountR}%
     \else%
       \fancyhead[LE]{\ACM@linecountL\@headfootfont
         \acmConference@shortname,
