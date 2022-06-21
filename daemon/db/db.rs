@@ -109,10 +109,10 @@ where
   }
 }
 
-//
-// Source of truth is in the migrations folder. Schema.rs is generated from them.
-// This right here is just a query interface. It will not correspond exactly. It should not.
-//
+///
+/// Source of truth is in the migrations folder. Schema.rs is generated from them.
+/// This right here is just a query interface. It will not correspond exactly. It should not.
+///
 #[cxx::bridge(namespace = "db")]
 pub mod ffi {
 
@@ -430,7 +430,7 @@ impl DB {
   }
 
   /// # Safety
-  /// 
+  ///
   /// This dumps the database using pure sql which uses pointers written by hand. Possibly memory leaks.
   /// Do not call this function inside of a production environment.
   #[allow(dead_code)]
@@ -846,16 +846,14 @@ impl DB {
       Ok(old_acked_seqnum)
     });
     match r {
-      Ok(old_ack) => {
-        match ack {
-          ack if ack > old_ack => Ok(true),
-          ack if ack == old_ack => Ok(false),
-          _ => {
-            println!("Ack is older than old ack. This is weird, and probably indicates that the person you're talking to has done something wrong.");
-            Ok(false)
-          }
+      Ok(old_ack) => match ack {
+        ack if ack > old_ack => Ok(true),
+        ack if ack == old_ack => Ok(false),
+        _ => {
+          println!("Ack is older than old ack. This is weird, and probably indicates that the person you're talking to has done something wrong.");
+          Ok(false)
         }
-      }
+      },
       // match old_ack
       Err(e) => Err(DbError::Unknown(format!("receive_ack: {}", e))),
     }
