@@ -113,7 +113,7 @@ fn test_receive_msg() {
   .unwrap();
 
   let msg = "hi im a chunk";
-  let did_get_full_msg = db
+  let chunk_status = db
     .receive_chunk(
       db::IncomingChunkFragment {
         from_friend: f.uid,
@@ -125,7 +125,7 @@ fn test_receive_msg() {
     )
     .unwrap();
 
-  assert!(did_get_full_msg);
+  assert!(chunk_status == db::ReceiveChunkStatus::NewChunkAndNewMessage);
 
   let msgs = db
     .get_received_messages(db::MessageQuery {
