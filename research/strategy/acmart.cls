@@ -520,15 +520,15 @@
   \if@ACM@urlbreakonhyphens
     \def\do@url@hyp{\do\-}%
   \fi
-  \if@ACM@screen
-    \hypersetup{colorlinks,
-      linkcolor=ACMPurple,
-      citecolor=ACMPurple,
-      urlcolor=ACMDarkBlue,
-      filecolor=ACMDarkBlue}
-    \else
-    \hypersetup{hidelinks}
-  \fi
+  % \if@ACM@screen
+  %   \hypersetup{colorlinks,
+  %     linkcolor=ACMPurple,
+  %     citecolor=ACMPurple,
+  %     urlcolor=ACMDarkBlue,
+  %     filecolor=ACMDarkBlue}
+  %   \else
+  %   \hypersetup{hidelinks}
+  % \fi
   \hypersetup{pdflang={en},
     pdfdisplaydoctitle}}
 \if@ACM@natbib
