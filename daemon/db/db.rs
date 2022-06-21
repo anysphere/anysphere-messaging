@@ -309,6 +309,12 @@ pub mod db {
     pub to_friend: i32,
   }
 
+  enum ReceiveChunkStatus {
+    NewChunk,
+    NewChunkAndNewMessage,
+    OldChunk,
+  }
+
   extern "Rust" {
     type DB;
     fn init(address: &str) -> Result<Box<DB>>;
@@ -362,7 +368,11 @@ pub mod db {
     // returns true iff the ack was novel
     fn receive_ack(&self, uid: i32, ack: i32) -> Result<bool>;
     // returns true iff a new full message was received
-    fn receive_chunk(&self, chunk: IncomingChunkFragment, num_chunks: i32) -> Result<bool>;
+    fn receive_chunk(
+      &self,
+      chunk: IncomingChunkFragment,
+      num_chunks: i32,
+    ) -> Result<ReceiveChunkStatus>;
 
     // fails if there is no chunk to send
     // prioritizes by the given uid in order from first to last try
@@ -853,7 +863,7 @@ impl DB {
     &self,
     chunk: db::IncomingChunkFragment,
     num_chunks: i32,
-  ) -> Result<bool, DbError> {
+  ) -> Result<db::ReceiveChunkStatus, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::incoming_chunk;
     use crate::schema::message;
@@ -870,10 +880,10 @@ impl DB {
       // this is good. if something bad happens, you can always retransmit in a new
       // message.
       if chunk.sequence_number <= old_seqnum {
-        return Ok(false);
+        return Ok(db::ReceiveChunkStatus::OldChunk);
       }
       // we want to update received_seqnum in status!
-      // remember that the guarantee is that we have received all messages <= seqnum at all times.
+
       // so we only update the seqnum if we increase exactly by one (otherwise we might miss messages!)
       if chunk.sequence_number == old_seqnum + 1 {
         diesel::update(status::table.find(chunk.from_friend))
@@ -959,10 +969,10 @@ impl DB {
           ),
         ))
         .execute(conn_b)?;
-        return Ok(true);
+        return Ok(db::ReceiveChunkStatus::NewChunkAndNewMessage);
       }
 
-      Ok(false)
+      Ok(db::ReceiveChunkStatus::NewChunk)
     });
 
     match r {

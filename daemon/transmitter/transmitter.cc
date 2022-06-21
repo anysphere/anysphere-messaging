@@ -277,7 +277,7 @@ auto Transmitter::retrieve() -> void {
 
         // TODO: we probably don't want to cast to int32 here... let's use
         // int64s everywhere
-        auto received_full_message = G.db->receive_chunk(
+        auto receive_chunk_status = G.db->receive_chunk(
             (db::IncomingChunkFragment){
                 .from_friend = f.uid,
                 .sequence_number = static_cast<int>(chunk.sequence_number()),
@@ -285,13 +285,17 @@ auto Transmitter::retrieve() -> void {
                     static_cast<int>(chunks_start_sequence_number),
                 .content = chunk.msg()},
             static_cast<int>(num_chunks));
-        if (received_full_message) {
+        if (receive_chunk_status ==
+            db::ReceiveChunkStatus::NewChunkAndNewMessage) {
           std::lock_guard<std::mutex> l(G.message_notification_cv_mutex);
           G.message_notification_cv.notify_all();
         }
 
-        // TODO(URGENT): we should set this ONLY if we received a NEW chunk...
-        previous_success_receive_friend = std::optional<int>(f.uid);
+        if (receive_chunk_status == db::ReceiveChunkStatus::NewChunk ||
+            receive_chunk_status ==
+                db::ReceiveChunkStatus::NewChunkAndNewMessage) {
+          previous_success_receive_friend = std::optional<int>(f.uid);
+        }
       } else {
         ASPHR_LOG_INFO(
             "Failed to decrypt message (message was probably not for us, "
