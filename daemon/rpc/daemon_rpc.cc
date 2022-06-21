@@ -460,9 +460,9 @@ Status DaemonRpc::GetOutboxMessages(
   try {
     auto messages = G.db->get_sent_messages(
         db::MessageQuery{.limit = -1,  // TODO: make this configurable
-                         .filter = db::MessageFilter::New,
+                         .filter = db::MessageFilter::All,
                          .delivery_status = db::DeliveryStatus::Undelivered,
-                         .sort_by = db::SortBy::DeliveredAt,
+                         .sort_by = db::SortBy::SentAt,
                          .after = 0});
 
     for (auto& m : messages) {
@@ -522,9 +522,9 @@ Status DaemonRpc::GetSentMessages(
   try {
     auto messages = G.db->get_sent_messages(
         db::MessageQuery{.limit = -1,  // TODO: make this configurable
-                         .filter = db::MessageFilter::New,
+                         .filter = db::MessageFilter::All,
                          .delivery_status = db::DeliveryStatus::Delivered,
-                         .sort_by = db::SortBy::DeliveredAt,
+                         .sort_by = db::SortBy::SentAt,
                          .after = 0});
 
     for (auto& m : messages) {

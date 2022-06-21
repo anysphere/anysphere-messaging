@@ -47,16 +47,15 @@ export function getDaemonClient(): daemonS.DaemonClient {
 export function convertProtobufIncomingMessageToTypedMessage(
   m: daemonM.IncomingMessage
 ): Message | null {
-  console.log("seconds", m.getReceivedTimestamp().getSeconds());
+  console.log("seconds", m.getDeliveredAt().getSeconds());
   var d = new Date(
-    m.getReceivedTimestamp().getSeconds() * 1e3 +
-      m.getReceivedTimestamp().getNanos() / 1e6
+    m.getDeliveredAt().getSeconds() * 1e3 + m.getDeliveredAt().getNanos() / 1e6
   );
   const M = m.getM();
   return M
     ? {
         id: M.getId(),
-        from: m.getFrom(),
+        from: M.getUniqueName(),
         to: "me",
         message: M.getMessage(),
         timestamp: d,
@@ -68,17 +67,16 @@ export function convertProtobufIncomingMessageToTypedMessage(
 export function convertProtobufOutgoingMessageToTypedMessage(
   m: daemonM.OutgoingMessage
 ): Message | null {
-  console.log("seconds", m.getWrittenTimestamp().getSeconds());
+  console.log("seconds", m.getSentAt().getSeconds());
   var d = new Date(
-    m.getWrittenTimestamp().getSeconds() * 1e3 +
-      m.getWrittenTimestamp().getNanos() / 1e6
+    m.getSentAt().getSeconds() * 1e3 + m.getSentAt().getNanos() / 1e6
   );
   const M = m.getM();
   return M
     ? {
         id: M.getId(),
         from: "me",
-        to: m.getTo(),
+        to: M.getUniqueName(),
         message: M.getMessage(),
         timestamp: d,
         type: "outgoing",

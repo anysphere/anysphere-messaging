@@ -4,7 +4,7 @@
 //
 
 export type Message = {
-  id: string;
+  id: number;
   from: string;
   to: string;
   message: string;
