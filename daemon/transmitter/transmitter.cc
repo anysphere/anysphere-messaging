@@ -73,7 +73,7 @@ auto decrypt_ack_row(pir_value_t& acks_row, const string& read_key)
 }
 
 auto Transmitter::encrypt_ack_row(const vector<db::OutgoingAck>& acks,
-                                  const string& write_key)
+                                  const string& dummy_write_key)
     -> asphr::StatusOr<pir_value_t> {
   assert(acks.size() <= MAX_FRIENDS);
   check_rep();
@@ -91,7 +91,7 @@ auto Transmitter::encrypt_ack_row(const vector<db::OutgoingAck>& acks,
   }
   for (size_t i = 0; i < MAX_FRIENDS; i++) {
     if (encrypted_acks.at(i).empty()) {
-      auto ack = crypto::encrypt_ack(0, write_key);
+      auto ack = crypto::encrypt_ack(0, dummy_write_key);
       if (!ack.ok()) {
         ASPHR_LOG_ERR("Could not encrypt dummy ack.", error_code,
                       ack.status().code(), error_message,
@@ -360,7 +360,8 @@ auto Transmitter::send() -> void {
   auto acks_to_send_rustvec = G.db->acks_to_send();
   auto acks_to_send =
       std::vector(acks_to_send_rustvec.begin(), acks_to_send_rustvec.end());
-  auto encrypted_acks_status = encrypt_ack_row(acks_to_send, write_key);
+  auto encrypted_acks_status = encrypt_ack_row(
+      acks_to_send, rust_u8Vec_to_string(dummy_address.value().write_key));
   if (!encrypted_acks_status.ok()) {
     ASPHR_LOG_ERR("Could not encrypt ACKs.", error_msg,
                   encrypted_acks_status.status().message());

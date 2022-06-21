@@ -106,7 +106,7 @@ fn test_receive_msg() {
       unique_name: "friend_1".to_string(),
       read_index: 0,
       read_key: br#"xxxx"#.to_vec(),
-      write_key: br#"xxxx"#.to_vec(),
+      write_key: br#"wwww"#.to_vec(),
     },
     20,
   )
@@ -149,6 +149,13 @@ fn test_receive_msg() {
     .unwrap();
   assert_eq!(status_pair.0, 0);
   assert_eq!(status_pair.1, 1);
+
+  let acks_to_send = db.acks_to_send().unwrap();
+  assert_eq!(acks_to_send.len(), 1);
+  assert_eq!(acks_to_send[0].to_friend, f.uid);
+  assert_eq!(acks_to_send[0].ack, 1);
+  assert_eq!(acks_to_send[0].write_key, br#"wwww"#.to_vec());
+  // assert_eq!(acks_to_send[0].ack_index, ?); // not sure what this should be
 }
 
 #[test]

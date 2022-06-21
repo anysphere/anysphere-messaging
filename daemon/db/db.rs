@@ -861,13 +861,24 @@ impl DB {
     use crate::schema::status;
 
     let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
-      // if already exists, we are happy! don't need to do anything :))
-      // TODO: check!!
-      if let Ok(_) = incoming_chunk::table
-        .find((chunk.from_friend, chunk.sequence_number))
-        .first::<db::IncomingChunk>(conn_b)
-      {
+      let old_seqnum = status::table
+        .find(chunk.from_friend)
+        .select(status::received_seqnum)
+        .first::<i32>(conn_b)?;
+      // if chunk is before old_seqnum, we just ignore it!!
+      // in other words, once a chunk has been received, it can never be patched.
+      // this is good. if something bad happens, you can always retransmit in a new
+      // message.
+      if chunk.sequence_number <= old_seqnum {
         return Ok(false);
+      }
+      // we want to update received_seqnum in status!
+      // remember that the guarantee is that we have received all messages <= seqnum at all times.
+      // so we only update the seqnum if we increase exactly by one (otherwise we might miss messages!)
+      if chunk.sequence_number == old_seqnum + 1 {
+        diesel::update(status::table.find(chunk.from_friend))
+          .set(status::received_seqnum.eq(chunk.sequence_number))
+          .execute(conn_b)?;
       }
 
       // check if there is already a message uid associated with this chunk sequence
@@ -917,19 +928,6 @@ impl DB {
           diesel::insert_into(incoming_chunk::table).values(&insertable_chunk).execute(conn_b)?;
         }
       };
-
-      // we want to update received_seqnum in status!
-      // remember that the guarantee is that we have received all messages <= seqnum at all times.
-      // so we only update the seqnum if we increase exactly by one (otherwise we might miss messages!)
-      let old_seqnum = status::table
-        .find(chunk.from_friend)
-        .select(status::received_seqnum)
-        .first::<i32>(conn_b)?;
-      if chunk.sequence_number == old_seqnum + 1 {
-        diesel::update(status::table.find(chunk.from_friend))
-          .set(status::received_seqnum.eq(chunk.sequence_number))
-          .execute(conn_b)?;
-      }
 
       // check if we have received all chunks!
       let q =
