@@ -3,7 +3,7 @@ use diesel::prelude::*;
 use crate::db::*;
 use rand::Rng;
 
-fn get_registration_fragment() -> db::RegistrationFragment {
+fn get_registration_fragment() -> ffi::RegistrationFragment {
   let public_key: Vec<u8> = br#"zIUWz21AsWme9KxgS43TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
   let private_key: Vec<u8> = br#""EUSOOwjVEHRD1XzruR93LcK8YosZ3gWUkrrk8yjrpIQ="#.to_vec();
   let allocation: i32 = 34;
@@ -11,7 +11,7 @@ fn get_registration_fragment() -> db::RegistrationFragment {
   let pir_galois_key: Vec<u8> = br#""hi hi hi"#.to_vec();
   let authentication_token: String = "X6H3ILWIrDGThjbi4IpYfWGtJ3YWdMIf".to_string();
 
-  db::RegistrationFragment {
+  ffi::RegistrationFragment {
     public_key,
     private_key,
     allocation,
@@ -102,7 +102,7 @@ fn test_receive_msg() {
 
   let f = db.create_friend("friend_1", "Friend 1", 20).unwrap();
   db.add_friend_address(
-    db::AddAddress {
+    ffi::AddAddress {
       unique_name: "friend_1".to_string(),
       read_index: 0,
       read_key: br#"xxxx"#.to_vec(),
@@ -115,7 +115,7 @@ fn test_receive_msg() {
   let msg = "hi im a chunk";
   let chunk_status = db
     .receive_chunk(
-      db::IncomingChunkFragment {
+      ffi::IncomingChunkFragment {
         from_friend: f.uid,
         sequence_number: 1,
         chunks_start_sequence_number: 1,
@@ -125,14 +125,14 @@ fn test_receive_msg() {
     )
     .unwrap();
 
-  assert!(chunk_status == db::ReceiveChunkStatus::NewChunkAndNewMessage);
+  assert!(chunk_status == ffi::ReceiveChunkStatus::NewChunkAndNewMessage);
 
   let msgs = db
-    .get_received_messages(db::MessageQuery {
+    .get_received_messages(ffi::MessageQuery {
       limit: -1,
-      filter: db::MessageFilter::All,
-      delivery_status: db::DeliveryStatus::Delivered,
-      sort_by: db::SortBy::None,
+      filter: ffi::MessageFilter::All,
+      delivery_status: ffi::DeliveryStatus::Delivered,
+      sort_by: ffi::SortBy::None,
       after: 0,
     })
     .unwrap();
@@ -168,7 +168,7 @@ fn test_send_msg() {
 
   let f = db.create_friend("friend_1", "Friend 1", 20).unwrap();
   db.add_friend_address(
-    db::AddAddress {
+    ffi::AddAddress {
       unique_name: "friend_1".to_string(),
       read_index: 0,
       read_key: br#"xxxx"#.to_vec(),

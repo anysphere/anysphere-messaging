@@ -91,9 +91,9 @@ struct Received {
 
 pub struct I64ButZeroIsNone(i64);
 
-impl Into<i64> for I64ButZeroIsNone {
-  fn into(self) -> i64 {
-    self.0
+impl From<I64ButZeroIsNone> for i64 {
+  fn from(x: I64ButZeroIsNone) -> i64 {
+    x.0
   }
 }
 
@@ -114,7 +114,7 @@ where
 // This right here is just a query interface. It will not correspond exactly. It should not.
 //
 #[cxx::bridge(namespace = "db")]
-pub mod db {
+pub mod ffi {
 
   //
   // WARNING: Diesel checks types. That's awesome. But IT DOES NOT CHECK THE ORDER.
@@ -424,12 +424,15 @@ unsafe fn errmsg_to_string(errmsg: *const std::os::raw::c_char) -> String {
 impl DB {
   pub fn connect(&self) -> Result<SqliteConnection, DbError> {
     match SqliteConnection::establish(&self.address) {
-      Ok(c) => return Ok(c),
+      Ok(c) => Ok(c),
       Err(e) => return Err(DbError::Unknown(format!("failed to connect to database, {}", e,))),
     }
   }
 
-  // dump everything to stdout
+  /// # Safety
+  /// 
+  /// This dumps the database using pure sql which uses pointers written by hand. Possibly memory leaks.
+  /// Do not call this function inside of a production environment.
   #[allow(dead_code)]
   pub unsafe fn dump(&self) -> Result<(), DbError> {
     use libsqlite3_sys::*;
@@ -494,7 +497,7 @@ impl DB {
           write!(s, " ").unwrap();
         }
         println!(">> {}", s);
-        println!("");
+        println!();
       }
 
       sqlite3_finalize(raw_stmt);
@@ -516,7 +519,7 @@ impl DB {
     Ok(has_registered)
   }
 
-  pub fn do_register(&self, reg: db::RegistrationFragment) -> Result<(), DbError> {
+  pub fn do_register(&self, reg: ffi::RegistrationFragment) -> Result<(), DbError> {
     let mut conn = self.connect()?;
 
     use crate::schema::config;
@@ -549,7 +552,7 @@ impl DB {
     }
   }
 
-  pub fn get_registration(&self) -> Result<db::Registration, DbError> {
+  pub fn get_registration(&self) -> Result<ffi::Registration, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::registration;
 
@@ -579,7 +582,7 @@ impl DB {
     Ok(())
   }
 
-  pub fn get_small_registration(&self) -> Result<db::SmallRegistrationFragment, DbError> {
+  pub fn get_small_registration(&self) -> Result<ffi::SmallRegistrationFragment, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::registration;
 
@@ -591,7 +594,7 @@ impl DB {
       registration::authentication_token,
     ));
     let registration = q
-      .first::<db::SmallRegistrationFragment>(&mut conn)
+      .first::<ffi::SmallRegistrationFragment>(&mut conn)
       .map_err(|e| DbError::Unknown(format!("failed to query registration: {}", e)))?;
     Ok(registration)
   }
@@ -607,7 +610,7 @@ impl DB {
     Ok(pir_secret_key)
   }
 
-  pub fn get_send_info(&self) -> Result<db::SendInfo, DbError> {
+  pub fn get_send_info(&self) -> Result<ffi::SendInfo, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::registration;
 
@@ -619,12 +622,12 @@ impl DB {
     Ok(send_info)
   }
 
-  pub fn get_friend(&self, unique_name: &str) -> Result<db::Friend, DbError> {
+  pub fn get_friend(&self, unique_name: &str) -> Result<ffi::Friend, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::friend;
 
     if let Ok(f) =
-      friend::table.filter(friend::unique_name.eq(unique_name)).first::<db::Friend>(&mut conn)
+      friend::table.filter(friend::unique_name.eq(unique_name)).first::<ffi::Friend>(&mut conn)
     {
       Ok(f)
     } else {
@@ -632,11 +635,11 @@ impl DB {
     }
   }
 
-  pub fn get_friends(&self) -> Result<Vec<db::Friend>, DbError> {
+  pub fn get_friends(&self) -> Result<Vec<ffi::Friend>, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::friend;
 
-    if let Ok(v) = friend::table.filter(friend::deleted.eq(false)).load::<db::Friend>(&mut conn) {
+    if let Ok(v) = friend::table.filter(friend::deleted.eq(false)).load::<ffi::Friend>(&mut conn) {
       Ok(v)
     } else {
       Err(DbError::Unknown("failed to get friends".to_string()))
@@ -648,11 +651,11 @@ impl DB {
     unique_name: &str,
     display_name: &str,
     max_friends: i32,
-  ) -> Result<db::Friend, DbError> {
+  ) -> Result<ffi::Friend, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::friend;
 
-    let f = db::FriendFragment {
+    let f = ffi::FriendFragment {
       unique_name: unique_name.to_string(),
       display_name: display_name.to_string(),
       enabled: false,
@@ -672,7 +675,7 @@ impl DB {
         return Err(diesel::result::Error::RollbackTransaction);
       }
 
-      diesel::insert_into(friend::table).values(&f).get_result::<db::Friend>(conn_b)
+      diesel::insert_into(friend::table).values(&f).get_result::<ffi::Friend>(conn_b)
     });
 
     r.map_err(|e| match e {
@@ -685,7 +688,7 @@ impl DB {
 
   pub fn add_friend_address(
     &self,
-    add_address: db::AddAddress,
+    add_address: ffi::AddAddress,
     max_friends: i32,
   ) -> Result<(), DbError> {
     let mut conn = self.connect()?;
@@ -715,10 +718,10 @@ impl DB {
         use rand::seq::SliceRandom;
         let ack_index_opt = possible_ack_indices.choose(&mut rand::thread_rng());
         let ack_index = ack_index_opt.ok_or(diesel::result::Error::RollbackTransaction)?;
-        let address = db::Address {
-          uid: uid,
+        let address = ffi::Address {
+          uid,
           read_index: add_address.read_index,
-          ack_index: ack_index.clone(),
+          ack_index: *ack_index,
           read_key: add_address.read_key,
           write_key: add_address.write_key,
         };
@@ -726,7 +729,7 @@ impl DB {
 
         diesel::update(friend::table.find(uid)).set(friend::enabled.eq(true)).execute(conn_b)?;
 
-        let status = db::Status { uid: uid, sent_acked_seqnum: 0, received_seqnum: 0 };
+        let status = ffi::Status { uid, sent_acked_seqnum: 0, received_seqnum: 0 };
         diesel::insert_into(status::table).values(&status).execute(conn_b)?;
 
         Ok(())
@@ -834,15 +837,13 @@ impl DB {
           .load::<i32>(conn_b)?;
 
         // we use ii to make sure that times are guaranteed to be unique
-        let mut ii: i64 = 0;
-        for uid in newly_delivered {
+        for (ii, uid) in (0_i64..).zip(newly_delivered.into_iter()) {
           diesel::update(sent::table.find(uid))
             .set((sent::delivered.eq(true), sent::delivered_at.eq(util::unix_micros_now() + ii)))
             .execute(conn_b)?;
-          ii += 1;
         }
       }
-      return Ok(old_acked_seqnum);
+      Ok(old_acked_seqnum)
     });
     match r {
       Ok(old_ack) => {
@@ -855,15 +856,16 @@ impl DB {
           }
         }
       }
+      // match old_ack
       Err(e) => Err(DbError::Unknown(format!("receive_ack: {}", e))),
     }
   }
 
   pub fn receive_chunk(
     &self,
-    chunk: db::IncomingChunkFragment,
+    chunk: ffi::IncomingChunkFragment,
     num_chunks: i32,
-  ) -> Result<db::ReceiveChunkStatus, DbError> {
+  ) -> Result<ffi::ReceiveChunkStatus, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::incoming_chunk;
     use crate::schema::message;
@@ -880,7 +882,7 @@ impl DB {
       // this is good. if something bad happens, you can always retransmit in a new
       // message.
       if chunk.sequence_number <= old_seqnum {
-        return Ok(db::ReceiveChunkStatus::OldChunk);
+        return Ok(ffi::ReceiveChunkStatus::OldChunk);
       }
       // we want to update received_seqnum in status!
 
@@ -897,15 +899,15 @@ impl DB {
           incoming_chunk::chunks_start_sequence_number.eq(chunk.chunks_start_sequence_number),
         ));
       let message_uid;
-      match q.first::<db::IncomingChunk>(conn_b) {
+      match q.first::<ffi::IncomingChunk>(conn_b) {
         Ok(ref_chunk) => {
           message_uid = ref_chunk.message_uid;
           // ok now we want to simply insert this chunk!
-          let insertable_chunk = db::IncomingChunk {
+          let insertable_chunk = ffi::IncomingChunk {
             from_friend: chunk.from_friend,
             sequence_number: chunk.sequence_number,
             chunks_start_sequence_number: chunk.chunks_start_sequence_number,
-            message_uid: message_uid,
+            message_uid,
             content: chunk.content,
           };
           diesel::insert_into(incoming_chunk::table).values(&insertable_chunk).execute(conn_b)?;
@@ -914,13 +916,13 @@ impl DB {
           // if there is no message uid associated with this chunk sequence, we need to create a new message
           let new_msg = diesel::insert_into(message::table)
             .values(message::content.eq(""))
-            .get_result::<db::Message>(conn_b)?;
+            .get_result::<ffi::Message>(conn_b)?;
 
           message_uid = new_msg.uid;
           let new_received = Received {
             uid: message_uid,
             from_friend: chunk.from_friend,
-            num_chunks: num_chunks,
+            num_chunks,
             received_at: util::unix_micros_now(),
             delivered: false,
             delivered_at: None,
@@ -928,11 +930,11 @@ impl DB {
           };
           diesel::insert_into(received::table).values(&new_received).execute(conn_b)?;
 
-          let insertable_chunk = db::IncomingChunk {
+          let insertable_chunk = ffi::IncomingChunk {
             from_friend: chunk.from_friend,
             sequence_number: chunk.sequence_number,
             chunks_start_sequence_number: chunk.chunks_start_sequence_number,
-            message_uid: message_uid,
+            message_uid,
             content: chunk.content,
           };
           diesel::insert_into(incoming_chunk::table).values(&insertable_chunk).execute(conn_b)?;
@@ -950,7 +952,7 @@ impl DB {
         // we have received all chunks!
         // now assemble the message, write it, and be happy!
         let all_chunks =
-          q.order_by(incoming_chunk::sequence_number).load::<db::IncomingChunk>(conn_b)?;
+          q.order_by(incoming_chunk::sequence_number).load::<ffi::IncomingChunk>(conn_b)?;
         let msg = all_chunks.iter().fold(String::new(), |mut acc, chunk| {
           acc.push_str(&chunk.content);
           acc
@@ -969,10 +971,10 @@ impl DB {
           ),
         ))
         .execute(conn_b)?;
-        return Ok(db::ReceiveChunkStatus::NewChunkAndNewMessage);
+        return Ok(ffi::ReceiveChunkStatus::NewChunkAndNewMessage);
       }
 
-      Ok(db::ReceiveChunkStatus::NewChunk)
+      Ok(ffi::ReceiveChunkStatus::NewChunk)
     });
 
     match r {
@@ -984,7 +986,7 @@ impl DB {
   pub fn chunk_to_send(
     &self,
     uid_priority: Vec<i32>,
-  ) -> Result<db::OutgoingChunkPlusPlus, DbError> {
+  ) -> Result<ffi::OutgoingChunkPlusPlus, DbError> {
     let mut conn = self.connect()?;
 
     use crate::schema::address;
@@ -1034,7 +1036,7 @@ impl DB {
           address::write_key,
           sent::num_chunks,
         ))
-        .first::<db::OutgoingChunkPlusPlus>(conn_b)?;
+        .first::<ffi::OutgoingChunkPlusPlus>(conn_b)?;
       Ok(chunk_plusplus)
     });
 
@@ -1044,7 +1046,7 @@ impl DB {
     }
   }
 
-  pub fn acks_to_send(&self) -> Result<Vec<db::OutgoingAck>, DbError> {
+  pub fn acks_to_send(&self) -> Result<Vec<ffi::OutgoingAck>, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::address;
     use crate::schema::friend;
@@ -1060,14 +1062,14 @@ impl DB {
       address::write_key,
       address::ack_index,
     ));
-    let r = q.load::<db::OutgoingAck>(&mut conn);
+    let r = q.load::<ffi::OutgoingAck>(&mut conn);
     match r {
       Ok(acks) => Ok(acks),
       Err(e) => Err(DbError::Unknown(format!("acks_to_send: {}", e))),
     }
   }
 
-  pub fn get_friend_address(&self, uid: i32) -> Result<db::Address, DbError> {
+  pub fn get_friend_address(&self, uid: i32) -> Result<ffi::Address, DbError> {
     let mut conn = self.connect()?;
 
     use crate::schema::address;
@@ -1081,7 +1083,7 @@ impl DB {
   pub fn get_random_enabled_friend_address_excluding(
     &self,
     uids: Vec<i32>,
-  ) -> Result<db::Address, DbError> {
+  ) -> Result<ffi::Address, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::address;
     use crate::schema::friend;
@@ -1091,7 +1093,7 @@ impl DB {
 
     // Inner join to get the (friend, address) pairs and then select the address.
     let q = q.inner_join(address::table).select(address::all_columns);
-    let addresses = q.load::<db::Address>(&mut conn);
+    let addresses = q.load::<ffi::Address>(&mut conn);
 
     match addresses {
       Ok(addresses) => {
@@ -1198,8 +1200,8 @@ impl DB {
 
   pub fn get_received_messages(
     &self,
-    query: db::MessageQuery,
-  ) -> Result<Vec<db::ReceivedPlusPlus>, DbError> {
+    query: ffi::MessageQuery,
+  ) -> Result<Vec<ffi::ReceivedPlusPlus>, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::friend;
     use crate::schema::message;
@@ -1213,17 +1215,17 @@ impl DB {
     };
 
     let q = match query.filter {
-      db::MessageFilter::New => q.filter(received::seen.eq(false)),
-      db::MessageFilter::All => q,
+      ffi::MessageFilter::New => q.filter(received::seen.eq(false)),
+      ffi::MessageFilter::All => q,
       _ => {
         return Err(DbError::InvalidArgument("get_received_messages: invalid filter".to_string()))
       }
     };
 
     let q = match query.delivery_status {
-      db::DeliveryStatus::Delivered => q.filter(received::delivered.eq(true)),
-      db::DeliveryStatus::Undelivered => q.filter(received::delivered.eq(false)),
-      db::DeliveryStatus::All => q,
+      ffi::DeliveryStatus::Delivered => q.filter(received::delivered.eq(true)),
+      ffi::DeliveryStatus::Undelivered => q.filter(received::delivered.eq(false)),
+      ffi::DeliveryStatus::All => q,
       _ => {
         return Err(DbError::InvalidArgument(
           "get_received_messages: invalid delivery status".to_string(),
@@ -1232,10 +1234,10 @@ impl DB {
     };
 
     let q = match query.sort_by {
-      db::SortBy::None => q,
-      db::SortBy::ReceivedAt => q.order_by(received::received_at.desc()),
-      db::SortBy::DeliveredAt => q.order_by(received::delivered_at.desc()),
-      db::SortBy::SentAt => {
+      ffi::SortBy::None => q,
+      ffi::SortBy::ReceivedAt => q.order_by(received::received_at.desc()),
+      ffi::SortBy::DeliveredAt => q.order_by(received::delivered_at.desc()),
+      ffi::SortBy::SentAt => {
         return Err(DbError::InvalidArgument(
           "Cannot sort by sent_at when getting received_messages".to_string(),
         ))
@@ -1248,10 +1250,10 @@ impl DB {
     let q = match query.after {
       0 => q,
       x => match query.sort_by {
-        db::SortBy::None => q,
-        db::SortBy::ReceivedAt => q.filter(received::received_at.gt(x)),
-        db::SortBy::DeliveredAt => q.filter(received::delivered_at.gt(x)),
-        db::SortBy::SentAt => {
+        ffi::SortBy::None => q,
+        ffi::SortBy::ReceivedAt => q.filter(received::received_at.gt(x)),
+        ffi::SortBy::DeliveredAt => q.filter(received::delivered_at.gt(x)),
+        ffi::SortBy::SentAt => {
           return Err(DbError::InvalidArgument(
             "Cannot sort by sent_at when getting received_messages".to_string(),
           ))
@@ -1275,7 +1277,7 @@ impl DB {
       received::seen,
       message::content,
     ))
-    .load::<db::ReceivedPlusPlus>(&mut conn)
+    .load::<ffi::ReceivedPlusPlus>(&mut conn)
     .map_err(|e| DbError::Unknown(format!("get_received_messages: {}", e)))
   }
 
@@ -1304,8 +1306,8 @@ impl DB {
 
   pub fn get_sent_messages(
     &self,
-    query: db::MessageQuery,
-  ) -> Result<Vec<db::SentPlusPlus>, DbError> {
+    query: ffi::MessageQuery,
+  ) -> Result<Vec<ffi::SentPlusPlus>, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::friend;
     use crate::schema::message;
@@ -1319,16 +1321,16 @@ impl DB {
     };
 
     let q = match query.filter {
-      db::MessageFilter::All => q,
+      ffi::MessageFilter::All => q,
       _ => {
         return Err(DbError::InvalidArgument("get_sent_messages_query: invalid filter".to_string()))
       }
     };
 
     let q = match query.delivery_status {
-      db::DeliveryStatus::Delivered => q.filter(sent::delivered.eq(true)),
-      db::DeliveryStatus::Undelivered => q.filter(sent::delivered.eq(false)),
-      db::DeliveryStatus::All => q,
+      ffi::DeliveryStatus::Delivered => q.filter(sent::delivered.eq(true)),
+      ffi::DeliveryStatus::Undelivered => q.filter(sent::delivered.eq(false)),
+      ffi::DeliveryStatus::All => q,
       _ => {
         return Err(DbError::InvalidArgument(
           "get_sent_messages_query: invalid delivery status".to_string(),
@@ -1337,10 +1339,10 @@ impl DB {
     };
 
     let q = match query.sort_by {
-      db::SortBy::None => q,
-      db::SortBy::SentAt => q.order_by(sent::sent_at.desc()),
-      db::SortBy::DeliveredAt => q.order_by(sent::delivered_at.desc()),
-      db::SortBy::ReceivedAt => {
+      ffi::SortBy::None => q,
+      ffi::SortBy::SentAt => q.order_by(sent::sent_at.desc()),
+      ffi::SortBy::DeliveredAt => q.order_by(sent::delivered_at.desc()),
+      ffi::SortBy::ReceivedAt => {
         return Err(DbError::InvalidArgument(
           "Cannot sort by received_at when getting sent messages".to_string(),
         ))
@@ -1355,10 +1357,10 @@ impl DB {
     let q = match query.after {
       0 => q,
       x => match query.sort_by {
-        db::SortBy::None => q,
-        db::SortBy::SentAt => q.filter(sent::sent_at.gt(x)),
-        db::SortBy::DeliveredAt => q.filter(sent::delivered_at.gt(x)),
-        db::SortBy::ReceivedAt => {
+        ffi::SortBy::None => q,
+        ffi::SortBy::SentAt => q.filter(sent::sent_at.gt(x)),
+        ffi::SortBy::DeliveredAt => q.filter(sent::delivered_at.gt(x)),
+        ffi::SortBy::ReceivedAt => {
           return Err(DbError::InvalidArgument(
             "Cannot sort by received_at when getting sent_messages".to_string(),
           ))
@@ -1381,14 +1383,14 @@ impl DB {
       sent::delivered_at,
       message::content,
     ))
-    .load::<db::SentPlusPlus>(&mut conn)
+    .load::<ffi::SentPlusPlus>(&mut conn)
     .map_err(|e| DbError::Unknown(format!("get_sent_messages: {}", e)))
   }
 
   pub fn get_draft_messages(
     &self,
-    query: db::MessageQuery,
-  ) -> Result<Vec<db::DraftPlusPlus>, DbError> {
+    query: ffi::MessageQuery,
+  ) -> Result<Vec<ffi::DraftPlusPlus>, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::draft;
     use crate::schema::friend;
@@ -1402,12 +1404,12 @@ impl DB {
     };
 
     let q = match query.filter {
-      db::MessageFilter::All => q,
+      ffi::MessageFilter::All => q,
       _ => return Err(DbError::InvalidArgument("get_draft_messages: invalid filter".to_string())),
     };
 
     let q = match query.delivery_status {
-      db::DeliveryStatus::All => q,
+      ffi::DeliveryStatus::All => q,
       _ => {
         return Err(DbError::InvalidArgument(
           "get_draft_messages: invalid delivery status".to_string(),
@@ -1416,12 +1418,12 @@ impl DB {
     };
 
     let q = match query.sort_by {
-      db::SortBy::None => q,
+      ffi::SortBy::None => q,
       _ => return Err(DbError::InvalidArgument("get_draft_messages: invalid sort_by".to_string())),
     };
 
     q.select((draft::uid, friend::unique_name, friend::display_name, message::content))
-      .load::<db::DraftPlusPlus>(&mut conn)
+      .load::<ffi::DraftPlusPlus>(&mut conn)
       .map_err(|e| DbError::Unknown(format!("get_draft_messages: {}", e)))
   }
 
