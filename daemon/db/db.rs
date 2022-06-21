@@ -846,13 +846,13 @@ impl DB {
     });
     match r {
       Ok(old_ack) => {
-        if ack > old_ack {
-          Ok(true)
-        } else if ack == old_ack {
-          Ok(false)
-        } else {
-          println!("Ack is older than old ack. This is weird, and probably indicates that the person you're talking to has done something wrong.");
-          Ok(false)
+        match ack {
+          ack if ack > old_ack => Ok(true),
+          ack if ack == old_ack => Ok(false),
+          _ => {
+            println!("Ack is older than old ack. This is weird, and probably indicates that the person you're talking to has done something wrong.");
+            Ok(false)
+          }
         }
       }
       Err(e) => Err(DbError::Unknown(format!("receive_ack: {}", e))),
@@ -1008,7 +1008,7 @@ impl DB {
           };
           acc
         });
-      if first_chunk_per_friend.len() == 0 {
+      if first_chunk_per_friend.is_empty() {
         return Err(diesel::result::Error::NotFound);
       }
       let chosen_chunk: (i32, i32) = (|| {
@@ -1098,7 +1098,7 @@ impl DB {
         let rng: usize = rand::random();
         let mut filtered_addresses =
           addresses.into_iter().filter(|address| !uids.contains(&address.uid)).collect::<Vec<_>>();
-        if filtered_addresses.len() == 0 {
+        if filtered_addresses.is_empty() {
           return Err(DbError::NotFound(
             "No enabled friends not in the excluded list found.".to_string(),
           ));

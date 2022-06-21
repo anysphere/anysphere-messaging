@@ -38,7 +38,7 @@ fn test_connection() {
   // TODO: fix this to be generic like a real test lol
   let db_file = gen_temp_file();
   println!("db_file: {}", db_file);
-  let db = DB { address: db_file.to_string() };
+  let db = DB { address: db_file };
 
   let connection = db.connect();
   assert!(connection.is_ok());
@@ -54,7 +54,7 @@ fn test_register() {
   let db = init(db_file.as_str()).unwrap();
 
   db.delete_registration().unwrap();
-  assert!(db.has_registered().unwrap() == false);
+  assert!(!db.has_registered().unwrap());
 
   let did_register = db.do_register(config_data);
 
@@ -64,7 +64,7 @@ fn test_register() {
 
   match did_register {
     Ok(_) => {
-      assert!(db.has_registered().unwrap() == true);
+      assert!(db.has_registered().unwrap());
     }
     Err(e) => {
       panic!("{:?}", e);
@@ -83,13 +83,13 @@ fn test_register() {
       assert_eq!(registration.authentication_token, config_clone.authentication_token);
     }
     Err(_) => {
-      assert!(false);
+      panic!("Failed to get registration");
     }
   }
 
   db.delete_registration().unwrap();
 
-  assert!(db.has_registered().unwrap() == false);
+  assert!(!db.has_registered().unwrap());
 }
 
 #[test]
