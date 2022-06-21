@@ -352,8 +352,9 @@ auto Config::approve_async_friend_request(const string& friend_public_key,
     return;
   }
   // else, get the friend request info
-  auto& friend_request_info =
-      incoming_async_friend_requests.at(friend_public_key);
+  // apparently we need to make a copy of the friend request info
+  Friend friend_request_info(
+      incoming_async_friend_requests.at(friend_public_key));
   // we allocate an available ack slot
   {
     // copied from friend.hpp

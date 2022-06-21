@@ -361,12 +361,35 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
         config->registration_info().public_key,
         config->registration_info().private_key, friend_kx_public_key);
 
+    // sometimes we read duplicate requests.
+    // so we need to check if we already have this friend
+
+    auto add_key = crypto.generate_friend_key(friend_kx_public_key, allocation);
+    auto existing_incoming_requests =
+        config->get_incoming_async_friend_requests().value();
+    cout << "New add key: " << add_key << endl;
+    bool duplicate = false;
+    if (existing_incoming_requests.find(friend_public_key) !=
+        existing_incoming_requests.end()) {
+      duplicate = true;
+    }
+
+    for (auto existing_friend : config->friends()) {
+      cout << "Existing add key: " << existing_friend.add_key << endl;
+      if (existing_friend.add_key == add_key) {
+        duplicate = true;
+      }
+    }
+
+    // continue if duplicate
+    if (duplicate) {
+      continue;
+    }
+
     // TODO: there's gotta be a better way than passing 11 arguments RIGHT?
     // Also, I'm not setting the ack index here.
-    Friend friend_instance(
-        name, allocation,
-        crypto.generate_friend_key(friend_kx_public_key, allocation), read_key,
-        write_key, 0, true, 0, 0, 0, false);
+    Friend friend_instance(name, allocation, add_key, read_key, write_key, 0,
+                           true, 0, 0, 0, false);
 
     // add the friend to the map
     friends.insert({friend_public_key, friend_instance});
