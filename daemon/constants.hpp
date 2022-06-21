@@ -36,7 +36,7 @@ constexpr size_t MAX_FRIENDS = MESSAGE_SIZE / ENCRYPTED_ACKING_BYTES;
 // migration in the shape of UPDATE config SET value = 'new_value' WHERE value =
 // 'old_value'; i.e. update the db only if the user is still using the default
 // value
-constexpr auto DEFAULT_ROUND_DELAY_SECONDS = 30;
+constexpr auto DEFAULT_ROUND_DELAY_SECONDS = 60;
 constexpr auto DEFAULT_SERVER_ADDRESS = "server1.anysphere.co:443";
 
 // this commit hash will be automatically updated by gui/package.json.

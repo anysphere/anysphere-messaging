@@ -184,6 +184,13 @@ auto Transmitter::retrieve() -> void {
   }
   assert(receive_addresses.size() == RECEIVE_FRIENDS_PER_ROUND);
 
+  auto friends_to_receive_from = string("");
+  for (auto& r : receive_addresses) {
+    friends_to_receive_from += std::to_string(r.uid) + ",";
+  }
+  ASPHR_LOG_INFO("Receiving messages from the following friends.", friend_uids,
+                 friends_to_receive_from);
+
   // -----
   // Step 2: execute the PIR queries
   // -----
@@ -254,7 +261,19 @@ auto Transmitter::retrieve() -> void {
               "Received empty garbage-message for security purposes.",
               friend_uid, f.uid);
           return;
+        } else {
+          ASPHR_LOG_INFO("Received real chunk from friend.", friend_uid, f.uid,
+                         sequence_number, chunk.sequence_number(),
+                         chunks_start_sequence_number,
+                         chunk.chunks_start_sequence_number(), num_chunks,
+                         chunk.num_chunks(), chunk_content, chunk.msg());
         }
+
+        // we don't set these fields if we only have one chunk
+        auto num_chunks = chunk.num_chunks() > 1 ? chunk.num_chunks() : 1;
+        auto chunks_start_sequence_number =
+            chunk.num_chunks() > 1 ? chunk.chunks_start_sequence_number()
+                                   : chunk.sequence_number();
 
         // TODO: we probably don't want to cast to int32 here... let's use
         // int64s everywhere
@@ -263,14 +282,15 @@ auto Transmitter::retrieve() -> void {
                 .from_friend = f.uid,
                 .sequence_number = static_cast<int>(chunk.sequence_number()),
                 .chunks_start_sequence_number =
-                    static_cast<int>(chunk.chunks_start_sequence_number()),
+                    static_cast<int>(chunks_start_sequence_number),
                 .content = chunk.msg()},
-            static_cast<int>(chunk.num_chunks()));
+            static_cast<int>(num_chunks));
         if (received_full_message) {
           std::lock_guard<std::mutex> l(G.message_notification_cv_mutex);
           G.message_notification_cv.notify_all();
         }
 
+        // TODO(URGENT): we should set this ONLY if we received a NEW chunk...
         previous_success_receive_friend = std::optional<int>(f.uid);
       } else {
         ASPHR_LOG_INFO(

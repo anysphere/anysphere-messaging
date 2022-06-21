@@ -125,4 +125,4 @@ CREATE TABLE incoming_chunk (
 ------------------START OF DATA------------------
 
 -- DUPLICATION: MAKE SURE TO HAVE THE CONSTANTS BE THE SAME AS constants.hpp
-INSERT INTO config (uid, server_address, latency, has_registered) VALUES (1, "server1.anysphere.co:443", 30, false);
+INSERT INTO config (uid, server_address, latency, has_registered) VALUES (1, "server1.anysphere.co:443", 60, false);

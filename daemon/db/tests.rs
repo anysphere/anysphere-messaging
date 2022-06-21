@@ -92,4 +92,87 @@ mod registration_tests {
 
     assert!(db.has_registered().unwrap() == false);
   }
+
+  #[test]
+  fn test_receive_msg() {
+    let db_file = gen_temp_file();
+    let db = init(db_file.as_str()).unwrap();
+
+    let config_data = get_registration_fragment();
+    db.do_register(config_data).unwrap();
+
+    let f = db.create_friend("friend_1", "Friend 1", 20).unwrap();
+    db.add_friend_address(
+      db::AddAddress {
+        unique_name: "friend_1".to_string(),
+        read_index: 0,
+        read_key: br#"xxxx"#.to_vec(),
+        write_key: br#"xxxx"#.to_vec(),
+      },
+      20,
+    )
+    .unwrap();
+
+    let msg = "hi im a chunk";
+    let did_get_full_msg = db
+      .receive_chunk(
+        db::IncomingChunkFragment {
+          from_friend: f.uid,
+          sequence_number: 1,
+          chunks_start_sequence_number: 1,
+          content: "hi im a chunk".to_string(),
+        },
+        1,
+      )
+      .unwrap();
+
+    assert!(did_get_full_msg);
+
+    let msgs = db
+      .get_received_messages(db::MessageQuery {
+        limit: -1,
+        filter: db::MessageFilter::All,
+        delivery_status: db::DeliveryStatus::Delivered,
+        sort_by: db::SortBy::None,
+        after: 0,
+      })
+      .unwrap();
+
+    assert_eq!(msgs.len(), 1);
+    assert_eq!(msgs[0].content, msg);
+  }
+
+  #[test]
+  fn test_send_msg() {
+    let db_file = gen_temp_file();
+    let db = init(db_file.as_str()).unwrap();
+
+    let config_data = get_registration_fragment();
+    db.do_register(config_data).unwrap();
+
+    let f = db.create_friend("friend_1", "Friend 1", 20).unwrap();
+    db.add_friend_address(
+      db::AddAddress {
+        unique_name: "friend_1".to_string(),
+        read_index: 0,
+        read_key: br#"xxxx"#.to_vec(),
+        write_key: br#"wwww"#.to_vec(),
+      },
+      20,
+    )
+    .unwrap();
+
+    let msg = "hi im a single chunk";
+    db.queue_message_to_send("friend_1", msg, vec![msg.to_string()]).unwrap();
+
+    let chunk_to_send = db.chunk_to_send(vec![]).unwrap();
+
+    assert!(chunk_to_send.to_friend == f.uid);
+    assert!(chunk_to_send.sequence_number == 1);
+    assert!(chunk_to_send.chunks_start_sequence_number == 1);
+    // assert!(chunk_to_send.message_uid == 0); // we don't necessarily know what message_uid sqlite chooses
+    assert!(chunk_to_send.content == msg);
+    assert!(chunk_to_send.write_key == br#"wwww"#.to_vec());
+    assert!(chunk_to_send.num_chunks == 1);
+  }
 }

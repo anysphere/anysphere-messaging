@@ -92,20 +92,21 @@ struct Received {
 pub struct I64ButZeroIsNone(i64);
 
 impl Into<i64> for I64ButZeroIsNone {
-    fn into(self) -> i64 {
-        self.0
-    }
+  fn into(self) -> i64 {
+    self.0
+  }
 }
 
 impl<DB> Queryable<diesel::sql_types::Nullable<diesel::sql_types::BigInt>, DB> for I64ButZeroIsNone
 where
-    DB: diesel::backend::Backend,
-    Option<i64>: diesel::deserialize::FromSql<diesel::sql_types::Nullable<diesel::sql_types::BigInt>, DB>
+  DB: diesel::backend::Backend,
+  Option<i64>:
+    diesel::deserialize::FromSql<diesel::sql_types::Nullable<diesel::sql_types::BigInt>, DB>,
 {
   type Row = Option<i64>;
-    fn build(s: Option<i64>) -> diesel::deserialize::Result<Self> {
-        Ok(I64ButZeroIsNone(s.unwrap_or(0)))
-    }
+  fn build(s: Option<i64>) -> diesel::deserialize::Result<Self> {
+    Ok(I64ButZeroIsNone(s.unwrap_or(0)))
+  }
 }
 
 //
@@ -312,6 +313,9 @@ pub mod db {
     type DB;
     fn init(address: &str) -> Result<Box<DB>>;
 
+    // Debug
+    unsafe fn dump(&self) -> Result<()>;
+
     //
     // Config
     //
@@ -469,15 +473,14 @@ impl DB {
 
       while sqlite3_step(raw_stmt) == SQLITE_ROW {
         let mut s = String::new();
+        // print the row, and handle null values
         for i in 0..sqlite3_column_count(raw_stmt) {
-          write!(
-            s,
-            "{}",
-            std::ffi::CStr::from_ptr(sqlite3_column_text(raw_stmt, i) as *const i8)
-              .to_string_lossy()
-              .into_owned()
-          )
-          .unwrap();
+          if sqlite3_column_type(raw_stmt, i) == SQLITE_NULL {
+            write!(s, "NULL").unwrap();
+          } else {
+            let c_str = std::ffi::CStr::from_ptr(sqlite3_column_text(raw_stmt, i) as *const i8);
+            write!(s, "{}", c_str.to_string_lossy()).unwrap();
+          }
           write!(s, " ").unwrap();
         }
         println!(">> {}", s);
@@ -1170,7 +1173,6 @@ impl DB {
     Ok(())
   }
 
-
   pub fn get_received_messages(
     &self,
     query: db::MessageQuery,
@@ -1223,7 +1225,7 @@ impl DB {
     let q = match query.after {
       0 => q,
       x => match query.sort_by {
-      db::SortBy::None => q,
+        db::SortBy::None => q,
         db::SortBy::ReceivedAt => q.filter(received::received_at.gt(x)),
         db::SortBy::DeliveredAt => q.filter(received::delivered_at.gt(x)),
         db::SortBy::SentAt => {
@@ -1239,31 +1241,34 @@ impl DB {
       },
     };
 
-    q
-      .select((
-        received::uid,
-        friend::unique_name,
-        friend::display_name,
-        received::num_chunks,
-        received::received_at,
-        received::delivered,
-        received::delivered_at,
-        received::seen,
-        message::content,
-      ))
-      .load::<db::ReceivedPlusPlus>(&mut conn)
-      .map_err(|e| DbError::Unknown(format!("get_received_messages: {}", e)))
+    q.select((
+      received::uid,
+      friend::unique_name,
+      friend::display_name,
+      received::num_chunks,
+      received::received_at,
+      received::delivered,
+      received::delivered_at,
+      received::seen,
+      message::content,
+    ))
+    .load::<db::ReceivedPlusPlus>(&mut conn)
+    .map_err(|e| DbError::Unknown(format!("get_received_messages: {}", e)))
   }
 
   pub fn get_most_recent_received_delivered_at(&self) -> Result<i64, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::received;
 
-    let q = received::table.filter(received::delivered.eq(true)).order_by(received::delivered_at.desc()).limit(1);
+    let q = received::table
+      .filter(received::delivered.eq(true))
+      .order_by(received::delivered_at.desc())
+      .limit(1);
 
-    let res = q.select(received::delivered_at).load::<Option<i64>>(&mut conn).map_err(|e| {
-      DbError::Unknown(format!("get_most_recent_received_delivered_at: {}", e))
-    })?;
+    let res = q
+      .select(received::delivered_at)
+      .load::<Option<i64>>(&mut conn)
+      .map_err(|e| DbError::Unknown(format!("get_most_recent_received_delivered_at: {}", e)))?;
 
     match res.len() {
       0 => Ok(0),
@@ -1318,7 +1323,9 @@ impl DB {
         ))
       }
       _ => {
-        return Err(DbError::InvalidArgument("get_sent_messages_query: invalid sort_by".to_string()))
+        return Err(DbError::InvalidArgument(
+          "get_sent_messages_query: invalid sort_by".to_string(),
+        ))
       }
     };
 
@@ -1341,19 +1348,18 @@ impl DB {
       },
     };
 
-    q
-      .select((
-        sent::uid,
-        friend::unique_name,
-        friend::display_name,
-        sent::num_chunks,
-        sent::sent_at,
-        sent::delivered,
-        sent::delivered_at,
-        message::content,
-      ))
-      .load::<db::SentPlusPlus>(&mut conn)
-      .map_err(|e| DbError::Unknown(format!("get_sent_messages: {}", e)))
+    q.select((
+      sent::uid,
+      friend::unique_name,
+      friend::display_name,
+      sent::num_chunks,
+      sent::sent_at,
+      sent::delivered,
+      sent::delivered_at,
+      message::content,
+    ))
+    .load::<db::SentPlusPlus>(&mut conn)
+    .map_err(|e| DbError::Unknown(format!("get_sent_messages: {}", e)))
   }
 
   pub fn get_draft_messages(
@@ -1361,9 +1367,9 @@ impl DB {
     query: db::MessageQuery,
   ) -> Result<Vec<db::DraftPlusPlus>, DbError> {
     let mut conn = self.connect()?;
+    use crate::schema::draft;
     use crate::schema::friend;
     use crate::schema::message;
-    use crate::schema::draft;
 
     let q = draft::table.inner_join(message::table).inner_join(friend::table).into_boxed();
 
@@ -1374,9 +1380,7 @@ impl DB {
 
     let q = match query.filter {
       db::MessageFilter::All => q,
-      _ => {
-        return Err(DbError::InvalidArgument("get_draft_messages: invalid filter".to_string()))
-      }
+      _ => return Err(DbError::InvalidArgument("get_draft_messages: invalid filter".to_string())),
     };
 
     let q = match query.delivery_status {
@@ -1390,18 +1394,10 @@ impl DB {
 
     let q = match query.sort_by {
       db::SortBy::None => q,
-      _ => {
-        return Err(DbError::InvalidArgument("get_draft_messages: invalid sort_by".to_string()))
-      }
+      _ => return Err(DbError::InvalidArgument("get_draft_messages: invalid sort_by".to_string())),
     };
 
-    q
-      .select((
-        draft::uid,
-        friend::unique_name,
-        friend::display_name,
-        message::content,
-      ))
+    q.select((draft::uid, friend::unique_name, friend::display_name, message::content))
       .load::<db::DraftPlusPlus>(&mut conn)
       .map_err(|e| DbError::Unknown(format!("get_draft_messages: {}", e)))
   }
@@ -1414,10 +1410,12 @@ impl DB {
       .set(received::seen.eq(true))
       .returning(received::uid)
       .get_result::<i32>(&mut conn);
-    
+
     match r {
       Ok(_) => Ok(()),
-      Err(e) => Err(DbError::Unknown(format!("mark_message_as_seen, no message with that uid: {}", e))),
+      Err(e) => {
+        Err(DbError::Unknown(format!("mark_message_as_seen, no message with that uid: {}", e)))
+      }
     }
   }
 }
