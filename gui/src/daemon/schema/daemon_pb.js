@@ -1118,8 +1118,9 @@ proto.asphrdaemon.FriendInfo.prototype.toObject = function(opt_includeInstance) 
  */
 proto.asphrdaemon.FriendInfo.toObject = function(includeInstance, msg) {
   var f, obj = {
-    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    enabled: jspb.Message.getBooleanFieldWithDefault(msg, 2, false)
+    uniqueName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    displayName: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    enabled: jspb.Message.getBooleanFieldWithDefault(msg, 3, false)
   };
 
   if (includeInstance) {
@@ -1158,9 +1159,13 @@ proto.asphrdaemon.FriendInfo.deserializeBinaryFromReader = function(msg, reader)
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setName(value);
+      msg.setUniqueName(value);
       break;
     case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDisplayName(value);
+      break;
+    case 3:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setEnabled(value);
       break;
@@ -1193,17 +1198,24 @@ proto.asphrdaemon.FriendInfo.prototype.serializeBinary = function() {
  */
 proto.asphrdaemon.FriendInfo.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getName();
+  f = message.getUniqueName();
   if (f.length > 0) {
     writer.writeString(
       1,
       f
     );
   }
+  f = message.getDisplayName();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
   f = message.getEnabled();
   if (f) {
     writer.writeBool(
-      2,
+      3,
       f
     );
   }
@@ -1211,10 +1223,10 @@ proto.asphrdaemon.FriendInfo.serializeBinaryToWriter = function(message, writer)
 
 
 /**
- * optional string name = 1;
+ * optional string unique_name = 1;
  * @return {string}
  */
-proto.asphrdaemon.FriendInfo.prototype.getName = function() {
+proto.asphrdaemon.FriendInfo.prototype.getUniqueName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -1223,17 +1235,35 @@ proto.asphrdaemon.FriendInfo.prototype.getName = function() {
  * @param {string} value
  * @return {!proto.asphrdaemon.FriendInfo} returns this
  */
-proto.asphrdaemon.FriendInfo.prototype.setName = function(value) {
+proto.asphrdaemon.FriendInfo.prototype.setUniqueName = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * optional bool enabled = 2;
+ * optional string display_name = 2;
+ * @return {string}
+ */
+proto.asphrdaemon.FriendInfo.prototype.getDisplayName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.asphrdaemon.FriendInfo} returns this
+ */
+proto.asphrdaemon.FriendInfo.prototype.setDisplayName = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional bool enabled = 3;
  * @return {boolean}
  */
 proto.asphrdaemon.FriendInfo.prototype.getEnabled = function() {
-  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 2, false));
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 3, false));
 };
 
 
@@ -1242,7 +1272,7 @@ proto.asphrdaemon.FriendInfo.prototype.getEnabled = function() {
  * @return {!proto.asphrdaemon.FriendInfo} returns this
  */
 proto.asphrdaemon.FriendInfo.prototype.setEnabled = function(value) {
-  return jspb.Message.setProto3BooleanField(this, 2, value);
+  return jspb.Message.setProto3BooleanField(this, 3, value);
 };
 
 
@@ -1438,7 +1468,8 @@ proto.asphrdaemon.GenerateFriendKeyRequest.prototype.toObject = function(opt_inc
  */
 proto.asphrdaemon.GenerateFriendKeyRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    name: jspb.Message.getFieldWithDefault(msg, 1, "")
+    uniqueName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    displayName: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -1477,7 +1508,11 @@ proto.asphrdaemon.GenerateFriendKeyRequest.deserializeBinaryFromReader = functio
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setName(value);
+      msg.setUniqueName(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDisplayName(value);
       break;
     default:
       reader.skipField();
@@ -1508,10 +1543,17 @@ proto.asphrdaemon.GenerateFriendKeyRequest.prototype.serializeBinary = function(
  */
 proto.asphrdaemon.GenerateFriendKeyRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getName();
+  f = message.getUniqueName();
   if (f.length > 0) {
     writer.writeString(
       1,
+      f
+    );
+  }
+  f = message.getDisplayName();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
       f
     );
   }
@@ -1519,10 +1561,10 @@ proto.asphrdaemon.GenerateFriendKeyRequest.serializeBinaryToWriter = function(me
 
 
 /**
- * optional string name = 1;
+ * optional string unique_name = 1;
  * @return {string}
  */
-proto.asphrdaemon.GenerateFriendKeyRequest.prototype.getName = function() {
+proto.asphrdaemon.GenerateFriendKeyRequest.prototype.getUniqueName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -1531,8 +1573,26 @@ proto.asphrdaemon.GenerateFriendKeyRequest.prototype.getName = function() {
  * @param {string} value
  * @return {!proto.asphrdaemon.GenerateFriendKeyRequest} returns this
  */
-proto.asphrdaemon.GenerateFriendKeyRequest.prototype.setName = function(value) {
+proto.asphrdaemon.GenerateFriendKeyRequest.prototype.setUniqueName = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string display_name = 2;
+ * @return {string}
+ */
+proto.asphrdaemon.GenerateFriendKeyRequest.prototype.getDisplayName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.asphrdaemon.GenerateFriendKeyRequest} returns this
+ */
+proto.asphrdaemon.GenerateFriendKeyRequest.prototype.setDisplayName = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
@@ -1698,7 +1758,7 @@ proto.asphrdaemon.AddFriendRequest.prototype.toObject = function(opt_includeInst
  */
 proto.asphrdaemon.AddFriendRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    uniqueName: jspb.Message.getFieldWithDefault(msg, 1, ""),
     key: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
@@ -1738,7 +1798,7 @@ proto.asphrdaemon.AddFriendRequest.deserializeBinaryFromReader = function(msg, r
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setName(value);
+      msg.setUniqueName(value);
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
@@ -1773,7 +1833,7 @@ proto.asphrdaemon.AddFriendRequest.prototype.serializeBinary = function() {
  */
 proto.asphrdaemon.AddFriendRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getName();
+  f = message.getUniqueName();
   if (f.length > 0) {
     writer.writeString(
       1,
@@ -1791,10 +1851,10 @@ proto.asphrdaemon.AddFriendRequest.serializeBinaryToWriter = function(message, w
 
 
 /**
- * optional string name = 1;
+ * optional string unique_name = 1;
  * @return {string}
  */
-proto.asphrdaemon.AddFriendRequest.prototype.getName = function() {
+proto.asphrdaemon.AddFriendRequest.prototype.getUniqueName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -1803,7 +1863,7 @@ proto.asphrdaemon.AddFriendRequest.prototype.getName = function() {
  * @param {string} value
  * @return {!proto.asphrdaemon.AddFriendRequest} returns this
  */
-proto.asphrdaemon.AddFriendRequest.prototype.setName = function(value) {
+proto.asphrdaemon.AddFriendRequest.prototype.setUniqueName = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
 
@@ -1959,7 +2019,7 @@ proto.asphrdaemon.RemoveFriendRequest.prototype.toObject = function(opt_includeI
  */
 proto.asphrdaemon.RemoveFriendRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    name: jspb.Message.getFieldWithDefault(msg, 1, "")
+    uniqueName: jspb.Message.getFieldWithDefault(msg, 1, "")
   };
 
   if (includeInstance) {
@@ -1998,7 +2058,7 @@ proto.asphrdaemon.RemoveFriendRequest.deserializeBinaryFromReader = function(msg
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setName(value);
+      msg.setUniqueName(value);
       break;
     default:
       reader.skipField();
@@ -2029,7 +2089,7 @@ proto.asphrdaemon.RemoveFriendRequest.prototype.serializeBinary = function() {
  */
 proto.asphrdaemon.RemoveFriendRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getName();
+  f = message.getUniqueName();
   if (f.length > 0) {
     writer.writeString(
       1,
@@ -2040,10 +2100,10 @@ proto.asphrdaemon.RemoveFriendRequest.serializeBinaryToWriter = function(message
 
 
 /**
- * optional string name = 1;
+ * optional string unique_name = 1;
  * @return {string}
  */
-proto.asphrdaemon.RemoveFriendRequest.prototype.getName = function() {
+proto.asphrdaemon.RemoveFriendRequest.prototype.getUniqueName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -2052,7 +2112,7 @@ proto.asphrdaemon.RemoveFriendRequest.prototype.getName = function() {
  * @param {string} value
  * @return {!proto.asphrdaemon.RemoveFriendRequest} returns this
  */
-proto.asphrdaemon.RemoveFriendRequest.prototype.setName = function(value) {
+proto.asphrdaemon.RemoveFriendRequest.prototype.setUniqueName = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
 
@@ -2190,7 +2250,7 @@ proto.asphrdaemon.SendMessageRequest.prototype.toObject = function(opt_includeIn
  */
 proto.asphrdaemon.SendMessageRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    uniqueName: jspb.Message.getFieldWithDefault(msg, 1, ""),
     message: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
@@ -2230,7 +2290,7 @@ proto.asphrdaemon.SendMessageRequest.deserializeBinaryFromReader = function(msg,
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setName(value);
+      msg.setUniqueName(value);
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
@@ -2265,7 +2325,7 @@ proto.asphrdaemon.SendMessageRequest.prototype.serializeBinary = function() {
  */
 proto.asphrdaemon.SendMessageRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getName();
+  f = message.getUniqueName();
   if (f.length > 0) {
     writer.writeString(
       1,
@@ -2283,10 +2343,10 @@ proto.asphrdaemon.SendMessageRequest.serializeBinaryToWriter = function(message,
 
 
 /**
- * optional string name = 1;
+ * optional string unique_name = 1;
  * @return {string}
  */
-proto.asphrdaemon.SendMessageRequest.prototype.getName = function() {
+proto.asphrdaemon.SendMessageRequest.prototype.getUniqueName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -2295,7 +2355,7 @@ proto.asphrdaemon.SendMessageRequest.prototype.getName = function() {
  * @param {string} value
  * @return {!proto.asphrdaemon.SendMessageRequest} returns this
  */
-proto.asphrdaemon.SendMessageRequest.prototype.setName = function(value) {
+proto.asphrdaemon.SendMessageRequest.prototype.setUniqueName = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
 
@@ -2451,8 +2511,10 @@ proto.asphrdaemon.BaseMessage.prototype.toObject = function(opt_includeInstance)
  */
 proto.asphrdaemon.BaseMessage.toObject = function(includeInstance, msg) {
   var f, obj = {
-    id: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    message: jspb.Message.getFieldWithDefault(msg, 2, "")
+    id: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    message: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    uniqueName: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    displayName: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -2490,12 +2552,20 @@ proto.asphrdaemon.BaseMessage.deserializeBinaryFromReader = function(msg, reader
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {string} */ (reader.readString());
+      var value = /** @type {number} */ (reader.readInt32());
       msg.setId(value);
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
       msg.setMessage(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUniqueName(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDisplayName(value);
       break;
     default:
       reader.skipField();
@@ -2527,8 +2597,8 @@ proto.asphrdaemon.BaseMessage.prototype.serializeBinary = function() {
 proto.asphrdaemon.BaseMessage.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getId();
-  if (f.length > 0) {
-    writer.writeString(
+  if (f !== 0) {
+    writer.writeInt32(
       1,
       f
     );
@@ -2540,24 +2610,38 @@ proto.asphrdaemon.BaseMessage.serializeBinaryToWriter = function(message, writer
       f
     );
   }
+  f = message.getUniqueName();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getDisplayName();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
 };
 
 
 /**
- * optional string id = 1;
- * @return {string}
+ * optional int32 id = 1;
+ * @return {number}
  */
 proto.asphrdaemon.BaseMessage.prototype.getId = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
 };
 
 
 /**
- * @param {string} value
+ * @param {number} value
  * @return {!proto.asphrdaemon.BaseMessage} returns this
  */
 proto.asphrdaemon.BaseMessage.prototype.setId = function(value) {
-  return jspb.Message.setProto3StringField(this, 1, value);
+  return jspb.Message.setProto3IntField(this, 1, value);
 };
 
 
@@ -2576,6 +2660,42 @@ proto.asphrdaemon.BaseMessage.prototype.getMessage = function() {
  */
 proto.asphrdaemon.BaseMessage.prototype.setMessage = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string unique_name = 3;
+ * @return {string}
+ */
+proto.asphrdaemon.BaseMessage.prototype.getUniqueName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.asphrdaemon.BaseMessage} returns this
+ */
+proto.asphrdaemon.BaseMessage.prototype.setUniqueName = function(value) {
+  return jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional string display_name = 4;
+ * @return {string}
+ */
+proto.asphrdaemon.BaseMessage.prototype.getDisplayName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.asphrdaemon.BaseMessage} returns this
+ */
+proto.asphrdaemon.BaseMessage.prototype.setDisplayName = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
 };
 
 
@@ -2612,9 +2732,9 @@ proto.asphrdaemon.IncomingMessage.prototype.toObject = function(opt_includeInsta
 proto.asphrdaemon.IncomingMessage.toObject = function(includeInstance, msg) {
   var f, obj = {
     m: (f = msg.getM()) && proto.asphrdaemon.BaseMessage.toObject(includeInstance, f),
-    from: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    receivedTimestamp: (f = msg.getReceivedTimestamp()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
-    seen: jspb.Message.getBooleanFieldWithDefault(msg, 4, false)
+    deliveredAt: (f = msg.getDeliveredAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
+    seen: jspb.Message.getBooleanFieldWithDefault(msg, 3, false),
+    delivered: jspb.Message.getBooleanFieldWithDefault(msg, 4, false)
   };
 
   if (includeInstance) {
@@ -2657,17 +2777,17 @@ proto.asphrdaemon.IncomingMessage.deserializeBinaryFromReader = function(msg, re
       msg.setM(value);
       break;
     case 2:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setFrom(value);
-      break;
-    case 3:
       var value = new google_protobuf_timestamp_pb.Timestamp;
       reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
-      msg.setReceivedTimestamp(value);
+      msg.setDeliveredAt(value);
+      break;
+    case 3:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setSeen(value);
       break;
     case 4:
       var value = /** @type {boolean} */ (reader.readBool());
-      msg.setSeen(value);
+      msg.setDelivered(value);
       break;
     default:
       reader.skipField();
@@ -2706,22 +2826,22 @@ proto.asphrdaemon.IncomingMessage.serializeBinaryToWriter = function(message, wr
       proto.asphrdaemon.BaseMessage.serializeBinaryToWriter
     );
   }
-  f = message.getFrom();
-  if (f.length > 0) {
-    writer.writeString(
-      2,
-      f
-    );
-  }
-  f = message.getReceivedTimestamp();
+  f = message.getDeliveredAt();
   if (f != null) {
     writer.writeMessage(
-      3,
+      2,
       f,
       google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
     );
   }
   f = message.getSeen();
+  if (f) {
+    writer.writeBool(
+      3,
+      f
+    );
+  }
+  f = message.getDelivered();
   if (f) {
     writer.writeBool(
       4,
@@ -2769,30 +2889,12 @@ proto.asphrdaemon.IncomingMessage.prototype.hasM = function() {
 
 
 /**
- * optional string from = 2;
- * @return {string}
- */
-proto.asphrdaemon.IncomingMessage.prototype.getFrom = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
-};
-
-
-/**
- * @param {string} value
- * @return {!proto.asphrdaemon.IncomingMessage} returns this
- */
-proto.asphrdaemon.IncomingMessage.prototype.setFrom = function(value) {
-  return jspb.Message.setProto3StringField(this, 2, value);
-};
-
-
-/**
- * optional google.protobuf.Timestamp received_timestamp = 3;
+ * optional google.protobuf.Timestamp delivered_at = 2;
  * @return {?proto.google.protobuf.Timestamp}
  */
-proto.asphrdaemon.IncomingMessage.prototype.getReceivedTimestamp = function() {
+proto.asphrdaemon.IncomingMessage.prototype.getDeliveredAt = function() {
   return /** @type{?proto.google.protobuf.Timestamp} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 3));
+    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 2));
 };
 
 
@@ -2800,8 +2902,8 @@ proto.asphrdaemon.IncomingMessage.prototype.getReceivedTimestamp = function() {
  * @param {?proto.google.protobuf.Timestamp|undefined} value
  * @return {!proto.asphrdaemon.IncomingMessage} returns this
 */
-proto.asphrdaemon.IncomingMessage.prototype.setReceivedTimestamp = function(value) {
-  return jspb.Message.setWrapperField(this, 3, value);
+proto.asphrdaemon.IncomingMessage.prototype.setDeliveredAt = function(value) {
+  return jspb.Message.setWrapperField(this, 2, value);
 };
 
 
@@ -2809,8 +2911,8 @@ proto.asphrdaemon.IncomingMessage.prototype.setReceivedTimestamp = function(valu
  * Clears the message field making it undefined.
  * @return {!proto.asphrdaemon.IncomingMessage} returns this
  */
-proto.asphrdaemon.IncomingMessage.prototype.clearReceivedTimestamp = function() {
-  return this.setReceivedTimestamp(undefined);
+proto.asphrdaemon.IncomingMessage.prototype.clearDeliveredAt = function() {
+  return this.setDeliveredAt(undefined);
 };
 
 
@@ -2818,17 +2920,17 @@ proto.asphrdaemon.IncomingMessage.prototype.clearReceivedTimestamp = function() 
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.asphrdaemon.IncomingMessage.prototype.hasReceivedTimestamp = function() {
-  return jspb.Message.getField(this, 3) != null;
+proto.asphrdaemon.IncomingMessage.prototype.hasDeliveredAt = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
 /**
- * optional bool seen = 4;
+ * optional bool seen = 3;
  * @return {boolean}
  */
 proto.asphrdaemon.IncomingMessage.prototype.getSeen = function() {
-  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 4, false));
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 3, false));
 };
 
 
@@ -2837,6 +2939,24 @@ proto.asphrdaemon.IncomingMessage.prototype.getSeen = function() {
  * @return {!proto.asphrdaemon.IncomingMessage} returns this
  */
 proto.asphrdaemon.IncomingMessage.prototype.setSeen = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 3, value);
+};
+
+
+/**
+ * optional bool delivered = 4;
+ * @return {boolean}
+ */
+proto.asphrdaemon.IncomingMessage.prototype.getDelivered = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 4, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.asphrdaemon.IncomingMessage} returns this
+ */
+proto.asphrdaemon.IncomingMessage.prototype.setDelivered = function(value) {
   return jspb.Message.setProto3BooleanField(this, 4, value);
 };
 
@@ -2874,9 +2994,9 @@ proto.asphrdaemon.OutgoingMessage.prototype.toObject = function(opt_includeInsta
 proto.asphrdaemon.OutgoingMessage.toObject = function(includeInstance, msg) {
   var f, obj = {
     m: (f = msg.getM()) && proto.asphrdaemon.BaseMessage.toObject(includeInstance, f),
-    to: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    writtenTimestamp: (f = msg.getWrittenTimestamp()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
-    delivered: jspb.Message.getBooleanFieldWithDefault(msg, 4, false)
+    sentAt: (f = msg.getSentAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
+    delivered: jspb.Message.getBooleanFieldWithDefault(msg, 3, false),
+    deliveredAt: (f = msg.getDeliveredAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -2919,17 +3039,18 @@ proto.asphrdaemon.OutgoingMessage.deserializeBinaryFromReader = function(msg, re
       msg.setM(value);
       break;
     case 2:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setTo(value);
-      break;
-    case 3:
       var value = new google_protobuf_timestamp_pb.Timestamp;
       reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
-      msg.setWrittenTimestamp(value);
+      msg.setSentAt(value);
       break;
-    case 4:
+    case 3:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setDelivered(value);
+      break;
+    case 4:
+      var value = new google_protobuf_timestamp_pb.Timestamp;
+      reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
+      msg.setDeliveredAt(value);
       break;
     default:
       reader.skipField();
@@ -2968,17 +3089,10 @@ proto.asphrdaemon.OutgoingMessage.serializeBinaryToWriter = function(message, wr
       proto.asphrdaemon.BaseMessage.serializeBinaryToWriter
     );
   }
-  f = message.getTo();
-  if (f.length > 0) {
-    writer.writeString(
-      2,
-      f
-    );
-  }
-  f = message.getWrittenTimestamp();
+  f = message.getSentAt();
   if (f != null) {
     writer.writeMessage(
-      3,
+      2,
       f,
       google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
     );
@@ -2986,8 +3100,16 @@ proto.asphrdaemon.OutgoingMessage.serializeBinaryToWriter = function(message, wr
   f = message.getDelivered();
   if (f) {
     writer.writeBool(
-      4,
+      3,
       f
+    );
+  }
+  f = message.getDeliveredAt();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
     );
   }
 };
@@ -3031,30 +3153,12 @@ proto.asphrdaemon.OutgoingMessage.prototype.hasM = function() {
 
 
 /**
- * optional string to = 2;
- * @return {string}
- */
-proto.asphrdaemon.OutgoingMessage.prototype.getTo = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
-};
-
-
-/**
- * @param {string} value
- * @return {!proto.asphrdaemon.OutgoingMessage} returns this
- */
-proto.asphrdaemon.OutgoingMessage.prototype.setTo = function(value) {
-  return jspb.Message.setProto3StringField(this, 2, value);
-};
-
-
-/**
- * optional google.protobuf.Timestamp written_timestamp = 3;
+ * optional google.protobuf.Timestamp sent_at = 2;
  * @return {?proto.google.protobuf.Timestamp}
  */
-proto.asphrdaemon.OutgoingMessage.prototype.getWrittenTimestamp = function() {
+proto.asphrdaemon.OutgoingMessage.prototype.getSentAt = function() {
   return /** @type{?proto.google.protobuf.Timestamp} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 3));
+    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 2));
 };
 
 
@@ -3062,8 +3166,8 @@ proto.asphrdaemon.OutgoingMessage.prototype.getWrittenTimestamp = function() {
  * @param {?proto.google.protobuf.Timestamp|undefined} value
  * @return {!proto.asphrdaemon.OutgoingMessage} returns this
 */
-proto.asphrdaemon.OutgoingMessage.prototype.setWrittenTimestamp = function(value) {
-  return jspb.Message.setWrapperField(this, 3, value);
+proto.asphrdaemon.OutgoingMessage.prototype.setSentAt = function(value) {
+  return jspb.Message.setWrapperField(this, 2, value);
 };
 
 
@@ -3071,8 +3175,8 @@ proto.asphrdaemon.OutgoingMessage.prototype.setWrittenTimestamp = function(value
  * Clears the message field making it undefined.
  * @return {!proto.asphrdaemon.OutgoingMessage} returns this
  */
-proto.asphrdaemon.OutgoingMessage.prototype.clearWrittenTimestamp = function() {
-  return this.setWrittenTimestamp(undefined);
+proto.asphrdaemon.OutgoingMessage.prototype.clearSentAt = function() {
+  return this.setSentAt(undefined);
 };
 
 
@@ -3080,17 +3184,17 @@ proto.asphrdaemon.OutgoingMessage.prototype.clearWrittenTimestamp = function() {
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.asphrdaemon.OutgoingMessage.prototype.hasWrittenTimestamp = function() {
-  return jspb.Message.getField(this, 3) != null;
+proto.asphrdaemon.OutgoingMessage.prototype.hasSentAt = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
 /**
- * optional bool delivered = 4;
+ * optional bool delivered = 3;
  * @return {boolean}
  */
 proto.asphrdaemon.OutgoingMessage.prototype.getDelivered = function() {
-  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 4, false));
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 3, false));
 };
 
 
@@ -3099,7 +3203,44 @@ proto.asphrdaemon.OutgoingMessage.prototype.getDelivered = function() {
  * @return {!proto.asphrdaemon.OutgoingMessage} returns this
  */
 proto.asphrdaemon.OutgoingMessage.prototype.setDelivered = function(value) {
-  return jspb.Message.setProto3BooleanField(this, 4, value);
+  return jspb.Message.setProto3BooleanField(this, 3, value);
+};
+
+
+/**
+ * optional google.protobuf.Timestamp delivered_at = 4;
+ * @return {?proto.google.protobuf.Timestamp}
+ */
+proto.asphrdaemon.OutgoingMessage.prototype.getDeliveredAt = function() {
+  return /** @type{?proto.google.protobuf.Timestamp} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 4));
+};
+
+
+/**
+ * @param {?proto.google.protobuf.Timestamp|undefined} value
+ * @return {!proto.asphrdaemon.OutgoingMessage} returns this
+*/
+proto.asphrdaemon.OutgoingMessage.prototype.setDeliveredAt = function(value) {
+  return jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.asphrdaemon.OutgoingMessage} returns this
+ */
+proto.asphrdaemon.OutgoingMessage.prototype.clearDeliveredAt = function() {
+  return this.setDeliveredAt(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.asphrdaemon.OutgoingMessage.prototype.hasDeliveredAt = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
@@ -3955,7 +4096,7 @@ proto.asphrdaemon.MessageSeenRequest.prototype.toObject = function(opt_includeIn
  */
 proto.asphrdaemon.MessageSeenRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    id: jspb.Message.getFieldWithDefault(msg, 1, "")
+    id: jspb.Message.getFieldWithDefault(msg, 1, 0)
   };
 
   if (includeInstance) {
@@ -3993,7 +4134,7 @@ proto.asphrdaemon.MessageSeenRequest.deserializeBinaryFromReader = function(msg,
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {string} */ (reader.readString());
+      var value = /** @type {number} */ (reader.readInt32());
       msg.setId(value);
       break;
     default:
@@ -4026,8 +4167,8 @@ proto.asphrdaemon.MessageSeenRequest.prototype.serializeBinary = function() {
 proto.asphrdaemon.MessageSeenRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getId();
-  if (f.length > 0) {
-    writer.writeString(
+  if (f !== 0) {
+    writer.writeInt32(
       1,
       f
     );
@@ -4036,20 +4177,20 @@ proto.asphrdaemon.MessageSeenRequest.serializeBinaryToWriter = function(message,
 
 
 /**
- * optional string id = 1;
- * @return {string}
+ * optional int32 id = 1;
+ * @return {number}
  */
 proto.asphrdaemon.MessageSeenRequest.prototype.getId = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
 };
 
 
 /**
- * @param {string} value
+ * @param {number} value
  * @return {!proto.asphrdaemon.MessageSeenRequest} returns this
  */
 proto.asphrdaemon.MessageSeenRequest.prototype.setId = function(value) {
-  return jspb.Message.setProto3StringField(this, 1, value);
+  return jspb.Message.setProto3IntField(this, 1, value);
 };
 
 
@@ -4289,7 +4430,8 @@ proto.asphrdaemon.GetStatusResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
     registered: jspb.Message.getBooleanFieldWithDefault(msg, 1, false),
     releaseHash: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    latencySeconds: jspb.Message.getFieldWithDefault(msg, 3, 0)
+    latencySeconds: jspb.Message.getFieldWithDefault(msg, 3, 0),
+    serverAddress: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -4338,6 +4480,10 @@ proto.asphrdaemon.GetStatusResponse.deserializeBinaryFromReader = function(msg, 
       var value = /** @type {number} */ (reader.readInt32());
       msg.setLatencySeconds(value);
       break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setServerAddress(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -4385,6 +4531,13 @@ proto.asphrdaemon.GetStatusResponse.serializeBinaryToWriter = function(message, 
   if (f !== 0) {
     writer.writeInt32(
       3,
+      f
+    );
+  }
+  f = message.getServerAddress();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
       f
     );
   }
@@ -4442,6 +4595,24 @@ proto.asphrdaemon.GetStatusResponse.prototype.getLatencySeconds = function() {
  */
 proto.asphrdaemon.GetStatusResponse.prototype.setLatencySeconds = function(value) {
   return jspb.Message.setProto3IntField(this, 3, value);
+};
+
+
+/**
+ * optional string server_address = 4;
+ * @return {string}
+ */
+proto.asphrdaemon.GetStatusResponse.prototype.getServerAddress = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.asphrdaemon.GetStatusResponse} returns this
+ */
+proto.asphrdaemon.GetStatusResponse.prototype.setServerAddress = function(value) {
+  return jspb.Message.setProto3StringField(this, 4, value);
 };
 
 
