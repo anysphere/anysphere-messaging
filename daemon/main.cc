@@ -74,6 +74,11 @@ int main_cc_impl(rust::Vec<rust::String> args) {
     db_address = get_db_address().string();
   }
 
+  // remove the socket file first
+  remove(socket_address.c_str());
+  // make it a socket address!
+  socket_address = StrCat("unix://", socket_address);
+
   ASPHR_LOG_INFO("Parsed args.", db_address, db_address, socket_address,
                  socket_address)
 
