@@ -6,7 +6,7 @@
 // TODO: check that they are moved.
 inline auto string_to_rust_u8Vec(const std::string& str) -> rust::Vec<uint8_t> {
   auto vec = rust::Vec<uint8_t>();
-  for (auto c : str) {
+  for (auto& c : str) {
     vec.push_back(c);
   }
   return vec;
