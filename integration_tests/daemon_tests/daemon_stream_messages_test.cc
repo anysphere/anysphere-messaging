@@ -11,7 +11,7 @@ TEST_F(DaemonRpcTest, StreamMessages) {
 
   {
     SendMessageRequest request;
-    request.set_name("user1");
+    request.set_unique_name("user1");
     request.set_message("FIRST");
     asphrdaemon::SendMessageResponse response;
     auto status = friend2.rpc->SendMessage(nullptr, &request, &response);
@@ -19,13 +19,13 @@ TEST_F(DaemonRpcTest, StreamMessages) {
   }
 
   {
-    friend1.t->send_messages();
-    friend2.t->send_messages();
+    friend1.t->send();
+    friend2.t->send();
   }
 
   {
-    friend1.t->retrieve_messages();
-    friend2.t->retrieve_messages();
+    friend1.t->retrieve();
+    friend2.t->retrieve();
   }
 
   // for streaming to work in tests we need to create a real stub
@@ -64,28 +64,28 @@ TEST_F(DaemonRpcTest, StreamMessages) {
           GetMessagesResponse response;
           stream->Read(&response);
           EXPECT_EQ(response.messages_size(), 1);
-          EXPECT_EQ(response.messages(0).from(), "user2");
+          EXPECT_EQ(response.messages(0).m().unique_name(), "user2");
           EXPECT_EQ(response.messages(0).m().message(), "FIRST");
         } else if (counter == 2) {
           {
             GetMessagesResponse response;
             stream->Read(&response);
             EXPECT_EQ(response.messages_size(), 1);
-            EXPECT_EQ(response.messages(0).from(), "user2");
+            EXPECT_EQ(response.messages(0).m().unique_name(), "user2");
             EXPECT_EQ(response.messages(0).m().message(), "SECOND.first");
           }
           {
             GetMessagesResponse response;
             stream->Read(&response);
             EXPECT_EQ(response.messages_size(), 1);
-            EXPECT_EQ(response.messages(0).from(), "user2");
+            EXPECT_EQ(response.messages(0).m().unique_name(), "user2");
             EXPECT_EQ(response.messages(0).m().message(), "SECOND.second");
           }
         } else if (counter == 4) {
           GetMessagesResponse response;
           stream->Read(&response);
           EXPECT_EQ(response.messages_size(), 1);
-          EXPECT_EQ(response.messages(0).from(), "user2");
+          EXPECT_EQ(response.messages(0).m().unique_name(), "user2");
           EXPECT_EQ(response.messages(0).m().message(), "THIRD");
         }
         counter++;
@@ -108,7 +108,7 @@ TEST_F(DaemonRpcTest, StreamMessages) {
         if (counter == 1) {
           {
             SendMessageRequest request;
-            request.set_name("user1");
+            request.set_unique_name("user1");
             request.set_message("SECOND.first");
             asphrdaemon::SendMessageResponse response;
             auto status =
@@ -117,7 +117,7 @@ TEST_F(DaemonRpcTest, StreamMessages) {
           }
           {
             SendMessageRequest request;
-            request.set_name("user1");
+            request.set_unique_name("user1");
             request.set_message("SECOND.second");
             asphrdaemon::SendMessageResponse response;
             auto status =
@@ -125,43 +125,43 @@ TEST_F(DaemonRpcTest, StreamMessages) {
             EXPECT_TRUE(status.ok());
           }
           {
-            friend1.t->retrieve_messages();
-            friend1.t->send_messages();
+            friend1.t->retrieve();
+            friend1.t->send();
           }
           {
-            friend2.t->retrieve_messages();
-            friend2.t->send_messages();
+            friend2.t->retrieve();
+            friend2.t->send();
           }
           {
-            friend1.t->retrieve_messages();
-            friend1.t->send_messages();
+            friend1.t->retrieve();
+            friend1.t->send();
           }
           {
-            friend2.t->retrieve_messages();
-            friend2.t->send_messages();
+            friend2.t->retrieve();
+            friend2.t->send();
           }
           {
-            friend1.t->retrieve_messages();
-            friend1.t->send_messages();
+            friend1.t->retrieve();
+            friend1.t->send();
           }
         } else if (counter == 3) {
           SendMessageRequest request;
-          request.set_name("user1");
+          request.set_unique_name("user1");
           request.set_message("THIRD");
           asphrdaemon::SendMessageResponse response;
           auto status = friend2.rpc->SendMessage(nullptr, &request, &response);
           EXPECT_TRUE(status.ok());
           {
-            friend1.t->retrieve_messages();
-            friend1.t->send_messages();
+            friend1.t->retrieve();
+            friend1.t->send();
           }
           {
-            friend2.t->retrieve_messages();
-            friend2.t->send_messages();
+            friend2.t->retrieve();
+            friend2.t->send();
           }
           {
-            friend1.t->retrieve_messages();
-            friend1.t->send_messages();
+            friend1.t->retrieve();
+            friend1.t->send();
           }
         }
         counter++;
@@ -185,36 +185,36 @@ TEST_F(DaemonRpcTest, StreamMessages) {
     auto status = rpc1_stub->GetMessages(&context, request, &response);
     EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 4);
-    EXPECT_EQ(response.messages(0).from(), "user2");
+    EXPECT_EQ(response.messages(0).m().unique_name(), "user2");
     EXPECT_EQ(response.messages(0).m().message(), "THIRD");
-    EXPECT_EQ(response.messages(1).from(), "user2");
+    EXPECT_EQ(response.messages(1).m().unique_name(), "user2");
     EXPECT_EQ(response.messages(1).m().message(), "SECOND.second");
-    EXPECT_EQ(response.messages(2).from(), "user2");
+    EXPECT_EQ(response.messages(2).m().unique_name(), "user2");
     EXPECT_EQ(response.messages(2).m().message(), "SECOND.first");
-    EXPECT_EQ(response.messages(3).from(), "user2");
+    EXPECT_EQ(response.messages(3).m().unique_name(), "user2");
     EXPECT_EQ(response.messages(3).m().message(), "FIRST");
   }
 
   // a final message is needed to close the thread
   {
     SendMessageRequest request;
-    request.set_name("user1");
+    request.set_unique_name("user1");
     request.set_message("FOUR");
     asphrdaemon::SendMessageResponse response;
     auto status = friend2.rpc->SendMessage(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
   }
   {
-    friend1.t->retrieve_messages();
-    friend1.t->send_messages();
+    friend1.t->retrieve();
+    friend1.t->send();
   }
   {
-    friend2.t->retrieve_messages();
-    friend2.t->send_messages();
+    friend2.t->retrieve();
+    friend2.t->send();
   }
   {
-    friend1.t->retrieve_messages();
-    friend1.t->send_messages();
+    friend1.t->retrieve();
+    friend1.t->send();
   }
 
   rpc1_server->Shutdown();

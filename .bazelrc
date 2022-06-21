@@ -17,8 +17,13 @@ try-import %workspace%/.buildbuddy.bazelrc
 # to prevent problems with CI, we cannot try-import this bazelrc from other places. instead we just copy-paste.
 build --incompatible_enable_cc_toolchain_resolution
 
+
+# this is for rules_rust
+build --repo_env=RULES_RUST_TOOLCHAIN_INCLUDE_RUSTC_SRCS=true
+
 # To debug the toolchain build, uncomment the following line:
 # build --toolchain_resolution_debug=@bazel_tools//tools/cpp:toolchain_type
+
 
 # note: each bazelrc that try-imports this one needs to include a .user.bazelrc in its workspace directory
 try-import %workspace%/.user.bazelrc

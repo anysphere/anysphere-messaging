@@ -17,3 +17,10 @@ lint:
     - shfmt@3.5.0
     - terraform-validate@1.1.0
     - tflint@0.35.0
+    - rustfmt@1.58.1
+repo:
+  repo:
+    host: github.com
+    owner: anysphere
+    name: anysphere
+  trunk_branch: origin/main

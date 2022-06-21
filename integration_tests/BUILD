@@ -1,25 +1,16 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
 load(":helper.bzl", "all_tests_in_folder")
 
 cc_library(
-    name = "test_helpers",
-    hdrs = ["test_helpers.hpp"],
-    deps = [
-        "//server/pir/fast_pir:server_fast_pir_lib",
-        "//server/src:as_server_lib",
-        "@client//daemon:daemon_lib",
-        "@client//daemon:transmitter_lib",
-    ],
-)
-
-cc_library(
     name = "daemon_setup",
-    hdrs = ["daemon_setup.hpp"],
+    hdrs = [
+        "daemon_setup.hpp",
+        "test_helpers.hpp",
+    ],
     deps = [
-        ":test_helpers",
         "//server/pir/fast_pir:server_fast_pir_lib",
         "//server/src:as_server_lib",
-        "@client//daemon:daemon_lib",
-        "@client//daemon:transmitter_lib",
+        "@client//daemon:main_lib",
         "@com_google_googletest//:gtest_main",
     ],
 )

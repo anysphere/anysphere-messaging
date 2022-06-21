@@ -124,7 +124,8 @@
     "csetjmp": "cpp",
     "coroutine": "cpp",
     "latch": "cpp",
-    "strstream": "cpp"
+    "strstream": "cpp",
+    "format": "cpp"
   },
   "C_Cpp.codeAnalysis.clangTidy.enabled": true,
   "C_Cpp.codeAnalysis.runAutomatically": false,
@@ -141,5 +142,6 @@
     ".trunk/out": true,
     "bazel-anysphere/**": true
   },
+  "rust-analyzer.linkedProjects": ["client/rust-project.json"],
   "trunk.inlineDecorators": false
 }

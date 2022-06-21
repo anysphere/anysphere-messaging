@@ -22,23 +22,14 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
 
   vector<string> names = {"user1local", "user2local", "user3local",
                           "user4local"};
-  vector<Crypto> cryptos;
-  vector<shared_ptr<Config>> configs;
-  for (size_t i = 0; i < names.size(); i++) {
-    auto config = gen_config(string(generateTempDir()), generateTempFile());
-    configs.push_back(config);
-  }
+  vector<unique_ptr<Global>> Gs;
   vector<unique_ptr<DaemonRpc>> rpcs;
   vector<unique_ptr<Transmitter>> ts;
   for (size_t i = 0; i < names.size(); i++) {
-    cryptos.push_back(gen_crypto());
-    auto msgstore = gen_msgstore(configs[i]);
-    auto rpc_ptr =
-        make_unique<DaemonRpc>(cryptos[i], configs[i], stub_, msgstore);
-    rpcs.push_back(std::move(rpc_ptr));
-    auto t_ptr =
-        make_unique<Transmitter>(cryptos[i], configs[i], stub_, msgstore);
-    ts.push_back(std::move(t_ptr));
+    auto [G, rpc, t] = gen_person();
+    Gs.push_back(std::move(G));
+    rpcs.push_back(std::move(rpc));
+    ts.push_back(std::move(t));
   }
 
   for (size_t i = 0; i < names.size(); i++) {
@@ -59,7 +50,7 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
   // make user 1 add users 2-4
   {
     GenerateFriendKeyRequest request;
-    request.set_name(names[1]);
+    request.set_unique_name(names[1]);
     GenerateFriendKeyResponse response;
     auto status = rpcs[0]->GenerateFriendKey(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
@@ -69,7 +60,7 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
 
   {
     GenerateFriendKeyRequest request;
-    request.set_name(names[2]);
+    request.set_unique_name(names[2]);
     GenerateFriendKeyResponse response;
     auto status = rpcs[0]->GenerateFriendKey(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
@@ -79,7 +70,7 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
 
   {
     GenerateFriendKeyRequest request;
-    request.set_name(names[3]);
+    request.set_unique_name(names[3]);
     GenerateFriendKeyResponse response;
     auto status = rpcs[0]->GenerateFriendKey(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
@@ -90,7 +81,7 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
   // make users 2-4 add user 1
   {
     GenerateFriendKeyRequest request;
-    request.set_name(names[0]);
+    request.set_unique_name(names[0]);
     GenerateFriendKeyResponse response;
     auto status = rpcs[1]->GenerateFriendKey(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
@@ -100,7 +91,7 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
 
   {
     GenerateFriendKeyRequest request;
-    request.set_name(names[0]);
+    request.set_unique_name(names[0]);
     GenerateFriendKeyResponse response;
     auto status = rpcs[2]->GenerateFriendKey(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
@@ -110,7 +101,7 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
 
   {
     GenerateFriendKeyRequest request;
-    request.set_name(names[0]);
+    request.set_unique_name(names[0]);
     GenerateFriendKeyResponse response;
     auto status = rpcs[3]->GenerateFriendKey(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
@@ -128,7 +119,7 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
   // user 1 finishes setting up users 2-4.
   {
     AddFriendRequest request;
-    request.set_name(names[1]);
+    request.set_unique_name(names[1]);
     request.set_key(user2_1_key);
     AddFriendResponse response;
     auto status = rpcs[0]->AddFriend(nullptr, &request, &response);
@@ -137,7 +128,7 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
 
   {
     AddFriendRequest request;
-    request.set_name(names[2]);
+    request.set_unique_name(names[2]);
     request.set_key(user3_1_key);
     AddFriendResponse response;
     auto status = rpcs[0]->AddFriend(nullptr, &request, &response);
@@ -146,7 +137,7 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
 
   {
     AddFriendRequest request;
-    request.set_name(names[3]);
+    request.set_unique_name(names[3]);
     request.set_key(user4_1_key);
     AddFriendResponse response;
     auto status = rpcs[0]->AddFriend(nullptr, &request, &response);
@@ -156,7 +147,7 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
   // users 2-4 finish setting up user 1
   {
     AddFriendRequest request;
-    request.set_name(names[0]);
+    request.set_unique_name(names[0]);
     request.set_key(user1_2_key);
     AddFriendResponse response;
     auto status = rpcs[1]->AddFriend(nullptr, &request, &response);
@@ -165,7 +156,7 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
 
   {
     AddFriendRequest request;
-    request.set_name(names[0]);
+    request.set_unique_name(names[0]);
     request.set_key(user1_3_key);
     AddFriendResponse response;
     auto status = rpcs[2]->AddFriend(nullptr, &request, &response);
@@ -174,7 +165,7 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
 
   {
     AddFriendRequest request;
-    request.set_name(names[0]);
+    request.set_unique_name(names[0]);
     request.set_key(user1_4_key);
     AddFriendResponse response;
     auto status = rpcs[3]->AddFriend(nullptr, &request, &response);
@@ -189,7 +180,7 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
   // user 1 sends message to 2-4
   for (size_t i = 1; i < names.size(); i++) {
     SendMessageRequest request;
-    request.set_name(names[i]);
+    request.set_unique_name(names[i]);
     request.set_message(long_message);
     asphrdaemon::SendMessageResponse response;
     auto status = rpcs[0]->SendMessage(nullptr, &request, &response);
@@ -202,8 +193,8 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
   for (auto round = 0; round < 3; round++) {
     // first round, none!
     for (size_t i = 0; i < names.size(); i++) {
-      ts[i]->retrieve_messages();
-      ts[i]->send_messages();
+      ts[i]->retrieve();
+      ts[i]->send();
     }
 
     for (auto i : to_receive) {
@@ -217,8 +208,8 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
 
     // second round, one!
     for (size_t i = 0; i < names.size(); i++) {
-      ts[i]->retrieve_messages();
-      ts[i]->send_messages();
+      ts[i]->retrieve();
+      ts[i]->send();
     }
 
     unordered_set<int> new_to_receive;
@@ -231,7 +222,7 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
       EXPECT_TRUE(status.ok());
       if (response.messages_size() > 0) {
         EXPECT_EQ(response.messages_size(), 1);
-        EXPECT_EQ(response.messages(0).from(), names[0]);
+        EXPECT_EQ(response.messages(0).m().unique_name(), names[0]);
         EXPECT_EQ(response.messages(0).m().message(), long_message);
       } else {
         new_to_receive.insert(i);

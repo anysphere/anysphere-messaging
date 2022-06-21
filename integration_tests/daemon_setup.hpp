@@ -3,8 +3,10 @@
 #include <gtest/gtest.h>
 
 #include "asphr/asphr.hpp"
-#include "daemon/daemon_rpc.hpp"
-#include "daemon/transmitter.hpp"
+#include "daemon/db/db.hpp"
+#include "daemon/global.hpp"
+#include "daemon/rpc/daemon_rpc.hpp"
+#include "daemon/transmitter/transmitter.hpp"
 #include "google/protobuf/util/time_util.h"
 #include "server/pir/fast_pir/fastpir.hpp"
 #include "server/src/server_rpc.hpp"
@@ -18,6 +20,7 @@
  **/
 
 struct FriendTestingInfo {
+  unique_ptr<Global> G;
   unique_ptr<DaemonRpc> rpc;
   unique_ptr<Transmitter> t;
 };
@@ -73,17 +76,23 @@ class DaemonRpcTest : public ::testing::Test {
     return address;
   }
 
+  auto gen_person() -> std::tuple<unique_ptr<Global>, unique_ptr<DaemonRpc>,
+                                  unique_ptr<Transmitter>> {
+    return gen_person(generateTempFile());
+  }
+
+  auto gen_person(string db_file)
+      -> std::tuple<unique_ptr<Global>, unique_ptr<DaemonRpc>,
+                    unique_ptr<Transmitter>> {
+    auto G = make_unique<Global>(db_file);
+    auto rpc = make_unique<DaemonRpc>(*G, stub_);
+    auto t = make_unique<Transmitter>(*G, stub_);
+    return std::make_tuple(std::move(G), std::move(rpc), std::move(t));
+  }
+
   auto generate_two_friends() -> pair<FriendTestingInfo, FriendTestingInfo> {
-    auto crypto1 = gen_crypto();
-    auto config1 = gen_config(string(generateTempDir()), generateTempFile());
-    auto msgstore1 = gen_msgstore(config1);
-    auto rpc1 = make_unique<DaemonRpc>(crypto1, config1, stub_, msgstore1);
-    auto t1 = make_unique<Transmitter>(crypto1, config1, stub_, msgstore1);
-    auto crypto2 = gen_crypto();
-    auto config2 = gen_config(string(generateTempDir()), generateTempFile());
-    auto msgstore2 = gen_msgstore(config2);
-    auto rpc2 = make_unique<DaemonRpc>(crypto2, config2, stub_, msgstore2);
-    auto t2 = make_unique<Transmitter>(crypto2, config2, stub_, msgstore2);
+    auto [G1, rpc1, t1] = gen_person();
+    auto [G2, rpc2, t2] = gen_person();
 
     {
       RegisterUserRequest request;
@@ -106,7 +115,7 @@ class DaemonRpcTest : public ::testing::Test {
 
     {
       GenerateFriendKeyRequest request;
-      request.set_name("user2");
+      request.set_unique_name("user2");
       GenerateFriendKeyResponse response;
       auto status = rpc1->GenerateFriendKey(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
@@ -116,7 +125,7 @@ class DaemonRpcTest : public ::testing::Test {
 
     {
       GenerateFriendKeyRequest request;
-      request.set_name("user1");
+      request.set_unique_name("user1");
       GenerateFriendKeyResponse response;
       auto status = rpc2->GenerateFriendKey(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
@@ -126,7 +135,7 @@ class DaemonRpcTest : public ::testing::Test {
 
     {
       AddFriendRequest request;
-      request.set_name("user2");
+      request.set_unique_name("user2");
       request.set_key(user2_key);
       AddFriendResponse response;
       auto status = rpc1->AddFriend(nullptr, &request, &response);
@@ -135,15 +144,15 @@ class DaemonRpcTest : public ::testing::Test {
 
     {
       AddFriendRequest request;
-      request.set_name("user1");
+      request.set_unique_name("user1");
       request.set_key(user1_key);
       AddFriendResponse response;
       auto status = rpc2->AddFriend(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
     }
 
-    auto friend1 = FriendTestingInfo{move(rpc1), move(t1)};
-    auto friend2 = FriendTestingInfo{move(rpc2), move(t2)};
+    auto friend1 = FriendTestingInfo{move(G1), move(rpc1), move(t1)};
+    auto friend2 = FriendTestingInfo{move(G2), move(rpc2), move(t2)};
     auto friends = make_pair(std::move(friend1), std::move(friend2));
 
     return friends;

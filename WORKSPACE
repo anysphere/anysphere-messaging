@@ -2,12 +2,12 @@
 # Copyright 2022 Anysphere, Inc.
 #
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 git_repository(
     name = "asphr",
-    commit = "b47ef1dd0e6577660e49cf3b14a87963398c5a97",  # autoupdate anysphere/asphr
+    commit = "c7352d349d38cccd12cf56a91f6c98c55b174406",  # autoupdate anysphere/asphr
     init_submodules = True,
     remote = "https://github.com/anysphere/asphr.git",
 )
@@ -21,13 +21,25 @@ load("@asphr//:asphr_load2.bzl", "load_asphr_repos2")
 
 load_asphr_repos2()
 
+load("@asphr//:asphr_load3.bzl", "load_asphr_repos3")
+
+load_asphr_repos3()
+
+load("@asphr//:asphr_load4.bzl", "load_asphr_repos4")
+
+load_asphr_repos4()
+
+load("@asphr//:asphr_load5.bzl", "load_asphr_repos5")
+
+load_asphr_repos5("@asphr")
+
 load("@asphr//:asphr.bzl", "setup_asphr")
 
 setup_asphr("@asphr")
 
 git_repository(
     name = "client",
-    commit = "10e3e9cdac78a7108132f82ec608fb430156cb3d",  # autoupdate anysphere/client
+    commit = "229331ca107692ba9423ec69408d2b0399f3b867",  # autoupdate anysphere/client
     init_submodules = True,
     remote = "https://github.com/anysphere/client.git",
 )
