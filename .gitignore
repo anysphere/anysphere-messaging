@@ -7,3 +7,4 @@ bazel-*
 rust-project.json
 
 test.db
+daemon/test_*.db
