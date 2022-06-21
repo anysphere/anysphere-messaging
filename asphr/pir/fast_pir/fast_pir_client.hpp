@@ -35,21 +35,32 @@ class FastPIRClient {
 
   // TODO: fix this absolute mess of initializers???
 
-  FastPIRClient() : FastPIRClient(create_context_params()) {}
+  FastPIRClient() : FastPIRClient(create_context_params()) {
+    ASPHR_LOG_INFO("Creating FastPIRClient.", from, "base");
+  }
 
   FastPIRClient(seal::SEALContext sc)
-      : FastPIRClient(sc, seal::KeyGenerator(sc)) {}
+      : FastPIRClient(sc, seal::KeyGenerator(sc)) {
+    ASPHR_LOG_INFO("Creating FastPIRClient.", from, "context params");
+  }
 
   FastPIRClient(seal::SEALContext sc, seal::KeyGenerator keygen)
       : FastPIRClient(sc, keygen.secret_key(),
-                      gen_galois_keys(keygen.create_galois_keys())) {}
+                      gen_galois_keys(keygen.create_galois_keys())) {
+    ASPHR_LOG_INFO("Creating FastPIRClient.", from, "context params, keygen");
+  }
 
   FastPIRClient(string secret_key, string galois_keys)
       : FastPIRClient(seal::SEALContext(create_context_params()), secret_key,
-                      galois_keys) {}
+                      galois_keys) {
+    ASPHR_LOG_INFO("Creating FastPIRClient.", from, "secret key, galois keys");
+  }
 
   FastPIRClient(seal::SEALContext sc, string secret_key, string galois_keys)
       : FastPIRClient(sc, deserialize_secret_key(sc, secret_key), galois_keys) {
+    ASPHR_LOG_INFO("Creating FastPIRClient.", from,
+                   "context params, "
+                   "secret key, galois keys");
   }
 
   FastPIRClient(seal::SecretKey secret_key, string galois_keys)

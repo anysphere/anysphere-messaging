@@ -21,11 +21,11 @@ package asphrclient;
 //
 // update GUARANTEED_MESSAGE_SIZE in client_lib.hpp whenever this is updated.
 message Message {
-    // id is a unique id for the message. it is unique for a <sender, receiver> ordered pair.
+    // sequence_number is a unique id for the message. it is unique for a <sender, receiver> ordered pair.
     // if the id is 0, then the message is a dummy message, with no actual msg to display to the user.
     // TODO: to optimize space usage, we should merge the id here and the nonce used for encryption.
     // this requires some careful thought with dummy messages.
-    uint32 id = 1;
+    uint32 sequence_number = 1;
     // msg contains the actual UTF-8 message, if such a message exists
     string msg = 2; 
     // acks contains the ids of messages that the sender has received and has not acked before.
@@ -35,7 +35,7 @@ message Message {
     // this field is not set if the message isn't long.
     uint32 num_chunks = 4;
     // if the message is a long message, this field contains the start id of the long message.
-    // the index in this message in the long message is (id - parts_start_id)
+    // the index in this message in the long message is (sequence_number - chunks_start_sequence_number)
     // this field is not set if the message isn't long.
-    uint32 chunks_start_id = 5;
+    uint32 chunks_start_sequence_number = 5;
 }

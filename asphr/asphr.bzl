@@ -10,6 +10,7 @@ load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
 load("@rules_proto_grpc//:repositories.bzl", "rules_proto_grpc_toolchains")
 load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "yarn_install")
 load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
+load("@crate_index//:defs.bzl", "crate_repositories")
 
 def setup_asphr(asphr_path):
     """Setup the asphr repository
@@ -38,3 +39,6 @@ def setup_asphr(asphr_path):
         package_json = asphr_path + "//schema:package.json",
         yarn_lock = asphr_path + "//schema:yarn.lock",
     )
+
+    crate_repositories()
+

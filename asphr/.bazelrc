@@ -1,6 +1,11 @@
 # REMINDER: WHEN CHANGING THIS FILE, PLEASE CHANGE ALL .BAZELRC FILES IN ALL THREE REPOS!!!!
 # (unfortunately, we cannot have a single source of truth...)
 
+build --incompatible_enable_cc_toolchain_resolution
+
+# this is for rules_rust
+build --repo_env=RULES_RUST_TOOLCHAIN_INCLUDE_RUSTC_SRCS=true
+
 # note: each bazelrc that try-imports this one needs to try-import the buildbuddy bazelrc but using the correct relative path
 try-import %workspace%/../.buildbuddy.bazelrc
 

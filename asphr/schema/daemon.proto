@@ -55,8 +55,9 @@ message RegisterUserResponse {}
 message GetFriendListRequest {}
 
 message FriendInfo {
-    string name = 1;
-    bool enabled = 2;
+    string unique_name = 1;
+    string display_name = 2;
+    bool enabled = 3;
 }
 
 message GetFriendListResponse {
@@ -64,7 +65,8 @@ message GetFriendListResponse {
 }
 
 message GenerateFriendKeyRequest {
-    string name = 1;
+    string unique_name = 1;
+    string display_name = 2;
 }
 
 message GenerateFriendKeyResponse {
@@ -72,20 +74,20 @@ message GenerateFriendKeyResponse {
 }
 
 message AddFriendRequest {
-    string name = 1;
+    string unique_name = 1;
     string key = 2;
 }
 
 message AddFriendResponse {}
 
 message RemoveFriendRequest {
-    string name = 1;
+    string unique_name = 1;
 }
 
 message RemoveFriendResponse {}
 
 message SendMessageRequest {
-    string name = 1;
+    string unique_name = 1;
     string message = 2;
 }
 
@@ -96,22 +98,24 @@ message BaseMessage {
     // in particular, this ID is guaranteed to be unique among ALL messages (on a given device), whereas the ID in message.proto
     // is only unique for each <sender, recipient> pair.
     // the format of this ID is something like (to|from):sender:sequence_number
-    string id = 1;
+    int32 id = 1;
     string message = 2;
+    string unique_name = 3;
+    string display_name = 4;
 }
 
 message IncomingMessage {
     BaseMessage m = 1;
-    string from = 2;
-    google.protobuf.Timestamp received_timestamp = 3;
-    bool seen = 4;
+    google.protobuf.Timestamp delivered_at = 2;
+    bool seen = 3;
+    bool delivered = 4;
 }
 
 message OutgoingMessage {
     BaseMessage m = 1;
-    string to = 2;
-    google.protobuf.Timestamp written_timestamp = 3;
-    bool delivered = 4;
+    google.protobuf.Timestamp sent_at = 2;
+    bool delivered = 3;
+    google.protobuf.Timestamp delivered_at = 4;
 }
 
 message GetMessagesRequest {
@@ -139,7 +143,7 @@ message GetSentMessagesResponse {
 }
 
 message MessageSeenRequest {
-    string id = 1;
+    int32 id = 1;
 }
 
 message MessageSeenResponse {}
@@ -150,6 +154,7 @@ message GetStatusResponse {
     bool registered = 1;
     string release_hash = 2;
     int32 latency_seconds = 3;
+    string server_address = 4;
 }
 
 message GetLatencyRequest {}
