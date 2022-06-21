@@ -50,7 +50,7 @@ CREATE TABLE status (
   -- sent_acked_seqnum is the latest sequence number that was ACKed by the friend
   -- any message with seqnum > sent_acked_seqnum MUST be retried.
     sent_acked_seqnum integer NOT NULL, 
-  -- received_seqnum is the value that should be ACKed. we acknowledge that we
+  -- received_seqnum is the value that should be ACKed. we guarantee that we
   -- have received all sequence numbers up to and including this value.
     received_seqnum integer NOT NULL,
     FOREIGN KEY(uid) REFERENCES friend(uid)

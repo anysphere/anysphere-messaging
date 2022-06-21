@@ -858,6 +858,7 @@ impl DB {
     use crate::schema::incoming_chunk;
     use crate::schema::message;
     use crate::schema::received;
+    use crate::schema::status;
 
     let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
       // if already exists, we are happy! don't need to do anything :))
@@ -916,6 +917,20 @@ impl DB {
           diesel::insert_into(incoming_chunk::table).values(&insertable_chunk).execute(conn_b)?;
         }
       };
+
+      // we want to update received_seqnum in status!
+      // remember that the guarantee is that we have received all messages <= seqnum at all times.
+      // so we only update the seqnum if we increase exactly by one (otherwise we might miss messages!)
+      let old_seqnum = status::table
+        .find(chunk.from_friend)
+        .select(status::received_seqnum)
+        .first::<i32>(conn_b)?;
+      if chunk.sequence_number == old_seqnum + 1 {
+        diesel::update(status::table.find(chunk.from_friend))
+          .set(status::received_seqnum.eq(chunk.sequence_number))
+          .execute(conn_b)?;
+      }
+
       // check if we have received all chunks!
       let q =
         incoming_chunk::table.filter(incoming_chunk::from_friend.eq(chunk.from_friend).and(
