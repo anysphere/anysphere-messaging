@@ -3,6 +3,9 @@
 
 build --incompatible_enable_cc_toolchain_resolution
 
+# this is for rules_rust
+build --repo_env=RULES_RUST_TOOLCHAIN_INCLUDE_RUSTC_SRCS=true
+
 # note: each bazelrc that try-imports this one needs to try-import the buildbuddy bazelrc but using the correct relative path
 try-import %workspace%/../.buildbuddy.bazelrc
 
@@ -78,3 +81,7 @@ build:san --copt -fno-omit-frame-pointer
 # we ignore ODR violations because we have two versions of zlib, one from protobuf and one from seal. not good. but issok.
 build:san --action_env=ASAN_OPTIONS=detect_odr_violation=0
 build:san --linkopt -fsanitize=address,undefined
+
+# Clippy for Rust
+build:rust-linter --aspects=@rules_rust//rust:defs.bzl%rust_clippy_aspect
+build:rust-linter --output_groups=+clippy_checks

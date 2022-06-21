@@ -30,11 +30,11 @@ void Inbox::update(unique_ptr<asphrdaemon::Daemon::Stub>& stub,
     cout << "get all messages failed: " << status.error_message() << endl;
   } else {
     for (const auto& message : response.messages()) {
-      auto time_proto = message.received_timestamp();
+      auto time_proto = message.delivered_at();
       absl::Time time = absl::FromUnixSeconds(time_proto.seconds());
 
       new_messages.emplace_back(
-          time, Message{message.m().message(), me, message.from()});
+          time, Message{message.m().message(), me, message.m().unique_name()});
     }
   }
 

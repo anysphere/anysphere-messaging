@@ -22,7 +22,7 @@ contextBridge.exposeInMainWorld("send", async (message: string, to: string) => {
     return true;
   }
   const request = new daemonM.SendMessageRequest();
-  request.setName(to);
+  request.setUniqueName(to);
   request.setMessage(message);
   const sendMessage = promisify(daemonClient.sendMessage).bind(daemonClient);
   try {
@@ -86,7 +86,7 @@ contextBridge.exposeInMainWorld(
       };
     }
     const request = new daemonM.GenerateFriendKeyRequest();
-    request.setName(requestedFriend);
+    request.setUniqueName(requestedFriend);
     const generateFriendKey = promisify(daemonClient.generateFriendKey).bind(
       daemonClient
     );
@@ -109,7 +109,7 @@ contextBridge.exposeInMainWorld(
   "addFriend",
   async (requestedFriend: string, requestedFriendKey: string) => {
     const request = new daemonM.AddFriendRequest();
-    request.setName(requestedFriend);
+    request.setUniqueName(requestedFriend);
     request.setKey(requestedFriendKey);
     const addFriend = promisify(daemonClient.addFriend).bind(daemonClient);
     try {
@@ -182,7 +182,7 @@ contextBridge.exposeInMainWorld(
     if (FAKE_DATA) {
       const l: Message[] = [
         {
-          id: "5",
+          id: 5,
           from: "Sualeh",
           to: "me",
           message:
@@ -191,7 +191,7 @@ contextBridge.exposeInMainWorld(
           type: "incoming",
         },
         {
-          id: "5",
+          id: 5,
           from: "Sualeh",
           to: "me",
           message:
@@ -200,7 +200,7 @@ contextBridge.exposeInMainWorld(
           type: "incoming",
         },
         {
-          id: "2",
+          id: 2,
           from: "Sualeh",
           to: "me",
           message:
@@ -209,7 +209,7 @@ contextBridge.exposeInMainWorld(
           type: "incoming",
         },
         {
-          id: "3",
+          id: 3,
           from: "Sualeh",
           to: "me",
           message:
@@ -218,7 +218,7 @@ contextBridge.exposeInMainWorld(
           type: "incoming",
         },
         {
-          id: "4",
+          id: 4,
           from: "Shengtong",
           to: "me",
           message:
@@ -227,7 +227,7 @@ contextBridge.exposeInMainWorld(
           type: "incoming",
         },
         {
-          id: "1",
+          id: 1,
           from: "Sualeh",
           to: "me",
           message:
@@ -283,7 +283,7 @@ contextBridge.exposeInMainWorld(
     if (FAKE_DATA) {
       const l: Message[] = [
         {
-          id: "5",
+          id: 5,
           from: "Sualeh",
           to: "me",
           message:
@@ -292,7 +292,7 @@ contextBridge.exposeInMainWorld(
           type: "incoming",
         },
         {
-          id: "5",
+          id: 5,
           from: "Sualeh",
           to: "me",
           message:
@@ -463,7 +463,7 @@ contextBridge.exposeInMainWorld("getFriendList", async () => {
     const lm = response.getFriendInfosList();
     const l = lm.map((m) => {
       return {
-        name: m.getName(),
+        name: m.getUniqueName(),
         status: m.getEnabled() ? "added" : "initiated",
       };
     });
@@ -474,7 +474,7 @@ contextBridge.exposeInMainWorld("getFriendList", async () => {
   }
 });
 
-contextBridge.exposeInMainWorld("messageSeen", async (message_id: string) => {
+contextBridge.exposeInMainWorld("messageSeen", async (message_id: number) => {
   const request = new daemonM.MessageSeenRequest();
   request.setId(message_id);
   const messageSeen = promisify(daemonClient.messageSeen).bind(daemonClient);

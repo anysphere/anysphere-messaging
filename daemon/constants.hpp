@@ -4,20 +4,39 @@
 //
 
 #pragma once
-#include "client_lib/client_lib.hpp"
+#include "asphr/asphr.hpp"
+#include "sodium.h"
+
+// MAC bytes
+constexpr size_t CRYPTO_ABYTES = crypto_aead_xchacha20poly1305_ietf_ABYTES;
+// nonce bytes
+constexpr size_t CRYPTO_NPUBBYTES =
+    crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
+// the maximum size of a message such that it can be sent in a single message
+// if the message is this size or shorter, it is guaranteed to be sent in a
+// single round. 1+5 is for the uint32 ID, 1+MESSAGE_SIZE is for the header of
+// the string, and 1 + 1 + 5 is for the repeated acks containing at least one
+// element. -1 at the end is for the padding which reserves one byte.
+constexpr size_t GUARANTEED_SINGLE_MESSAGE_SIZE =
+    MESSAGE_SIZE - (1 + 5) -
+    (1 +
+     CEIL_DIV((sizeof MESSAGE_SIZE) * 8 - std::countl_zero(MESSAGE_SIZE), 8)) -
+    (1 + 1 + 5) - CRYPTO_ABYTES - 1 - CRYPTO_NPUBBYTES;
 
 // we support up to 4 billion messages! that's a lot.
 // (we use unsigned integers)
 constexpr size_t ACKING_BYTES = 4;
 // the encryption takes a nonce + a mac
-const size_t ENCRYPTED_ACKING_BYTES =
+constexpr size_t ENCRYPTED_ACKING_BYTES =
     ACKING_BYTES + CRYPTO_ABYTES + CRYPTO_NPUBBYTES;
 // the maximum number of friends!
-const size_t MAX_FRIENDS = MESSAGE_SIZE / ENCRYPTED_ACKING_BYTES;
+constexpr size_t MAX_FRIENDS = MESSAGE_SIZE / ENCRYPTED_ACKING_BYTES;
 
-// default message delay is 1 minute!
+// NOTE: whenever these default values are changed, please make a database
+// migration in the shape of UPDATE config SET value = 'new_value' WHERE value =
+// 'old_value'; i.e. update the db only if the user is still using the default
+// value
 constexpr auto DEFAULT_ROUND_DELAY_SECONDS = 60;
-
 constexpr auto DEFAULT_SERVER_ADDRESS = "server1.anysphere.co:443";
 
 // this commit hash will be automatically updated by gui/package.json.
