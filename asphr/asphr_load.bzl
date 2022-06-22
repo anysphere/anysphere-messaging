@@ -67,6 +67,16 @@ def load_asphr_repos(asphr_path):
     )
 
     http_archive(
+        name = "com_github_gperftools_gperftools",
+        build_file = asphr_path + "//:gperftools.BUILD",
+        patch_args = ["-p1"],
+        patches = [asphr_path + "//:gperftools.patch"],  # random_shuffle not supported by c++20
+        sha256 = "83e3bfdd28b8bcf53222c3798d4d395d52dadbbae59e8730c4a6d31a9c3732d8",
+        strip_prefix = "gperftools-2.10",
+        urls = ["https://github.com/gperftools/gperftools/releases/download/gperftools-2.10/gperftools-2.10.tar.gz"],
+    )
+
+    http_archive(
         name = "rules_cc",
         sha256 = "4dccbfd22c0def164c8f47458bd50e0c7148f3d92002cdb459c2a96a68498241",
         urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.0.1/rules_cc-0.0.1.tar.gz"],
@@ -91,7 +101,7 @@ def load_asphr_repos(asphr_path):
             "https://github.com/nelhage/rules_boost/archive/%s.tar.gz" % _RULES_BOOST_COMMIT,
         ],
         patch_args = ["-p1"],
-        patches = [asphr_path + "//:rules_boost.patch"], # issue: https://github.com/nelhage/rules_boost/issues/160 (on certain linux distros, clang cannot find backtrace.h. see https://www.boost.org/doc/libs/1_71_0/doc/html/stacktrace/configuration_and_build.html#stacktrace.configuration_and_build.f3)
+        patches = [asphr_path + "//:rules_boost.patch"],  # issue: https://github.com/nelhage/rules_boost/issues/160 (on certain linux distros, clang cannot find backtrace.h. see https://www.boost.org/doc/libs/1_71_0/doc/html/stacktrace/configuration_and_build.html#stacktrace.configuration_and_build.f3)
     )
 
     # To find additional information on this release or newer ones visit:
@@ -101,7 +111,7 @@ def load_asphr_repos(asphr_path):
         sha256 = "872b04538ca20dad94791c348623f079ba93daf274c1d57ae6bfe0930ec77f0d",
         urls = [
             "https://mirror.bazel.build/github.com/bazelbuild/rules_rust/releases/download/0.6.0/rules_rust-v0.6.0.tar.gz",
-        "https://github.com/bazelbuild/rules_rust/releases/download/0.6.0/rules_rust-v0.6.0.tar.gz",
+            "https://github.com/bazelbuild/rules_rust/releases/download/0.6.0/rules_rust-v0.6.0.tar.gz",
         ],
     )
 
@@ -111,8 +121,5 @@ def load_asphr_repos(asphr_path):
         strip_prefix = "cxx-1.0.68",
         urls = ["https://github.com/dtolnay/cxx/archive/refs/tags/1.0.68.tar.gz"],
         patch_args = ["-p1"],
-        patches = [asphr_path + "//:cxx.patch"], # issue: we want to derive custom traits in Rust that C++ doesn't necessarily need to know about!
+        patches = [asphr_path + "//:cxx.patch"],  # issue: we want to derive custom traits in Rust that C++ doesn't necessarily need to know about!
     )
-
-
-
