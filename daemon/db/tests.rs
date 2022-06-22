@@ -4,16 +4,16 @@ use crate::db::*;
 use rand::Rng;
 
 fn get_registration_fragment() -> ffi::RegistrationFragment {
-  let public_key: Vec<u8> = br#"zIUWz21AsWme9KxgS43TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
-  let private_key: Vec<u8> = br#""EUSOOwjVEHRD1XzruR93LcK8YosZ3gWUkrrk8yjrpIQ="#.to_vec();
+  let kx_public_key: Vec<u8> = br#"zIUWz21AsWme9KxgS43TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
+  let kx_private_key: Vec<u8> = br#""EUSOOwjVEHRD1XzruR93LcK8YosZ3gWUkrrk8yjrpIQ="#.to_vec();
   let allocation: i32 = 34;
   let pir_secret_key: Vec<u8> = br#""hi hi"#.to_vec();
   let pir_galois_key: Vec<u8> = br#""hi hi hi"#.to_vec();
   let authentication_token: String = "X6H3ILWIrDGThjbi4IpYfWGtJ3YWdMIf".to_string();
 
   ffi::RegistrationFragment {
-    public_key,
-    private_key,
+    kx_public_key,
+    kx_private_key,
     allocation,
     pir_secret_key,
     pir_galois_key,
@@ -75,8 +75,8 @@ fn test_register() {
 
   match new_registration {
     Ok(registration) => {
-      assert_eq!(registration.public_key, config_clone.public_key);
-      assert_eq!(registration.private_key, config_clone.private_key);
+      assert_eq!(registration.kx_public_key, config_clone.kx_public_key);
+      assert_eq!(registration.kx_private_key, config_clone.kx_private_key);
       assert_eq!(registration.allocation, config_clone.allocation);
       assert_eq!(registration.pir_secret_key, config_clone.pir_secret_key);
       assert_eq!(registration.pir_galois_key, config_clone.pir_galois_key);

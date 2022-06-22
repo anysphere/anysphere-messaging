@@ -13,12 +13,12 @@ auto generate_dummy_address(const Global& G, const db::Registration& reg)
     -> db::Address {
   auto dummy_friend_keypair = crypto::generate_keypair();
 
-  // convert reg.public_key, private_key to a string
-  auto public_key_str = rust_u8Vec_to_string(reg.public_key);
-  auto private_key_str = rust_u8Vec_to_string(reg.private_key);
+  // convert reg.kx_public_key, kx_private_key to a string
+  auto kx_public_key_str = rust_u8Vec_to_string(reg.kx_public_key);
+  auto kx_private_key_str = rust_u8Vec_to_string(reg.kx_private_key);
 
   auto dummy_read_write_keys = crypto::derive_read_write_keys(
-      public_key_str, private_key_str, dummy_friend_keypair.first);
+      kx_public_key_str, kx_private_key_str, dummy_friend_keypair.first);
 
   // convert dummy_read_write_keys to a rust::Vec<uint8_t>
   auto read_key_vec_rust = string_to_rust_u8Vec(dummy_read_write_keys.first);

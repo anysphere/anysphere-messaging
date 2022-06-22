@@ -171,8 +171,8 @@ pub mod ffi {
   #[derive(Queryable)]
   struct Registration {
     pub uid: i32,
-    pub public_key: Vec<u8>,
-    pub private_key: Vec<u8>,
+    pub kx_public_key: Vec<u8>,
+    pub kx_private_key: Vec<u8>,
     pub allocation: i32,
     pub pir_secret_key: Vec<u8>,
     pub pir_galois_key: Vec<u8>,
@@ -181,8 +181,8 @@ pub mod ffi {
   #[derive(Insertable)]
   #[diesel(table_name = crate::schema::registration)]
   struct RegistrationFragment {
-    pub public_key: Vec<u8>,
-    pub private_key: Vec<u8>,
+    pub kx_public_key: Vec<u8>,
+    pub kx_private_key: Vec<u8>,
     pub allocation: i32,
     pub pir_secret_key: Vec<u8>,
     pub pir_galois_key: Vec<u8>,
@@ -196,8 +196,8 @@ pub mod ffi {
   #[derive(Queryable)]
   struct SmallRegistrationFragment {
     pub uid: i32,
-    pub public_key: Vec<u8>,
-    pub private_key: Vec<u8>,
+    pub kx_public_key: Vec<u8>,
+    pub kx_private_key: Vec<u8>,
     pub allocation: i32,
     pub authentication_token: String,
   }
@@ -588,8 +588,8 @@ impl DB {
 
     let q = registration::table.select((
       registration::uid,
-      registration::public_key,
-      registration::private_key,
+      registration::kx_public_key,
+      registration::kx_private_key,
       registration::allocation,
       registration::authentication_token,
     ));

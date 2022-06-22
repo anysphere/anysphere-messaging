@@ -14,8 +14,8 @@ CREATE TABLE config (
 -- 0-1 elements always!
 CREATE TABLE registration (
     uid integer PRIMARY KEY NOT NULL,
-    public_key blob NOT NULL,
-    private_key blob NOT NULL,
+    kx_public_key blob NOT NULL,
+    kx_private_key blob NOT NULL,
     allocation integer NOT NULL,
     pir_secret_key blob NOT NULL,
     pir_galois_key blob NOT NULL,

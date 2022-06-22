@@ -79,8 +79,8 @@ diesel::table! {
 diesel::table! {
     registration (uid) {
         uid -> Integer,
-        public_key -> Binary,
-        private_key -> Binary,
+        kx_public_key -> Binary,
+        kx_private_key -> Binary,
         allocation -> Integer,
         pir_secret_key -> Binary,
         pir_galois_key -> Binary,
@@ -122,15 +122,15 @@ diesel::joinable!(sent -> message (uid));
 diesel::joinable!(status -> friend (uid));
 
 diesel::allow_tables_to_appear_in_same_query!(
-  address,
-  config,
-  draft,
-  friend,
-  incoming_chunk,
-  message,
-  outgoing_chunk,
-  received,
-  registration,
-  sent,
-  status,
+    address,
+    config,
+    draft,
+    friend,
+    incoming_chunk,
+    message,
+    outgoing_chunk,
+    received,
+    registration,
+    sent,
+    status,
 );

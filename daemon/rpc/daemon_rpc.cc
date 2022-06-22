@@ -23,14 +23,14 @@ Status DaemonRpc::RegisterUser(
   }
 
   const auto name = registerUserRequest->name();
-  const auto [public_key, secret_key] = crypto::generate_keypair();
+  const auto [kx_public_key, secret_key] = crypto::generate_keypair();
   const auto [pir_secret_key, pir_galois_keys] = generate_keys();
 
   auto beta_key = registerUserRequest->beta_key();
 
   // call register rpc to send the register request
   asphrserver::RegisterInfo request;
-  request.set_public_key(public_key);
+  request.set_public_key(kx_public_key);
   request.set_beta_key(beta_key);
 
   asphrserver::RegisterResponse reply;
@@ -66,8 +66,8 @@ Status DaemonRpc::RegisterUser(
 
     try {
       G.db->do_register(db::RegistrationFragment{
-          .public_key = string_to_rust_u8Vec(public_key),
-          .private_key = string_to_rust_u8Vec(secret_key),
+          .kx_public_key = string_to_rust_u8Vec(kx_public_key),
+          .kx_private_key = string_to_rust_u8Vec(secret_key),
           .allocation = allocation.at(0),
           .pir_secret_key = string_to_rust_u8Vec(pir_secret_key),
           .pir_galois_key = string_to_rust_u8Vec(pir_galois_keys),
@@ -130,8 +130,8 @@ Status DaemonRpc::GenerateFriendKey(
   // note: for now, we only support the first index ever!
   auto reg = G.db->get_small_registration();
   auto index = reg.allocation;
-  auto friend_key =
-      crypto::generate_friend_key(rust_u8Vec_to_string(reg.public_key), index);
+  auto friend_key = crypto::generate_friend_key(
+      rust_u8Vec_to_string(reg.kx_public_key), index);
 
   try {
     const auto f = G.db->create_friend(generateFriendKeyRequest->unique_name(),
@@ -166,12 +166,12 @@ Status DaemonRpc::AddFriend(
     ASPHR_LOG_ERR("Invalid friend key.", rpc_call, "AddFriend");
     return Status(grpc::StatusCode::INVALID_ARGUMENT, "invalid friend key");
   }
-  auto [read_index, friend_public_key] = decoded_friend_key.value();
+  auto [read_index, friend_kx_public_key] = decoded_friend_key.value();
 
   auto reg = G.db->get_small_registration();
   auto [read_key, write_key] = crypto::derive_read_write_keys(
-      rust_u8Vec_to_string(reg.public_key),
-      rust_u8Vec_to_string(reg.private_key), friend_public_key);
+      rust_u8Vec_to_string(reg.kx_public_key),
+      rust_u8Vec_to_string(reg.kx_private_key), friend_kx_public_key);
 
   try {
     G.db->add_friend_address(
