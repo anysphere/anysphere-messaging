@@ -51,6 +51,17 @@ build --cxxopt=-Wextra
 build --cxxopt=-Wno-unused-parameter
 build --cxxopt=-Wpointer-arith
 
+# build using -lprofiler flag for profiling
+# build --cxxopt=-lprofiler
+# build --linkopt=-lprofiler
+
+build:perf --copt=-g
+build:perf --cxxopt=-g
+build:perf --cxxopt=-O2
+build:perf --linkopt=-g
+build:perf --copt -fno-omit-frame-pointer
+build:perf --strip=never
+
 # Address sanitizer
 # CC=clang bazel build --config asan
 build:asan --strip=never

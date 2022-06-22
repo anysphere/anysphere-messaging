@@ -85,3 +85,24 @@ make publish-landing
 Create a GH access token with the full repo scope. Put it in `.env` as `GH_TOKEN=ghp_xxxxxxxx`. Then run `make publish-mac`.
 
 To debug, check `~/Library/Caches/co.anysphere.Anysphere.ShipIt`.
+
+# Profiling
+
+First the simple usage to profile a binary:
+
+### Simple Usage
+
+1. `bazelisk build //... --config perf`
+2. `perf record ${binary} // The binary can be found in the bazel-bin directory`
+3. `perf report`
+
+### Perf errors about not having enough access to CPU counter
+
+```
+# set "kernel.perf_event_paranoid = 0" in "/etc/sysctl.conf" which allows profiler to access symbols.
+echo "Setting kernel.perf_event_paranoid = 0"
+sudo echo "kernel.perf_event_paranoid = 0" >> /etc/sysctl.conf # you might have to do this manually.
+
+# Restart the service.
+sudo sysctl --system &> /dev/null
+```
