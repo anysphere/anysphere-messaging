@@ -1,3 +1,5 @@
 bazel-*
 
 .user.bazelrc
+
+compile_commands.json
