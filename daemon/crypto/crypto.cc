@@ -265,11 +265,12 @@ auto decrypt_ack(const string& ciphertext, const string& read_key)
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
 
-// NEW: generate / decode
-// user ID. user ID is a string stored on the server that encompases username,
+// NEW: generate / decode user ID.
+// user ID is a string stored on the server that encompases username,
 // allocation, kx_public_key, and friend_request_public_key
 // we use Base64 encoding as before
-// IMPORTANT ASSUMPTION: username should not contain '@'
+// TODO: what is included here is an IMPORTANT DECISION pending discussion.
+// ASSUMPTION: username should not contain '@'
 auto generate_user_id(const string& username, int allocation,
                       const string& kx_public_key,
                       const string& friend_request_public_key)

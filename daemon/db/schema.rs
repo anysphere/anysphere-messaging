@@ -3,9 +3,9 @@
 diesel::table! {
     address (uid) {
         uid -> Integer,
-        kx_public_key -> Binary,
         friend_request_public_key -> Binary,
         friend_request_message -> Text,
+        kx_public_key -> Binary,
         read_index -> Integer,
         ack_index -> Integer,
         read_key -> Binary,
@@ -82,10 +82,10 @@ diesel::table! {
 diesel::table! {
     registration (uid) {
         uid -> Integer,
-        kx_public_key -> Binary,
-        kx_private_key -> Binary,
         friend_request_public_key -> Binary,
         friend_request_private_key -> Binary,
+        kx_public_key -> Binary,
+        kx_private_key -> Binary,
         allocation -> Integer,
         pir_secret_key -> Binary,
         pir_galois_key -> Binary,

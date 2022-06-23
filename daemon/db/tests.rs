@@ -1,17 +1,21 @@
 use diesel::prelude::*;
 
-use crate::db::*;
-use rand::Rng;
+use crate::{db::*};
+use rand::{random, Rng};
 
 fn get_registration_fragment() -> ffi::RegistrationFragment {
   let kx_public_key: Vec<u8> = br#"zIUWz21AsWme9KxgS43TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
   let kx_private_key: Vec<u8> = br#""EUSOOwjVEHRD1XzruR93LcK8YosZ3gWUkrrk8yjrpIQ="#.to_vec();
+  let friend_request_public_key: Vec<u8> = br#"zIUWz21AsWme9KxgS56TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
+  let friend_request_private_key: Vec<u8> = br#"zIUWz21AsWme9KxgS78TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
   let allocation: i32 = 34;
   let pir_secret_key: Vec<u8> = br#""hi hi"#.to_vec();
   let pir_galois_key: Vec<u8> = br#""hi hi hi"#.to_vec();
   let authentication_token: String = "X6H3ILWIrDGThjbi4IpYfWGtJ3YWdMIf".to_string();
 
   ffi::RegistrationFragment {
+    friend_request_public_key,
+    friend_request_private_key,
     kx_public_key,
     kx_private_key,
     allocation,
@@ -77,6 +81,8 @@ fn test_register() {
     Ok(registration) => {
       assert_eq!(registration.kx_public_key, config_clone.kx_public_key);
       assert_eq!(registration.kx_private_key, config_clone.kx_private_key);
+      assert_eq!(registration.friend_request_public_key, config_clone.friend_request_public_key);
+      assert_eq!(registration.friend_request_private_key, config_clone.friend_request_private_key);
       assert_eq!(registration.allocation, config_clone.allocation);
       assert_eq!(registration.pir_secret_key, config_clone.pir_secret_key);
       assert_eq!(registration.pir_galois_key, config_clone.pir_galois_key);
@@ -104,6 +110,9 @@ fn test_receive_msg() {
   db.add_friend_address(
     ffi::AddAddress {
       unique_name: "friend_1".to_string(),
+      kx_public_key: br#"uuuu"#.to_vec(),
+      friend_request_public_key: br#"vvvv"#.to_vec(),
+      friend_request_message: "hello".to_string(),
       read_index: 0,
       read_key: br#"xxxx"#.to_vec(),
       write_key: br#"wwww"#.to_vec(),
@@ -170,6 +179,9 @@ fn test_send_msg() {
   db.add_friend_address(
     ffi::AddAddress {
       unique_name: "friend_1".to_string(),
+      kx_public_key: br#"uuuu"#.to_vec(),
+      friend_request_public_key: br#"vvvv"#.to_vec(),
+      friend_request_message: "hello".to_string(),
       read_index: 0,
       read_key: br#"xxxx"#.to_vec(),
       write_key: br#"wwww"#.to_vec(),
@@ -190,4 +202,66 @@ fn test_send_msg() {
   assert!(chunk_to_send.content == msg);
   assert!(chunk_to_send.write_key == br#"wwww"#.to_vec());
   assert!(chunk_to_send.num_chunks == 1);
+}
+
+// Simulate adding a friend
+// Plot: we receive an incoming async friend request, and approve it
+#[test]
+fn test_async_add_friend() {
+  let db_file = gen_temp_file();
+  let db = init(db_file.as_str()).unwrap();
+
+  let config_data = get_registration_fragment();
+  db.do_register(config_data).unwrap();
+
+  // check initial state
+  assert!(db.has_space_for_async_friend_requests().unwrap());
+  assert!(db.get_incoming_async_friend_requests().unwrap().is_empty());
+  // add an incoming friend request
+  let friend_name = "friend_1";
+  let friend_request = ffi::FriendFragment {
+    unique_name: friend_name.to_string(),
+    display_name: "lyrica".to_string(),
+    progress: INCOMING_REQUEST,
+    deleted: false,
+  };
+
+  let address = ffi::AddAddress {
+    unique_name: friend_name.to_string(),
+    read_index: 0,
+    read_key: br#"xxxx"#.to_vec(),
+    write_key: br#"wwww"#.to_vec(),
+    kx_public_key: br#"xxxx"#.to_vec(),
+    friend_request_public_key: br#"xxxx"#.to_vec(),
+    friend_request_message: "finally made a friend".to_string(),
+  };
+  db.add_incoming_async_friend_requests(friend_request, address).unwrap();
+  let friend_requests = db.get_incoming_async_friend_requests().unwrap();
+  // check that we have a friend request
+  assert_eq!(friend_requests.len(), 1);
+  assert_eq!(friend_requests[0].unique_name, friend_name);
+
+  // this uid now identifies the friend
+  let uid = friend_requests[0].uid;
+  let address = db.get_friend_address(uid).unwrap();
+  // check the associated address & status struct
+  // the ack index shouldn't have been set yet
+  assert!(address.ack_index < 0);
+  assert!(address.uid == uid);
+
+  // approve the friend request
+  let max_friend = 99;
+  db.approve_async_friend_request(friend_name, max_friend).unwrap();
+  // check that the friend request is gone
+  let friend_requests_new = db.get_incoming_async_friend_requests().unwrap();
+  assert_eq!(friend_requests_new.len(), 0);
+  // check that we have a friend
+  let friends = db.get_friends().unwrap();
+  assert_eq!(friends.len(), 1);
+  assert_eq!(friends[0].uid, uid);
+  assert_eq!(friends[0].unique_name, "friend_1");
+  // check the friend address
+  let new_address = db.get_friend_address(uid).unwrap();
+  assert_eq!(new_address.uid, uid);
+  assert!(new_address.ack_index >= 0);
 }

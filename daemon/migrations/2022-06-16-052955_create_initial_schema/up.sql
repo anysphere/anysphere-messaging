@@ -11,13 +11,14 @@ CREATE TABLE config (
     FOREIGN KEY(registration_uid) REFERENCES registration(uid)
 );
 
+-- IMPORTANT: friend request key always allocated before kx key.
 -- 0-1 elements always!
 CREATE TABLE registration (
     uid integer PRIMARY KEY NOT NULL,
-    kx_public_key blob NOT NULL,
-    kx_private_key blob NOT NULL,
     friend_request_public_key blob NOT NULL,
     friend_request_private_key blob NOT NULL,
+    kx_public_key blob NOT NULL,
+    kx_private_key blob NOT NULL,
     allocation integer NOT NULL,
     pir_secret_key blob NOT NULL,
     pir_galois_key blob NOT NULL,
@@ -37,11 +38,11 @@ CREATE TABLE friend (
 
 CREATE TABLE address (
     uid integer PRIMARY KEY NOT NULL,
-    kx_public_key blob NOT NULL,
     friend_request_public_key blob NOT NULL,
     -- this is my message to friend if progress = outgoing,
     -- and their message to me if progress = incoming
     friend_request_message text NOT NULL, 
+    kx_public_key blob NOT NULL,
     read_index integer NOT NULL,
   -- ack_index is the index into the acking data for this friend
   -- this NEEDS to be unique for every friend!!
