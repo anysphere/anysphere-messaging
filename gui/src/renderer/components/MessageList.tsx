@@ -6,6 +6,7 @@
 import * as React from "react";
 import { Message } from "../../types";
 import { truncate, formatTime } from "../utils";
+import { BackgroundCircles } from "./BackgroundCircles/BackgroundCircles";
 import { SelectableList } from "./SelectableList";
 
 function MessageBlurb({
@@ -139,9 +140,7 @@ function MessageList(props: {
           />
         </div>
       </div>
-      {messages.length === 0 && (
-        <NoMessages explanation={noMessageExplanation} />
-      )}
+      {messages.length === 0 && <BackgroundCircles />}
     </div>
   );
 }
