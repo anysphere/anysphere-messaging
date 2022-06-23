@@ -34,6 +34,7 @@ module.exports = {
         sendmsg: "sendmsg 10s linear infinite",
         retrievemsg: "retrievemsg 10s linear infinite",
         slideunderline: "slideunderline 1s ease-out",
+        blob: "blob 7s infinite",
       },
       keyframes: {
         wiggle: {
@@ -105,6 +106,20 @@ module.exports = {
           },
           "87%, 100%": {
             transform: "translate(0.5em, 0)",
+          },
+        },
+        blob: {
+          "0%": {
+            transform: "translate(0px, 0px) scale(1)",
+          },
+          "33%": {
+            transform: "translate(30px, -50px) scale(1.1)",
+          },
+          "66%": {
+            transform: "translate(-20px, 20px) scale(0.9)",
+          },
+          "100%": {
+            transform: "tranlate(0px, 0px) scale(1)",
           },
         },
       },
