@@ -132,7 +132,8 @@ pub mod ffi {
     pub uid: i32,
     pub unique_name: String,
     pub display_name: String,
-    pub enabled: bool,
+    #[diesel(deserialize_as = crate::db::Progress)]
+    pub progress: Progress,
     pub deleted: bool,
   }
   #[derive(Insertable)]
@@ -140,7 +141,8 @@ pub mod ffi {
   struct FriendFragment {
     pub unique_name: String,
     pub display_name: String,
-    pub enabled: bool,
+    #[diesel(deserialize_as = crate::db::Progress)]
+    pub progress: Progress,
     pub deleted: bool,
   }
 
@@ -150,6 +152,9 @@ pub mod ffi {
     pub uid: i32,
     pub read_index: i32,
     pub ack_index: i32,
+    pub kx_public_key: Vec<u8>,
+    pub friend_request_public_key: Vec<u8>,
+    pub friend_request_message: String, 
     pub read_key: Vec<u8>,
     pub write_key: Vec<u8>,
   }
@@ -171,6 +176,8 @@ pub mod ffi {
   #[derive(Queryable)]
   struct Registration {
     pub uid: i32,
+    pub friend_request_public_key: Vec<u8>,
+    pub friend_request_private_key: Vec<u8>,
     pub kx_public_key: Vec<u8>,
     pub kx_private_key: Vec<u8>,
     pub allocation: i32,
@@ -236,6 +243,27 @@ pub mod ffi {
     pub ack: i32,
     pub write_key: Vec<u8>,
     pub ack_index: i32,
+  }
+
+  enum Progress {
+    OutgoingRequest = 0,
+    IncomingRequest = 1,
+    ActualFriend = 2,
+  }
+  impl<DB> Queryable<diesel::sql_types::Integer, DB> for Progress
+  where
+    DB: diesel::backend::Backend,
+    i32: diesel::deserialize::FromSql<diesel::sql_types::Integer, DB>,
+  { 
+    type Row = i32;
+    fn build(s: i32) -> diesel::deserialize::Result<Self> {
+      match s {
+        0 => Ok(Progress::OutgoingRequest),
+        1 => Ok(Progress::IncomingRequest),
+        2 => Ok(Progress::ActualFriend),
+        _ => Err(diesel::deserialize::Error::UnexpectedNull),
+      }
+    }
   }
 
   enum MessageFilter {
@@ -361,6 +389,16 @@ pub mod ffi {
     fn get_friend_address(&self, uid: i32) -> Result<Address>;
     // fails if no such friend exists
     fn get_random_enabled_friend_address_excluding(&self, uids: Vec<i32>) -> Result<Address>;
+
+    //
+    // Async Friend Requests
+    //
+    fn has_space_for_async_friend_requests(&self) -> bool;
+    fn get_outgoing_async_friend_requests(&self) -> Result<Vec<(Friend, Address)>>;
+    fn add_incoming_async_friend_requests(&self, friend: &Friend, address: &Address) -> Result<()>;
+    fn get_incoming_async_friend_requests(&self) -> Result<Vec<(Friend, Address)>>;
+    fn approve_async_friend_request(&self, unique_name: &str) -> Result<()>;
+    fn deny_async_friend_request(&self, unique_name: &str) -> Result<()>;
 
     //
     // Messages
@@ -658,7 +696,7 @@ impl DB {
     let f = ffi::FriendFragment {
       unique_name: unique_name.to_string(),
       display_name: display_name.to_string(),
-      enabled: false,
+      progress: ffi::Progress::ActualFriend,
       deleted: false,
     };
     let r = conn.transaction(|conn_b| {
@@ -1439,6 +1477,160 @@ impl DB {
       Err(e) => {
         Err(DbError::Unknown(format!("mark_message_as_seen, no message with that uid: {}", e)))
       }
+    }
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
+  //|||                                                                    |||
+  //|||                  ASYNC FRIEND REQUEST METHODS                      |||
+  //|||                                                                    |||
+  ////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
+  pub fn has_space_for_async_friend_requests(&self) -> Result<bool> 
+  {
+    // return true iff no async friend requests are in the database
+    if let Ok(f) = self.get_outgoing_async_friend_requests() {
+      if f.len() == 0 {
+        return Ok(true);
+      }
+      else {
+        return Ok(false);
+      }
+    }
+    else {
+      return Err(DbError::Unknown("failed to get outgoing async friend requests".to_string()));
+    }
+  }
+
+  pub fn get_outgoing_async_friend_requests(&self) -> Result<Vec<(ffi::Friend, ffi::Address)>, DbError> 
+  {
+    let PROGRESS_OUTGOING = 0;
+    let mut conn = self.connect()?; // if error then crash function
+    use crate::schema::friend;
+    use crate::schema::address;
+
+    if let Ok(f) =
+      friend::table.filter(friend::deleted.eq(false))
+                   .filter(friend::progress.eq(PROGRESS_OUTGOING)).load::<ffi::Friend>(&mut conn)
+    {
+      let mut outgoing_requests: Vec<(ffi::Friend, ffi::Address)> = [];
+      // iterate, find the address corresponding to the friend
+      for friend in f {
+        if let Ok(address) = 
+          address::table.filter(address::uid.eq(friend.uid)).first::<ffi::Address>(&mut conn) 
+        {
+          outgoing_requests.push((friend, address));
+        }
+        else {
+          Err(DbError::NotFound("friend has no corresponding address".to_string()));
+        }
+      }
+      Ok(outgoing_requests)
+    } else {
+      Err(DbError::NotFound("failed to get friend".to_string()))
+    }
+    
+  }
+
+  pub fn add_incoming_async_friend_requests(&self, friend: &ffi::Friend, address: &ffi::Address) -> Result<(), DbError> {
+    assert!(friend.progress == ffi::Progress::IncomingRequest);
+    let mut conn = self.connect().unwrap();
+    use crate::schema::friend;
+    use crate::schema::address;
+    let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+      // IMPORTANT TODO: what if the friend already exists?
+      // We can either recycle the old entry, or create a new entry.
+      // We choose the latter, which also erases the message history.
+      // insert friend and address into database
+      if let OK(f) = diesel::insert_into(friend::table)
+          .values(friend)
+          .get_result::<ffi::Friend>(&mut conn) {
+          if let OK(a) = diesel::insert_into(address::table)
+            .values(address)
+            .get_result::<ffi::Address>(&mut conn) {
+              Ok(())
+          }
+          else {
+            Err(DbError::Unknown("failed to insert friend".to_string()))
+          }
+        }
+        else {
+          Err(DbError::Unknown("failed to insert friend".to_string()))
+      }
+    });
+    match r {
+      Ok(_) => Ok(()),
+      Err(e) => Err(DbError::Unknown(format!("add_incoming_async_friend_requests: {}", e))),
+    }
+  }
+
+  pub fn get_incoming_async_friend_requests(&self) -> Result<Vec<(ffi::Friend, ffi::Address)>, DbError> {
+    let PROGRESS_INCOMING = 1;
+    let mut conn = self.connect()?; // if error then crash function
+    use crate::schema::friend;
+    use crate::schema::address;
+
+    if let Ok(f) =
+      friend::table.filter(friend::deleted.eq(false))
+                   .filter(friend::progress.eq(PROGRESS_INCOMING)).load::<ffi::Friend>(&mut conn)
+    {
+      Vec<(Friend, Address)> outgoing_requests = [];
+      // iterate, find the address corresponding to the friend
+      for friend in f {
+        if let Ok(address) = 
+          address::table.filter(address::uid.eq(friend.uid)).first::<ffi::Address>(&mut conn) 
+        {
+          outgoing_requests.push((friend, address));
+        }
+        else {
+          Err(DbError::NotFound("friend has no corresponding address".to_string()));
+        }
+      }
+      Ok(outgoing_requests)
+    } else {
+      Err(DbError::NotFound("failed to get friend".to_string()))
+    }
+  }
+
+  fn approve_async_friend_request(&self, unique_name: &str) -> Result<(), DbError> {
+    // This function is called when the user accepts a friend request.
+    let mut conn = self.connect().unwrap();
+    use crate::schema::friend;
+    use crate::schema::address;
+
+    // we change the progress to 2, meaning that the friend is approved
+    let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+        // update friend and address
+        diesel::update(friend::table.find(f.uid))
+          .set(friend::progress.eq(ffi::Progress::ActualFriend))
+          .execute(&mut conn)?;
+        diesel::update(address::table.find(a.uid))
+          .set(address::progress.eq(ffi::Progress::ActualFriend))
+          .execute(&mut conn)?;
+        Ok(())
+    });
+
+    match r {
+      Ok(_) => Ok(()),
+      Err(e) => {
+        Err(DbError::Unknown(format!("approve_async_friend_request FAILED: {}", e)))
+      }
+    }
+  }
+
+  fn deny_async_friend_request(&self, unique_name: &str) {
+    // This function is called when the user rejects a friend request.
+    let mut conn = self.connect().unwrap();
+    use crate::schema::friend;
+
+    // we change the deleted flag to true, meaning that the friend is deleted
+    if Ok(f) = diesel::update(friend::table.find(f.uid))
+          .set(friend::deleted.eq(true))
+          .execute(&mut conn)? { 
+      Ok(())
+    } else {
+      Err(DbError::Unknown("deny_async_friend_request FAILED".to_string()))
     }
   }
 }
