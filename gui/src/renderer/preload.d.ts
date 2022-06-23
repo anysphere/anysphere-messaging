@@ -20,7 +20,7 @@ declare global {
       requestedFriend: string,
       requestedFriendKey: string
     ): Promise<boolean>;
-    messageSeen(message_id: string): Promise<boolean>;
+    messageSeen(message_id: number): Promise<boolean>;
     hasRegistered(): Promise<boolean>;
     register(username: string, accessKey: string): Promise<boolean>;
     isPlatformMac(): boolean;

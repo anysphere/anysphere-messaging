@@ -11,7 +11,7 @@ auto Friend::generate_key(unique_ptr<asphrdaemon::Daemon::Stub>& stub)
   asphrdaemon::GenerateFriendKeyRequest request;
   asphrdaemon::GenerateFriendKeyResponse response;
 
-  request.set_name(name_);
+  request.set_unique_name(name_);
 
   grpc::Status status = stub->GenerateFriendKey(&context, request, &response);
 
@@ -28,7 +28,7 @@ auto Friend::add(unique_ptr<asphrdaemon::Daemon::Stub>& stub, const string& key)
   asphrdaemon::AddFriendRequest request;
   asphrdaemon::AddFriendResponse response;
 
-  request.set_name(name_);
+  request.set_unique_name(name_);
   // REMOVE
   cout << "name: " << name_ << endl;
   request.set_key(key);

@@ -5,18 +5,16 @@
 
 #pragma once
 
-#include "config.hpp"
-#include "crypto.hpp"
-#include "msgstore.hpp"
+#include "daemon/crypto/crypto.hpp"
+#include "daemon/global.hpp"
+#include "pir/fast_pir/fast_pir_client.hpp"
 #include "schema/daemon.grpc.pb.h"
 #include "schema/server.grpc.pb.h"
 
 class DaemonRpc final : public asphrdaemon::Daemon::Service {
  public:
-  DaemonRpc(const Crypto crypto, shared_ptr<Config> config,
-            shared_ptr<asphrserver::Server::Stub> stub,
-            shared_ptr<Msgstore> msgstore)
-      : crypto(crypto), config(config), stub(stub), msgstore(msgstore) {}
+  DaemonRpc(Global& G, shared_ptr<asphrserver::Server::Stub> stub)
+      : G(G), stub(stub) {}
 
   grpc::Status RegisterUser(
       grpc::ServerContext* context,
@@ -95,8 +93,6 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
                     asphrdaemon::KillResponse* killResponse) override;
 
  private:
-  const Crypto crypto;
-  shared_ptr<Config> config;
+  Global& G;
   shared_ptr<asphrserver::Server::Stub> stub;
-  shared_ptr<Msgstore> msgstore;
 };
