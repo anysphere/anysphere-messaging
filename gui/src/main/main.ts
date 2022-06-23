@@ -56,6 +56,7 @@ const startDaemonIfNeeded = async (pkgPath: string) => {
     // first copy the CLI
     const cliPath = path.join(pkgPath, "bin", "anysphere");
     // ln -sf link it!
+    // TODO(arvid): just add to PATH instead, because not everyone has /usr/local/bin in their PATH
     const mkdir = await exec(`mkdir -p /usr/local/bin`);
     if (mkdir.stderr) {
       process.stderr.write(mkdir.stderr);
@@ -69,6 +70,11 @@ const startDaemonIfNeeded = async (pkgPath: string) => {
     // possible problem, so let's start the daemon!
     // unload the plist if it exists.
     const plist_path = PLIST_PATH();
+    // 0: create the directory
+    const mkdir_plist = await exec(`mkdir -p ${path.dirname(plist_path)}`);
+    if (mkdir_plist.stderr) {
+      process.stderr.write(mkdir_plist.stderr);
+    }
     // 1: unload plist
     await exec("launchctl unload " + plist_path); // we don't care if it fails or not!
     let logPath = "";
