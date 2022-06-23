@@ -56,6 +56,7 @@ const startDaemonIfNeeded = async (pkgPath: string) => {
     // first copy the CLI
     const cliPath = path.join(pkgPath, "bin", "anysphere");
     // ln -sf link it!
+    // TODO: just add to PATH instead, because not everyone has /usr/local/bin in their PATH
     const mkdir = await exec(`mkdir -p /usr/local/bin`);
     if (mkdir.stderr) {
       process.stderr.write(mkdir.stderr);
