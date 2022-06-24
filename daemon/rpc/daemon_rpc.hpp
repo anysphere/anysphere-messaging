@@ -26,16 +26,43 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
       const asphrdaemon::GetFriendListRequest* getFriendListRequest,
       asphrdaemon::GetFriendListResponse* getFriendListResponse) override;
 
-  grpc::Status GenerateFriendKey(
+  grpc::Status GetPublicID(
       grpc::ServerContext* context,
-      const asphrdaemon::GenerateFriendKeyRequest* generateFriendKeyRequest,
-      asphrdaemon::GenerateFriendKeyResponse* generateFriendKeyResponse)
-      override;
+      const asphrdaemon::GetPublicIDRequest* getPublicIDRequest,
+      asphrdaemon::GetPublicIDResponse* getPublicIDResponse) override;
 
-  grpc::Status AddFriend(
+  grpc::Status AddSyncFriend(
       grpc::ServerContext* context,
-      const asphrdaemon::AddFriendRequest* addFriendRequest,
-      asphrdaemon::AddFriendResponse* addFriendResponse) override;
+      const asphrdaemon::AddSyncFriendRequest* addSyncFriendRequest,
+      asphrdaemon::AddSyncFriendResponse* addSyncFriendResponse) override;
+
+  grpc::Status SendAsyncFriendRequest(
+      grpc::ServerContext* context,
+      const asphrdaemon::SendAsyncFriendRequestRequest*
+          sendAsyncFriendRequestRequest,
+      asphrdaemon::SendAsyncFriendRequestResponse*
+          sendAsyncFriendRequestResponse) override;
+
+  grpc::Status GetOutgoingAsyncFriendRequests(
+      grpc::ServerContext* context,
+      const asphrdaemon::GetOutgoingAsyncFriendRequestsRequest*
+          getOutgoingAsyncFriendRequestsRequest,
+      asphrdaemon::GetOutgoingAsyncFriendRequestsResponse*
+          getOutgoingAsyncFriendRequestsResponse) override;
+
+  grpc::Status GetIncomingAsyncFriendRequests(
+      grpc::ServerContext* context,
+      const asphrdaemon::GetIncomingAsyncFriendRequestsRequest*
+          getIncomingAsyncFriendRequestsRequest,
+      asphrdaemon::GetIncomingAsyncFriendRequestsResponse*
+          getIncomingAsyncFriendRequestsResponse) override;
+
+  grpc::Status DecideAsyncFriendRequest(
+      grpc::ServerContext* context,
+      const asphrdaemon::DecideAsyncFriendRequestRequest*
+          decideAsyncFriendRequestRequest,
+      asphrdaemon::DecideAsyncFriendRequestResponse*
+          decideAsyncFriendRequestResponse) override;
 
   grpc::Status RemoveFriend(
       grpc::ServerContext* context,
@@ -95,4 +122,21 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
  private:
   Global& G;
   shared_ptr<asphrserver::Server::Stub> stub;
-};
+
+  // The RPC speaks in the FriendInfo Struct
+  // The DB speaks in the Friend and Address Structs
+  // we provide a way to translate between them
+  auto DaemonRpc::convertStructRPCtoDB(asphrdaemon::FriendInfo& friend_info,
+                                       string message, int progress,
+                                       string read_key, string write_key)
+      -> asphr::StatusOr<std::pair<db::FriendFragment, db::AddAddress>>;
+
+  auto DaemonRpc::convertStructDBtoRPC(const db::Friend& db_friend,
+                                       const db::Address& db_address)
+      -> asphr::StatusOr<std::pair<asphrdaemon::FriendInfo, string>>;
+
+  // constant for the progress field
+  const int INCOMING_REQUEST = 0;
+  const int OUTGOING_REQUEST = 1;
+  const int ACTUAL_FRIEND = 2;
+}

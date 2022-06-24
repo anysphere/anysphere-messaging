@@ -59,5 +59,14 @@ class Transmitter {
   auto encrypt_ack_row(const vector<db::OutgoingAck>& acks,
                        const string& write_key) -> asphr::StatusOr<pir_value_t>;
 
+  // transmit async friend request to the server
+  // we must reencrypt each round, to avoid
+  // replaying the same message to the server
+  auto transmit_async_friend_request() -> void;
+
+  // retrieve and process async friend request from the server
+  // and push them to the daemon
+  auto retrieve_async_friend_request(int start_index, int end_index) -> void;
+
   auto check_rep() const noexcept -> void;
 };

@@ -449,6 +449,175 @@ auto Transmitter::batch_retrieve_pir(FastPIRClient& client,
   return pir_replies;
 }
 
+//----------------------------------------------------------------
+//----------------------------------------------------------------
+//|||      BELOW ARE METHODS FOR ASYNC FRIEND REQUESTS         |||
+//----------------------------------------------------------------
+//----------------------------------------------------------------
+
+auto Transmitter::transmit_async_friend_request() -> void {
+  // retrieve the friend request from DB
+  rust::cxxbridge1::Vec<db::Friend> async_friend_requests;
+  rust::cxxbridge1::Vec<db::Address> async_friend_requests_address;
+  try {
+    async_friend_requests = G.db->get_outgoing_async_friend_requests();
+    for (auto db_friend : async_friend_requests) {
+      async_friend_requests_address.push_back(
+          G.db->get_friend_address(db_friend.uid));
+    }
+  } catch (const rust::Error& e) {
+    ASPHR_LOG_INFO("No async friend requests to send (probably).", error_msg,
+                   e.what());
+    return;
+  }
+
+  // TODO: allow us to send multiple friend requests at once
+  // Right now, we only send one friend request at once
+  // We can change this later if we want to
+  db::Friend async_friend = async_friend_requests[0];
+  db::Address async_friend_address = async_friend_requests_address[0];
+
+  // we need to compute the id for both parties
+  string my_id;  // we could probably cache this in DB, but we don't need to
+  string my_friend_request_private_key;
+  string friend_id;
+  try {
+    auto reg_info = G.db->get_registration();
+    auto my_id_ = crypto::generate_user_id(
+        "", reg_info.allocation, rust_u8Vec_to_string(reg_info.kx_public_key),
+        rust_u8Vec_to_string(reg_info.friend_request_public_key));
+    if (!my_id_.ok()) {
+      ASPHR_LOG_ERR("Could not generate user ID.", error_msg,
+                    my_id_.status().message());
+      return;
+    }
+    my_id = my_id_.value();
+    my_friend_request_private_key =
+        rust_u8Vec_to_string(reg_info.friend_request_private_key);
+    auto friend_id_ = crypto::generate_user_id(
+        "", async_friend_address.read_index,
+        rust_u8Vec_to_string(async_friend_address.kx_public_key),
+        rust_u8Vec_to_string(async_friend_address.friend_request_public_key));
+  } catch (const rust::Error& e) {
+    ASPHR_LOG_ERR("Could not generate user ID.", error_msg, e.what());
+    return;
+  }
+
+  // encrypt the friend request
+  auto encrypted_friend_request_status_ = crypto::encrypt_async_friend_request(
+      my_id, my_friend_request_private_key, friend_id,
+      std::string(async_friend_address.friend_request_message));
+  if (!encrypted_friend_request_status_.ok()) {
+    std::cerr << "Error encrypting async friend request: "
+              << encrypted_friend_request_status_.status() << std::endl;
+    return;
+  }
+  auto encrypted_friend_request = encrypted_friend_request_status_.value();
+  // Send to server
+  asphrserver::AddFriendAsyncInfo request;
+  request.set_index(config->registration_info().allocation.at(0));
+  request.set_authentication_token(
+      config->registration_info().authentication_token);
+  request.set_request(encrypted_friend_request);
+  asphrserver::AddFriendAsyncResponse reply;
+  grpc::ClientContext context;
+  grpc::Status status = stub->AddFriendAsync(&context, request, &reply);
+  if (status.ok()) {
+    std::cout << "Async Friend Request sent to server!" << std::endl;
+  } else {
+    std::cerr << status.error_code() << ": " << status.error_message()
+              << " details:" << status.error_details() << std::endl;
+  }
+  return;
+}
+
+// Retrieves async friend requests from the server
+// Returns a map of friend public key to friend info, aimed at the client
+auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
+    -> asphr::StatusOr<std::map<string, Friend>> {
+  // check input
+  if (start_index < 0 || end_index < 0 || start_index > end_index ||
+      end_index - start_index > ASYNC_FRIEND_REQUEST_BATCH_SIZE) {
+    return absl::InvalidArgumentError("Invalid indices");
+  }
+
+  asphrserver::GetAsyncFriendRequestsInfo request;
+  request.set_start_index(start_index);
+  request.set_end_index(end_index);
+  asphrserver::GetAsyncFriendRequestsResponse reply;
+  // transmit
+  grpc::ClientContext context;
+  grpc::Status status = stub->GetAsyncFriendRequests(&context, request, &reply);
+  if (!status.ok()) {
+    std::cerr << status.error_code() << ": " << status.error_message()
+              << " details:" << status.error_details() << std::endl;
+    return {
+        absl::UnknownError("GetAsyncFriendRequests RPC failed with error: " +
+                           status.error_message())};
+  }
+
+  assert(reply.friend_request_public_key_size() == reply.requests_size());
+  // iterate over the returned friend requests
+  std::map<string, Friend> friends = {};
+  for (int i = 0; i < reply.requests_size(); i++) {
+    // TODO: we need to get the friend's public_friend_key via a PKI
+    // decrypt the friend request
+    string friend_request = reply.requests(i);
+    string friend_public_key = reply.friend_request_public_key(i);
+    auto decrypted_friend_request_status = crypto.decrypt_async_friend_request(
+        config->registration_info(), friend_public_key, friend_request);
+    if (!decrypted_friend_request_status.ok()) {
+      // not meant for us!
+      continue;
+    }
+    // the friend request is meant for us
+    // unpack the return value
+    auto decrypted_friend_request = decrypted_friend_request_status.value();
+    // create a friend object
+    string name = std::get<0>(decrypted_friend_request);
+    int allocation = std::get<1>(decrypted_friend_request);
+    string friend_kx_public_key = std::get<2>(decrypted_friend_request);
+    // derive read and write keys. TODO: do we do this here?
+    auto [read_key, write_key] = crypto.derive_read_write_keys(
+        config->registration_info().public_key,
+        config->registration_info().private_key, friend_kx_public_key);
+
+    // sometimes we read duplicate requests.
+    // so we need to check if we already have this friend
+
+    auto add_key = crypto.generate_friend_key(friend_kx_public_key, allocation);
+    auto existing_incoming_requests =
+        config->get_incoming_async_friend_requests().value();
+    cout << "New add key: " << add_key << endl;
+    bool duplicate = false;
+    if (existing_incoming_requests.find(friend_public_key) !=
+        existing_incoming_requests.end()) {
+      duplicate = true;
+    }
+
+    for (auto existing_friend : config->friends()) {
+      cout << "Existing add key: " << existing_friend.add_key << endl;
+      if (existing_friend.add_key == add_key) {
+        duplicate = true;
+      }
+    }
+
+    // continue if duplicate
+    if (duplicate) {
+      continue;
+    }
+
+    // TODO: there's gotta be a better way than passing 11 arguments RIGHT?
+    // Also, I'm not setting the ack index here.
+    Friend friend_instance(name, allocation, add_key, read_key, write_key, 0,
+                           true, 0, 0, 0, false);
+
+    // add the friend to the map
+    friends.insert({friend_public_key, friend_instance});
+  }
+  return friends;
+}
+
 auto Transmitter::check_rep() const noexcept -> void {
   ASPHR_ASSERT(G.alive());
 

@@ -155,8 +155,8 @@ pub mod ffi {
   struct Address {
     pub uid: i32,
     pub friend_request_public_key: Vec<u8>,
-    pub friend_request_message: String,
     pub kx_public_key: Vec<u8>,
+    pub friend_request_message: String,
     pub read_index: i32,
     pub ack_index: i32,
     pub read_key: Vec<u8>,
@@ -165,8 +165,8 @@ pub mod ffi {
   struct AddAddress {
     pub unique_name: String,
     pub friend_request_public_key: Vec<u8>,
-    pub friend_request_message: String,
     pub kx_public_key: Vec<u8>,
+    pub friend_request_message: String,
     pub read_index: i32,
     pub read_key: Vec<u8>,
     pub write_key: Vec<u8>,
