@@ -52,6 +52,9 @@ class Transmitter {
   optional<int> previous_success_receive_friend;
   optional<int> just_acked_friend;
 
+  // used to crawl the db
+  int next_async_friend_request_retrieve_index;
+
   // for each index, get the PIR response for that index
   auto batch_retrieve_pir(FastPIRClient& client, vector<pir_index_t> indices)
       -> vector<asphr::StatusOr<asphrserver::ReceiveMessageResponse>>;

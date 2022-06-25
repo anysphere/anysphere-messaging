@@ -126,17 +126,17 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
   // The RPC speaks in the FriendInfo Struct
   // The DB speaks in the Friend and Address Structs
   // we provide a way to translate between them
-  auto DaemonRpc::convertStructRPCtoDB(asphrdaemon::FriendInfo& friend_info,
-                                       string message, int progress,
-                                       string read_key, string write_key)
+  auto convertStructRPCtoDB(asphrdaemon::FriendInfo& friend_info,
+                            string message, int progress, string read_key,
+                            string write_key)
       -> asphr::StatusOr<std::pair<db::FriendFragment, db::AddAddress>>;
 
-  auto DaemonRpc::convertStructDBtoRPC(const db::Friend& db_friend,
-                                       const db::Address& db_address)
+  auto convertStructDBtoRPC(const db::Friend& db_friend,
+                            const db::Address& db_address)
       -> asphr::StatusOr<std::pair<asphrdaemon::FriendInfo, string>>;
 
   // constant for the progress field
   const int INCOMING_REQUEST = 0;
   const int OUTGOING_REQUEST = 1;
   const int ACTUAL_FRIEND = 2;
-}
+};

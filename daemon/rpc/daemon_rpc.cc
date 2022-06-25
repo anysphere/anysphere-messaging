@@ -158,8 +158,8 @@ Status DaemonRpc::GetPublicID(
     auto kx_public_key = rust_u8Vec_to_string(registration_info.kx_public_key);
 
     // generate the public ID
-    auto public_id_ = crypto::generate_public_id(
-        name, allocation, kx_public_key, friend_request_public_key);
+    auto public_id_ = crypto::generate_user_id(name, allocation, kx_public_key,
+                                               friend_request_public_key);
 
     if (!public_id_.ok()) {
       ASPHR_LOG_ERR("Failed to generate public ID.", rpc_call, "GetPublicID");
@@ -171,6 +171,7 @@ Status DaemonRpc::GetPublicID(
     ASPHR_LOG_ERR("Database failed.", error, e.what(), rpc_call, "GetPublicID");
     return Status(grpc::StatusCode::UNKNOWN, e.what());
   }
+  return Status::OK;
 }
 
 // ---------------------------------------
@@ -204,42 +205,34 @@ auto DaemonRpc::convertStructRPCtoDB(asphrdaemon::FriendInfo& friend_info,
         friend_request_public_key] = friend_public_id_.value();
 
   // construct friend request
-  return std::pair(db::FriendFragment{
-    unique_name : friend_info.unique_name(),
-    display_name : friend_info.display_name(),
-    progress : progress,
-    deleted : false,
-  },
-                   db::AddAddress{
-                     unique_name : friend_info.unique_name(),
-                     friend_request_public_key :
-                         string_to_rust_u8Vec(friend_request_public_key),
-                     kx_public_key : string_to_rust_u8Vec(friend_kx_public_key),
-                     friend_request_message : message,
-                     read_index : friend_allocation,
-                     read_key : string_to_rust_u8Vec(read_key),
-                     write_key : string_to_rust_u8Vec(write_key),
-                   });
+  return std::pair(
+      db::FriendFragment{
+          .unique_name = friend_info.unique_name(),
+          .display_name = friend_info.display_name(),
+          .public_id = friend_info.public_id(),
+          .progress = progress,
+          .deleted = false,
+      },
+      db::AddAddress{
+          .unique_name = friend_info.unique_name(),
+          .friend_request_public_key =
+              string_to_rust_u8Vec(friend_request_public_key),
+          .friend_request_message = message,
+          .kx_public_key = string_to_rust_u8Vec(friend_kx_public_key),
+          .read_index = friend_allocation,
+          .read_key = string_to_rust_u8Vec(read_key),
+          .write_key = string_to_rust_u8Vec(write_key),
+      });
 }
 
 // helper method to convert from DB structs to RPC structs
 auto DaemonRpc::convertStructDBtoRPC(const db::Friend& db_friend,
                                      const db::Address& db_address)
     -> asphr::StatusOr<std::pair<asphrdaemon::FriendInfo, string>> {
-  auto public_id_ = crypto::generate_user_id(
-      std::string(db_friend.unique_name), db_address.read_index,
-      rust_u8Vec_to_string(db_address.kx_public_key),
-      rust_u8Vec_to_string(db_address.friend_request_public_key));
-  if (!public_id_.ok()) {
-    ASPHR_LOG_ERR("Failed to encode public ID.", rpc_call,
-                  "SendAsyncFriendRequest");
-    return absl::InvalidArgumentError("friend struct has invalid fields");
-  }
-
   asphrdaemon::FriendInfo friend_info;
-  friend_info.set_unique_name(db_friend.unique_name);
-  friend_info.set_display_name(db_friend.display_name);
-  friend_info.set_public_id(public_id_.value());
+  friend_info.set_unique_name(std::string(db_friend.unique_name));
+  friend_info.set_display_name(std::string(db_friend.display_name));
+  friend_info.set_public_id(std::string(db_friend.public_id));
   friend_info.set_progress(db_friend.progress);
   return std::pair(friend_info, std::string(db_address.friend_request_message));
 }
@@ -297,6 +290,7 @@ Status DaemonRpc::SendAsyncFriendRequest(
                   "AddFriend");
     return Status(grpc::StatusCode::UNKNOWN, e.what());
   }
+  return Status::OK;
 }
 
 Status DaemonRpc::GetOutgoingAsyncFriendRequests(
@@ -329,6 +323,7 @@ Status DaemonRpc::GetOutgoingAsyncFriendRequests(
                   rpc_call, "GetOutgoingAsyncFriendRequests");
     return Status(grpc::StatusCode::UNKNOWN, e.what());
   }
+  return Status::OK;
 }
 
 Status DaemonRpc::GetIncomingAsyncFriendRequests(
@@ -362,6 +357,7 @@ Status DaemonRpc::GetIncomingAsyncFriendRequests(
                   rpc_call, "GetIncomingAsyncFriendRequests");
     return Status(grpc::StatusCode::UNKNOWN, e.what());
   }
+  return Status::OK;
 }
 
 Status DaemonRpc::DecideAsyncFriendRequest(
@@ -374,7 +370,7 @@ Status DaemonRpc::DecideAsyncFriendRequest(
     if (decideAsyncFriendRequestRequest->accept()) {
       // call rust db to accept the friend request
       G.db->approve_async_friend_request(
-          decideAsyncFriendRequestRequest->unique_name());
+          decideAsyncFriendRequestRequest->unique_name(), MAX_FRIENDS);
     } else {
       // call rust db to reject the friend request
       G.db->deny_async_friend_request(
@@ -385,6 +381,7 @@ Status DaemonRpc::DecideAsyncFriendRequest(
                   rpc_call, "DecideAsyncFriendRequest");
     return Status(grpc::StatusCode::UNKNOWN, e.what());
   }
+  return Status::OK;
 }
 
 Status DaemonRpc::RemoveFriend(

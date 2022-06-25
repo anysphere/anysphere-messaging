@@ -11,9 +11,10 @@
 
 auto generate_dummy_address(const Global& G, const db::Registration& reg)
     -> db::Address {
-  auto dummy_friend_keypair = crypto::generate_keypair();
+  auto dummy_friend_keypair = crypto::generate_kx_keypair();
 
   // convert reg.kx_public_key, kx_private_key to a string
+
   auto kx_public_key_str = rust_u8Vec_to_string(reg.kx_public_key);
   auto kx_private_key_str = rust_u8Vec_to_string(reg.kx_private_key);
 
@@ -24,11 +25,18 @@ auto generate_dummy_address(const Global& G, const db::Registration& reg)
   auto read_key_vec_rust = string_to_rust_u8Vec(dummy_read_write_keys.first);
   auto write_key_vec_rust = string_to_rust_u8Vec(dummy_read_write_keys.second);
 
-  return (db::Address){-1, 0, 0, read_key_vec_rust, write_key_vec_rust};
+  return (db::Address){-1,
+                       reg.friend_request_public_key,
+                       "this is a dummy",
+                       reg.kx_public_key,
+                       0,
+                       0,
+                       read_key_vec_rust,
+                       write_key_vec_rust};
 }
 
 Transmitter::Transmitter(Global& G, shared_ptr<asphrserver::Server::Stub> stub)
-    : G(G), stub(stub) {
+    : G(G), stub(stub), next_async_friend_request_retrieve_index(0) {
   check_rep();
 }
 
@@ -311,7 +319,20 @@ auto Transmitter::retrieve() -> void {
                     pir_replies.at(i).status().message());
     }
   }
-
+  // Crawl the async friend request database
+  // TODO: we could accelerate / deccelerate this as the client desires/
+  // by changing ASYNC_FRIEND_REQUEST_BATCH_SIZE
+  int start_index = next_async_friend_request_retrieve_index;
+  int end_index = std::min(next_async_friend_request_retrieve_index +
+                               ASYNC_FRIEND_REQUEST_BATCH_SIZE,
+                           CLIENT_DB_ROWS);
+  // call the server to retrieve the async friend requests
+  retrieve_async_friend_request(start_index, end_index);
+  if (end_index == CLIENT_DB_ROWS) {
+    next_async_friend_request_retrieve_index = 0;
+  } else {
+    next_async_friend_request_retrieve_index = end_index;
+  }
   check_rep();
 }
 
@@ -414,6 +435,7 @@ auto Transmitter::send() -> void {
                   server_status_code, status.error_code(),
                   server_status_message, status.error_message());
   }
+  transmit_async_friend_request();
   check_rep();
 }
 
@@ -481,23 +503,13 @@ auto Transmitter::transmit_async_friend_request() -> void {
   string my_id;  // we could probably cache this in DB, but we don't need to
   string my_friend_request_private_key;
   string friend_id;
+  db::Registration reg_info;
   try {
-    auto reg_info = G.db->get_registration();
-    auto my_id_ = crypto::generate_user_id(
-        "", reg_info.allocation, rust_u8Vec_to_string(reg_info.kx_public_key),
-        rust_u8Vec_to_string(reg_info.friend_request_public_key));
-    if (!my_id_.ok()) {
-      ASPHR_LOG_ERR("Could not generate user ID.", error_msg,
-                    my_id_.status().message());
-      return;
-    }
-    my_id = my_id_.value();
+    reg_info = G.db->get_registration();
+    auto my_id = reg_info.public_id;
     my_friend_request_private_key =
         rust_u8Vec_to_string(reg_info.friend_request_private_key);
-    auto friend_id_ = crypto::generate_user_id(
-        "", async_friend_address.read_index,
-        rust_u8Vec_to_string(async_friend_address.kx_public_key),
-        rust_u8Vec_to_string(async_friend_address.friend_request_public_key));
+    auto friend_id_ = async_friend.public_id;
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Could not generate user ID.", error_msg, e.what());
     return;
@@ -515,9 +527,8 @@ auto Transmitter::transmit_async_friend_request() -> void {
   auto encrypted_friend_request = encrypted_friend_request_status_.value();
   // Send to server
   asphrserver::AddFriendAsyncInfo request;
-  request.set_index(config->registration_info().allocation.at(0));
-  request.set_authentication_token(
-      config->registration_info().authentication_token);
+  request.set_index(reg_info.allocation);
+  request.set_authentication_token(std::string(reg_info.authentication_token));
   request.set_request(encrypted_friend_request);
   asphrserver::AddFriendAsyncResponse reply;
   grpc::ClientContext context;
@@ -534,8 +545,10 @@ auto Transmitter::transmit_async_friend_request() -> void {
 // Retrieves async friend requests from the server
 // Returns a map of friend public key to friend info, aimed at the client
 auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
-    -> asphr::StatusOr<std::map<string, Friend>> {
+    -> void {
+  ASPHR_LOG_INFO("Not implemented.");
   // check input
+  /**
   if (start_index < 0 || end_index < 0 || start_index > end_index ||
       end_index - start_index > ASYNC_FRIEND_REQUEST_BATCH_SIZE) {
     return absl::InvalidArgumentError("Invalid indices");
@@ -615,7 +628,7 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
     // add the friend to the map
     friends.insert({friend_public_key, friend_instance});
   }
-  return friends;
+  **/
 }
 
 auto Transmitter::check_rep() const noexcept -> void {
