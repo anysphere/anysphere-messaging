@@ -6,6 +6,7 @@
 import * as React from "react";
 import { Message } from "../../types";
 import { truncate, formatTime } from "../utils";
+import { BackgroundCircles } from "./BackgroundCircles/BackgroundCircles";
 import { SelectableList } from "./SelectableList";
 
 function MessageBlurb({
@@ -23,18 +24,18 @@ function MessageBlurb({
   return (
     <div
       className={`${
-        active ? "bg-asbeige border-asbrown-100" : "bg-white border-white"
-      } border-l-4 px-4 py-4 rounded-sm my-2`}
+        active ? "border-asbrown-100 bg-asbeige" : "border-white bg-white"
+      } my-2 rounded-sm border-l-4 px-4 py-4`}
     >
       <div className="flex flex-row gap-5">
-        <div className="text-asbrown-dark text-sm">
+        <div className="text-sm text-asbrown-dark">
           {message.type === "incoming" ? message.from : `To: ${message.to}`}
         </div>
-        <div className="text-asbrown-300 text-sm">
+        <div className="text-sm text-asbrown-300">
           {truncate(message.message, 65)}
         </div>
         <div className="flex-1"></div>
-        <div className="text-asbrown-200 text-sm">{timestamp_string}</div>
+        <div className="text-sm text-asbrown-200">{timestamp_string}</div>
       </div>
     </div>
   );
@@ -43,7 +44,7 @@ function MessageBlurb({
 function NoMessages({ explanation }: { explanation: string }) {
   return (
     <div className="grid h-full pt-48">
-      <div className="place-self-center text-asbrown-200 text-xs unselectable">
+      <div className="unselectable place-self-center text-xs text-asbrown-200">
         {explanation}
       </div>
     </div>
@@ -108,13 +109,10 @@ function MessageList(props: {
     }
   }, [props.messages]);
 
-  const noMessageExplanation =
-    props.messages === "new" ? "No new messages." : "No messages.";
-
   return (
     <div>
-      <div className="flex place-content-center w-full mt-8">
-        <div className="place-self-center flex flex-col w-full max-w-3xl">
+      <div className="mt-8 flex w-full place-content-center">
+        <div className="flex w-full max-w-3xl flex-col place-self-center">
           <SelectableList
             items={messages.map((message) => {
               return {
@@ -139,9 +137,7 @@ function MessageList(props: {
           />
         </div>
       </div>
-      {messages.length === 0 && (
-        <NoMessages explanation={noMessageExplanation} />
-      )}
+      {messages.length === 0 && <BackgroundCircles />}
     </div>
   );
 }
