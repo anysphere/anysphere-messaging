@@ -35,6 +35,7 @@ diesel::table! {
         uid -> Integer,
         unique_name -> Text,
         display_name -> Text,
+        public_id -> Text,
         progress -> Integer,
         deleted -> Bool,
     }
@@ -90,6 +91,7 @@ diesel::table! {
         pir_secret_key -> Binary,
         pir_galois_key -> Binary,
         authentication_token -> Text,
+        public_id -> Text,
     }
 }
 

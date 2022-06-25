@@ -12,6 +12,7 @@ fn get_registration_fragment() -> ffi::RegistrationFragment {
   let pir_secret_key: Vec<u8> = br#""hi hi"#.to_vec();
   let pir_galois_key: Vec<u8> = br#""hi hi hi"#.to_vec();
   let authentication_token: String = "X6H3ILWIrDGThjbi4IpYfWGtJ3YWdMIf".to_string();
+  let public_id: String = "wwww".to_string();
 
   ffi::RegistrationFragment {
     friend_request_public_key,
@@ -22,6 +23,7 @@ fn get_registration_fragment() -> ffi::RegistrationFragment {
     pir_secret_key,
     pir_galois_key,
     authentication_token,
+    public_id
   }
 }
 
@@ -87,6 +89,7 @@ fn test_register() {
       assert_eq!(registration.pir_secret_key, config_clone.pir_secret_key);
       assert_eq!(registration.pir_galois_key, config_clone.pir_galois_key);
       assert_eq!(registration.authentication_token, config_clone.authentication_token);
+      assert_eq!(registration.public_id, config_clone.public_id);
     }
     Err(_) => {
       panic!("Failed to get registration");
@@ -106,7 +109,7 @@ fn test_receive_msg() {
   let config_data = get_registration_fragment();
   db.do_register(config_data).unwrap();
 
-  let f = db.create_friend("friend_1", "Friend 1", 20).unwrap();
+  let f = db.create_friend("friend_1", "Friend 1", "tttt", 20).unwrap();
   db.add_friend_address(
     ffi::AddAddress {
       unique_name: "friend_1".to_string(),
@@ -175,7 +178,7 @@ fn test_send_msg() {
   let config_data = get_registration_fragment();
   db.do_register(config_data).unwrap();
 
-  let f = db.create_friend("friend_1", "Friend 1", 20).unwrap();
+  let f = db.create_friend("friend_1", "Friend 1", "tttt", 20).unwrap();
   db.add_friend_address(
     ffi::AddAddress {
       unique_name: "friend_1".to_string(),
@@ -222,6 +225,7 @@ fn test_async_add_friend() {
   let friend_request = ffi::FriendFragment {
     unique_name: friend_name.to_string(),
     display_name: "lyrica".to_string(),
+    public_id: "tttt".to_string(),
     progress: INCOMING_REQUEST,
     deleted: false,
   };
@@ -240,6 +244,7 @@ fn test_async_add_friend() {
   // check that we have a friend request
   assert_eq!(friend_requests.len(), 1);
   assert_eq!(friend_requests[0].unique_name, friend_name);
+  assert_eq!(friend_requests[0].public_id, "tttt");
 
   // this uid now identifies the friend
   let uid = friend_requests[0].uid;
@@ -259,6 +264,7 @@ fn test_async_add_friend() {
   let friends = db.get_friends().unwrap();
   assert_eq!(friends.len(), 1);
   assert_eq!(friends[0].uid, uid);
+  assert_eq!(friends[0].public_id, "tttt");
   assert_eq!(friends[0].unique_name, "friend_1");
   // check the friend address
   let new_address = db.get_friend_address(uid).unwrap();

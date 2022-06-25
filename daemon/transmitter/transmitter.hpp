@@ -66,6 +66,14 @@ class Transmitter {
 
   // retrieve and process async friend request from the server
   // and push them to the daemon
+  // It is important to define the behavior of this function in the case of
+  // duplicate requests. i.e. when a friend (request) with the same public key
+  // is already in the database. Here's the definition for now.
+  // 1. If the friend is marked as deleted, then we ignore the request.
+  // 2. If the friend is marked as accepted, then we ignore the request.
+  // 3. If the friend is marked as incoming, then we ignore the request.
+  // 4. If the friend is marked as outgoing, then we approve this request
+  // immediately.
   auto retrieve_async_friend_request(int start_index, int end_index) -> void;
 
   auto check_rep() const noexcept -> void;

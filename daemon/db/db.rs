@@ -128,7 +128,7 @@ pub mod ffi {
   //
   // NEVER EVER CHANGE THE ORDER OF THE FIELDS HERE WITHOUT LOOKING AT ALL QUERIES WHERE
   // THEY ARE USED. @code_review
-  //
+  // 
   // TODO: try to write a macro for enforcing this in code.
   //
 
@@ -137,6 +137,7 @@ pub mod ffi {
     pub uid: i32,
     pub unique_name: String,
     pub display_name: String,
+    pub public_id: String,
     pub progress: i32,
     pub deleted: bool,
   }
@@ -146,6 +147,7 @@ pub mod ffi {
   struct FriendFragment {
     pub unique_name: String,
     pub display_name: String,
+    pub public_id: String,
     pub progress: i32,
     pub deleted: bool,
   }
@@ -155,8 +157,8 @@ pub mod ffi {
   struct Address {
     pub uid: i32,
     pub friend_request_public_key: Vec<u8>,
-    pub kx_public_key: Vec<u8>,
     pub friend_request_message: String,
+    pub kx_public_key: Vec<u8>,
     pub read_index: i32,
     pub ack_index: i32,
     pub read_key: Vec<u8>,
@@ -165,8 +167,8 @@ pub mod ffi {
   struct AddAddress {
     pub unique_name: String,
     pub friend_request_public_key: Vec<u8>,
-    pub kx_public_key: Vec<u8>,
     pub friend_request_message: String,
+    pub kx_public_key: Vec<u8>,
     pub read_index: i32,
     pub read_key: Vec<u8>,
     pub write_key: Vec<u8>,
@@ -191,6 +193,7 @@ pub mod ffi {
     pub pir_secret_key: Vec<u8>,
     pub pir_galois_key: Vec<u8>,
     pub authentication_token: String,
+    pub public_id: String,
   }
   #[derive(Insertable)]
   #[diesel(table_name = crate::schema::registration)]
@@ -203,6 +206,7 @@ pub mod ffi {
     pub pir_secret_key: Vec<u8>,
     pub pir_galois_key: Vec<u8>,
     pub authentication_token: String,
+    pub public_id: String
   }
   #[derive(Queryable)]
   struct SendInfo {
@@ -368,6 +372,7 @@ pub mod ffi {
       &self,
       unique_name: &str,
       display_name: &str,
+      public_key: &str,
       max_friends: i32,
     ) -> Result<Friend>;
     // adds a friend address and also makes the friend enabled
@@ -677,6 +682,7 @@ impl DB {
     &self,
     unique_name: &str,
     display_name: &str,
+    public_id: &str,
     max_friends: i32,
   ) -> Result<ffi::Friend, DbError> {
     let mut conn = self.connect()?;
@@ -685,6 +691,7 @@ impl DB {
     let f = ffi::FriendFragment {
       unique_name: unique_name.to_string(),
       display_name: display_name.to_string(),
+      public_id: public_id.to_string(),
       progress: ACTUAL_FRIEND,
       deleted: false,
     };
@@ -1509,7 +1516,7 @@ impl DB {
     use crate::schema::status;
 
     let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
-      // IMPORTANT TODO: what if the friend already exists?
+      // IMPORTANT TODO: what if the friend already exists, but has been deleted?
       // We can either recycle the old entry, or create a new entry.
       // We choose the latter, which also erases the message history.
       // insert friend and address into database

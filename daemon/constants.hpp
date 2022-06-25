@@ -33,6 +33,7 @@ constexpr size_t ENCRYPTED_ACKING_BYTES =
 constexpr size_t MAX_FRIENDS = MESSAGE_SIZE / ENCRYPTED_ACKING_BYTES;
 
 constexpr size_t MAX_ASYNC_FRIEND_REQUESTS = 500;
+constexpr size_t ASYNC_FRIEND_REQUEST_BATCH_SIZE = 1000;
 
 // NOTE: whenever these default values are changed, please make a database
 // migration in the shape of UPDATE config SET value = 'new_value' WHERE value =

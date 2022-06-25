@@ -66,7 +66,17 @@ Status DaemonRpc::RegisterUser(
           rpc_call, "RegisterUser");
       return Status(grpc::StatusCode::UNKNOWN, "allocation is empty");
     }
-
+    //-------------------------------------------------------------------------
+    // server side finished registration
+    // update DB now
+    // compute the public id here
+    auto public_id_ = crypto::generate_user_id(
+        "", allocation.at(0), kx_public_key, friend_request_public_key);
+    if (!public_id_.ok()) {
+      ASPHR_LOG_ERR("Register failed: public id generation failed.", rpc_call,
+                    "RegisterUser");
+      return Status(grpc::StatusCode::UNKNOWN, "public id generation failed");
+    }
     try {
       G.db->do_register(db::RegistrationFragment{
           .friend_request_public_key =
@@ -79,6 +89,7 @@ Status DaemonRpc::RegisterUser(
           .pir_secret_key = string_to_rust_u8Vec(pir_secret_key),
           .pir_galois_key = string_to_rust_u8Vec(pir_galois_keys),
           .authentication_token = authentication_token,
+          .public_id = public_id_.value(),
       });
     } catch (const rust::Error& e) {
       ASPHR_LOG_ERR("Register failed in database.", error, e.what(), rpc_call,
@@ -110,9 +121,12 @@ Status DaemonRpc::GetFriendList(
   try {
     for (auto& s : G.db->get_friends()) {
       auto new_friend = getFriendListResponse->add_friend_infos();
+      // we need public id here
+      // so we need to query the address DB as well
       new_friend->set_unique_name(std::string(s.unique_name));
       new_friend->set_display_name(std::string(s.display_name));
-      new_friend->set_enabled(s.enabled);
+      new_friend->set_public_id(std::string(s.public_id));
+      new_friend->set_progress(ACTUAL_FRIEND);
     }
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Database failed.", error, e.what(), rpc_call,
