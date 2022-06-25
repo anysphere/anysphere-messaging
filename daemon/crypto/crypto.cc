@@ -470,6 +470,16 @@ auto decrypt_async_friend_request(const string& self_id,
   }
   // get the keys
   string friend_friend_request_public_key = std::get<3>(friend_keys_.value());
+  return crypto::decrypt_async_friend_request_public_key_only(
+      self_id, self_friend_request_private_key,
+      friend_friend_request_public_key, ciphertext);
+}
+
+auto decrypt_async_friend_request_public_key_only(
+    const string& self_id, const string& self_friend_request_private_key,
+    const string& friend_friend_request_public_key, const string& ciphertext)
+    -> asphr::StatusOr<pair<string, string>> {
+  // We now decrypt the message, using a clone of the code above
   if (friend_friend_request_public_key.size() != crypto_box_PUBLICKEYBYTES) {
     return asphr::InvalidArgumentError(
         "friend_public_key is not the correct size");
@@ -525,13 +535,9 @@ auto decrypt_async_friend_request(const string& self_id,
   if (split_plaintext.size() != 2) {
     return absl::UnknownError("failed to split plaintext");
   }
-  // assert the id matches
-  if (split_plaintext[0] != friend_id) {
-    return absl::UnknownError("id does not match");
-  }
+  // TODO: insert additional checks here
   // read the allocation
   // create the friend
   return std::make_pair(split_plaintext[0], split_plaintext[1]);
 }
-
 }  // namespace crypto

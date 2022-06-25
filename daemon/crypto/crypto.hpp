@@ -98,4 +98,10 @@ auto decrypt_async_friend_request(const string& self_id,
                                   const string& friend_id,
                                   const string& ciphertext)
     -> asphr::StatusOr<pair<string, string>>;
+
+// this method is needed for transmission retrieval
+auto decrypt_async_friend_request_public_key_only(
+    const string& self_id, const string& self_friend_request_private_key,
+    const string& friend_friend_request_public_key, const string& ciphertext)
+    -> asphr::StatusOr<pair<string, string>>;
 };  // namespace crypto

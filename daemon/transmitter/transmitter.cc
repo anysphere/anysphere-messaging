@@ -511,7 +511,7 @@ auto Transmitter::transmit_async_friend_request() -> void {
         rust_u8Vec_to_string(reg_info.friend_request_private_key);
     auto friend_id_ = async_friend.public_id;
   } catch (const rust::Error& e) {
-    ASPHR_LOG_ERR("Could not generate user ID.", error_msg, e.what());
+    // ASPHR_LOG_ERR("Could not generate user ID.", error_msg, e.what());
     return;
   }
 
@@ -542,93 +542,174 @@ auto Transmitter::transmit_async_friend_request() -> void {
   return;
 }
 
-// Retrieves async friend requests from the server
-// Returns a map of friend public key to friend info, aimed at the client
+// retrieve and process async friend request from the server
+// and push them to the database
+// It is important to define the behavior of this function in the case of
+// duplicate requests. i.e. when a friend (request) with the same public key
+// is already in the database. Here's the definition for now.
+// 1. If the friend is marked as deleted, then we ignore the request.
+// 2. If the friend is marked as accepted, then we ignore the request.
+// 3. If the friend is marked as incoming, then we ignore the request.
+// 4. If the friend is marked as outgoing, then we approve this request
+// immediately.
 auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
     -> void {
-  ASPHR_LOG_INFO("Not implemented.");
   // check input
-  /**
   if (start_index < 0 || end_index < 0 || start_index > end_index ||
       end_index - start_index > ASYNC_FRIEND_REQUEST_BATCH_SIZE) {
-    return absl::InvalidArgumentError("Invalid indices");
+    // TODO: I should ask arvid how to use ASPHR_LOG
+    // ASPHR_LOG_ERR("Invalid input for retrieve_async_friend_request.",
+    //              start_index, end_index);
+    return;
   }
 
+  // STEP 1: ask the server for all the friend database entries
   asphrserver::GetAsyncFriendRequestsInfo request;
   request.set_start_index(start_index);
   request.set_end_index(end_index);
   asphrserver::GetAsyncFriendRequestsResponse reply;
-  // transmit
+
   grpc::ClientContext context;
   grpc::Status status = stub->GetAsyncFriendRequests(&context, request, &reply);
   if (!status.ok()) {
-    std::cerr << status.error_code() << ": " << status.error_message()
-              << " details:" << status.error_details() << std::endl;
-    return {
-        absl::UnknownError("GetAsyncFriendRequests RPC failed with error: " +
-                           status.error_message())};
+    std::stringstream ss;
+    ss << status.error_code() << ": " << status.error_message()
+       << " details:" << status.error_details() << std::endl;
+
+    // ASPHR_LOG_ERR("Could not retrieve async friend requests.", error_msg,
+    //              ss.str());
   }
 
   assert(reply.friend_request_public_key_size() == reply.requests_size());
-  // iterate over the returned friend requests
-  std::map<string, Friend> friends = {};
+  // Step 2: iterate over the returned friend requests
+  // we need to obtain our own id here
+  string my_id;
+  string my_friend_request_private_key;
+  db::Registration reg_info;
+  try {
+    reg_info = G.db->get_registration();
+    my_id = std::string(reg_info.public_id);
+    my_friend_request_private_key =
+        rust_u8Vec_to_string(reg_info.friend_request_private_key);
+  } catch (const rust::Error& e) {
+    // ASPHR_LOG_ERR("Could not find user ID.", error_msg, e.what());
+    return;
+  }
+  std::map<string, db::Friend> friends = {};
   for (int i = 0; i < reply.requests_size(); i++) {
-    // TODO: we need to get the friend's public_friend_key via a PKI
+    // Step 2.1: test if the friend request is meant for us
+    // For now, we attach the friend_public_key along with every request.
     // decrypt the friend request
     string friend_request = reply.requests(i);
     string friend_public_key = reply.friend_request_public_key(i);
-    auto decrypted_friend_request_status = crypto.decrypt_async_friend_request(
-        config->registration_info(), friend_public_key, friend_request);
+    auto decrypted_friend_request_status =
+        crypto::decrypt_async_friend_request_public_key_only(
+            my_id, my_friend_request_private_key, friend_public_key,
+            friend_request);
     if (!decrypted_friend_request_status.ok()) {
       // not meant for us!
       continue;
     }
     // the friend request is meant for us
-    // unpack the return value
-    auto decrypted_friend_request = decrypted_friend_request_status.value();
-    // create a friend object
-    string name = std::get<0>(decrypted_friend_request);
-    int allocation = std::get<1>(decrypted_friend_request);
-    string friend_kx_public_key = std::get<2>(decrypted_friend_request);
-    // derive read and write keys. TODO: do we do this here?
-    auto [read_key, write_key] = crypto.derive_read_write_keys(
-        config->registration_info().public_key,
-        config->registration_info().private_key, friend_kx_public_key);
-
-    // sometimes we read duplicate requests.
-    // so we need to check if we already have this friend
-
-    auto add_key = crypto.generate_friend_key(friend_kx_public_key, allocation);
-    auto existing_incoming_requests =
-        config->get_incoming_async_friend_requests().value();
-    cout << "New add key: " << add_key << endl;
-    bool duplicate = false;
-    if (existing_incoming_requests.find(friend_public_key) !=
-        existing_incoming_requests.end()) {
-      duplicate = true;
-    }
-
-    for (auto existing_friend : config->friends()) {
-      cout << "Existing add key: " << existing_friend.add_key << endl;
-      if (existing_friend.add_key == add_key) {
-        duplicate = true;
-      }
-    }
-
-    // continue if duplicate
-    if (duplicate) {
+    // Step 2.2: unpack the friend request
+    auto [friend_id, friend_message] = decrypted_friend_request_status.value();
+    // unpack the friend id
+    auto friend_id_unpacked_ = crypto::decode_user_id(friend_id);
+    if (!friend_id_unpacked_.ok()) {
+      // ASPHR_LOG_ERR("Read Malformed friend ID.", "Err",
+      //               friend_id_unpacked_.status());
       continue;
     }
+    auto [friend_name, friend_allocation, friend_kx_public_key,
+          friend_request_public_key] = friend_id_unpacked_.value();
+    // currently the name is not transmitted. Check that
+    if (friend_name != "") {
+      // ASPHR_LOG_ERR("Friend name is not empty.", "Err", friend_name);
+      continue;
+    }
+    // do the key exchange here.
+    auto my_kx_public_key = rust_u8Vec_to_string(reg_info.kx_public_key);
+    auto my_kx_private_key = rust_u8Vec_to_string(reg_info.kx_private_key);
+    // derive read and write keys.
+    auto [read_key, write_key] = crypto::derive_read_write_keys(
+        my_kx_public_key, my_kx_private_key, friend_kx_public_key);
 
-    // TODO: there's gotta be a better way than passing 11 arguments RIGHT?
-    // Also, I'm not setting the ack index here.
-    Friend friend_instance(name, allocation, add_key, read_key, write_key, 0,
-                           true, 0, 0, 0, false);
+    // Step 2.3: check for duplicate requests
+    // 1. If the friend is marked as deleted, then we ignore the request.
+    // 2. If the friend is marked as accepted, then we ignore the request.
+    // 3. If the friend is marked as incoming, then we ignore the request.
+    // 4. If the friend is marked as outgoing, then we approve this request
 
-    // add the friend to the map
-    friends.insert({friend_public_key, friend_instance});
+    // I'll do something here: just scan over the entire friend db
+    // This will be changed later
+
+    try {
+      auto all_friends = G.db->get_friends();
+      for (auto db_friend : all_friends) {
+        // check the id
+        if (db_friend.public_id == friend_id) {
+          // check the status
+          if (db_friend.deleted) {
+            // ignore this request
+            ASPHR_LOG_INFO("Ignoring friend request because friend is deleted.",
+                           "Friend ID", friend_id);
+            continue;
+          } else if (db_friend.progress == ACTUAL_FRIEND) {
+            // ignore this request
+            ASPHR_LOG_INFO(
+                "Ignoring friend request because friend is accepted.",
+                "Friend ID", friend_id);
+            continue;
+          } else if (db_friend.progress == INCOMING_REQUEST) {
+            // ignore this request
+            ASPHR_LOG_INFO(
+                "Ignoring friend request because friend is incoming.",
+                "Friend ID", friend_id);
+            continue;
+          } else if (db_friend.progress == OUTGOING_REQUEST) {
+            // approve this request
+            ASPHR_LOG_INFO(
+                "Approving friend request because friend is outgoing.",
+                "Friend ID", friend_id);
+            // update the friend status
+            G.db->approve_async_friend_request(db_friend.unique_name,
+                                               MAX_FRIENDS);
+            continue;
+          }
+        }
+      }
+    } catch (const rust::Error& e) {
+      // ASPHR_LOG_ERR("Could not find friend ID.", "Error", e.what());
+      continue;
+    }
+    // Step 2.4: if we get here, then we have a new friend request
+    // we need to create a new friend entry in the database
+    // Note: the current design decision is to not transmit the actual name of
+    // the friend
+    // so we just set both unique name and display name to public id
+    ASPHR_LOG_INFO("New friend request discovered.", "Friend ID", friend_id);
+    db::FriendFragment new_friend = {.unique_name = friend_id,
+                                     .display_name = friend_id,
+                                     .public_id = friend_id,
+                                     .progress = INCOMING_REQUEST,
+                                     .deleted = false};
+    db::AddAddress new_address = {
+        .unique_name = friend_id,
+        .friend_request_public_key =
+            string_to_rust_u8Vec(friend_request_public_key),
+        .friend_request_message = friend_message,
+        .kx_public_key = string_to_rust_u8Vec(friend_kx_public_key),
+        .read_index = friend_allocation,
+        .read_key = string_to_rust_u8Vec(read_key),
+        .write_key = string_to_rust_u8Vec(write_key),
+    };
+    try {
+      G.db->add_incoming_async_friend_requests(new_friend, new_address);
+    } catch (const rust::Error& e) {
+      // ASPHR_LOG_ERR("Could not add friend.", "Error", e.what());
+      continue;
+    }
   }
-  **/
 }
 
 auto Transmitter::check_rep() const noexcept -> void {

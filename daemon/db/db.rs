@@ -1565,7 +1565,7 @@ impl DB {
     friend_struct: ffi::FriendFragment,
     address_struct: ffi::AddAddress,
   ) -> Result<(), DbError> {
-    if (friend_struct.progress != INCOMING_REQUEST) {
+    if friend_struct.progress != INCOMING_REQUEST {
       return Err(DbError::InvalidArgument(
         "not an incoming request".to_string(),
       ));
@@ -1665,8 +1665,7 @@ impl DB {
         DbError::AlreadyExists("no free ack index".to_string())
       }
       _ => DbError::Unknown(format!("failed to insert address: {}", e)),
-    });
-    Ok(())
+    })
   }
 
   pub fn deny_async_friend_request(&self, unique_name: &str) -> Result<(), DbError> {
@@ -1675,7 +1674,7 @@ impl DB {
     use crate::schema::friend;
 
     // we change the deleted flag to true, meaning that the friend is deleted
-    if let Ok(f) =
+    if let Ok(_) =
       diesel::update(friend::table.filter(friend::unique_name.eq(unique_name))).set(friend::deleted.eq(true)).execute(&mut conn)
     {
       Ok(())

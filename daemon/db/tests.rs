@@ -1,7 +1,7 @@
 use diesel::prelude::*;
 
 use crate::{db::*};
-use rand::{random, Rng};
+use rand::{Rng};
 
 fn get_registration_fragment() -> ffi::RegistrationFragment {
   let kx_public_key: Vec<u8> = br#"zIUWz21AsWme9KxgS43TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();

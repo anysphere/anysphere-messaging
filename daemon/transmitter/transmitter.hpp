@@ -68,7 +68,7 @@ class Transmitter {
   auto transmit_async_friend_request() -> void;
 
   // retrieve and process async friend request from the server
-  // and push them to the daemon
+  // and push them to the database
   // It is important to define the behavior of this function in the case of
   // duplicate requests. i.e. when a friend (request) with the same public key
   // is already in the database. Here's the definition for now.

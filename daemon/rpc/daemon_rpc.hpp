@@ -134,9 +134,4 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
   auto convertStructDBtoRPC(const db::Friend& db_friend,
                             const db::Address& db_address)
       -> asphr::StatusOr<std::pair<asphrdaemon::FriendInfo, string>>;
-
-  // constant for the progress field
-  const int INCOMING_REQUEST = 0;
-  const int OUTGOING_REQUEST = 1;
-  const int ACTUAL_FRIEND = 2;
 };
