@@ -5,7 +5,7 @@
 
 // From https://github.com/bitcoin/bitcoin/blob/master/src/base58.h
 // Modified to not use Spans
-// See COPYING.bitcoin for license.
+// See bitcoin.LICENSE for license.
 
 // Copyright (c) 2014-2021 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
@@ -38,7 +38,7 @@ static_assert(std::size(mapBase58) == 256,
               "mapBase58.size() should be 256");  // guarantee not out of range
 static_assert(pszBase58.size() == 58, "pszBase58.size() should be 58");
 
-auto Encode(std::string_view input) -> string {
+auto Encode(string_view input) -> string {
   // Skip & count leading zeroes.
   int zeroes = 0;
   int length = 0;
@@ -48,10 +48,10 @@ auto Encode(std::string_view input) -> string {
   }
   // Allocate enough space in big-endian base58 representation.
   int size = input.size() * 138 / 100 + 1;  // log(256) / log(58), rounded up.
-  std::vector<unsigned char> b58(size);
+  std::vector<unsigned char> b58(size, 0);
   // Process the bytes.
   while (input.size() > 0) {
-    int carry = input.at(0);
+    int carry = (uint8_t)input.at(0);
     int i = 0;
     // Apply "b58 = b58 * 256 + ch".
     for (std::vector<unsigned char>::reverse_iterator it = b58.rbegin();
@@ -76,7 +76,7 @@ auto Encode(std::string_view input) -> string {
   return str;
 }
 
-auto Decode(std::string_view str) -> asphr::StatusOr<string> {
+auto Decode(string_view str) -> asphr::StatusOr<string> {
   // Skip and count leading '1's.
   int zeroes = 0;
   int length = 0;
@@ -86,7 +86,7 @@ auto Decode(std::string_view str) -> asphr::StatusOr<string> {
   }
   // Allocate enough space in big-endian base256 representation.
   int size = str.size() * 733 / 1000 + 1;  // log(58) / log(256), rounded up.
-  std::vector<unsigned char> b256(size);
+  std::vector<unsigned char> b256(size, 0);
   // Process the characters.
   while (str.size() > 0) {
     // Decode base58 character

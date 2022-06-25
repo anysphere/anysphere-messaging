@@ -56,24 +56,6 @@ rust_static_library(
 )
 
 cc_library(
-    name = "crypto_lib",
-    srcs = ["crypto/crypto.cc"],
-    hdrs = [
-        "constants.hpp",
-        "crypto/crypto.hpp",
-    ],
-    linkstatic = True,
-    deps = [
-        "@asphr//asphr:asphr_lib",
-        "@asphr//schema:daemon_cc_grpc",
-        "@asphr//schema:message_proto_cc",
-        "@asphr//schema:server_cc_grpc",
-        "@asphr//third_party/libsodium",
-        "@com_github_grpc_grpc//:grpc++",
-    ],
-)
-
-cc_library(
     name = "core_lib",
     srcs = ["global.cc"],
     hdrs = [
@@ -82,10 +64,10 @@ cc_library(
     deps = [
         ":cpp_db_lib",
         ":cpp_include",
-        ":crypto_lib",
         ":db_bridge",
         ":db_lib",
         "//client_lib",
+        "//daemon/crypto:crypto_lib",
         "@asphr//asphr:asphr_lib",
     ],
 )
@@ -157,17 +139,6 @@ cc_library(
     deps = [
         "@asphr//asphr:asphr_lib",
         "@cxx.rs//:core",
-    ],
-)
-
-cc_test(
-    name = "crypto_test",
-    srcs = [
-        "crypto/crypto_test.cc",
-    ],
-    deps = [
-        ":crypto_lib",
-        "@com_google_googletest//:gtest_main",
     ],
 )
 

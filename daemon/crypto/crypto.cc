@@ -15,6 +15,14 @@ auto generate_keypair() -> std::pair<string, string> {
       string(reinterpret_cast<char*>(secret_key), crypto_kx_SECRETKEYBYTES)};
 }
 
+auto generic_hash(string_view data) -> std::string {
+  unsigned char hash[crypto_generichash_BYTES];
+  crypto_generichash(hash, sizeof hash,
+                     reinterpret_cast<const unsigned char*>(data.data()),
+                     data.size(), nullptr, 0);
+  return string(reinterpret_cast<char*>(hash), sizeof hash);
+}
+
 auto generate_friend_key(const string& my_public_key, int index) -> string {
   string public_key_b64;
   public_key_b64.resize(sodium_base64_ENCODED_LEN(

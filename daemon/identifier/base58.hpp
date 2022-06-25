@@ -6,7 +6,7 @@
 
 // From https://github.com/bitcoin/bitcoin/blob/master/src/base58.h
 // Modified to fit into our infrastructure.
-// See COPYING.bitcoin for license.
+// See bitcoin.LICENSE for license.
 
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2020 The Bitcoin Core developers
@@ -31,11 +31,11 @@ namespace base58 {
 /**
  * Encode any byte sequence (not just utf8!) as a base58-encoded string.
  */
-auto Encode(std::string_view input) -> string;
+auto Encode(string_view input) -> string;
 
 /**
  * Decode a base58-encoded string into a byte string.
  */
-auto Decode(std::string_view str) -> asphr::StatusOr<string>;
+auto Decode(string_view str) -> asphr::StatusOr<string>;
 
 }  // namespace base58
