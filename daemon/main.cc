@@ -50,7 +50,7 @@ auto main_cc_impl(rust::Vec<rust::String> args) -> void {
       cout << "  -r <round_delay>  Round delay in seconds (default: 60 seconds)"
            << endl;
       cout << "  --no-tls  Don't use TLS (default: use tls)" << endl;
-      return;
+      std::exit(0);
     } else if (*i == "-s") {
       server_address = *++i;
     } else if (*i == "-d") {
