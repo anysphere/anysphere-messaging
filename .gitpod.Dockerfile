@@ -9,7 +9,7 @@ RUN sudo apt-get update && sudo apt-get install -y build-essential cmake valgrin
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && sudo ./aws/install
 RUN rm -r awscliv2.zip
 
-RUN brew install bazel && brew install buildifier && brew install grpcurl && brew tap hashicorp/tap && brew install hashicorp/tap/terraform && brew install ninja
+RUN brew install bazelisk && brew install buildifier && brew install grpcurl && brew tap hashicorp/tap && brew install hashicorp/tap/terraform && brew install ninja
 
 RUN curl https://get.trunk.io -fsSL | bash -s -- -y
 
