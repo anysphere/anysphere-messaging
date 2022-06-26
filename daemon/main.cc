@@ -146,9 +146,14 @@ auto main_cc_impl(rust::Vec<rust::String> args) -> void {
 auto main_cc(rust::Vec<rust::String> args) -> void {
   try {
     main_cc_impl(args);
+    ASPHR_LOG_ERR(
+        "Main function returned, which means there's an error somewhere.");
   } catch (const std::exception& e) {
     ASPHR_LOG_ERR("Main failing fatally :(, probably with a database error.",
                   exception, e.what());
-    throw;
+  } catch (...) {
+    ASPHR_LOG_ERR("Main failing fatally :(.", exception, "unknown");
   }
+  // the main function should never return! it might be getting killed.
+  std::exit(1);
 }
