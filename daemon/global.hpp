@@ -20,12 +20,20 @@ class Global {
   Global(Global&& other) noexcept = delete;
   Global& operator=(const Global& other) = delete;
   Global& operator=(Global&& other) noexcept = delete;
+ 
+  // The transmitter check_rep() calls alive() to check that the
+  // Global is consistent and working.  
+  auto alive() const noexcept -> bool { return true; }
 
-  auto alive() const noexcept -> bool { return !kill_; }
+  // The transmitter calls this to signal that it is alive.
+  auto transmitter_ping() -> void;
+  // returns true if the transmitter did ping, false otherwise
+  auto wait_for_transmitter_ping_with_timeout(int seconds) -> bool;
 
-  auto kill() -> void;
-  // returns true iff killed
-  auto wait_until_killed_or_seconds(int seconds) -> bool;
+  // The GRPC thread calls this to signal that it is alive
+  auto grpc_ping() -> void;
+  // returns true if the grpc did ping, false otherwise
+  auto wait_for_grpc_ping_with_timeout(int seconds) -> bool;
 
   const string db_address;
   const rust::Box<db::DB> db;
@@ -36,7 +44,11 @@ class Global {
   std::condition_variable message_notification_cv;
 
  private:
-  std::mutex kill_mtx;
-  std::condition_variable kill_cv;
-  bool kill_ = false;
+  std::mutex transmitter_ping_mtx;
+  std::condition_variable transmitter_ping_cv;
+  int transmitter_ping_counter = 0;
+
+  std::mutex grpc_ping_mtx;
+  std::condition_variable grpc_ping_cv;
+  int grpc_ping_counter = 0;
 };
