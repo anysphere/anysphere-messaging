@@ -22,7 +22,6 @@ import { KBarOptions } from "./components/cmd-k/types";
 import { StatusHandler, StatusContext } from "./components/Status";
 import { SideBar } from "./components/SideBar/SideBar";
 import { SideBarButton } from "./components/SideBar/SideBarProps";
-import { BackgroundCircles } from "./components/BackgroundCircles/BackgroundCircles";
 
 const defaultTabs: Tab[] = [
   { type: TabType.New, name: "New", data: null, unclosable: true, id: "new" },
@@ -53,7 +52,7 @@ function Main() {
   const statusState = React.useContext(StatusContext);
 
   const readMessage = React.useCallback(
-    (message: Message, mode: string) => {
+    (message: Message, _mode: string) => {
       for (let i = 0; i < tabs.length; i++) {
         if (tabs[i].type === TabType.Read && tabs[i].data.id === message.id) {
           switchTab(tabs[i].id);
@@ -319,6 +318,8 @@ function Main() {
         return openOutbox();
       case SideBarButton.SENT:
         return openSent();
+      case SideBarButton.ADD_FRIEND:
+        return openFriendModal();
       default:
         return React.useCallback(() => {}, []);
         break;

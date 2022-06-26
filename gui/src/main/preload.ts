@@ -489,6 +489,9 @@ contextBridge.exposeInMainWorld("messageSeen", async (message_id: number) => {
 });
 
 contextBridge.exposeInMainWorld("hasRegistered", async () => {
+  if (FAKE_DATA) {
+    return true;
+  }
   const request = new daemonM.GetStatusRequest();
   const getStatus = promisify(daemonClient.getStatus).bind(daemonClient);
   try {
