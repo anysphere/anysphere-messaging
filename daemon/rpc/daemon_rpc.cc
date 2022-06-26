@@ -663,6 +663,8 @@ auto DaemonRpc::Kill(ServerContext* context,
   ASPHR_LOG_INFO("Daemon is shutting down.", rpc_call, "Kill");
   // exit normally! being killed is not a bad thing.
   // the daemon manager will restart us which is great :)
+  //
+  // the OS will clean up after us, so we don't need to worry
   std::exit(0);
   return Status::OK;
 }

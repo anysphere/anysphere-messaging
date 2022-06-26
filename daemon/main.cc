@@ -50,7 +50,7 @@ auto main_cc_impl(rust::Vec<rust::String> args) -> void {
       cout << "  -r <round_delay>  Round delay in seconds (default: 60 seconds)"
            << endl;
       cout << "  --no-tls  Don't use TLS (default: use tls)" << endl;
-      return 0;
+      return;
     } else if (*i == "-s") {
       server_address = *++i;
     } else if (*i == "-d") {
@@ -63,7 +63,7 @@ auto main_cc_impl(rust::Vec<rust::String> args) -> void {
       tls = false;
     } else {
       ASPHR_LOG_ERR("Unknown argument.", argument, *i);
-      return 1;
+      throw std::invalid_argument("Unknown argument.");
     }
   }
 
@@ -149,8 +149,7 @@ auto main_cc(rust::Vec<rust::String> args) -> void {
     ASPHR_LOG_ERR(
         "Main function returned, which means there's an error somewhere.");
   } catch (const std::exception& e) {
-    ASPHR_LOG_ERR("Main failing fatally :(, probably with a database error.",
-                  exception, e.what());
+    ASPHR_LOG_ERR("Main failing fatally :(.", exception, e.what());
   } catch (...) {
     ASPHR_LOG_ERR("Main failing fatally :(.", exception, "unknown");
   }
