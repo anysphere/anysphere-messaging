@@ -21,8 +21,6 @@ auto Global::wait_for_transmitter_ping_with_timeout(int seconds) -> bool {
 
   auto did_get_pinged = transmitter_ping_counter != counter_start;
 
-  l.unlock();
-
   return did_get_pinged;
 }
 
@@ -45,8 +43,6 @@ auto Global::wait_for_grpc_ping_with_timeout(int seconds) -> bool {
       [this, counter_start] { return grpc_ping_counter != counter_start; });
 
   auto did_get_pinged = grpc_ping_counter != counter_start;
-
-  l.unlock();
 
   return did_get_pinged;
 }
