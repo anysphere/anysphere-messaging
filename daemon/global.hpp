@@ -20,13 +20,17 @@ class Global {
   Global(Global&& other) noexcept = delete;
   Global& operator=(const Global& other) = delete;
   Global& operator=(Global&& other) noexcept = delete;
-
+ 
+  // The transmitter check_rep() calls alive() to check that the
+  // Global is consistent and working.  
   auto alive() const noexcept -> bool { return true; }
 
+  // The transmitter calls this to signal that it is alive.
   auto transmitter_ping() -> void;
   // returns true if the transmitter did ping, false otherwise
   auto wait_for_transmitter_ping_with_timeout(int seconds) -> bool;
 
+  // The GRPC thread calls this to signal that it is alive
   auto grpc_ping() -> void;
   // returns true if the grpc did ping, false otherwise
   auto wait_for_grpc_ping_with_timeout(int seconds) -> bool;
