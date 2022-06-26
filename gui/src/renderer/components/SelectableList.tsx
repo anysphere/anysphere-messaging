@@ -9,7 +9,7 @@ import { useVirtual } from "react-virtual";
 import { usePointerMovedSinceMount } from "../utils";
 
 export interface ListItem<T> {
-  id: number;
+  id: string | number;
   data: T;
   action: (() => void) | null;
 }

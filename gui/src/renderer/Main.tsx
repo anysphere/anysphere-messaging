@@ -396,8 +396,8 @@ function Main() {
 
   return (
     <div className="w-full">
-      <div className="h-4 draggable" />
-      <div className="flex flex-row gap-2 fixed w-full pt-2 px-2">
+      <div className="draggable h-4" />
+      <div className="fixed flex w-full flex-row gap-2 px-2 pt-2">
         <TabContainer
           tabs={tabs}
           selectTab={switchTab}
@@ -412,20 +412,20 @@ function Main() {
           }
         />
         <button
-          className="unselectable px-2 rounded-md bg-asbrown-100 text-asbrown-light "
+          className="unselectable rounded-md bg-asbrown-100 px-2 text-asbrown-light "
           onClick={openFriendModal}
         >
           <div className="codicon codicon-person-add"></div>
         </button>
         <button
-          className="unselectable px-2 rounded-md bg-asbrown-100 text-asbrown-light "
+          className="unselectable rounded-md bg-asbrown-100 px-2 text-asbrown-light "
           onClick={writeMessage}
         >
           <div className="codicon codicon-edit"></div>
         </button>
       </div>
       <div>
-        <div className="overflow-scroll mt-9 pb-12 h-[calc(100vh_-_3.25rem)]">
+        <div className="mt-9 h-[calc(100vh_-_3.25rem)] overflow-scroll pb-12">
           {selectedComponent}
         </div>
       </div>
