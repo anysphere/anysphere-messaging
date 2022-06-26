@@ -35,6 +35,8 @@ Status DaemonRpc::RegisterUser(
 
   asphrserver::RegisterResponse reply;
   grpc::ClientContext client_context;
+  client_context.set_deadline(std::chrono::system_clock::now() +
+                              std::chrono::seconds(60));
 
   Status status = stub->Register(&client_context, request, &reply);
 

@@ -400,6 +400,8 @@ auto Transmitter::send() -> void {
   asphrserver::SendMessageResponse reply;
 
   grpc::ClientContext context;
+  context.set_deadline(std::chrono::system_clock::now() +
+                       std::chrono::seconds(60));
 
   grpc::Status status = stub->SendMessage(&context, request, &reply);
 
@@ -435,6 +437,8 @@ auto Transmitter::batch_retrieve_pir(FastPIRClient& client,
 
     asphrserver::ReceiveMessageResponse reply;
     grpc::ClientContext context;
+    context.set_deadline(std::chrono::system_clock::now() +
+                         std::chrono::seconds(60));
 
     grpc::Status status = stub->ReceiveMessage(&context, request, &reply);
 
