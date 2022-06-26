@@ -665,6 +665,7 @@ auto DaemonRpc::Kill(ServerContext* context,
   // the daemon manager will restart us which is great :)
   //
   // the OS will clean up after us, so we don't need to worry
+  ASPHR_LOG_ERR("Exiting.", status_code, 0);
   std::exit(0);
   return Status::OK;
 }

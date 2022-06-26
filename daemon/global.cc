@@ -1,27 +1,27 @@
 #include "global.hpp"
 
-auto Global::kill() -> void {
+auto Global::transmitter_ping() -> void {
   {
-    const std::lock_guard<std::mutex> kill_l(kill_mtx);
-    kill_ = true;
+    const std::lock_guard<std::mutex> l(transmitter_ping_mtx);
+    transmitter_ping_counter++;
   }
 
-  kill_cv.notify_all();
+  transmitter_ping_cv.notify_all();
 }
 
-auto Global::wait_until_killed_or_seconds(int seconds) -> bool {
-  std::unique_lock<std::mutex> kill_l(kill_mtx);
+auto Global::wait_for_transmitter_ping_with_timeout(int seconds) -> bool {
+  std::unique_lock<std::mutex> l(transmitter_ping_mtx);
 
-  if (kill_) {
-    return true;
-  }
+  const auto counter_start = transmitter_ping_counter;
 
-  kill_cv.wait_for(kill_l, std::chrono::seconds(seconds),
-                   [this] { return kill_; });
+  transmitter_ping_cv.wait_for(
+      l, std::chrono::seconds(seconds), [this, counter_start] {
+        return transmitter_ping_counter != counter_start;
+      });
 
-  kill_l.unlock();
+  auto did_get_pinged = transmitter_ping_counter != counter_start;
 
-  // kill only ever changes false -> true, so we are fine returning this here
-  // even after unlocking
-  return kill_;
+  l.unlock();
+
+  return did_get_pinged;
 }

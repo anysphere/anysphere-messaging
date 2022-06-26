@@ -103,8 +103,6 @@ auto main_cc_impl(rust::Vec<rust::String> args) -> void {
   shared_ptr<asphrserver::Server::Stub> stub =
       asphrserver::Server::NewStub(channel);
 
-  Transmitter transmitter(G, stub);
-
   // set up the daemon rpc server
   auto daemon = DaemonRpc(G, stub);
   grpc::ServerBuilder builder;
@@ -114,31 +112,55 @@ auto main_cc_impl(rust::Vec<rust::String> args) -> void {
   // start the daemon rpc server
   auto daemon_server = unique_ptr<grpc::Server>(builder.BuildAndStart());
 
-  auto initial_latency = G.db->get_latency();
+  // start the transmitter in a separate thread.
+  std::thread thread_object([&G, stub, override_default_round_delay]() {
+    Transmitter transmitter(G, stub);
 
+    auto initial_latency = G.db->get_latency();
+
+    while (true) {
+      try {
+        auto latency = G.db->get_latency();
+        if (latency == initial_latency && override_default_round_delay != -1) {
+          latency = override_default_round_delay;
+        }
+        absl::SleepFor(absl::Seconds(latency));
+
+        // do a round
+        ASPHR_LOG_INFO("Client round.");
+
+        // receive and then send! it is important! 2x speedup
+        transmitter.retrieve();
+        transmitter.send();
+
+        // notify the main thread that we have completed a round
+        // successfully!
+        G.transmitter_ping();
+
+      } catch (const rust::Error& e) {
+        ASPHR_LOG_ERR("Error in database.", error_msg, e.what());
+        ASPHR_LOG_INFO("Retrying in 30 seconds...");
+        absl::SleepFor(absl::Seconds(30));
+      }
+    }
+  });
+
+  // in the main thread, we continuously monitor for transmitter liveness
+  // if the transmitter thread hasn't responded within 10 * (1 minute +
+  // latency), we exit the entire process with an error.
   while (true) {
-    try {
-      auto latency = G.db->get_latency();
-      if (latency == initial_latency && override_default_round_delay != -1) {
-        latency = override_default_round_delay;
-      }
-      auto killed = G.wait_until_killed_or_seconds(latency);
-      if (killed) {
-        daemon_server->Shutdown();
-        ASPHR_LOG_INFO("Daemon killed.");
-        break;
-      }
-
-      // do a round
-      ASPHR_LOG_INFO("Client round.");
-
-      // receive and then send! it is important! 2x speedup
-      transmitter.retrieve();
-      transmitter.send();
-    } catch (const rust::Error& e) {
-      ASPHR_LOG_ERR("Error in database.", error_msg, e.what());
-      ASPHR_LOG_INFO("Retrying in 30 seconds...");
-      G.wait_until_killed_or_seconds(30);
+    auto timeout =
+        10 * (std::max(G.db->get_latency(), override_default_round_delay) + 60);
+    auto transmitter_did_ping =
+        G.wait_for_transmitter_ping_with_timeout(timeout);
+    if (!transmitter_did_ping) {
+      ASPHR_LOG_ERR("Transmitter thread has stalled or died.", timeout_seconds,
+                    timeout);
+      ASPHR_LOG_ERR("Exiting.", status_code, 1);
+      std::exit(1);
+    } else {
+      ASPHR_LOG_INFO("Transmitter thread is alive; everything is good.",
+                     timeout_seconds, timeout);
     }
   }
 }
@@ -154,5 +176,6 @@ auto main_cc(rust::Vec<rust::String> args) -> void {
     ASPHR_LOG_ERR("Main failing fatally :(.", exception, "unknown");
   }
   // the main function should never return! it might be getting killed.
+  ASPHR_LOG_ERR("Exiting.", status_code, 1);
   std::exit(1);
 }

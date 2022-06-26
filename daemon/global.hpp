@@ -21,11 +21,11 @@ class Global {
   Global& operator=(const Global& other) = delete;
   Global& operator=(Global&& other) noexcept = delete;
 
-  auto alive() const noexcept -> bool { return !kill_; }
+  auto alive() const noexcept -> bool { return true; }
 
-  auto kill() -> void;
-  // returns true iff killed
-  auto wait_until_killed_or_seconds(int seconds) -> bool;
+  auto transmitter_ping() -> void;
+  // returns true if the transmitter did ping, false otherwise
+  auto wait_for_transmitter_ping_with_timeout(int seconds) -> bool;
 
   const string db_address;
   const rust::Box<db::DB> db;
@@ -36,7 +36,7 @@ class Global {
   std::condition_variable message_notification_cv;
 
  private:
-  std::mutex kill_mtx;
-  std::condition_variable kill_cv;
-  bool kill_ = false;
+  std::mutex transmitter_ping_mtx;
+  std::condition_variable transmitter_ping_cv;
+  int transmitter_ping_counter = 0;
 };
