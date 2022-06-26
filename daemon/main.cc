@@ -145,8 +145,32 @@ auto main_cc_impl(rust::Vec<rust::String> args) -> void {
     }
   });
 
-  // in the main thread, we continuously monitor for transmitter liveness
-  // if the transmitter thread hasn't responded within 10 * (1 minute +
+  // this thread monitors grpc liveness
+  std::thread thread_object2(
+      [&G, override_default_round_delay, socket_address]() {
+        while (true) {
+          auto latency =
+              std::max(G.db->get_latency(), override_default_round_delay) + 60;
+          absl::SleepFor(absl::Seconds(latency));
+
+          auto test_channel = grpc::CreateChannel(
+              socket_address, grpc::InsecureChannelCredentials());
+          auto test_stub = asphrdaemon::Daemon::NewStub(test_channel);
+          grpc::ClientContext test_context;
+          test_context.set_deadline(std::chrono::system_clock::now() +
+                                    std::chrono::seconds(latency));
+          asphrdaemon::GetStatusRequest test_request;
+          asphrdaemon::GetStatusResponse test_response;
+          grpc::Status test_status =
+              test_stub->GetStatus(&test_context, test_request, &test_response);
+          if (test_status.ok()) {
+            G.grpc_ping();
+          }
+        }
+      });
+
+  // in the main thread, we continuously monitor for transmitter and grpc
+  // liveness if the transmitter thread hasn't responded within 10 * (1 minute +
   // latency), we exit the entire process with an error.
   while (true) {
     auto timeout =
@@ -160,6 +184,15 @@ auto main_cc_impl(rust::Vec<rust::String> args) -> void {
       std::exit(1);
     } else {
       ASPHR_LOG_INFO("Transmitter thread is alive; everything is good.",
+                     timeout_seconds, timeout);
+    }
+    auto grpc_did_ping = G.wait_for_grpc_ping_with_timeout(timeout);
+    if (!grpc_did_ping) {
+      ASPHR_LOG_ERR("Grpc server has died.", timeout_seconds, timeout);
+      ASPHR_LOG_ERR("Exiting.", status_code, 1);
+      std::exit(1);
+    } else {
+      ASPHR_LOG_INFO("Grpc server is alive; everything is good.",
                      timeout_seconds, timeout);
     }
   }

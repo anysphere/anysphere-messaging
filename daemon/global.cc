@@ -25,3 +25,28 @@ auto Global::wait_for_transmitter_ping_with_timeout(int seconds) -> bool {
 
   return did_get_pinged;
 }
+
+auto Global::grpc_ping() -> void {
+  {
+    const std::lock_guard<std::mutex> l(grpc_ping_mtx);
+    grpc_ping_counter++;
+  }
+
+  grpc_ping_cv.notify_all();
+}
+
+auto Global::wait_for_grpc_ping_with_timeout(int seconds) -> bool {
+  std::unique_lock<std::mutex> l(grpc_ping_mtx);
+
+  const auto counter_start = grpc_ping_counter;
+
+  grpc_ping_cv.wait_for(
+      l, std::chrono::seconds(seconds),
+      [this, counter_start] { return grpc_ping_counter != counter_start; });
+
+  auto did_get_pinged = grpc_ping_counter != counter_start;
+
+  l.unlock();
+
+  return did_get_pinged;
+}
