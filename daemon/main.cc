@@ -19,7 +19,7 @@ auto get_db_address() noexcept(false) -> std::filesystem::path {
   return get_daemon_config_dir() / "asphr.db";
 }
 
-int main_cc_impl(rust::Vec<rust::String> args) {
+auto main_cc_impl(rust::Vec<rust::String> args) -> void {
   vector<string> args_vec;
   for (auto i = args.begin() + 1; i != args.end(); ++i) {
     args_vec.push_back(std::string(*i));
@@ -141,13 +141,11 @@ int main_cc_impl(rust::Vec<rust::String> args) {
       G.wait_until_killed_or_seconds(30);
     }
   }
-
-  return 0;
 }
 
-int main_cc(rust::Vec<rust::String> args) {
+auto main_cc(rust::Vec<rust::String> args) -> void {
   try {
-    return main_cc_impl(args);
+    main_cc_impl(args);
   } catch (const std::exception& e) {
     ASPHR_LOG_ERR("Main failing fatally :(, probably with a database error.",
                   exception, e.what());
