@@ -7,6 +7,7 @@ cc_library(
         "daemon_setup.hpp",
         "test_helpers.hpp",
     ],
+    linkstatic=True,
     deps = [
         "//server/pir/fast_pir:server_fast_pir_lib",
         "//server/src:as_server_lib",

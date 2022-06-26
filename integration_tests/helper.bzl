@@ -5,6 +5,7 @@ def all_tests_in_folder(folder, name = ""):
             srcs = [
                 t,
             ],
+            linkstatic=True,
             deps = [
                 ":daemon_setup",
             ],
