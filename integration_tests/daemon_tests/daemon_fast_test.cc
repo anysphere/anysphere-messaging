@@ -66,23 +66,6 @@ TEST_F(DaemonRpcTest, SetLatencyEmpty) {
   }
 };
 
-TEST_F(DaemonRpcTest, KillDaemon) {
-  ResetStub();
-  auto [G, rpc, t] = gen_person();
-
-  auto killed = G->wait_until_killed_or_seconds(0);
-  EXPECT_FALSE(killed);
-
-  {
-    KillRequest request;
-    KillResponse response;
-    rpc->Kill(nullptr, &request, &response);
-  }
-  const int kWaitTime = 1000;
-  killed = G->wait_until_killed_or_seconds(kWaitTime);
-  EXPECT_TRUE(killed);
-}
-
 TEST_F(DaemonRpcTest, LoadAndUnloadConfig) {
   ResetStub();
   auto db_file = generateTempFile();
