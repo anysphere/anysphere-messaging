@@ -28,6 +28,10 @@ class Transmitter {
   // may throw rust::Error if there is a database problem
   auto send() -> void;
 
+  // method for testing
+  // because during microtests, we do not want to full db scan
+  auto reset_async_scanner(int index) { next_async_friend_request_retrieve_index = index; }
+
  private:
   Global& G;
   shared_ptr<asphrserver::Server::Stub> stub;
