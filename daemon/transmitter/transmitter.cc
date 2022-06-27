@@ -281,7 +281,7 @@ auto Transmitter::retrieve() -> void {
 
         if (chunk.control()) {
           switch (chunk.control_message()) {
-            case asphrclient::Message::ControlMessage::OUTGOING_FRIEND_REQUEST:
+            case asphrclient::Message::OUTGOING_FRIEND_REQUEST:
               ASPHR_LOG_INFO(
                   "Received outgoing friend request from someone who's already "
                   "someone we wanted to add.",
