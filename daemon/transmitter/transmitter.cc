@@ -485,6 +485,8 @@ auto Transmitter::transmit_async_friend_request() -> void {
   // retrieve the friend request from DB
   rust::cxxbridge1::Vec<db::Friend> async_friend_requests;
   rust::cxxbridge1::Vec<db::Address> async_friend_requests_address;
+  ASPHR_LOG_INFO("Sending async friend request.");
+  cout << "sjfnsdjnfkja" << endl;
   try {
     async_friend_requests = G.db->get_outgoing_async_friend_requests();
     for (auto db_friend : async_friend_requests) {
@@ -496,10 +498,15 @@ auto Transmitter::transmit_async_friend_request() -> void {
                    e.what());
     return;
   }
-
+  cout << "sjfnsdjnfkja" << endl;
   // TODO: allow us to send multiple friend requests at once
   // Right now, we only send one friend request at once
-  // We can change this later if we want to
+  // We can change this later if we want to.
+  // TODO: send a dummy friend request if we have no friend requests to send
+  if (async_friend_requests.size() == 0) {
+    return;
+  }
+  // send the friend request
   db::Friend async_friend = async_friend_requests[0];
   db::Address async_friend_address = async_friend_requests_address[0];
 
@@ -518,7 +525,6 @@ auto Transmitter::transmit_async_friend_request() -> void {
     // ASPHR_LOG_ERR("Could not generate user ID.", error_msg, e.what());
     return;
   }
-
   // encrypt the friend request
   auto encrypted_friend_request_status_ = crypto::encrypt_async_friend_request(
       my_id, my_friend_request_private_key, friend_id,
