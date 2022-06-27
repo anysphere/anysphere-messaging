@@ -1110,7 +1110,7 @@ impl DB {
     });
 
     match r {
-      Ok(b) => Ok(()),
+      Ok => Ok(()),
       Err(e) => Err(DbError::Unknown(format!("receive_chunk: {}", e))),
     }
   }
