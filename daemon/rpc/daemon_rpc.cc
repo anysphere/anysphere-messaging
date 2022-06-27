@@ -5,6 +5,7 @@
 
 #include "daemon_rpc.hpp"
 
+#include "daemon/identifier/identifier.hpp"
 #include "google/protobuf/util/time_util.h"
 
 using grpc::ServerContext;
@@ -243,6 +244,23 @@ Status DaemonRpc::AddSyncFriend(
     grpc::ServerContext* context,
     const asphrdaemon::AddSyncFriendRequest* addSyncFriendRequest,
     asphrdaemon::AddSyncFriendResponse* addSyncFriendResponse) {
+  ASPHR_LOG_INFO("AddSyncFriend() called.", rpc_call, "AddSyncFriend");
+
+  if (!G.db->has_registered()) {
+    ASPHR_LOG_INFO("Need to register first.", rpc_call, "AddSyncFriend");
+    return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
+  }
+
+  auto sync_id_maybe =
+      SyncIdentifier::from_story(addSyncFriendRequest->story());
+  if (!sync_id_maybe.ok()) {
+    ASPHR_LOG_ERR("Failed to parse sync ID.", rpc_call, "AddSyncFriend",
+                  error_message, sync_id_maybe.status().message(), error_code,
+                  sync_id_maybe.status().code());
+    return Status(grpc::StatusCode::INVALID_ARGUMENT, "invalid story");
+  }
+  auto sync_id = sync_id_maybe.value();
+
   // TODO: not implemented
   return Status(grpc::StatusCode::UNIMPLEMENTED, "not implemented");
 }
