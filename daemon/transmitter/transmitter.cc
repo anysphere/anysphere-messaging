@@ -483,13 +483,12 @@ auto Transmitter::batch_retrieve_pir(FastPIRClient& client,
 
 auto Transmitter::transmit_async_friend_request() -> void {
   // retrieve the friend request from DB
-  cout << "sjfnsdjnfkja" << endl;
-  rust::Vec<db::Friend> async_friend_requests = rust::Vec::new ();
-  rust::Vec<db::Address> async_friend_requests_address = {};
-  cout << "sjfnsdjnfkja" << endl;
+  std::vector<db::Friend> async_friend_requests = {};
+  std::vector<db::Address> async_friend_requests_address = {};
   try {
-    async_friend_requests = G.db->get_outgoing_async_friend_requests();
-    for (auto db_friend : async_friend_requests) {
+    auto async_friend_requests_rs = G.db->get_outgoing_async_friend_requests();
+    for (auto db_friend : async_friend_requests_rs) {
+      async_friend_requests.push_back(db_friend);
       async_friend_requests_address.push_back(
           G.db->get_friend_address(db_friend.uid));
     }
@@ -498,7 +497,6 @@ auto Transmitter::transmit_async_friend_request() -> void {
                    e.what());
     return;
   }
-  cout << "sjfnsdjnfkja" << endl;
   // TODO: allow us to send multiple friend requests at once
   // Right now, we only send one friend request at once
   // We can change this later if we want to.

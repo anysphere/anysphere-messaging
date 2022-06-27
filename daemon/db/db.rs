@@ -671,7 +671,8 @@ impl DB {
     let mut conn = self.connect()?;
     use crate::schema::friend;
 
-    if let Ok(v) = friend::table.filter(friend::deleted.eq(false)).load::<ffi::Friend>(&mut conn) {
+    if let Ok(v) = friend::table.filter(friend::progress.eq(ACTUAL_FRIEND))
+                                .filter(friend::deleted.eq(false)).load::<ffi::Friend>(&mut conn) {
       Ok(v)
     } else {
       Err(DbError::Unknown("failed to get friends".to_string()))
