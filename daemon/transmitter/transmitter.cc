@@ -483,9 +483,9 @@ auto Transmitter::batch_retrieve_pir(FastPIRClient& client,
 
 auto Transmitter::transmit_async_friend_request() -> void {
   // retrieve the friend request from DB
-  rust::cxxbridge1::Vec<db::Friend> async_friend_requests;
-  rust::cxxbridge1::Vec<db::Address> async_friend_requests_address;
-  ASPHR_LOG_INFO("Sending async friend request.");
+  cout << "sjfnsdjnfkja" << endl;
+  rust::Vec<db::Friend> async_friend_requests = rust::Vec::new ();
+  rust::Vec<db::Address> async_friend_requests_address = {};
   cout << "sjfnsdjnfkja" << endl;
   try {
     async_friend_requests = G.db->get_outgoing_async_friend_requests();
@@ -511,16 +511,18 @@ auto Transmitter::transmit_async_friend_request() -> void {
   db::Address async_friend_address = async_friend_requests_address[0];
 
   // we need to compute the id for both parties
+  // We declare these outside cause I don't want to everything wrapped in
+  // try-catch
   string my_id;  // we could probably cache this in DB, but we don't need to
   string my_friend_request_private_key;
   string friend_id;
   db::Registration reg_info;
   try {
     reg_info = G.db->get_registration();
-    auto my_id = reg_info.public_id;
+    my_id = std::string(reg_info.public_id);
     my_friend_request_private_key =
         rust_u8Vec_to_string(reg_info.friend_request_private_key);
-    auto friend_id_ = async_friend.public_id;
+    friend_id = std::string(async_friend.public_id);
   } catch (const rust::Error& e) {
     // ASPHR_LOG_ERR("Could not generate user ID.", error_msg, e.what());
     return;
@@ -650,7 +652,7 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
     // 3. If the friend is marked as incoming, then we ignore the request.
     // 4. If the friend is marked as outgoing, then we approve this request
 
-    // I'll do something here: just scan over the entire friend db
+    // I'll just scan over the entire friend db
     // This will be changed later
 
     try {
