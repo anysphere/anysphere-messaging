@@ -367,6 +367,8 @@ pub mod ffi {
     //
     fn get_friend(&self, unique_name: &str) -> Result<Friend>;
     fn get_friends(&self) -> Result<Vec<Friend>>;
+    // the next method returns every entry in the friend db, including pending, accepted, and deleted friends.
+    fn get_friends_all_status(&self) -> Result<Vec<Friend>>; 
     // fails if a friend with unique_name already exists
     fn create_friend(
       &self,
@@ -673,6 +675,17 @@ impl DB {
 
     if let Ok(v) = friend::table.filter(friend::progress.eq(ACTUAL_FRIEND))
                                 .filter(friend::deleted.eq(false)).load::<ffi::Friend>(&mut conn) {
+      Ok(v)
+    } else {
+      Err(DbError::Unknown("failed to get friends".to_string()))
+    }
+  }
+
+  pub fn get_friends_all_status(&self) -> Result<Vec<ffi::Friend>, DbError> {
+    let mut conn = self.connect()?;
+    use crate::schema::friend;
+
+    if let Ok(v) = friend::table.filter(friend::deleted.eq(false)).load::<ffi::Friend>(&mut conn) {
       Ok(v)
     } else {
       Err(DbError::Unknown("failed to get friends".to_string()))

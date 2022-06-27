@@ -607,7 +607,8 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
     my_friend_request_private_key =
         rust_u8Vec_to_string(reg_info.friend_request_private_key);
   } catch (const rust::Error& e) {
-    // ASPHR_LOG_ERR("Could not find user ID.", error_msg, e.what());
+    ASPHR_LOG_ERR("Failed to retrieve registration from db.", "error_msg",
+                  e.what());
     return;
   }
   std::map<string, db::Friend> friends = {};
@@ -628,7 +629,8 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
     // the friend request is meant for us
     // Step 2.2: unpack the friend request
     auto [friend_id, friend_message] = decrypted_friend_request_status.value();
-    ASPHR_LOG_INFO("Found async friend request!", friend_id, friend_message);
+    ASPHR_LOG_INFO("Found async friend request!", public_id, friend_id, message,
+                   friend_message);
     // unpack the friend id
     auto friend_id_unpacked_ = crypto::decode_user_id(friend_id);
     if (!friend_id_unpacked_.ok()) {
@@ -660,7 +662,7 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
     // This will be changed later
 
     try {
-      auto all_friends = G.db->get_friends();
+      auto all_friends = G.db->get_friends_all_status();
       for (auto db_friend : all_friends) {
         // check the id
         if (db_friend.public_id == friend_id) {
@@ -703,7 +705,6 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
     // Note: the current design decision is to not transmit the actual name of
     // the friend
     // so we just set both unique name and display name to public id
-    ASPHR_LOG_INFO("New friend request discovered.", "Friend ID", friend_id);
     db::FriendFragment new_friend = {.unique_name = friend_id,
                                      .display_name = friend_id,
                                      .public_id = friend_id,

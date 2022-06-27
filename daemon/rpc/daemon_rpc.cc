@@ -33,7 +33,7 @@ Status DaemonRpc::RegisterUser(
   // call register rpc to send the register request
   // TODO: obselete. Change to include friend request keypair in the request
   asphrserver::RegisterInfo request;
-  request.set_public_key(kx_public_key);
+  request.set_friend_request_public_key(friend_request_public_key);
   request.set_beta_key(beta_key);
 
   asphrserver::RegisterResponse reply;
