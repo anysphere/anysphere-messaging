@@ -1252,6 +1252,7 @@ impl DB {
               outgoing_chunk::chunks_start_sequence_number.eq(new_seqnum),
               outgoing_chunk::message_uid.eq(message_uid),
               outgoing_chunk::content.eq(chunk),
+              outgoing_chunk::control.eq(false),
             ))
             .execute(conn_b)?;
         }
