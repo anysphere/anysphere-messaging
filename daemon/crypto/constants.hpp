@@ -21,13 +21,14 @@ constexpr size_t CRYPTO_NPUBBYTES =
 // the maximum size of a message such that it can be sent in a single message
 // if the message is this size or shorter, it is guaranteed to be sent in a
 // single round. 1+5 is for the uint32 ID, 1+MESSAGE_SIZE is for the header of
-// the string, and 1 + 1 + 5 is for the repeated acks containing at least one
-// element. -1 at the end is for the padding which reserves one byte.
+// the string, and 1 + 5 is for num_chunks and 1 + 5 is for
+// chunks_start_sequence_number element. -1 at the end is for the padding which
+// reserves one byte.
 constexpr size_t GUARANTEED_SINGLE_MESSAGE_SIZE =
     MESSAGE_SIZE - (1 + 5) -
     (1 +
      CEIL_DIV((sizeof MESSAGE_SIZE) * 8 - std::countl_zero(MESSAGE_SIZE), 8)) -
-    (1 + 1 + 5) - CRYPTO_ABYTES - 1 - CRYPTO_NPUBBYTES;
+    (1 + 5) - (1 + 5) - CRYPTO_ABYTES - 1 - CRYPTO_NPUBBYTES;
 
 // we support up to 4 billion messages! that's a lot.
 // (we use unsigned integers)

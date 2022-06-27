@@ -65,6 +65,8 @@ diesel::table! {
         chunks_start_sequence_number -> Integer,
         message_uid -> Integer,
         content -> Text,
+        control -> Bool,
+        control_message -> Integer,
     }
 }
 

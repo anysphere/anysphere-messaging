@@ -274,36 +274,57 @@ auto Transmitter::retrieve() -> void {
                          sequence_number, chunk.sequence_number(),
                          chunks_start_sequence_number,
                          chunk.chunks_start_sequence_number(), num_chunks,
-                         chunk.num_chunks(), chunk_content, chunk.msg());
+                         chunk.num_chunks(), chunk_content, chunk.msg(),
+                         control, chunk.control(), control_message,
+                         chunk.control_message());
         }
 
-        // we don't set these fields if we only have one chunk
-        auto num_chunks = chunk.num_chunks() > 1 ? chunk.num_chunks() : 1;
-        auto chunks_start_sequence_number =
-            chunk.num_chunks() > 1 ? chunk.chunks_start_sequence_number()
-                                   : chunk.sequence_number();
+        if (chunk.control()) {
+          switch (chunk.control_message()) {
+            case asphrclient::Message::ControlMessage::OUTGOING_FRIEND_REQUEST:
+              ASPHR_LOG_INFO(
+                  "Received outgoing friend request from someone who's already "
+                  "someone we wanted to add.",
+                  friend_uid, f.uid);
+              G.db->receive_friend_request_control_message(
+                  f.uid, chunk.sequence_number());
+              break;
+            default:
+              ASPHR_LOG_ERR("Received unknown control message from friend.",
+                            friend_uid, f.uid, control_message,
+                            chunk.control_message());
+              ASPHR_ASSERT(false);
+          }
+        } else {
+          // we don't set these fields if we only have one chunk
+          auto num_chunks = chunk.num_chunks() > 1 ? chunk.num_chunks() : 1;
+          auto chunks_start_sequence_number =
+              chunk.num_chunks() > 1 ? chunk.chunks_start_sequence_number()
+                                     : chunk.sequence_number();
 
-        // TODO: we probably don't want to cast to int32 here... let's use
-        // int64s everywhere
-        auto receive_chunk_status = G.db->receive_chunk(
-            (db::IncomingChunkFragment){
-                .from_friend = f.uid,
-                .sequence_number = static_cast<int>(chunk.sequence_number()),
-                .chunks_start_sequence_number =
-                    static_cast<int>(chunks_start_sequence_number),
-                .content = chunk.msg()},
-            static_cast<int>(num_chunks));
-        if (receive_chunk_status ==
-            db::ReceiveChunkStatus::NewChunkAndNewMessage) {
-          std::lock_guard<std::mutex> l(G.message_notification_cv_mutex);
-          G.message_notification_cv.notify_all();
+          // TODO: we probably don't want to cast to int32 here... let's use
+          // int64s everywhere
+          auto receive_chunk_status = G.db->receive_chunk(
+              (db::IncomingChunkFragment){
+                  .from_friend = f.uid,
+                  .sequence_number = static_cast<int>(chunk.sequence_number()),
+                  .chunks_start_sequence_number =
+                      static_cast<int>(chunks_start_sequence_number),
+                  .content = chunk.msg()},
+              static_cast<int>(num_chunks));
+          if (receive_chunk_status ==
+              db::ReceiveChunkStatus::NewChunkAndNewMessage) {
+            std::lock_guard<std::mutex> l(G.message_notification_cv_mutex);
+            G.message_notification_cv.notify_all();
+          }
+
+          if (receive_chunk_status == db::ReceiveChunkStatus::NewChunk ||
+              receive_chunk_status ==
+                  db::ReceiveChunkStatus::NewChunkAndNewMessage) {
+            previous_success_receive_friend = std::optional<int>(f.uid);
+          }
         }
 
-        if (receive_chunk_status == db::ReceiveChunkStatus::NewChunk ||
-            receive_chunk_status ==
-                db::ReceiveChunkStatus::NewChunkAndNewMessage) {
-          previous_success_receive_friend = std::optional<int>(f.uid);
-        }
       } else {
         ASPHR_LOG_INFO(
             "Failed to decrypt message (message was probably not for us, "
