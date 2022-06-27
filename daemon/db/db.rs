@@ -373,6 +373,12 @@ pub mod ffi {
       chunk: IncomingChunkFragment,
       num_chunks: i32,
     ) -> Result<ReceiveChunkStatus>;
+    // receive the control message telling us to add the friend
+    fn receive_friend_request_control_message(
+      &self,
+      from_friend: i32,
+      sequence_number: i32,
+    ) -> Result<()>;
 
     // fails if there is no chunk to send
     // prioritizes by the given uid in order from first to last try
@@ -859,6 +865,35 @@ impl DB {
     }
   }
 
+  pub fn update_sequence_number(
+    &self,
+    from_friend: i32,
+    sequence_number: i32,
+  ) -> Result<ffi::ReceiveChunkStatus, diesel::result::Error> {
+    use crate::schema::status;
+
+    conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+      let old_seqnum =
+        status::table.find(from_friend).select(status::received_seqnum).first::<i32>(conn_b)?;
+      // if chunk is before old_seqnum, we just ignore it!!
+      // in other words, once a chunk has been received, it can never be patched.
+      // this is good. if something bad happens, you can always retransmit in a new
+      // message.
+      if sequence_number <= old_seqnum {
+        return Ok(ffi::ReceiveChunkStatus::OldChunk);
+      }
+      // we want to update received_seqnum in status!
+
+      // so we only update the seqnum if we increase exactly by one (otherwise we might miss messages!)
+      if sequence_number == old_seqnum + 1 {
+        diesel::update(status::table.find(from_friend))
+          .set(status::received_seqnum.eq(sequence_number))
+          .execute(conn_b)?;
+      }
+      Ok(ffi::ReceiveChunkStatus::NewChunk)
+    })
+  }
+
   pub fn receive_chunk(
     &self,
     chunk: ffi::IncomingChunkFragment,
@@ -868,27 +903,11 @@ impl DB {
     use crate::schema::incoming_chunk;
     use crate::schema::message;
     use crate::schema::received;
-    use crate::schema::status;
 
     let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
-      let old_seqnum = status::table
-        .find(chunk.from_friend)
-        .select(status::received_seqnum)
-        .first::<i32>(conn_b)?;
-      // if chunk is before old_seqnum, we just ignore it!!
-      // in other words, once a chunk has been received, it can never be patched.
-      // this is good. if something bad happens, you can always retransmit in a new
-      // message.
-      if chunk.sequence_number <= old_seqnum {
-        return Ok(ffi::ReceiveChunkStatus::OldChunk);
-      }
-      // we want to update received_seqnum in status!
-
-      // so we only update the seqnum if we increase exactly by one (otherwise we might miss messages!)
-      if chunk.sequence_number == old_seqnum + 1 {
-        diesel::update(status::table.find(chunk.from_friend))
-          .set(status::received_seqnum.eq(chunk.sequence_number))
-          .execute(conn_b)?;
+      let chunk_status = update_sequence_number(chunk.from_friend, chunk.sequence_number)?;
+      if (chunk_status == ffi::ReceiveChunkStatus::OldChunk) {
+        return Ok(chunk_status);
       }
 
       // check if there is already a message uid associated with this chunk sequence
@@ -977,6 +996,30 @@ impl DB {
 
     match r {
       Ok(b) => Ok(b),
+      Err(e) => Err(DbError::Unknown(format!("receive_chunk: {}", e))),
+    }
+  }
+
+  fn receive_friend_request_control_message(
+    &self,
+    from_friend: i32,
+    sequence_number: i32,
+  ) -> Result<(), DbError> {
+    let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+      let chunk_status = update_sequence_number(from_friend, sequence_number)?;
+      if (chunk_status == ffi::ReceiveChunkStatus::OldChunk) {
+        return Ok(chunk_status);
+      }
+      // move the friend to become an actual friend
+      diesel::update(friend::table.find(from_friend))
+        .set(friend::progress.eq(ACTUAL_FRIEND))
+        .execute(conn_b)?;
+
+      Ok(ffi::ReceiveChunkStatus::NewChunk)
+    });
+
+    match r {
+      Ok(b) => Ok(),
       Err(e) => Err(DbError::Unknown(format!("receive_chunk: {}", e))),
     }
   }
