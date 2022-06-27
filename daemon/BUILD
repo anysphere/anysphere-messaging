@@ -61,6 +61,7 @@ cc_library(
     hdrs = [
         "global.hpp",
     ],
+    linkstatic = True,
     deps = [
         ":cpp_db_lib",
         ":cpp_include",
