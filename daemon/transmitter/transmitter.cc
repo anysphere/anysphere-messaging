@@ -530,8 +530,8 @@ auto Transmitter::transmit_async_friend_request() -> void {
       my_id, my_friend_request_private_key, friend_id,
       std::string(async_friend_address.friend_request_message));
   if (!encrypted_friend_request_status_.ok()) {
-    std::cerr << "Error encrypting async friend request: "
-              << encrypted_friend_request_status_.status() << std::endl;
+    ASPHR_LOG_ERR("Error encrypting async friend request: ", "Error Message",
+                  encrypted_friend_request_status_.status().ToString());
     return;
   }
   auto encrypted_friend_request = encrypted_friend_request_status_.value();
@@ -544,10 +544,11 @@ auto Transmitter::transmit_async_friend_request() -> void {
   grpc::ClientContext context;
   grpc::Status status = stub->AddFriendAsync(&context, request, &reply);
   if (status.ok()) {
-    std::cout << "Async Friend Request sent to server!" << std::endl;
+    ASPHR_LOG_INFO("Async Friend Request sent to server!");
   } else {
-    std::cerr << status.error_code() << ": " << status.error_message()
-              << " details:" << status.error_details() << std::endl;
+    ASPHR_LOG_ERR(
+        "Communication with server failed when sending friend request",
+        "error_code", status.error_code(), "details", status.error_details());
   }
   return;
 }
@@ -590,7 +591,11 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
     //              ss.str());
   }
 
-  assert(reply.friend_request_public_key_size() == reply.requests_size());
+  if (reply.friend_request_public_key_size() != reply.requests_size()) {
+    ASPHR_LOG_ERR("Response is malformed!",
+                  "size1:", reply.friend_request_public_key_size(),
+                  "size2:", reply.requests_size());
+  }
   // Step 2: iterate over the returned friend requests
   // we need to obtain our own id here
   string my_id;
@@ -623,6 +628,7 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
     // the friend request is meant for us
     // Step 2.2: unpack the friend request
     auto [friend_id, friend_message] = decrypted_friend_request_status.value();
+    ASPHR_LOG_INFO("Found async friend request!", friend_id, friend_message);
     // unpack the friend id
     auto friend_id_unpacked_ = crypto::decode_user_id(friend_id);
     if (!friend_id_unpacked_.ok()) {
