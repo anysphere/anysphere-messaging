@@ -100,6 +100,8 @@ CREATE TABLE outgoing_chunk (
     chunks_start_sequence_number integer NOT NULL,
     message_uid integer NOT NULL,
     content text NOT NULL,
+    control boolean NOT NULL,
+    control_message integer NOT NULL, -- corresponds to the enum value in the protobuf
     PRIMARY KEY (to_friend, sequence_number),
     FOREIGN KEY(message_uid) REFERENCES sent(uid),
     FOREIGN KEY(to_friend) REFERENCES friend(uid)

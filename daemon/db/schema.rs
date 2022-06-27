@@ -61,6 +61,8 @@ diesel::table! {
         chunks_start_sequence_number -> Integer,
         message_uid -> Integer,
         content -> Text,
+        control -> Bool,
+        control_message -> Integer,
     }
 }
 
@@ -122,15 +124,15 @@ diesel::joinable!(sent -> message (uid));
 diesel::joinable!(status -> friend (uid));
 
 diesel::allow_tables_to_appear_in_same_query!(
-  address,
-  config,
-  draft,
-  friend,
-  incoming_chunk,
-  message,
-  outgoing_chunk,
-  received,
-  registration,
-  sent,
-  status,
+    address,
+    config,
+    draft,
+    friend,
+    incoming_chunk,
+    message,
+    outgoing_chunk,
+    received,
+    registration,
+    sent,
+    status,
 );

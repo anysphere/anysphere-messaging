@@ -50,6 +50,9 @@ impl fmt::Display for DbError {
   }
 }
 
+// keep this in sync with message.proto
+pub const CONTROL_MESSAGE_OUTGOING_FRIEND_REQUEST: i32 = 0;
+
 // TODO(arvid): manage a connection pool for the DB here?
 // i.e. pool: Box<ConnectionPool> or something
 pub struct DB {
@@ -228,6 +231,8 @@ pub mod ffi {
     pub content: String,
     pub write_key: Vec<u8>,
     pub num_chunks: i32,
+    pub control: bool,
+    pub control_message: i32,
   }
 
   #[derive(Queryable)]
@@ -373,6 +378,12 @@ pub mod ffi {
       chunk: IncomingChunkFragment,
       num_chunks: i32,
     ) -> Result<ReceiveChunkStatus>;
+    // receive the control message telling us to add the friend
+    fn receive_friend_request_control_message(
+      &self,
+      from_friend: i32,
+      sequence_number: i32,
+    ) -> Result<()>;
 
     // fails if there is no chunk to send
     // prioritizes by the given uid in order from first to last try
@@ -807,6 +818,7 @@ impl DB {
 
   pub fn receive_ack(&self, uid: i32, ack: i32) -> Result<bool, DbError> {
     let mut conn = self.connect()?;
+    use crate::schema::friend;
     use crate::schema::outgoing_chunk;
     use crate::schema::sent;
     use crate::schema::status;
@@ -818,6 +830,21 @@ impl DB {
         diesel::update(status::table.find(uid))
           .set(status::sent_acked_seqnum.eq(ack))
           .execute(conn_b)?;
+        // check if there are any control messages that were ACKed
+        let control_chunks = outgoing_chunk::table
+          .filter(outgoing_chunk::to_friend.eq(uid))
+          .filter(outgoing_chunk::sequence_number.le(ack))
+          .filter(outgoing_chunk::control.eq(true))
+          .select(outgoing_chunk::control_message)
+          .load::<i32>(conn_b)?;
+        for control_message in control_chunks {
+          if control_message == CONTROL_MESSAGE_OUTGOING_FRIEND_REQUEST {
+            // yay! they shall now be considered a Real Friend
+            diesel::update(friend::table.find(uid))
+              .set(friend::progress.eq(ACTUAL_FRIEND))
+              .execute(conn_b)?;
+          }
+        }
         // delete all outgoing chunks with seqnum <= ack
         diesel::delete(
           outgoing_chunk::table
@@ -859,6 +886,36 @@ impl DB {
     }
   }
 
+  pub fn update_sequence_number(
+    &self,
+    conn: &mut SqliteConnection,
+    from_friend: i32,
+    sequence_number: i32,
+  ) -> Result<ffi::ReceiveChunkStatus, diesel::result::Error> {
+    use crate::schema::status;
+
+    conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+      let old_seqnum =
+        status::table.find(from_friend).select(status::received_seqnum).first::<i32>(conn_b)?;
+      // if chunk is before old_seqnum, we just ignore it!!
+      // in other words, once a chunk has been received, it can never be patched.
+      // this is good. if something bad happens, you can always retransmit in a new
+      // message.
+      if sequence_number <= old_seqnum {
+        return Ok(ffi::ReceiveChunkStatus::OldChunk);
+      }
+      // we want to update received_seqnum in status!
+
+      // so we only update the seqnum if we increase exactly by one (otherwise we might miss messages!)
+      if sequence_number == old_seqnum + 1 {
+        diesel::update(status::table.find(from_friend))
+          .set(status::received_seqnum.eq(sequence_number))
+          .execute(conn_b)?;
+      }
+      Ok(ffi::ReceiveChunkStatus::NewChunk)
+    })
+  }
+
   pub fn receive_chunk(
     &self,
     chunk: ffi::IncomingChunkFragment,
@@ -868,27 +925,12 @@ impl DB {
     use crate::schema::incoming_chunk;
     use crate::schema::message;
     use crate::schema::received;
-    use crate::schema::status;
 
     let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
-      let old_seqnum = status::table
-        .find(chunk.from_friend)
-        .select(status::received_seqnum)
-        .first::<i32>(conn_b)?;
-      // if chunk is before old_seqnum, we just ignore it!!
-      // in other words, once a chunk has been received, it can never be patched.
-      // this is good. if something bad happens, you can always retransmit in a new
-      // message.
-      if chunk.sequence_number <= old_seqnum {
-        return Ok(ffi::ReceiveChunkStatus::OldChunk);
-      }
-      // we want to update received_seqnum in status!
-
-      // so we only update the seqnum if we increase exactly by one (otherwise we might miss messages!)
-      if chunk.sequence_number == old_seqnum + 1 {
-        diesel::update(status::table.find(chunk.from_friend))
-          .set(status::received_seqnum.eq(chunk.sequence_number))
-          .execute(conn_b)?;
+      let chunk_status =
+        self.update_sequence_number(conn_b, chunk.from_friend, chunk.sequence_number)?;
+      if chunk_status == ffi::ReceiveChunkStatus::OldChunk {
+        return Ok(chunk_status);
       }
 
       // check if there is already a message uid associated with this chunk sequence
@@ -981,6 +1023,33 @@ impl DB {
     }
   }
 
+  fn receive_friend_request_control_message(
+    &self,
+    from_friend: i32,
+    sequence_number: i32,
+  ) -> Result<(), DbError> {
+    let mut conn = self.connect()?;
+    use crate::schema::friend;
+
+    let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+      let chunk_status = self.update_sequence_number(conn_b, from_friend, sequence_number)?;
+      if chunk_status == ffi::ReceiveChunkStatus::OldChunk {
+        return Ok(chunk_status);
+      }
+      // move the friend to become an actual friend
+      diesel::update(friend::table.find(from_friend))
+        .set(friend::progress.eq(ACTUAL_FRIEND))
+        .execute(conn_b)?;
+
+      Ok(ffi::ReceiveChunkStatus::NewChunk)
+    });
+
+    match r {
+      Ok(b) => Ok(()),
+      Err(e) => Err(DbError::Unknown(format!("receive_chunk: {}", e))),
+    }
+  }
+
   pub fn chunk_to_send(
     &self,
     uid_priority: Vec<i32>,
@@ -1033,6 +1102,8 @@ impl DB {
           outgoing_chunk::content,
           address::write_key,
           sent::num_chunks,
+          outgoing_chunk::control,
+          outgoing_chunk::control_message,
         ))
         .first::<ffi::OutgoingChunkPlusPlus>(conn_b)?;
       Ok(chunk_plusplus)
@@ -1185,6 +1256,7 @@ impl DB {
               outgoing_chunk::chunks_start_sequence_number.eq(new_seqnum),
               outgoing_chunk::message_uid.eq(message_uid),
               outgoing_chunk::content.eq(chunk),
+              outgoing_chunk::control.eq(false),
             ))
             .execute(conn_b)?;
         }
