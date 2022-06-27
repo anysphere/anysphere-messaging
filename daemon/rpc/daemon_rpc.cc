@@ -38,6 +38,8 @@ Status DaemonRpc::RegisterUser(
 
   asphrserver::RegisterResponse reply;
   grpc::ClientContext client_context;
+  client_context.set_deadline(std::chrono::system_clock::now() +
+                              std::chrono::seconds(60));
 
   Status status = stub->Register(&client_context, request, &reply);
 
@@ -860,7 +862,12 @@ auto DaemonRpc::Kill(ServerContext* context,
                      const asphrdaemon::KillRequest* killRequest,
                      asphrdaemon::KillResponse* killResponse) -> Status {
   ASPHR_LOG_INFO("Kill() called.", rpc_call, "Kill");
-  G.kill();
-  ASPHR_LOG_INFO("Daemon is shutting down asap.", rpc_call, "Kill");
+  ASPHR_LOG_INFO("Daemon is shutting down.", rpc_call, "Kill");
+  // exit normally! being killed is not a bad thing.
+  // the daemon manager will restart us which is great :)
+  //
+  // the OS will clean up after us, so we don't need to worry
+  ASPHR_LOG_ERR("Exiting.", status_code, 0);
+  std::exit(0);
   return Status::OK;
 }

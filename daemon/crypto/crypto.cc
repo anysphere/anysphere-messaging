@@ -15,6 +15,7 @@ auto generate_kx_keypair() -> std::pair<string, string> {
       string(reinterpret_cast<char*>(secret_key), crypto_kx_SECRETKEYBYTES)};
 }
 
+<<<<<<< HEAD
 auto generate_friend_request_keypair() -> std::pair<string, string> {
   unsigned char public_key[crypto_box_PUBLICKEYBYTES];
   unsigned char secret_key[crypto_box_SECRETKEYBYTES];
@@ -22,6 +23,57 @@ auto generate_friend_request_keypair() -> std::pair<string, string> {
   return {
       string(reinterpret_cast<char*>(public_key), crypto_box_PUBLICKEYBYTES),
       string(reinterpret_cast<char*>(secret_key), crypto_box_SECRETKEYBYTES)};
+=======
+auto generic_hash(string_view data) -> std::string {
+  unsigned char hash[crypto_generichash_BYTES];
+  crypto_generichash(hash, sizeof hash,
+                     reinterpret_cast<const unsigned char*>(data.data()),
+                     data.size(), nullptr, 0);
+  return string(reinterpret_cast<char*>(hash), sizeof hash);
+}
+
+auto generate_friend_key(const string& my_public_key, int index) -> string {
+  string public_key_b64;
+  public_key_b64.resize(sodium_base64_ENCODED_LEN(
+      my_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
+  sodium_bin2base64(
+      public_key_b64.data(), public_key_b64.size(),
+      reinterpret_cast<const unsigned char*>(my_public_key.data()),
+      my_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING);
+
+  // TODO: figure out a better way to encode both index and public key
+  return asphr::StrCat(index, "a", public_key_b64);
+}
+
+auto decode_friend_key(const string& friend_key)
+    -> asphr::StatusOr<std::pair<int, string>> {
+  string index_str;
+  string public_key_b64;
+  for (size_t i = 0; i < friend_key.size(); ++i) {
+    if (friend_key.at(i) == 'a') {
+      public_key_b64 = friend_key.substr(i + 1);
+      break;
+    }
+    index_str += friend_key.at(i);
+  }
+  int index;
+  auto success = absl::SimpleAtoi(index_str, &index);
+  if (!success) {
+    return asphr::InvalidArgumentError("friend key index must be an integer");
+  }
+
+  string public_key;
+  public_key.resize(public_key_b64.size());
+  size_t public_key_len;
+  const char* b64_end;
+  sodium_base642bin(reinterpret_cast<unsigned char*>(public_key.data()),
+                    public_key.size(), public_key_b64.data(),
+                    public_key_b64.size(), "", &public_key_len, &b64_end,
+                    sodium_base64_VARIANT_URLSAFE_NO_PADDING);
+  public_key.resize(public_key_len);
+
+  return make_pair(index, public_key);
+>>>>>>> origin/friends
 }
 
 auto derive_read_write_keys(string my_public_key, string my_private_key,

@@ -215,7 +215,7 @@ int main(int argc, char** argv) {
 
     grpc::Status status = stub->Kill(&context, request, &response);
 
-    if (!status.ok()) {
+    if (!status.ok() && status.error_message() != "Socket closed") {
       cout << "kill failed: " << status.error_message() << endl;
       return 0;
     }

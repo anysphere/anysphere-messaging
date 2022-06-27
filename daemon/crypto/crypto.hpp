@@ -10,8 +10,12 @@
 #include <stdexcept>
 #include <string>
 
+<<<<<<< HEAD
 #include "asphr/asphr.hpp"
 #include "daemon/constants.hpp"
+=======
+#include "constants.hpp"
+>>>>>>> origin/friends
 #include "schema/message.pb.h"
 
 /* Crypto implements an IND-CCA2 secure scheme.
@@ -28,6 +32,9 @@ inline auto init() -> void {
     throw std::runtime_error("sodium_init failed");
   }
 }
+
+auto generic_hash(string_view data) -> std::string;
+
 // Generates a new keypair in the format <public_key, private_key>.
 auto generate_kx_keypair() -> std::pair<string, string>;
 

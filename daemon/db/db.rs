@@ -1229,7 +1229,9 @@ impl DB {
 
         Ok(())
       })
-      .map_err(|e| DbError::Unknown(format!("queue_message_to_send: {}", e)))?;
+      .map_err(|e| {
+        DbError::Unknown(format!("queue_message_to_send: {} (maybe friend doesn't exist?)", e))
+      })?;
 
     Ok(())
   }

@@ -4,6 +4,7 @@ bazel-*
 
 .DS_Store
 
+compile_commands.json
 rust-project.json
 
 test.db
