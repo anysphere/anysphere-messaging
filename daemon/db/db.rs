@@ -51,7 +51,7 @@ impl fmt::Display for DbError {
 }
 
 // keep this in sync with message.proto
-pub const CONTROL_MESSAGE_OUTGOING_FRIEND_REQUEST = 0;
+pub const CONTROL_MESSAGE_OUTGOING_FRIEND_REQUEST: i32 = 0;
 
 // TODO(arvid): manage a connection pool for the DB here?
 // i.e. pool: Box<ConnectionPool> or something
@@ -818,6 +818,7 @@ impl DB {
 
   pub fn receive_ack(&self, uid: i32, ack: i32) -> Result<bool, DbError> {
     let mut conn = self.connect()?;
+    use crate::schema::friend;
     use crate::schema::outgoing_chunk;
     use crate::schema::sent;
     use crate::schema::status;
@@ -834,15 +835,13 @@ impl DB {
           .filter(outgoing_chunk::to_friend.eq(uid))
           .filter(outgoing_chunk::sequence_number.le(ack))
           .filter(outgoing_chunk::control.eq(true))
-          .select(
-            outgoing_chunk::control_message
-          )
+          .select(outgoing_chunk::control_message)
           .load::<i32>(conn_b)?;
         for control_message in control_chunks {
           if control_message == CONTROL_MESSAGE_OUTGOING_FRIEND_REQUEST {
             // yay! they shall now be considered a Real Friend
             diesel::update(friend::table.find(uid))
-              .set(friend::progress.eq(ACTUAL_FRIEND)
+              .set(friend::progress.eq(ACTUAL_FRIEND))
               .execute(conn_b)?;
           }
         }
@@ -889,6 +888,7 @@ impl DB {
 
   pub fn update_sequence_number(
     &self,
+    conn: &mut SqliteConnection,
     from_friend: i32,
     sequence_number: i32,
   ) -> Result<ffi::ReceiveChunkStatus, diesel::result::Error> {
@@ -927,8 +927,9 @@ impl DB {
     use crate::schema::received;
 
     let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
-      let chunk_status = update_sequence_number(chunk.from_friend, chunk.sequence_number)?;
-      if (chunk_status == ffi::ReceiveChunkStatus::OldChunk) {
+      let chunk_status =
+        self.update_sequence_number(conn_b, chunk.from_friend, chunk.sequence_number)?;
+      if chunk_status == ffi::ReceiveChunkStatus::OldChunk {
         return Ok(chunk_status);
       }
 
@@ -1027,9 +1028,12 @@ impl DB {
     from_friend: i32,
     sequence_number: i32,
   ) -> Result<(), DbError> {
+    let mut conn = self.connect()?;
+    use crate::schema::friend;
+
     let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
-      let chunk_status = update_sequence_number(from_friend, sequence_number)?;
-      if (chunk_status == ffi::ReceiveChunkStatus::OldChunk) {
+      let chunk_status = self.update_sequence_number(conn_b, from_friend, sequence_number)?;
+      if chunk_status == ffi::ReceiveChunkStatus::OldChunk {
         return Ok(chunk_status);
       }
       // move the friend to become an actual friend
@@ -1041,7 +1045,7 @@ impl DB {
     });
 
     match r {
-      Ok(b) => Ok(),
+      Ok(b) => Ok(()),
       Err(e) => Err(DbError::Unknown(format!("receive_chunk: {}", e))),
     }
   }

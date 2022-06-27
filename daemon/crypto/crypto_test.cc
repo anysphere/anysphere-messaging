@@ -31,7 +31,6 @@ TEST(CryptoTest, EncryptDecrypt) {
 
   EXPECT_EQ(decrypted->msg(), message.msg());
   EXPECT_EQ(decrypted->sequence_number(), message.sequence_number());
-  EXPECT_EQ(decrypted->acks_size(), message.acks_size());
 }
 
 TEST(CryptoTest, EncryptDecryptMaxSize) {
@@ -61,7 +60,6 @@ TEST(CryptoTest, EncryptDecryptMaxSize) {
 
   EXPECT_EQ(decrypted->msg(), message.msg());
   EXPECT_EQ(decrypted->sequence_number(), message.sequence_number());
-  EXPECT_EQ(decrypted->acks_size(), message.acks_size());
 }
 
 TEST(CryptoTest, EncryptDecryptBiggerThanMaxSize) {
