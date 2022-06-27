@@ -1,6 +1,6 @@
 load("@cxx.rs//tools/bazel:rust_cxx_bridge.bzl", "rust_cxx_bridge")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
-load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_static_library", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library", "rust_test")
 
 rust_binary(
     name = "main",
@@ -36,7 +36,7 @@ rust_cxx_bridge(
 )
 
 # static because depended upon by c++!
-rust_static_library(
+rust_library(
     name = "db_lib",
     srcs = [
         "db/db.rs",
@@ -62,7 +62,6 @@ cc_library(
         "constants.hpp",
         "crypto/crypto.hpp",
     ],
-    linkstatic = True,
     deps = [
         "@asphr//asphr:asphr_lib",
         "@asphr//schema:daemon_cc_grpc",
@@ -98,7 +97,6 @@ cc_library(
     hdrs = [
         "rpc/daemon_rpc.hpp",
     ],
-    linkstatic = True,
     deps = [
         ":core_lib",
         "@asphr//pir/fast_pir:fast_pir_lib",
@@ -117,7 +115,6 @@ cc_library(
     hdrs = [
         "transmitter/transmitter.hpp",
     ],
-    linkstatic = True,
     deps = [
         ":core_lib",
         "@asphr//pir/fast_pir:fast_pir_lib",
@@ -129,7 +126,6 @@ cc_library(
     srcs = [
         "main.cc",
     ],
-    linkstatic = True,
     visibility = ["//visibility:public"],  # for integration tests
     deps = [
         ":rpc_lib",
@@ -140,7 +136,6 @@ cc_library(
 cc_library(
     name = "cpp_db_lib",
     hdrs = ["db/db.hpp"],
-    linkstatic = True,
     deps = [
         ":cpp_include",
         ":db_bridge",
@@ -153,7 +148,6 @@ cc_library(
         "main.hpp",
         "util.hpp",
     ],
-    linkstatic = True,
     deps = [
         "@asphr//asphr:asphr_lib",
         "@cxx.rs//:core",
