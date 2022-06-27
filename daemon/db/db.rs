@@ -1536,7 +1536,6 @@ impl DB {
         write_key: address_struct.write_key,
       };
       diesel::insert_into(address::table).values(&address).execute(conn_b)?;
-
       let status = ffi::Status { uid, sent_acked_seqnum: 0, received_seqnum: 0 };
       diesel::insert_into(status::table).values(&status).execute(conn_b)?;
       Ok(())

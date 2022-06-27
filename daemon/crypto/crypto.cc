@@ -15,6 +15,15 @@ auto generate_kx_keypair() -> std::pair<string, string> {
       string(reinterpret_cast<char*>(secret_key), crypto_kx_SECRETKEYBYTES)};
 }
 
+auto generate_friend_request_keypair() -> std::pair<string, string> {
+  unsigned char public_key[crypto_box_PUBLICKEYBYTES];
+  unsigned char secret_key[crypto_box_SECRETKEYBYTES];
+  crypto_box_keypair(public_key, secret_key);
+  return {
+      string(reinterpret_cast<char*>(public_key), crypto_box_PUBLICKEYBYTES),
+      string(reinterpret_cast<char*>(secret_key), crypto_box_SECRETKEYBYTES)};
+}
+
 auto generic_hash(string_view data) -> std::string {
   unsigned char hash[crypto_generichash_BYTES];
   crypto_generichash(hash, sizeof hash,

@@ -21,10 +21,10 @@ Status DaemonRpc::RegisterUser(
     ASPHR_LOG_INFO("Already registered.", rpc_call, "RegisterUser");
     return Status(grpc::StatusCode::ALREADY_EXISTS, "already registered");
   }
-
   const auto name = registerUserRequest->name();
   const auto [friend_request_public_key, friend_request_private_key] =
       crypto::generate_friend_request_keypair();
+
   const auto [kx_public_key, kx_secret_key] = crypto::generate_kx_keypair();
   const auto [pir_secret_key, pir_galois_keys] = generate_keys();
 
@@ -252,6 +252,9 @@ Status DaemonRpc::SendAsyncFriendRequest(
     const asphrdaemon::SendAsyncFriendRequestRequest*
         sendAsyncFriendRequestRequest,
     asphrdaemon::SendAsyncFriendRequestResponse*) {
+  ASPHR_LOG_INFO("SendAsyncFriendRequest() called.", rpc_call,
+                 "SendAsyncFriendRequest");
+
   auto friend_info = sendAsyncFriendRequestRequest->friend_info();
   std::string message = sendAsyncFriendRequestRequest->message();
 
@@ -292,6 +295,8 @@ Status DaemonRpc::SendAsyncFriendRequest(
                   "AddFriend");
     return Status(grpc::StatusCode::UNKNOWN, e.what());
   }
+  ASPHR_LOG_INFO("SendAsyncFriendRequest() done.", rpc_call,
+                 "SendAsyncFriendRequest");
   return Status::OK;
 }
 
