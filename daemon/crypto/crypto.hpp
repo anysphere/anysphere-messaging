@@ -35,12 +35,6 @@ auto generate_kx_keypair() -> std::pair<string, string>;
 
 auto generate_friend_request_keypair() -> std::pair<string, string>;
 
-/** The following methods have been replaced by generate_id and decode_id below.
- * auto generate_friend_key(const string& my_public_key, int index) -> string;
- * auto decode_friend_key(const string& friend_key)
- * ->asphr::StatusOr<std::pair<int, string>>;
- */
-
 auto derive_read_write_keys(string my_public_key, string my_private_key,
                             string friend_public_key)
     -> std::pair<string, string>;
