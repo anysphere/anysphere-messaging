@@ -8,7 +8,7 @@ import Modal from "./Modal";
 import { Friend } from "../../types";
 import { SelectableList, ListItem } from "./SelectableList";
 
-function FriendsModal({
+function LegacyFriendsModal({
   onClose,
   onAddFriend,
 }: {
@@ -19,9 +19,28 @@ function FriendsModal({
   const [friends, setFriends] = React.useState<Friend[]>([]);
 
   React.useEffect(() => {
-    window.getFriendList().then((friends: Friend[]) => {
+    // check whether window.getFriendList is defined
+    if (typeof window.getFriendList === "function") {
+      window.getFriendList().then((friends: Friend[]) => {
+        setFriends(friends);
+      });
+    } else {
+      let friends: Friend[] = [];
+      for (let i = 0; i < 5; i++) {
+        friends.push({
+          name: `friend${i}`,
+          status: "added",
+        });
+      }
+      for (let i = 5; i < 10; i++) {
+        friends.push({
+          name: `friend${i}`,
+          status: "initiated",
+        });
+      }
+
       setFriends(friends);
-    });
+    }
   }, []);
 
   const addFriend = React.useCallback(() => {
@@ -130,7 +149,7 @@ function FriendsModal({
           if (typeof item === "string") {
             return (
               <div>
-                <div className="text-asbrown-light unselectable text-xs pt-2">
+                <div className="unselectable pt-2 text-xs text-asbrown-light">
                   {item}
                 </div>
                 <hr className="border-asbrown-100" />
@@ -140,7 +159,7 @@ function FriendsModal({
           if (item.data.type === "add") {
             return (
               <div
-                className={`p-2 flex flex-row text-asbrown-dark gap-2 ${
+                className={`flex flex-row gap-2 p-2 text-asbrown-dark ${
                   active ? "bg-asbeige" : ""
                 }`}
               >
@@ -153,13 +172,13 @@ function FriendsModal({
                     setFriendname(e.target.value);
                   }}
                   placeholder="What you would like to call them?"
-                  className="bg-red-100/[0] focus:border-none focus:border-red-500 flex-grow
-              focus:outline-none text-sm
-              focus:ring-0
-              placeholder:text-asbrown-200"
+                  className="flex-grow bg-red-100/[0] text-sm placeholder:text-asbrown-200
+              focus:border-none focus:border-red-500
+              focus:outline-none
+              focus:ring-0"
                 />
                 <button
-                  className="unselectable px-2 rounded-md bg-asbrown-100 text-asbrown-light "
+                  className="unselectable rounded-md bg-asbrown-100 px-2 text-asbrown-light "
                   onClick={addFriend}
                   disabled={friendname.length === 0}
                 >
@@ -171,7 +190,7 @@ function FriendsModal({
           if (item.data.type === "friend") {
             return (
               <div
-                className={`py-1 text-asbrown-dark px-2 ${
+                className={`py-1 px-2 text-asbrown-dark ${
                   active ? "bg-asbeige" : ""
                 }`}
               >
@@ -181,7 +200,7 @@ function FriendsModal({
           }
           if (item.data.type === "none") {
             return (
-              <div className="text-asbrown-300 unselectable text-xs text-center py-2">
+              <div className="unselectable py-2 text-center text-xs text-asbrown-300">
                 {item.data.name}
               </div>
             );
@@ -291,19 +310,19 @@ export function InitFriendModal({
     <Modal onClose={onClose}>
       <div className="grid">
         <div className="text-center font-bold">{friend}</div>
-        <div className="text-sm text-center unselectable py-1">
+        <div className="unselectable py-1 text-center text-sm">
           You're almost done adding {friend} as a friend!
         </div>
         <div className="grid">
-          <div className="text-sm unselectable">
+          <div className="unselectable text-sm">
             1. Send the following key to {friend}.
           </div>
-          <div className="flex flex-row my-2 gap-1 justify-center">
-            <code className="justify-self-center bg-asbeige py-1 px-2 rounded-md">
+          <div className="my-2 flex flex-row justify-center gap-1">
+            <code className="justify-self-center rounded-md bg-asbeige py-1 px-2">
               {friendKey}
             </code>
             <button
-              className="unselectable px-2 py-0 rounded-md bg-asbrown-100 text-asbrown-light"
+              className="unselectable rounded-md bg-asbrown-100 px-2 py-0 text-asbrown-light"
               onClick={() => window.copyToClipboard(friendKey)}
             >
               <div className="codicon codicon-copy"></div>
@@ -311,10 +330,10 @@ export function InitFriendModal({
           </div>
         </div>
         <div className="grid">
-          <div className="text-sm unselectable">
+          <div className="unselectable text-sm">
             2. Ask {friend} to add you as a friend and send you their key.
           </div>
-          <div className="flex flex-row my-2 gap-1 justify-center mx-9">
+          <div className="my-2 mx-9 flex flex-row justify-center gap-1">
             <input
               autoFocus
               type="text"
@@ -323,18 +342,18 @@ export function InitFriendModal({
                 setTheirkey(e.target.value);
               }}
               placeholder="Paste their key here"
-              className="bg-red-100/[0] px-2 placeholder:text-asbrown-200 font-mono focus:outline-none
-              focus:ring-0 border-b-2 flex-grow border-asbrown-100"
+              className="flex-grow border-b-2 border-asbrown-100 bg-red-100/[0] px-2
+              font-mono placeholder:text-asbrown-200 focus:outline-none focus:ring-0"
             />
             <button
-              className="unselectable px-2 py-0 rounded-md bg-asbrown-100 text-asbrown-light"
+              className="unselectable rounded-md bg-asbrown-100 px-2 py-0 text-asbrown-light"
               onClick={submitPaste}
             >
               <div className="codicon codicon-check"></div>
             </button>
           </div>
         </div>
-        <div className="text-xs text-asbrown-dark pt-1">
+        <div className="pt-1 text-xs text-asbrown-dark">
           Privacy details, because details matter: This key can be thought of as
           your public key — hence, it is okay for you to send it over an
           unencrypted channel, or show it to others! However, if you, say, make
@@ -351,4 +370,4 @@ export function InitFriendModal({
   );
 }
 
-export default FriendsModal;
+export default LegacyFriendsModal;

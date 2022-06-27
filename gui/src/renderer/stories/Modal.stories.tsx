@@ -1,7 +1,7 @@
 import React from "react";
 import { ComponentStory, ComponentMeta } from "@storybook/react";
 
-import Modal from "../components/Modal";
+import { Modal, ModalType } from "../components/Modal";
 
 // More on default export: https://storybook.js.org/docs/react/writing-stories/introduction#default-export
 export default {
@@ -9,21 +9,35 @@ export default {
   component: Modal,
 
   argTypes: {
-    backgroundColor: { control: "color" },
+    // toggle between large and standard modal
+    type: {
+      control: {
+        type: "select",
+        options: ["standard", "large"],
+      },
+    },
   },
 } as ComponentMeta<typeof Modal>;
 
-// More on component templates: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-const Template: ComponentStory<typeof Modal> = (args) => <Modal {...args} />;
-
-const Template2: ComponentStory<typeof Modal> = ({ ...args }) => (
+const Template: ComponentStory<typeof Modal> = ({ ...args }) => (
   <Modal {...args}>
-    <div className="justify-center text-center">Hello World</div>
+    <div className="flex h-screen overflow-hidden">
+      <div className="m-auto h-full w-full bg-slate-100 text-center align-middle">
+        <div className="text-xl">Hello World</div>
+      </div>
+    </div>
   </Modal>
 );
 
-export const Primary = Template2.bind({});
+export const Primary = Template.bind({});
 // More on args: https://storybook.js.org/docs/react/writing-stories/args
 Primary.args = {
   onClose: () => {},
+  type: ModalType.Standard,
+};
+
+export const Large = Template.bind({});
+Large.args = {
+  onClose: () => {},
+  type: ModalType.Large,
 };

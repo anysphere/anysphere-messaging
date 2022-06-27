@@ -8,7 +8,7 @@ import * as React from "react";
 import MessageList from "./components/MessageList";
 import Read from "./components/Read";
 import Write from "./components/Write";
-import FriendsModal from "./components/FriendsModal";
+import LegacyFriendsModal from "./components/FriendsModal";
 import { InitFriendModal } from "./components/FriendsModal";
 import { RegisterModal } from "./components/RegisterModal";
 import { Message } from "../types";
@@ -22,6 +22,7 @@ import { KBarOptions } from "./components/cmd-k/types";
 import { StatusHandler, StatusContext } from "./components/Status";
 import { SideBar } from "./components/SideBar/SideBar";
 import { SideBarButton } from "./components/SideBar/SideBarProps";
+import AddFriend from "./components/AddFriend/AddFriend";
 
 const defaultTabs: Tab[] = [
   { type: TabType.New, name: "New", data: null, unclosable: true, id: "new" },
@@ -129,9 +130,7 @@ function Main() {
   }, [setModal]);
 
   const openFriendModal = React.useCallback(() => {
-    setModal(
-      <FriendsModal onClose={closeModal} onAddFriend={openAddFriendModal} />
-    );
+    setModal(<AddFriend />);
   }, [setModal, closeModal]);
 
   const openAddFriendModal = React.useCallback(

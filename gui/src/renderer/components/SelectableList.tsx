@@ -80,7 +80,6 @@ export function SelectableList<T>(props: SelectableListProps<T>) {
   // Handle keyboard up and down events.
   React.useEffect(() => {
     const handler = (event: any) => {
-      console.log(`event.keyCode: ${event.key}`);
       if (
         event.key === "ArrowUp" ||
         ((event.ctrlKey || !props.searchable) && event.key === "k")
