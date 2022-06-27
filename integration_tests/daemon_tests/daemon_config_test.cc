@@ -8,69 +8,7 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceive) {
   auto db_file1 = generateTempFile();
   auto db_file2 = generateTempFile();
 
-  {
-    auto [G1, rpc1, t1] = gen_person(db_file1);
-    auto [G2, rpc2, t2] = gen_person(db_file2);
-
-    {
-      RegisterUserRequest request;
-      request.set_name("user1local");
-      request.set_beta_key("asphr_magic");
-      RegisterUserResponse response;
-      rpc1->RegisterUser(nullptr, &request, &response);
-    }
-    {
-      RegisterUserRequest request;
-      request.set_name("user2local");
-      request.set_beta_key("asphr_magic");
-      RegisterUserResponse response;
-      rpc2->RegisterUser(nullptr, &request, &response);
-    }
-
-    string user1_key;
-    string user2_key;
-
-    {
-      GenerateFriendKeyRequest request;
-      request.set_unique_name("user2");
-      GenerateFriendKeyResponse response;
-      auto status = rpc1->GenerateFriendKey(nullptr, &request, &response);
-      EXPECT_TRUE(status.ok());
-      EXPECT_GT(response.key().size(), 0);
-      user1_key = response.key();
-    }
-
-    {
-      GenerateFriendKeyRequest request;
-      request.set_unique_name("user1");
-      GenerateFriendKeyResponse response;
-      auto status = rpc2->GenerateFriendKey(nullptr, &request, &response);
-      EXPECT_TRUE(status.ok());
-      EXPECT_GT(response.key().size(), 0);
-      user2_key = response.key();
-    }
-
-    cout << "user1_key: " << user1_key << endl;
-    cout << "user2_key: " << user2_key << endl;
-
-    {
-      AddFriendRequest request;
-      request.set_unique_name("user2");
-      request.set_key(user2_key);
-      AddFriendResponse response;
-      auto status = rpc1->AddFriend(nullptr, &request, &response);
-      EXPECT_TRUE(status.ok());
-    }
-
-    {
-      AddFriendRequest request;
-      request.set_unique_name("user1");
-      request.set_key(user1_key);
-      AddFriendResponse response;
-      auto status = rpc2->AddFriend(nullptr, &request, &response);
-      EXPECT_TRUE(status.ok());
-    }
-  }
+  { generate_two_friends(db_file1, db_file2); }
 
   {
     // re-create db from the file!

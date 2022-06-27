@@ -20,6 +20,7 @@
  **/
 
 struct FriendTestingInfo {
+  string unique_name;
   unique_ptr<Global> G;
   unique_ptr<DaemonRpc> rpc;
   unique_ptr<Transmitter> t;
@@ -90,72 +91,91 @@ class DaemonRpcTest : public ::testing::Test {
     return std::make_tuple(std::move(G), std::move(rpc), std::move(t));
   }
 
-  auto generate_two_friends() -> pair<FriendTestingInfo, FriendTestingInfo> {
-    auto [G1, rpc1, t1] = gen_person();
-    auto [G2, rpc2, t2] = gen_person();
-
-    {
-      RegisterUserRequest request;
-      request.set_name("user1local");
-      request.set_beta_key("asphr_magic");
-      RegisterUserResponse response;
-      rpc1->RegisterUser(nullptr, &request, &response);
+  auto generate_friends_from_list_of_pairs(int n, vector<pair<int, int>> pairs)
+      -> vector<FriendTestingInfo> {
+    vector<string> db_files;
+    for (auto i = 0; i < n; i++) {
+      db_files.push_back(generateTempFile());
     }
+    return generate_friends_from_list_of_pairs(db_files, pairs);
+  }
 
-    {
-      RegisterUserRequest request;
-      request.set_name("user2local");
-      request.set_beta_key("asphr_magic");
-      RegisterUserResponse response;
-      rpc2->RegisterUser(nullptr, &request, &response);
+  auto generate_friends_from_list_of_pairs(vector<string> db_files,
+                                           vector<pair<int, int>> pairs)
+      -> vector<FriendTestingInfo> {
+    vector<FriendTestingInfo> friends;
+    for (size_t i = 0; i < db_files.size(); i++) {
+      auto [G, rpc, t] = gen_person(db_files.at(i));
+      auto name = absl::StrCat("user", i + 1);
+      {
+        RegisterUserRequest request;
+        request.set_name(name);
+        request.set_beta_key("asphr_magic");
+        RegisterUserResponse response;
+        rpc->RegisterUser(nullptr, &request, &response);
+      }
+      friends.push_back({name, std::move(G), std::move(rpc), std::move(t)});
     }
+    for (const auto& p : pairs) {
+      auto& friend1 = friends.at(p.first);
+      auto& friend2 = friends.at(p.second);
+      string user1_key;
+      string user2_key;
+      {
+        GenerateFriendKeyRequest request;
+        request.set_unique_name(friend2.unique_name);
+        GenerateFriendKeyResponse response;
+        auto status =
+            friend1.rpc->GenerateFriendKey(nullptr, &request, &response);
+        EXPECT_TRUE(status.ok());
+        EXPECT_GT(response.key().size(), 0);
+        user1_key = response.key();
+      }
 
-    string user1_key;
-    string user2_key;
+      {
+        GenerateFriendKeyRequest request;
+        request.set_unique_name(friend1.unique_name);
+        GenerateFriendKeyResponse response;
+        auto status =
+            friend2.rpc->GenerateFriendKey(nullptr, &request, &response);
+        EXPECT_TRUE(status.ok());
+        EXPECT_GT(response.key().size(), 0);
+        user2_key = response.key();
+      }
 
-    {
-      GenerateFriendKeyRequest request;
-      request.set_unique_name("user2");
-      GenerateFriendKeyResponse response;
-      auto status = rpc1->GenerateFriendKey(nullptr, &request, &response);
-      EXPECT_TRUE(status.ok());
-      EXPECT_GT(response.key().size(), 0);
-      user1_key = response.key();
+      {
+        AddFriendRequest request;
+        request.set_unique_name(friend2.unique_name);
+        request.set_key(user2_key);
+        AddFriendResponse response;
+        auto status = friend1.rpc->AddFriend(nullptr, &request, &response);
+        EXPECT_TRUE(status.ok());
+      }
+
+      {
+        AddFriendRequest request;
+        request.set_unique_name(friend1.unique_name);
+        request.set_key(user1_key);
+        AddFriendResponse response;
+        auto status = friend2.rpc->AddFriend(nullptr, &request, &response);
+        EXPECT_TRUE(status.ok());
+      }
     }
-
-    {
-      GenerateFriendKeyRequest request;
-      request.set_unique_name("user1");
-      GenerateFriendKeyResponse response;
-      auto status = rpc2->GenerateFriendKey(nullptr, &request, &response);
-      EXPECT_TRUE(status.ok());
-      EXPECT_GT(response.key().size(), 0);
-      user2_key = response.key();
-    }
-
-    {
-      AddFriendRequest request;
-      request.set_unique_name("user2");
-      request.set_key(user2_key);
-      AddFriendResponse response;
-      auto status = rpc1->AddFriend(nullptr, &request, &response);
-      EXPECT_TRUE(status.ok());
-    }
-
-    {
-      AddFriendRequest request;
-      request.set_unique_name("user1");
-      request.set_key(user1_key);
-      AddFriendResponse response;
-      auto status = rpc2->AddFriend(nullptr, &request, &response);
-      EXPECT_TRUE(status.ok());
-    }
-
-    auto friend1 = FriendTestingInfo{move(G1), move(rpc1), move(t1)};
-    auto friend2 = FriendTestingInfo{move(G2), move(rpc2), move(t2)};
-    auto friends = make_pair(std::move(friend1), std::move(friend2));
-
     return friends;
+  }
+
+  auto generate_two_friends() -> pair<FriendTestingInfo, FriendTestingInfo> {
+    return generate_two_friends(generateTempFile(), generateTempFile());
+  }
+
+  auto generate_two_friends(string db_file1, string db_file2)
+      -> pair<FriendTestingInfo, FriendTestingInfo> {
+    auto v =
+        generate_friends_from_list_of_pairs({db_file1, db_file2}, {
+                                                                      {0, 1},
+                                                                  });
+    ASPHR_ASSERT_EQ(v.size(), static_cast<size_t>(2));
+    return {std::move(v.at(0)), std::move(v.at(1))};
   }
 
   void SetUp() override {
