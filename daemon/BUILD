@@ -61,6 +61,7 @@ cc_library(
     hdrs = [
         "global.hpp",
     ],
+    linkstatic = True,
     deps = [
         ":cpp_db_lib",
         ":cpp_include",
@@ -68,6 +69,7 @@ cc_library(
         ":db_lib",
         "//client_lib",
         "//daemon/crypto:crypto_lib",
+        "//daemon/identifier",
         "@asphr//asphr:asphr_lib",
     ],
 )

@@ -23,6 +23,7 @@ cc_library(
         "identifier.hpp",
         "wordlist.hpp",
     ],
+    visibility = ["//daemon:__subpackages__"],
     deps = [
         ":base58",
         "//daemon/crypto:crypto_lib",

@@ -7,6 +7,12 @@
 #include "asphr/asphr.hpp"
 #include "sodium.h"
 
+// constant for the progress field in the db
+// if you update this, be sure to update db.rs as well
+const int INCOMING_REQUEST = 0;
+const int OUTGOING_REQUEST = 1;
+const int ACTUAL_FRIEND = 2;
+
 // MAC bytes
 constexpr size_t CRYPTO_ABYTES = crypto_aead_xchacha20poly1305_ietf_ABYTES;
 // nonce bytes
@@ -32,6 +38,9 @@ constexpr size_t ENCRYPTED_ACKING_BYTES =
     ACKING_BYTES + CRYPTO_ABYTES + CRYPTO_NPUBBYTES;
 // the maximum number of friends!
 constexpr size_t MAX_FRIENDS = MESSAGE_SIZE / ENCRYPTED_ACKING_BYTES;
+
+constexpr size_t MAX_ASYNC_FRIEND_REQUESTS = 500;
+constexpr size_t ASYNC_FRIEND_REQUEST_BATCH_SIZE = 1000;
 
 // NOTE: whenever these default values are changed, please make a database
 // migration in the shape of UPDATE config SET value = 'new_value' WHERE value =
