@@ -10,12 +10,7 @@
 #include <stdexcept>
 #include <string>
 
-<<<<<<< HEAD
-#include "asphr/asphr.hpp"
-#include "daemon/constants.hpp"
-=======
 #include "constants.hpp"
->>>>>>> origin/friends
 #include "schema/message.pb.h"
 
 /* Crypto implements an IND-CCA2 secure scheme.
