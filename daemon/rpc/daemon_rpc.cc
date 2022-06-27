@@ -288,15 +288,14 @@ Status DaemonRpc::SendAsyncFriendRequest(
   auto [friend_username, friend_allocation, friend_kx_public_key,
         friend_request_public_key] = friend_public_id_.value();
 
-  // we can now
-
-  // push the request into the database
+  // we can now push the request into the database
   try {
     // We also need to do a key exchange to precompute the read/write keys
+    auto self_kx_public_key = G.db->get_registration().kx_public_key;
     auto self_kx_private_key = G.db->get_registration().kx_private_key;
     auto key_exchange_ = crypto::derive_read_write_keys(
-        rust_u8Vec_to_string(self_kx_private_key), friend_kx_public_key,
-        friend_request_public_key);
+        rust_u8Vec_to_string(self_kx_public_key),
+        rust_u8Vec_to_string(self_kx_private_key), friend_kx_public_key);
     auto [read_key, write_key] = key_exchange_;
     auto conversion_result = convertStructRPCtoDB(
         friend_info, message, OUTGOING_REQUEST, read_key, write_key);

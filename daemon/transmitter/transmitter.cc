@@ -628,7 +628,7 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
     my_friend_request_private_key =
         rust_u8Vec_to_string(reg_info.friend_request_private_key);
   } catch (const rust::Error& e) {
-    ASPHR_LOG_ERR("Failed to retrieve registration from db.", "error_msg",
+    ASPHR_LOG_ERR("Failed to retrieve registration from db.", error_msg,
                   e.what());
     return;
   }
@@ -744,7 +744,7 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
     try {
       G.db->add_incoming_async_friend_requests(new_friend, new_address);
     } catch (const rust::Error& e) {
-      // ASPHR_LOG_ERR("Could not add friend.", "Error", e.what());
+      ASPHR_LOG_ERR("Could not add friend.", Error, e.what());
       continue;
     }
   }
