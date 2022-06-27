@@ -73,13 +73,14 @@ auto change_base(vector<int> values, std::function<int(int)> from_base,
                  std::function<int(int)> to_base) -> vector<int> {
   // stored in reverse, to be reversed at the end
   vector<int> result;
-  for (int i = 0; i < values.size(); i++) {
+  for (size_t i = 0; i < values.size(); i++) {
     // multiply everything by current base!
     int carry = values.at(i);
-    ASPHR_ASSERT(carry < from_base(values.size() - 1 - i));
+    ASPHR_ASSERT(carry < from_base(std::ssize(values) - 1 - i));
     int j = 0;
-    for (j = 0; j < result.size(); j++) {
-      int new_value = result.at(j) * from_base(values.size() - 1 - i) + carry;
+    for (j = 0; j < std::ssize(result); j++) {
+      int new_value =
+          result.at(j) * from_base(std::ssize(values) - 1 - i) + carry;
       result.at(j) = new_value % to_base(j);
       carry = new_value / to_base(j);
     }
@@ -97,9 +98,9 @@ auto change_base(vector<int> values, std::function<int(int)> from_base,
 
 auto SyncIdentifier::from_story(string story)
     -> asphr::StatusOr<SyncIdentifier> {
-  ASPHR_ASSERT(wordlist::nouns_vec.size() > 1000);
-  ASPHR_ASSERT(wordlist::verbs_vec.size() > 500);
-  ASPHR_ASSERT(wordlist::adjectives_vec.size() > 400);
+  ASPHR_ASSERT(std::ssize(wordlist::nouns_vec) > 1000);
+  ASPHR_ASSERT(std::ssize(wordlist::verbs_vec) > 500);
+  ASPHR_ASSERT(std::ssize(wordlist::adjectives_vec) > 400);
   // create a vector of words
   std::vector<string> words;
   for (auto word : absl::StrSplit(story, ' ')) {
@@ -115,7 +116,7 @@ auto SyncIdentifier::from_story(string story)
   // get indices of words in word list
   std::vector<int> indices;
   int j = 0;
-  while (j < words.size()) {
+  while (j < std::ssize(words)) {
     ASPHR_ASSERT_EQ(j % 4, 0);
     {
       auto word = words.at(j + 0);
@@ -126,7 +127,7 @@ auto SyncIdentifier::from_story(string story)
       }
       indices.push_back(it - wordlist::adjectives_vec.begin());
     }
-    if (j + 1 >= words.size()) {
+    if (j + 1 >= std::ssize(words)) {
       break;
     }
     {
@@ -138,7 +139,7 @@ auto SyncIdentifier::from_story(string story)
       }
       indices.push_back(it - wordlist::nouns_vec.begin());
     }
-    if (j + 2 >= words.size()) {
+    if (j + 2 >= std::ssize(words)) {
       break;
     }
     {
@@ -150,7 +151,7 @@ auto SyncIdentifier::from_story(string story)
       }
       indices.push_back(it - wordlist::verbs_vec.begin());
     }
-    if (j + 3 >= words.size()) {
+    if (j + 3 >= std::ssize(words)) {
       break;
     }
     {
@@ -169,7 +170,7 @@ auto SyncIdentifier::from_story(string story)
   std::reverse(indices.begin(), indices.end());
 
   // increment all indices by 1 so as to not have any leading zeros
-  for (int i = 0; i < indices.size(); i++) {
+  for (size_t i = 0; i < indices.size(); i++) {
     indices.at(i) += 1;
   }
 
@@ -186,13 +187,16 @@ auto SyncIdentifier::from_story(string story)
             return wordlist::verbs_vec.size() + 1;
           case 3:
             return wordlist::nouns_vec.size() + 1;
+          default:
+            ASPHR_LOG_ERR("unexpected case", i, i, i_mod_4, i % 4);
+            ASPHR_ASSERT_MSG(false, "should never ever happen");
         }
       },
       [](int i) { return 256; });
 
   // convert to bytes
   string raw_bytes = "";
-  for (int i = 0; i < base256_indices.size(); i++) {
+  for (int i = 0; i < std::ssize(base256_indices); i++) {
     raw_bytes += static_cast<unsigned char>(base256_indices.at(i));
   }
 
@@ -222,7 +226,7 @@ auto SyncIdentifier::to_story() const -> string {
 
   // convert to base 256
   vector<int> base256_indices;
-  for (int i = 0; i < raw_bytes.size(); i++) {
+  for (int i = 0; i < std::ssize(raw_bytes); i++) {
     base256_indices.push_back((uint8_t)raw_bytes.at(i));
   }
   std::vector<int> wordbase_indices = change_base(
@@ -230,13 +234,16 @@ auto SyncIdentifier::to_story() const -> string {
       [](int i) {
         switch (i % 4) {
           case 0:
-            return wordlist::adjectives_vec.size() + 1;
+            return std::ssize(wordlist::adjectives_vec) + 1;
           case 1:
-            return wordlist::nouns_vec.size() + 1;
+            return std::ssize(wordlist::nouns_vec) + 1;
           case 2:
-            return wordlist::verbs_vec.size() + 1;
+            return std::ssize(wordlist::verbs_vec) + 1;
           case 3:
-            return wordlist::nouns_vec.size() + 1;
+            return std::ssize(wordlist::nouns_vec) + 1;
+          default:
+            ASPHR_LOG_ERR("unexpected case", i, i, i_mod_4, i % 4);
+            ASPHR_ASSERT_MSG(false, "should never ever happen");
         }
       });
 
@@ -245,32 +252,39 @@ auto SyncIdentifier::to_story() const -> string {
 
   // get words in wordlist
   std::vector<string> words;
-  for (int i = 0; i < wordbase_indices.size(); i++) {
+  for (int i = 0; i < std::ssize(wordbase_indices); i++) {
     ASPHR_ASSERT(wordbase_indices.at(i) > 0);
     switch (i % 4) {
       case 0:
-        ASPHR_ASSERT(wordbase_indices.at(i) <= wordlist::adjectives_vec.size());
+        ASPHR_ASSERT(static_cast<size_t>(wordbase_indices.at(i)) <=
+                     wordlist::adjectives_vec.size());
         words.push_back(
             wordlist::adjectives_vec.at(wordbase_indices.at(i) - 1));
         break;
       case 1:
-        ASPHR_ASSERT(wordbase_indices.at(i) <= wordlist::nouns_vec.size());
+        ASPHR_ASSERT(static_cast<size_t>(wordbase_indices.at(i)) <=
+                     wordlist::nouns_vec.size());
         words.push_back(wordlist::nouns_vec.at(wordbase_indices.at(i) - 1));
         break;
       case 2:
-        ASPHR_ASSERT(wordbase_indices.at(i) <= wordlist::verbs_vec.size());
+        ASPHR_ASSERT(static_cast<size_t>(wordbase_indices.at(i)) <=
+                     wordlist::verbs_vec.size());
         words.push_back(wordlist::verbs_vec.at(wordbase_indices.at(i) - 1));
         break;
       case 3:
-        ASPHR_ASSERT(wordbase_indices.at(i) <= wordlist::nouns_vec.size());
+        ASPHR_ASSERT(static_cast<size_t>(wordbase_indices.at(i)) <=
+                     wordlist::nouns_vec.size());
         words.push_back(wordlist::nouns_vec.at(wordbase_indices.at(i) - 1));
         break;
+      default:
+        ASPHR_LOG_ERR("unexpected case", i, i, i_mod_4, i % 4);
+        ASPHR_ASSERT_MSG(false, "should never ever happen");
     }
   }
 
   // join words
   string story = "";
-  for (int i = 0; i < words.size(); i++) {
+  for (int i = 0; i < std::ssize(words); i++) {
     if (i != 0) {
       story += " ";
     }
