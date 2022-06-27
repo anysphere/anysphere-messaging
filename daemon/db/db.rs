@@ -50,6 +50,9 @@ impl fmt::Display for DbError {
   }
 }
 
+// keep this in sync with message.proto
+pub const CONTROL_MESSAGE_OUTGOING_FRIEND_REQUEST = 0;
+
 // TODO(arvid): manage a connection pool for the DB here?
 // i.e. pool: Box<ConnectionPool> or something
 pub struct DB {
@@ -228,6 +231,8 @@ pub mod ffi {
     pub content: String,
     pub write_key: Vec<u8>,
     pub num_chunks: i32,
+    pub control: bool,
+    pub control_message: i32,
   }
 
   #[derive(Queryable)]
@@ -824,6 +829,23 @@ impl DB {
         diesel::update(status::table.find(uid))
           .set(status::sent_acked_seqnum.eq(ack))
           .execute(conn_b)?;
+        // check if there are any control messages that were ACKed
+        let control_chunks = outgoing_chunk::table
+          .filter(outgoing_chunk::to_friend.eq(uid))
+          .filter(outgoing_chunk::sequence_number.le(ack))
+          .filter(outgoing_chunk::control.eq(true))
+          .select(
+            outgoing_chunk::control_message
+          )
+          .load::<i32>(conn_b)?;
+        for control_message in control_chunks {
+          if control_message == CONTROL_MESSAGE_OUTGOING_FRIEND_REQUEST {
+            // yay! they shall now be considered a Real Friend
+            diesel::update(friend::table.find(uid))
+              .set(friend::progress.eq(ACTUAL_FRIEND)
+              .execute(conn_b)?;
+          }
+        }
         // delete all outgoing chunks with seqnum <= ack
         diesel::delete(
           outgoing_chunk::table
@@ -1076,6 +1098,8 @@ impl DB {
           outgoing_chunk::content,
           address::write_key,
           sent::num_chunks,
+          outgoing_chunk::control,
+          outgoing_chunk::control_message,
         ))
         .first::<ffi::OutgoingChunkPlusPlus>(conn_b)?;
       Ok(chunk_plusplus)
