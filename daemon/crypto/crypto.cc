@@ -500,7 +500,9 @@ auto decrypt_async_friend_request_public_key_only(
   auto padded_plaintext_len = ciphertext_len - crypto_box_MACBYTES;
 
   // make sure the plaintext is of the correct length
-  assert(padded_plaintext_len == ASYNC_FRIEND_REQUEST_SIZE);
+  if (padded_plaintext_len != ASYNC_FRIEND_REQUEST_SIZE) {
+    return asphr::InvalidArgumentError("ciphertext is not the correct size");
+  }
 
   // Extract the nounce from the end of the ciphertext
   unsigned char nonce[crypto_box_NONCEBYTES];
