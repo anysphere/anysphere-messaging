@@ -1,4 +1,7 @@
-const growthFeatures = [
+import Modal from "../Modal";
+import { ModalType } from "../Modal";
+
+const blah = [
   "Quia rem est sed impedit magnam",
   "Dolorem vero ratione voluptates",
   "Qui sed ab doloribus voluptatem dolore",
@@ -13,7 +16,7 @@ const growthFeatures = [
 
 function FocusedBlock(): JSX.Element {
   return (
-    <div className="mx-auto mt-10 max-w-lg lg:col-start-2 lg:col-end-10 lg:row-start-1 lg:row-end-4 lg:mx-0 lg:mt-0 lg:max-w-none">
+    <div className="mt-10 max-w-lg lg:col-start-1 lg:col-end-10 lg:row-start-1 lg:row-end-4 lg:-mx-4 lg:mt-0 lg:max-w-none">
       <div className="relative z-10 rounded-lg shadow-xl">
         <div
           className="pointer-events-none absolute inset-0 rounded-lg border-2 border-asgreen-dark"
@@ -34,20 +37,11 @@ function FocusedBlock(): JSX.Element {
             >
               In Person
             </h3>
-            {/* <div className="mt-4 flex items-center justify-center">
-              <span className="flex items-start px-3 text-6xl tracking-tight text-gray-900 sm:text-6xl">
-                <span className="mt-2 mr-2 text-4xl font-medium">$</span>
-                <span className="font-extrabold">149</span>
-              </span>
-              <span className="text-2xl font-medium text-asbrown-200">
-                /month
-              </span>
-            </div> */}
           </div>
         </div>
         <div className="rounded-b-lg bg-asbrown-100 px-6 pt-10 pb-8 sm:px-10 sm:py-10">
           <ul role="list" className="space-y-4">
-            {growthFeatures.map((feature) => (
+            {blah.map((feature) => (
               <li key={feature} className="flex items-start">
                 <div className="flex-shrink-0">
                   {/* <CheckIcon
@@ -91,15 +85,6 @@ function HiddenBlock(): JSX.Element {
               >
                 Remote
               </h3>
-              {/* <div className="mt-4 flex items-center justify-center">
-                <span className="flex items-start px-3 text-6xl tracking-tight text-gray-900">
-                  <span className="mt-2 mr-2 text-4xl font-medium">$</span>
-                  <span className="font-extrabold">349</span>
-                </span>
-                <span className="text-xl font-medium text-gray-500">
-                  /month
-                </span>
-              </div> */}
             </div>
           </div>
           <div className="flex flex-1 flex-col justify-between border-t-2 border-gray-100 bg-gray-50 p-6 sm:p-10 lg:p-6 xl:p-10">
@@ -121,35 +106,29 @@ function HiddenBlock(): JSX.Element {
   );
 }
 
-export default function AddFriend() {
+export default function AddFriend({ onClose }: { onClose: () => void }) {
   return (
-    <div className="bg-asbrown-dark">
-      <div className="px-4 pt-12 sm:px-6 lg:px-8 lg:pt-20">
-        <div className="text-center">
-          {/* <h2 className="text-lg font-semibold uppercase leading-6 tracking-wider text-gray-300">
-            Friends
-          </h2> */}
-          <p className="mt-2 text-3xl font-extrabold text-asbrown-100 sm:text-4xl lg:text-5xl">
-            Add Your Friend Securely
-          </p>
-          {/* <p className="mx-auto mt-3 max-w-4xl text-xl text-gray-300 sm:mt-5 sm:text-2xl">
-            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Velit
-            numquam eligendi quos odit doloribus molestiae voluptatum.
-          </p> */}
+    <Modal onClose={onClose} type={ModalType.Large}>
+      <div className="rounded-sm bg-asbrown-dark lg:h-full">
+        <div className="px-4 pt-12 sm:px-6 lg:px-20 lg:pt-20">
+          <div className="text-left">
+            <p className="mt-2 text-xl font-extrabold text-asbrown-100 sm:text-2xl lg:text-2xl">
+              Add Your Friend Securely
+            </p>
+          </div>
         </div>
-      </div>
-
-      <div className="mt-16 bg-white pb-12 lg:mt-20 lg:pb-20">
-        <div className="relative z-0">
-          <div className="absolute inset-0 h-5/6 bg-asbrown-dark lg:h-2/3" />
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="relative  lg:grid lg:grid-cols-12">
-              <FocusedBlock />
-              <HiddenBlock />
+        <div className="mt-16 bg-white pb-12 lg:mt-20 lg:h-full lg:pb-20">
+          <div className="relative z-0 lg:h-full">
+            <div className="absolute inset-0 h-5/6 bg-asbrown-dark lg:h-full" />
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <div className="relative  lg:grid lg:grid-cols-12">
+                <FocusedBlock />
+                <HiddenBlock />
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

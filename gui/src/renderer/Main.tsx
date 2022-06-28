@@ -8,7 +8,6 @@ import * as React from "react";
 import MessageList from "./components/MessageList";
 import Read from "./components/Read";
 import Write from "./components/Write";
-import LegacyFriendsModal from "./components/FriendsModal";
 import { InitFriendModal } from "./components/FriendsModal";
 import { RegisterModal } from "./components/RegisterModal";
 import { Message } from "../types";
@@ -130,7 +129,7 @@ function Main() {
   }, [setModal]);
 
   const openFriendModal = React.useCallback(() => {
-    setModal(<AddFriend />);
+    setModal(<AddFriend onClose={closeModal} />);
   }, [setModal, closeModal]);
 
   const openAddFriendModal = React.useCallback(

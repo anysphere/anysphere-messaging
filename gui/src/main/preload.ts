@@ -521,6 +521,11 @@ contextBridge.exposeInMainWorld(
   }
 );
 
+// Daemon async friending functions
+contextBridge.exposeInMainWorld("getPublicID", async () => {});
+contextBridge.exposeInMainWorld("addAsyncFriend", async () => {});
+contextBridge.exposeInMainWorld("sendAsyncFriendRequest", async () => {});
+
 contextBridge.exposeInMainWorld("isPlatformMac", () => {
   return process.platform === "darwin";
 });

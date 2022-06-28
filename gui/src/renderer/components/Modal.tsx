@@ -20,6 +20,16 @@ export function Modal({
   onClose: () => void;
   type?: ModalType;
 }) {
+  React.useEffect(() => {
+    const handler = (event: any) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
   return (
     <div className="fixed top-0 left-0 right-0 z-10">
       <div
@@ -30,9 +40,9 @@ export function Modal({
           <div
             className={classNames(
               type == ModalType.Large
-                ? "h-[95%] w-[95%]"
+                ? "h-[90%] w-[90%]"
                 : "h-[20rem] w-[36rem]",
-              "place-self-center overflow-scroll rounded-md border-2 border-asbrown-100 bg-white p-2"
+              "place-self-center overflow-scroll rounded-md border-4 border-asbrown-100 bg-white"
             )}
             onClick={(event) => {
               event.stopPropagation();

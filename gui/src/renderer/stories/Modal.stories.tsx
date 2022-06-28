@@ -21,9 +21,11 @@ export default {
 
 const Template: ComponentStory<typeof Modal> = ({ ...args }) => (
   <Modal {...args}>
-    <div className="flex h-full overflow-hidden">
-      <div className="m-auto h-full w-full bg-slate-100 text-center align-middle">
-        <div className="text-xl">Hello World</div>
+    <div className="h-full bg-slate-100">
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="m-auto text-center">
+          <div className="text-xl">Hello World</div>
+        </div>
       </div>
     </div>
   </Modal>
