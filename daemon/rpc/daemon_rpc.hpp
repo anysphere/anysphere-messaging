@@ -43,12 +43,12 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
       asphrdaemon::SendAsyncFriendRequestResponse*
           sendAsyncFriendRequestResponse) override;
 
-  grpc::Status GetOutgoingAsyncFriendRequests(
+  grpc::Status GetOutgoingFriendRequests(
       grpc::ServerContext* context,
-      const asphrdaemon::GetOutgoingAsyncFriendRequestsRequest*
-          getOutgoingAsyncFriendRequestsRequest,
-      asphrdaemon::GetOutgoingAsyncFriendRequestsResponse*
-          getOutgoingAsyncFriendRequestsResponse) override;
+      const asphrdaemon::GetOutgoingFriendRequestsRequest*
+          getOutgoingFriendRequestsRequest,
+      asphrdaemon::GetOutgoingFriendRequestsResponse*
+          getOutgoingFriendRequestsResponse) override;
 
   grpc::Status GetIncomingAsyncFriendRequests(
       grpc::ServerContext* context,

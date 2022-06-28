@@ -317,12 +317,12 @@ Status DaemonRpc::SendAsyncFriendRequest(
   return Status::OK;
 }
 
-Status DaemonRpc::GetOutgoingAsyncFriendRequests(
+Status DaemonRpc::GetOutgoingFriendRequests(
     grpc::ServerContext* context,
-    const asphrdaemon::GetOutgoingAsyncFriendRequestsRequest*
-        getOutgoingAsyncFriendRequestsRequest,
-    asphrdaemon::GetOutgoingAsyncFriendRequestsResponse*
-        getOutgoingAsyncFriendRequestsResponse) {
+    const asphrdaemon::GetOutgoingFriendRequestsRequest*
+        getOutgoingFriendRequestsRequest,
+    asphrdaemon::GetOutgoingFriendRequestsResponse*
+        getOutgoingFriendRequestsResponse) {
   try {
     // call rust db to get all outgoing friend requests
     auto outgoing_requests = G.db->get_outgoing_async_friend_requests();
@@ -338,15 +338,18 @@ Status DaemonRpc::GetOutgoingAsyncFriendRequests(
       }
       auto [friend_info, message] = conversion_result.value();
       // add to response
-      getOutgoingAsyncFriendRequestsResponse->add_friend_infos()->CopyFrom(
+      getOutgoingFriendRequestsResponse->add_friend_infos()->CopyFrom(
           friend_info);
-      getOutgoingAsyncFriendRequestsResponse->add_messages(message);
+      getOutgoingFriendRequestsResponse->add_messages(message);
+      getOutgoingFriendRequestsResponse->add_friend_request_types(
+          asphrdaemon::GetOutgoingFriendRequestsResponse::ASYNC);
     }
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Failed to get outgoing friend requests.", error, e.what(),
                   rpc_call, "GetOutgoingAsyncFriendRequests");
     return Status(grpc::StatusCode::UNKNOWN, e.what());
   }
+  // TODO: add sync friend requests
   return Status::OK;
 }
 
