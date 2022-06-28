@@ -693,27 +693,31 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
             ASPHR_LOG_INFO("Ignoring friend request because friend is deleted.",
                            "Friend ID", friend_id);
             continue;
-          } else if (db_friend.progress == ACTUAL_FRIEND) {
-            // ignore this request
-            ASPHR_LOG_INFO(
-                "Ignoring friend request because friend is accepted.",
-                "Friend ID", friend_id);
-            continue;
-          } else if (db_friend.progress == INCOMING_REQUEST) {
-            // ignore this request
-            ASPHR_LOG_INFO(
-                "Ignoring friend request because friend is incoming.",
-                "Friend ID", friend_id);
-            continue;
-          } else if (db_friend.progress == OUTGOING_ASYNC_REQUEST ||
-                     db_friend.progress == OUTGOING_SYNC_REQUEST) {
-            // approve this request
-            ASPHR_LOG_INFO(
-                "Approving friend request because friend is outgoing.",
-                "Friend ID", friend_id);
-            // update the friend status
-            G.db->approve_async_friend_request(db_friend.unique_name,
-                                               MAX_FRIENDS);
+          } else {
+            switch (db_friend.request_progress) {
+              case db::FriendRequestProgress::Complete:
+                // ignore this request
+                ASPHR_LOG_INFO(
+                    "Ignoring friend request because friend is accepted.",
+                    "Friend ID", friend_id);
+                break;
+              case db::FriendRequestProgress::Incoming:
+                // ignore this request
+                ASPHR_LOG_INFO(
+                    "Ignoring friend request because friend is incoming.",
+                    "Friend ID", friend_id);
+                break;
+              case db::FriendRequestProgress::OutgoingAsync:
+              case db::FriendRequestProgress::OutgoingSync:
+                // approve this request
+                ASPHR_LOG_INFO(
+                    "Approving friend request because friend is outgoing.",
+                    "Friend ID", friend_id);
+                // update the friend status
+                G.db->approve_async_friend_request(db_friend.unique_name,
+                                                   MAX_FRIENDS);
+                break;
+            }
             continue;
           }
         }
@@ -727,11 +731,13 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
     // Note: the current design decision is to not transmit the actual name of
     // the friend
     // so we just set both unique name and display name to public id
-    db::FriendFragment new_friend = {.unique_name = friend_id,
-                                     .display_name = friend_id,
-                                     .public_id = friend_id,
-                                     .progress = INCOMING_REQUEST,
-                                     .deleted = false};
+    db::FriendFragment new_friend = {
+        .unique_name = friend_id,
+        .display_name = friend_id,
+        .public_id = friend_id,
+        .request_progress = db::FriendRequestProgress::Incoming,
+        .deleted = false};
+
     db::AddAddress new_address = {
         .unique_name = friend_id,
         .friend_request_public_key =

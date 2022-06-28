@@ -187,9 +187,9 @@ Status DaemonRpc::GetMyPublicID(
 
 // helper methods to convert
 // from RPC structs to DB structs
-auto DaemonRpc::convertStructRPCtoDB(asphrdaemon::FriendInfo& friend_info,
-                                     string message, int progress,
-                                     string read_key, string write_key)
+auto DaemonRpc::convertStructRPCtoDB(
+    const asphrdaemon::AddAsyncFriendRequest& friend_info, string message,
+    db::FriendRequestProgress progress, string read_key, string write_key)
     -> asphr::StatusOr<std::pair<db::FriendFragment, db::AddAddress>> {
   const int FRIEND_REQUEST_MESSAGE_LENGTH_LIMIT = 500;
   // TODO: figure out a reasonable message length limit
@@ -237,7 +237,6 @@ auto DaemonRpc::convertStructDBtoRPC(const db::Friend& db_friend,
   friend_info.set_unique_name(std::string(db_friend.unique_name));
   friend_info.set_display_name(std::string(db_friend.display_name));
   friend_info.set_public_id(std::string(db_friend.public_id));
-  friend_info.set_progress(db_friend.request_progress);
   return std::pair(friend_info, std::string(db_address.friend_request_message));
 }
 
@@ -277,12 +276,12 @@ grpc::Status DaemonRpc::AddAsyncFriend(
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
-  auto friend_info = addAsyncFriendRequest->friend_info();
   std::string message = addAsyncFriendRequest->message();
 
   // We need to decode the friend's id to figure out the public keys of our
   // friend
-  auto friend_public_id_ = crypto::decode_user_id(friend_info.public_id());
+  auto friend_public_id_ =
+      crypto::decode_user_id(addAsyncFriendRequest->public_id());
   if (!friend_public_id_.ok()) {
     ASPHR_LOG_ERR("Failed to decode public ID.", rpc_call, "AddAsyncFriend");
     return Status(grpc::StatusCode::INVALID_ARGUMENT,
@@ -301,7 +300,8 @@ grpc::Status DaemonRpc::AddAsyncFriend(
         rust_u8Vec_to_string(self_kx_private_key), friend_kx_public_key);
     auto [read_key, write_key] = key_exchange_;
     auto conversion_result = convertStructRPCtoDB(
-        friend_info, message, OUTGOING_ASYNC_REQUEST, read_key, write_key);
+        *addAsyncFriendRequest, message,
+        db::FriendRequestProgress::OutgoingAsync, read_key, write_key);
     if (!conversion_result.ok()) {
       ASPHR_LOG_ERR("Failed to convert RPC to DB.", rpc_call, "AddAsyncFriend");
       return Status(grpc::StatusCode::INVALID_ARGUMENT,
