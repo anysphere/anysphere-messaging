@@ -13,45 +13,54 @@
 /* eslint-disable */
 // @ts-nocheck
 
-var jspb = require("google-protobuf");
+var jspb = require('google-protobuf');
 var goog = jspb;
-var global = Function("return this")();
+var global = Function('return this')();
 
-var google_protobuf_timestamp_pb = require("google-protobuf/google/protobuf/timestamp_pb.js");
+var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/timestamp_pb.js');
 goog.object.extend(proto, google_protobuf_timestamp_pb);
-goog.exportSymbol("proto.asphrdaemon.AddFriendRequest", null, global);
-goog.exportSymbol("proto.asphrdaemon.AddFriendResponse", null, global);
-goog.exportSymbol("proto.asphrdaemon.BaseMessage", null, global);
-goog.exportSymbol("proto.asphrdaemon.ChangeLatencyRequest", null, global);
-goog.exportSymbol("proto.asphrdaemon.ChangeLatencyResponse", null, global);
-goog.exportSymbol("proto.asphrdaemon.FriendInfo", null, global);
-goog.exportSymbol("proto.asphrdaemon.GenerateFriendKeyRequest", null, global);
-goog.exportSymbol("proto.asphrdaemon.GenerateFriendKeyResponse", null, global);
-goog.exportSymbol("proto.asphrdaemon.GetFriendListRequest", null, global);
-goog.exportSymbol("proto.asphrdaemon.GetFriendListResponse", null, global);
-goog.exportSymbol("proto.asphrdaemon.GetLatencyRequest", null, global);
-goog.exportSymbol("proto.asphrdaemon.GetLatencyResponse", null, global);
-goog.exportSymbol("proto.asphrdaemon.GetMessagesRequest", null, global);
-goog.exportSymbol("proto.asphrdaemon.GetMessagesRequest.Filter", null, global);
-goog.exportSymbol("proto.asphrdaemon.GetMessagesResponse", null, global);
-goog.exportSymbol("proto.asphrdaemon.GetOutboxMessagesRequest", null, global);
-goog.exportSymbol("proto.asphrdaemon.GetOutboxMessagesResponse", null, global);
-goog.exportSymbol("proto.asphrdaemon.GetSentMessagesRequest", null, global);
-goog.exportSymbol("proto.asphrdaemon.GetSentMessagesResponse", null, global);
-goog.exportSymbol("proto.asphrdaemon.GetStatusRequest", null, global);
-goog.exportSymbol("proto.asphrdaemon.GetStatusResponse", null, global);
-goog.exportSymbol("proto.asphrdaemon.IncomingMessage", null, global);
-goog.exportSymbol("proto.asphrdaemon.KillRequest", null, global);
-goog.exportSymbol("proto.asphrdaemon.KillResponse", null, global);
-goog.exportSymbol("proto.asphrdaemon.MessageSeenRequest", null, global);
-goog.exportSymbol("proto.asphrdaemon.MessageSeenResponse", null, global);
-goog.exportSymbol("proto.asphrdaemon.OutgoingMessage", null, global);
-goog.exportSymbol("proto.asphrdaemon.RegisterUserRequest", null, global);
-goog.exportSymbol("proto.asphrdaemon.RegisterUserResponse", null, global);
-goog.exportSymbol("proto.asphrdaemon.RemoveFriendRequest", null, global);
-goog.exportSymbol("proto.asphrdaemon.RemoveFriendResponse", null, global);
-goog.exportSymbol("proto.asphrdaemon.SendMessageRequest", null, global);
-goog.exportSymbol("proto.asphrdaemon.SendMessageResponse", null, global);
+goog.exportSymbol('proto.asphrdaemon.AddSyncFriendRequest', null, global);
+goog.exportSymbol('proto.asphrdaemon.AddSyncFriendResponse', null, global);
+goog.exportSymbol('proto.asphrdaemon.BaseMessage', null, global);
+goog.exportSymbol('proto.asphrdaemon.ChangeLatencyRequest', null, global);
+goog.exportSymbol('proto.asphrdaemon.ChangeLatencyResponse', null, global);
+goog.exportSymbol('proto.asphrdaemon.DecideAsyncFriendRequestRequest', null, global);
+goog.exportSymbol('proto.asphrdaemon.DecideAsyncFriendRequestResponse', null, global);
+goog.exportSymbol('proto.asphrdaemon.FriendInfo', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetFriendListRequest', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetFriendListResponse', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetLatencyRequest', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetLatencyResponse', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetMessagesRequest', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetMessagesRequest.Filter', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetMessagesResponse', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetOutboxMessagesRequest', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetOutboxMessagesResponse', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetOutgoingFriendRequestsRequest', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetOutgoingFriendRequestsResponse', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetOutgoingFriendRequestsResponse.FriendRequestType', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetPublicIDRequest', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetPublicIDResponse', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetSentMessagesRequest', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetSentMessagesResponse', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetStatusRequest', null, global);
+goog.exportSymbol('proto.asphrdaemon.GetStatusResponse', null, global);
+goog.exportSymbol('proto.asphrdaemon.IncomingMessage', null, global);
+goog.exportSymbol('proto.asphrdaemon.KillRequest', null, global);
+goog.exportSymbol('proto.asphrdaemon.KillResponse', null, global);
+goog.exportSymbol('proto.asphrdaemon.MessageSeenRequest', null, global);
+goog.exportSymbol('proto.asphrdaemon.MessageSeenResponse', null, global);
+goog.exportSymbol('proto.asphrdaemon.OutgoingMessage', null, global);
+goog.exportSymbol('proto.asphrdaemon.RegisterUserRequest', null, global);
+goog.exportSymbol('proto.asphrdaemon.RegisterUserResponse', null, global);
+goog.exportSymbol('proto.asphrdaemon.RemoveFriendRequest', null, global);
+goog.exportSymbol('proto.asphrdaemon.RemoveFriendResponse', null, global);
+goog.exportSymbol('proto.asphrdaemon.SendAsyncFriendRequestRequest', null, global);
+goog.exportSymbol('proto.asphrdaemon.SendAsyncFriendRequestResponse', null, global);
+goog.exportSymbol('proto.asphrdaemon.SendMessageRequest', null, global);
+goog.exportSymbol('proto.asphrdaemon.SendMessageResponse', null, global);
 /**
  * Generated by JsPbCodeGenerator.
  * @param {Array=} opt_data Optional initial data array, typically from a
@@ -62,7 +71,7 @@ goog.exportSymbol("proto.asphrdaemon.SendMessageResponse", null, global);
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.RegisterUserRequest = function (opt_data) {
+proto.asphrdaemon.RegisterUserRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.RegisterUserRequest, jspb.Message);
@@ -71,8 +80,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.RegisterUserRequest.displayName =
-    "proto.asphrdaemon.RegisterUserRequest";
+  proto.asphrdaemon.RegisterUserRequest.displayName = 'proto.asphrdaemon.RegisterUserRequest';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -84,7 +92,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.RegisterUserResponse = function (opt_data) {
+proto.asphrdaemon.RegisterUserResponse = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.RegisterUserResponse, jspb.Message);
@@ -93,8 +101,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.RegisterUserResponse.displayName =
-    "proto.asphrdaemon.RegisterUserResponse";
+  proto.asphrdaemon.RegisterUserResponse.displayName = 'proto.asphrdaemon.RegisterUserResponse';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -106,7 +113,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.GetFriendListRequest = function (opt_data) {
+proto.asphrdaemon.GetFriendListRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.GetFriendListRequest, jspb.Message);
@@ -115,8 +122,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.GetFriendListRequest.displayName =
-    "proto.asphrdaemon.GetFriendListRequest";
+  proto.asphrdaemon.GetFriendListRequest.displayName = 'proto.asphrdaemon.GetFriendListRequest';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -128,7 +134,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.FriendInfo = function (opt_data) {
+proto.asphrdaemon.FriendInfo = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.FriendInfo, jspb.Message);
@@ -137,7 +143,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.FriendInfo.displayName = "proto.asphrdaemon.FriendInfo";
+  proto.asphrdaemon.FriendInfo.displayName = 'proto.asphrdaemon.FriendInfo';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -149,15 +155,8 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.GetFriendListResponse = function (opt_data) {
-  jspb.Message.initialize(
-    this,
-    opt_data,
-    0,
-    -1,
-    proto.asphrdaemon.GetFriendListResponse.repeatedFields_,
-    null
-  );
+proto.asphrdaemon.GetFriendListResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.asphrdaemon.GetFriendListResponse.repeatedFields_, null);
 };
 goog.inherits(proto.asphrdaemon.GetFriendListResponse, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -165,8 +164,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.GetFriendListResponse.displayName =
-    "proto.asphrdaemon.GetFriendListResponse";
+  proto.asphrdaemon.GetFriendListResponse.displayName = 'proto.asphrdaemon.GetFriendListResponse';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -178,17 +176,16 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.GenerateFriendKeyRequest = function (opt_data) {
+proto.asphrdaemon.GetPublicIDRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.asphrdaemon.GenerateFriendKeyRequest, jspb.Message);
+goog.inherits(proto.asphrdaemon.GetPublicIDRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   /**
    * @public
    * @override
    */
-  proto.asphrdaemon.GenerateFriendKeyRequest.displayName =
-    "proto.asphrdaemon.GenerateFriendKeyRequest";
+  proto.asphrdaemon.GetPublicIDRequest.displayName = 'proto.asphrdaemon.GetPublicIDRequest';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -200,17 +197,16 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.GenerateFriendKeyResponse = function (opt_data) {
+proto.asphrdaemon.GetPublicIDResponse = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.asphrdaemon.GenerateFriendKeyResponse, jspb.Message);
+goog.inherits(proto.asphrdaemon.GetPublicIDResponse, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   /**
    * @public
    * @override
    */
-  proto.asphrdaemon.GenerateFriendKeyResponse.displayName =
-    "proto.asphrdaemon.GenerateFriendKeyResponse";
+  proto.asphrdaemon.GetPublicIDResponse.displayName = 'proto.asphrdaemon.GetPublicIDResponse';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -222,17 +218,16 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.AddFriendRequest = function (opt_data) {
+proto.asphrdaemon.AddSyncFriendRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.asphrdaemon.AddFriendRequest, jspb.Message);
+goog.inherits(proto.asphrdaemon.AddSyncFriendRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   /**
    * @public
    * @override
    */
-  proto.asphrdaemon.AddFriendRequest.displayName =
-    "proto.asphrdaemon.AddFriendRequest";
+  proto.asphrdaemon.AddSyncFriendRequest.displayName = 'proto.asphrdaemon.AddSyncFriendRequest';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -244,17 +239,16 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.AddFriendResponse = function (opt_data) {
+proto.asphrdaemon.AddSyncFriendResponse = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.asphrdaemon.AddFriendResponse, jspb.Message);
+goog.inherits(proto.asphrdaemon.AddSyncFriendResponse, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   /**
    * @public
    * @override
    */
-  proto.asphrdaemon.AddFriendResponse.displayName =
-    "proto.asphrdaemon.AddFriendResponse";
+  proto.asphrdaemon.AddSyncFriendResponse.displayName = 'proto.asphrdaemon.AddSyncFriendResponse';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -266,7 +260,175 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.RemoveFriendRequest = function (opt_data) {
+proto.asphrdaemon.SendAsyncFriendRequestRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.asphrdaemon.SendAsyncFriendRequestRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.asphrdaemon.SendAsyncFriendRequestRequest.displayName = 'proto.asphrdaemon.SendAsyncFriendRequestRequest';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.asphrdaemon.SendAsyncFriendRequestResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.asphrdaemon.SendAsyncFriendRequestResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.asphrdaemon.SendAsyncFriendRequestResponse.displayName = 'proto.asphrdaemon.SendAsyncFriendRequestResponse';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.asphrdaemon.GetOutgoingFriendRequestsRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.asphrdaemon.GetOutgoingFriendRequestsRequest.displayName = 'proto.asphrdaemon.GetOutgoingFriendRequestsRequest';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.asphrdaemon.GetOutgoingFriendRequestsResponse.repeatedFields_, null);
+};
+goog.inherits(proto.asphrdaemon.GetOutgoingFriendRequestsResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.asphrdaemon.GetOutgoingFriendRequestsResponse.displayName = 'proto.asphrdaemon.GetOutgoingFriendRequestsResponse';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest.displayName = 'proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.repeatedFields_, null);
+};
+goog.inherits(proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.displayName = 'proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.asphrdaemon.DecideAsyncFriendRequestRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.asphrdaemon.DecideAsyncFriendRequestRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.asphrdaemon.DecideAsyncFriendRequestRequest.displayName = 'proto.asphrdaemon.DecideAsyncFriendRequestRequest';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.asphrdaemon.DecideAsyncFriendRequestResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.asphrdaemon.DecideAsyncFriendRequestResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  /**
+   * @public
+   * @override
+   */
+  proto.asphrdaemon.DecideAsyncFriendRequestResponse.displayName = 'proto.asphrdaemon.DecideAsyncFriendRequestResponse';
+}
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.asphrdaemon.RemoveFriendRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.RemoveFriendRequest, jspb.Message);
@@ -275,8 +437,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.RemoveFriendRequest.displayName =
-    "proto.asphrdaemon.RemoveFriendRequest";
+  proto.asphrdaemon.RemoveFriendRequest.displayName = 'proto.asphrdaemon.RemoveFriendRequest';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -288,7 +449,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.RemoveFriendResponse = function (opt_data) {
+proto.asphrdaemon.RemoveFriendResponse = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.RemoveFriendResponse, jspb.Message);
@@ -297,8 +458,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.RemoveFriendResponse.displayName =
-    "proto.asphrdaemon.RemoveFriendResponse";
+  proto.asphrdaemon.RemoveFriendResponse.displayName = 'proto.asphrdaemon.RemoveFriendResponse';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -310,7 +470,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.SendMessageRequest = function (opt_data) {
+proto.asphrdaemon.SendMessageRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.SendMessageRequest, jspb.Message);
@@ -319,8 +479,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.SendMessageRequest.displayName =
-    "proto.asphrdaemon.SendMessageRequest";
+  proto.asphrdaemon.SendMessageRequest.displayName = 'proto.asphrdaemon.SendMessageRequest';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -332,7 +491,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.SendMessageResponse = function (opt_data) {
+proto.asphrdaemon.SendMessageResponse = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.SendMessageResponse, jspb.Message);
@@ -341,8 +500,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.SendMessageResponse.displayName =
-    "proto.asphrdaemon.SendMessageResponse";
+  proto.asphrdaemon.SendMessageResponse.displayName = 'proto.asphrdaemon.SendMessageResponse';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -354,7 +512,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.BaseMessage = function (opt_data) {
+proto.asphrdaemon.BaseMessage = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.BaseMessage, jspb.Message);
@@ -363,7 +521,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.BaseMessage.displayName = "proto.asphrdaemon.BaseMessage";
+  proto.asphrdaemon.BaseMessage.displayName = 'proto.asphrdaemon.BaseMessage';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -375,7 +533,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.IncomingMessage = function (opt_data) {
+proto.asphrdaemon.IncomingMessage = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.IncomingMessage, jspb.Message);
@@ -384,8 +542,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.IncomingMessage.displayName =
-    "proto.asphrdaemon.IncomingMessage";
+  proto.asphrdaemon.IncomingMessage.displayName = 'proto.asphrdaemon.IncomingMessage';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -397,7 +554,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.OutgoingMessage = function (opt_data) {
+proto.asphrdaemon.OutgoingMessage = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.OutgoingMessage, jspb.Message);
@@ -406,8 +563,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.OutgoingMessage.displayName =
-    "proto.asphrdaemon.OutgoingMessage";
+  proto.asphrdaemon.OutgoingMessage.displayName = 'proto.asphrdaemon.OutgoingMessage';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -419,7 +575,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.GetMessagesRequest = function (opt_data) {
+proto.asphrdaemon.GetMessagesRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.GetMessagesRequest, jspb.Message);
@@ -428,8 +584,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.GetMessagesRequest.displayName =
-    "proto.asphrdaemon.GetMessagesRequest";
+  proto.asphrdaemon.GetMessagesRequest.displayName = 'proto.asphrdaemon.GetMessagesRequest';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -441,15 +596,8 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.GetMessagesResponse = function (opt_data) {
-  jspb.Message.initialize(
-    this,
-    opt_data,
-    0,
-    -1,
-    proto.asphrdaemon.GetMessagesResponse.repeatedFields_,
-    null
-  );
+proto.asphrdaemon.GetMessagesResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.asphrdaemon.GetMessagesResponse.repeatedFields_, null);
 };
 goog.inherits(proto.asphrdaemon.GetMessagesResponse, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -457,8 +605,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.GetMessagesResponse.displayName =
-    "proto.asphrdaemon.GetMessagesResponse";
+  proto.asphrdaemon.GetMessagesResponse.displayName = 'proto.asphrdaemon.GetMessagesResponse';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -470,7 +617,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.GetOutboxMessagesRequest = function (opt_data) {
+proto.asphrdaemon.GetOutboxMessagesRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.GetOutboxMessagesRequest, jspb.Message);
@@ -479,8 +626,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.GetOutboxMessagesRequest.displayName =
-    "proto.asphrdaemon.GetOutboxMessagesRequest";
+  proto.asphrdaemon.GetOutboxMessagesRequest.displayName = 'proto.asphrdaemon.GetOutboxMessagesRequest';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -492,15 +638,8 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.GetOutboxMessagesResponse = function (opt_data) {
-  jspb.Message.initialize(
-    this,
-    opt_data,
-    0,
-    -1,
-    proto.asphrdaemon.GetOutboxMessagesResponse.repeatedFields_,
-    null
-  );
+proto.asphrdaemon.GetOutboxMessagesResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.asphrdaemon.GetOutboxMessagesResponse.repeatedFields_, null);
 };
 goog.inherits(proto.asphrdaemon.GetOutboxMessagesResponse, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -508,8 +647,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.GetOutboxMessagesResponse.displayName =
-    "proto.asphrdaemon.GetOutboxMessagesResponse";
+  proto.asphrdaemon.GetOutboxMessagesResponse.displayName = 'proto.asphrdaemon.GetOutboxMessagesResponse';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -521,7 +659,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.GetSentMessagesRequest = function (opt_data) {
+proto.asphrdaemon.GetSentMessagesRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.GetSentMessagesRequest, jspb.Message);
@@ -530,8 +668,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.GetSentMessagesRequest.displayName =
-    "proto.asphrdaemon.GetSentMessagesRequest";
+  proto.asphrdaemon.GetSentMessagesRequest.displayName = 'proto.asphrdaemon.GetSentMessagesRequest';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -543,15 +680,8 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.GetSentMessagesResponse = function (opt_data) {
-  jspb.Message.initialize(
-    this,
-    opt_data,
-    0,
-    -1,
-    proto.asphrdaemon.GetSentMessagesResponse.repeatedFields_,
-    null
-  );
+proto.asphrdaemon.GetSentMessagesResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.asphrdaemon.GetSentMessagesResponse.repeatedFields_, null);
 };
 goog.inherits(proto.asphrdaemon.GetSentMessagesResponse, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -559,8 +689,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.GetSentMessagesResponse.displayName =
-    "proto.asphrdaemon.GetSentMessagesResponse";
+  proto.asphrdaemon.GetSentMessagesResponse.displayName = 'proto.asphrdaemon.GetSentMessagesResponse';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -572,7 +701,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.MessageSeenRequest = function (opt_data) {
+proto.asphrdaemon.MessageSeenRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.MessageSeenRequest, jspb.Message);
@@ -581,8 +710,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.MessageSeenRequest.displayName =
-    "proto.asphrdaemon.MessageSeenRequest";
+  proto.asphrdaemon.MessageSeenRequest.displayName = 'proto.asphrdaemon.MessageSeenRequest';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -594,7 +722,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.MessageSeenResponse = function (opt_data) {
+proto.asphrdaemon.MessageSeenResponse = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.MessageSeenResponse, jspb.Message);
@@ -603,8 +731,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.MessageSeenResponse.displayName =
-    "proto.asphrdaemon.MessageSeenResponse";
+  proto.asphrdaemon.MessageSeenResponse.displayName = 'proto.asphrdaemon.MessageSeenResponse';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -616,7 +743,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.GetStatusRequest = function (opt_data) {
+proto.asphrdaemon.GetStatusRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.GetStatusRequest, jspb.Message);
@@ -625,8 +752,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.GetStatusRequest.displayName =
-    "proto.asphrdaemon.GetStatusRequest";
+  proto.asphrdaemon.GetStatusRequest.displayName = 'proto.asphrdaemon.GetStatusRequest';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -638,7 +764,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.GetStatusResponse = function (opt_data) {
+proto.asphrdaemon.GetStatusResponse = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.GetStatusResponse, jspb.Message);
@@ -647,8 +773,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.GetStatusResponse.displayName =
-    "proto.asphrdaemon.GetStatusResponse";
+  proto.asphrdaemon.GetStatusResponse.displayName = 'proto.asphrdaemon.GetStatusResponse';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -660,7 +785,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.GetLatencyRequest = function (opt_data) {
+proto.asphrdaemon.GetLatencyRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.GetLatencyRequest, jspb.Message);
@@ -669,8 +794,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.GetLatencyRequest.displayName =
-    "proto.asphrdaemon.GetLatencyRequest";
+  proto.asphrdaemon.GetLatencyRequest.displayName = 'proto.asphrdaemon.GetLatencyRequest';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -682,7 +806,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.GetLatencyResponse = function (opt_data) {
+proto.asphrdaemon.GetLatencyResponse = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.GetLatencyResponse, jspb.Message);
@@ -691,8 +815,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.GetLatencyResponse.displayName =
-    "proto.asphrdaemon.GetLatencyResponse";
+  proto.asphrdaemon.GetLatencyResponse.displayName = 'proto.asphrdaemon.GetLatencyResponse';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -704,7 +827,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.ChangeLatencyRequest = function (opt_data) {
+proto.asphrdaemon.ChangeLatencyRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.ChangeLatencyRequest, jspb.Message);
@@ -713,8 +836,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.ChangeLatencyRequest.displayName =
-    "proto.asphrdaemon.ChangeLatencyRequest";
+  proto.asphrdaemon.ChangeLatencyRequest.displayName = 'proto.asphrdaemon.ChangeLatencyRequest';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -726,7 +848,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.ChangeLatencyResponse = function (opt_data) {
+proto.asphrdaemon.ChangeLatencyResponse = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.ChangeLatencyResponse, jspb.Message);
@@ -735,8 +857,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.ChangeLatencyResponse.displayName =
-    "proto.asphrdaemon.ChangeLatencyResponse";
+  proto.asphrdaemon.ChangeLatencyResponse.displayName = 'proto.asphrdaemon.ChangeLatencyResponse';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -748,7 +869,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.KillRequest = function (opt_data) {
+proto.asphrdaemon.KillRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.KillRequest, jspb.Message);
@@ -757,7 +878,7 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.KillRequest.displayName = "proto.asphrdaemon.KillRequest";
+  proto.asphrdaemon.KillRequest.displayName = 'proto.asphrdaemon.KillRequest';
 }
 /**
  * Generated by JsPbCodeGenerator.
@@ -769,7 +890,7 @@ if (goog.DEBUG && !COMPILED) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.asphrdaemon.KillResponse = function (opt_data) {
+proto.asphrdaemon.KillResponse = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.asphrdaemon.KillResponse, jspb.Message);
@@ -778,70 +899,63 @@ if (goog.DEBUG && !COMPILED) {
    * @public
    * @override
    */
-  proto.asphrdaemon.KillResponse.displayName = "proto.asphrdaemon.KillResponse";
+  proto.asphrdaemon.KillResponse.displayName = 'proto.asphrdaemon.KillResponse';
 }
+
+
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.RegisterUserRequest.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.RegisterUserRequest.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.RegisterUserRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.RegisterUserRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.RegisterUserRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.RegisterUserRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    betaKey: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.RegisterUserRequest} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.RegisterUserRequest.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {
-        name: jspb.Message.getFieldWithDefault(msg, 1, ""),
-        betaKey: jspb.Message.getFieldWithDefault(msg, 2, ""),
-      };
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.RegisterUserRequest}
  */
-proto.asphrdaemon.RegisterUserRequest.deserializeBinary = function (bytes) {
+proto.asphrdaemon.RegisterUserRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.RegisterUserRequest();
-  return proto.asphrdaemon.RegisterUserRequest.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.RegisterUserRequest;
+  return proto.asphrdaemon.RegisterUserRequest.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -850,41 +964,40 @@ proto.asphrdaemon.RegisterUserRequest.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.RegisterUserRequest}
  */
-proto.asphrdaemon.RegisterUserRequest.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.RegisterUserRequest.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      case 1:
-        var value = /** @type {string} */ (reader.readString());
-        msg.setName(value);
-        break;
-      case 2:
-        var value = /** @type {string} */ (reader.readString());
-        msg.setBetaKey(value);
-        break;
-      default:
-        reader.skipField();
-        break;
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setName(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setBetaKey(value);
+      break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.RegisterUserRequest.prototype.serializeBinary = function () {
+proto.asphrdaemon.RegisterUserRequest.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.RegisterUserRequest.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -893,111 +1006,115 @@ proto.asphrdaemon.RegisterUserRequest.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.RegisterUserRequest.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.RegisterUserRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getName();
   if (f.length > 0) {
-    writer.writeString(1, f);
+    writer.writeString(
+      1,
+      f
+    );
   }
   f = message.getBetaKey();
   if (f.length > 0) {
-    writer.writeString(2, f);
+    writer.writeString(
+      2,
+      f
+    );
   }
 };
+
 
 /**
  * optional string name = 1;
  * @return {string}
  */
-proto.asphrdaemon.RegisterUserRequest.prototype.getName = function () {
+proto.asphrdaemon.RegisterUserRequest.prototype.getName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
+
 
 /**
  * @param {string} value
  * @return {!proto.asphrdaemon.RegisterUserRequest} returns this
  */
-proto.asphrdaemon.RegisterUserRequest.prototype.setName = function (value) {
+proto.asphrdaemon.RegisterUserRequest.prototype.setName = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
+
 
 /**
  * optional string beta_key = 2;
  * @return {string}
  */
-proto.asphrdaemon.RegisterUserRequest.prototype.getBetaKey = function () {
+proto.asphrdaemon.RegisterUserRequest.prototype.getBetaKey = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
+
 
 /**
  * @param {string} value
  * @return {!proto.asphrdaemon.RegisterUserRequest} returns this
  */
-proto.asphrdaemon.RegisterUserRequest.prototype.setBetaKey = function (value) {
+proto.asphrdaemon.RegisterUserRequest.prototype.setBetaKey = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.RegisterUserResponse.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.RegisterUserResponse.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.RegisterUserResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.RegisterUserResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.RegisterUserResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.RegisterUserResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.RegisterUserResponse} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.RegisterUserResponse.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {};
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.RegisterUserResponse}
  */
-proto.asphrdaemon.RegisterUserResponse.deserializeBinary = function (bytes) {
+proto.asphrdaemon.RegisterUserResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.RegisterUserResponse();
-  return proto.asphrdaemon.RegisterUserResponse.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.RegisterUserResponse;
+  return proto.asphrdaemon.RegisterUserResponse.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -1006,33 +1123,32 @@ proto.asphrdaemon.RegisterUserResponse.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.RegisterUserResponse}
  */
-proto.asphrdaemon.RegisterUserResponse.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.RegisterUserResponse.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      default:
-        reader.skipField();
-        break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.RegisterUserResponse.prototype.serializeBinary = function () {
+proto.asphrdaemon.RegisterUserResponse.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.RegisterUserResponse.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -1041,71 +1157,65 @@ proto.asphrdaemon.RegisterUserResponse.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.RegisterUserResponse.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.RegisterUserResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.GetFriendListRequest.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.GetFriendListRequest.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.GetFriendListRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.GetFriendListRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.GetFriendListRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetFriendListRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.GetFriendListRequest} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.GetFriendListRequest.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {};
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.GetFriendListRequest}
  */
-proto.asphrdaemon.GetFriendListRequest.deserializeBinary = function (bytes) {
+proto.asphrdaemon.GetFriendListRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.GetFriendListRequest();
-  return proto.asphrdaemon.GetFriendListRequest.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.GetFriendListRequest;
+  return proto.asphrdaemon.GetFriendListRequest.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -1114,33 +1224,32 @@ proto.asphrdaemon.GetFriendListRequest.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.GetFriendListRequest}
  */
-proto.asphrdaemon.GetFriendListRequest.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.GetFriendListRequest.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      default:
-        reader.skipField();
-        break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.GetFriendListRequest.prototype.serializeBinary = function () {
+proto.asphrdaemon.GetFriendListRequest.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.GetFriendListRequest.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -1149,66 +1258,68 @@ proto.asphrdaemon.GetFriendListRequest.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.GetFriendListRequest.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.GetFriendListRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.FriendInfo.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.FriendInfo.toObject(opt_includeInstance, this);
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.FriendInfo.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.FriendInfo.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.FriendInfo} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.FriendInfo.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    uniqueName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    displayName: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    publicId: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    progress: jspb.Message.getFieldWithDefault(msg, 4, 0)
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.FriendInfo} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.FriendInfo.toObject = function (includeInstance, msg) {
-    var f,
-      obj = {
-        uniqueName: jspb.Message.getFieldWithDefault(msg, 1, ""),
-        displayName: jspb.Message.getFieldWithDefault(msg, 2, ""),
-        enabled: jspb.Message.getBooleanFieldWithDefault(msg, 3, false),
-      };
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.FriendInfo}
  */
-proto.asphrdaemon.FriendInfo.deserializeBinary = function (bytes) {
+proto.asphrdaemon.FriendInfo.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.FriendInfo();
+  var msg = new proto.asphrdaemon.FriendInfo;
   return proto.asphrdaemon.FriendInfo.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -1217,45 +1328,48 @@ proto.asphrdaemon.FriendInfo.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.FriendInfo}
  */
-proto.asphrdaemon.FriendInfo.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.FriendInfo.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      case 1:
-        var value = /** @type {string} */ (reader.readString());
-        msg.setUniqueName(value);
-        break;
-      case 2:
-        var value = /** @type {string} */ (reader.readString());
-        msg.setDisplayName(value);
-        break;
-      case 3:
-        var value = /** @type {boolean} */ (reader.readBool());
-        msg.setEnabled(value);
-        break;
-      default:
-        reader.skipField();
-        break;
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUniqueName(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDisplayName(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setPublicId(value);
+      break;
+    case 4:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setProgress(value);
+      break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.FriendInfo.prototype.serializeBinary = function () {
+proto.asphrdaemon.FriendInfo.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.FriendInfo.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -1264,74 +1378,111 @@ proto.asphrdaemon.FriendInfo.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.FriendInfo.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.FriendInfo.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getUniqueName();
   if (f.length > 0) {
-    writer.writeString(1, f);
+    writer.writeString(
+      1,
+      f
+    );
   }
   f = message.getDisplayName();
   if (f.length > 0) {
-    writer.writeString(2, f);
+    writer.writeString(
+      2,
+      f
+    );
   }
-  f = message.getEnabled();
-  if (f) {
-    writer.writeBool(3, f);
+  f = message.getPublicId();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getProgress();
+  if (f !== 0) {
+    writer.writeInt32(
+      4,
+      f
+    );
   }
 };
+
 
 /**
  * optional string unique_name = 1;
  * @return {string}
  */
-proto.asphrdaemon.FriendInfo.prototype.getUniqueName = function () {
+proto.asphrdaemon.FriendInfo.prototype.getUniqueName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
+
 
 /**
  * @param {string} value
  * @return {!proto.asphrdaemon.FriendInfo} returns this
  */
-proto.asphrdaemon.FriendInfo.prototype.setUniqueName = function (value) {
+proto.asphrdaemon.FriendInfo.prototype.setUniqueName = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
+
 
 /**
  * optional string display_name = 2;
  * @return {string}
  */
-proto.asphrdaemon.FriendInfo.prototype.getDisplayName = function () {
+proto.asphrdaemon.FriendInfo.prototype.getDisplayName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
+
 
 /**
  * @param {string} value
  * @return {!proto.asphrdaemon.FriendInfo} returns this
  */
-proto.asphrdaemon.FriendInfo.prototype.setDisplayName = function (value) {
+proto.asphrdaemon.FriendInfo.prototype.setDisplayName = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
 };
 
-/**
- * optional bool enabled = 3;
- * @return {boolean}
- */
-proto.asphrdaemon.FriendInfo.prototype.getEnabled = function () {
-  return /** @type {boolean} */ (
-    jspb.Message.getBooleanFieldWithDefault(this, 3, false)
-  );
-};
 
 /**
- * @param {boolean} value
+ * optional string public_id = 3;
+ * @return {string}
+ */
+proto.asphrdaemon.FriendInfo.prototype.getPublicId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
  * @return {!proto.asphrdaemon.FriendInfo} returns this
  */
-proto.asphrdaemon.FriendInfo.prototype.setEnabled = function (value) {
-  return jspb.Message.setProto3BooleanField(this, 3, value);
+proto.asphrdaemon.FriendInfo.prototype.setPublicId = function(value) {
+  return jspb.Message.setProto3StringField(this, 3, value);
 };
+
+
+/**
+ * optional int32 progress = 4;
+ * @return {number}
+ */
+proto.asphrdaemon.FriendInfo.prototype.getProgress = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.asphrdaemon.FriendInfo} returns this
+ */
+proto.asphrdaemon.FriendInfo.prototype.setProgress = function(value) {
+  return jspb.Message.setProto3IntField(this, 4, value);
+};
+
+
 
 /**
  * List of repeated fields within this message type.
@@ -1340,70 +1491,60 @@ proto.asphrdaemon.FriendInfo.prototype.setEnabled = function (value) {
  */
 proto.asphrdaemon.GetFriendListResponse.repeatedFields_ = [1];
 
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.GetFriendListResponse.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.GetFriendListResponse.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.GetFriendListResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.GetFriendListResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.GetFriendListResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetFriendListResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    friendInfosList: jspb.Message.toObjectList(msg.getFriendInfosList(),
+    proto.asphrdaemon.FriendInfo.toObject, includeInstance)
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.GetFriendListResponse} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.GetFriendListResponse.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {
-        friendInfosList: jspb.Message.toObjectList(
-          msg.getFriendInfosList(),
-          proto.asphrdaemon.FriendInfo.toObject,
-          includeInstance
-        ),
-      };
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.GetFriendListResponse}
  */
-proto.asphrdaemon.GetFriendListResponse.deserializeBinary = function (bytes) {
+proto.asphrdaemon.GetFriendListResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.GetFriendListResponse();
-  return proto.asphrdaemon.GetFriendListResponse.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.GetFriendListResponse;
+  return proto.asphrdaemon.GetFriendListResponse.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -1412,45 +1553,37 @@ proto.asphrdaemon.GetFriendListResponse.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.GetFriendListResponse}
  */
-proto.asphrdaemon.GetFriendListResponse.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.GetFriendListResponse.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      case 1:
-        var value = new proto.asphrdaemon.FriendInfo();
-        reader.readMessage(
-          value,
-          proto.asphrdaemon.FriendInfo.deserializeBinaryFromReader
-        );
-        msg.addFriendInfos(value);
-        break;
-      default:
-        reader.skipField();
-        break;
+    case 1:
+      var value = new proto.asphrdaemon.FriendInfo;
+      reader.readMessage(value,proto.asphrdaemon.FriendInfo.deserializeBinaryFromReader);
+      msg.addFriendInfos(value);
+      break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.GetFriendListResponse.prototype.serializeBinary =
-  function () {
-    var writer = new jspb.BinaryWriter();
-    proto.asphrdaemon.GetFriendListResponse.serializeBinaryToWriter(
-      this,
-      writer
-    );
-    return writer.getResultBuffer();
-  };
+proto.asphrdaemon.GetFriendListResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.asphrdaemon.GetFriendListResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -1459,10 +1592,7 @@ proto.asphrdaemon.GetFriendListResponse.prototype.serializeBinary =
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.GetFriendListResponse.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.GetFriendListResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getFriendInfosList();
   if (f.length > 0) {
@@ -1474,697 +1604,1873 @@ proto.asphrdaemon.GetFriendListResponse.serializeBinaryToWriter = function (
   }
 };
 
+
 /**
  * repeated FriendInfo friend_infos = 1;
  * @return {!Array<!proto.asphrdaemon.FriendInfo>}
  */
-proto.asphrdaemon.GetFriendListResponse.prototype.getFriendInfosList =
-  function () {
-    return /** @type{!Array<!proto.asphrdaemon.FriendInfo>} */ (
-      jspb.Message.getRepeatedWrapperField(
-        this,
-        proto.asphrdaemon.FriendInfo,
-        1
-      )
-    );
-  };
+proto.asphrdaemon.GetFriendListResponse.prototype.getFriendInfosList = function() {
+  return /** @type{!Array<!proto.asphrdaemon.FriendInfo>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.asphrdaemon.FriendInfo, 1));
+};
+
 
 /**
  * @param {!Array<!proto.asphrdaemon.FriendInfo>} value
  * @return {!proto.asphrdaemon.GetFriendListResponse} returns this
- */
-proto.asphrdaemon.GetFriendListResponse.prototype.setFriendInfosList =
-  function (value) {
-    return jspb.Message.setRepeatedWrapperField(this, 1, value);
-  };
+*/
+proto.asphrdaemon.GetFriendListResponse.prototype.setFriendInfosList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
 
 /**
  * @param {!proto.asphrdaemon.FriendInfo=} opt_value
  * @param {number=} opt_index
  * @return {!proto.asphrdaemon.FriendInfo}
  */
-proto.asphrdaemon.GetFriendListResponse.prototype.addFriendInfos = function (
-  opt_value,
-  opt_index
-) {
-  return jspb.Message.addToRepeatedWrapperField(
-    this,
-    1,
-    opt_value,
-    proto.asphrdaemon.FriendInfo,
-    opt_index
-  );
+proto.asphrdaemon.GetFriendListResponse.prototype.addFriendInfos = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.asphrdaemon.FriendInfo, opt_index);
 };
+
 
 /**
  * Clears the list making it empty but non-null.
  * @return {!proto.asphrdaemon.GetFriendListResponse} returns this
  */
-proto.asphrdaemon.GetFriendListResponse.prototype.clearFriendInfosList =
-  function () {
-    return this.setFriendInfosList([]);
-  };
+proto.asphrdaemon.GetFriendListResponse.prototype.clearFriendInfosList = function() {
+  return this.setFriendInfosList([]);
+};
+
+
+
+
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.GenerateFriendKeyRequest.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.GenerateFriendKeyRequest.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.GetPublicIDRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.GetPublicIDRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.GetPublicIDRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetPublicIDRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.GenerateFriendKeyRequest} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.GenerateFriendKeyRequest.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {
-        uniqueName: jspb.Message.getFieldWithDefault(msg, 1, ""),
-        displayName: jspb.Message.getFieldWithDefault(msg, 2, ""),
-      };
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.asphrdaemon.GenerateFriendKeyRequest}
+ * @return {!proto.asphrdaemon.GetPublicIDRequest}
  */
-proto.asphrdaemon.GenerateFriendKeyRequest.deserializeBinary = function (
-  bytes
-) {
+proto.asphrdaemon.GetPublicIDRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.GenerateFriendKeyRequest();
-  return proto.asphrdaemon.GenerateFriendKeyRequest.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.GetPublicIDRequest;
+  return proto.asphrdaemon.GetPublicIDRequest.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.asphrdaemon.GenerateFriendKeyRequest} msg The message object to deserialize into.
+ * @param {!proto.asphrdaemon.GetPublicIDRequest} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.asphrdaemon.GenerateFriendKeyRequest}
+ * @return {!proto.asphrdaemon.GetPublicIDRequest}
  */
-proto.asphrdaemon.GenerateFriendKeyRequest.deserializeBinaryFromReader =
-  function (msg, reader) {
-    while (reader.nextField()) {
-      if (reader.isEndGroup()) {
-        break;
-      }
-      var field = reader.getFieldNumber();
-      switch (field) {
-        case 1:
-          var value = /** @type {string} */ (reader.readString());
-          msg.setUniqueName(value);
-          break;
-        case 2:
-          var value = /** @type {string} */ (reader.readString());
-          msg.setDisplayName(value);
-          break;
-        default:
-          reader.skipField();
-          break;
-      }
+proto.asphrdaemon.GetPublicIDRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
     }
-    return msg;
-  };
+    var field = reader.getFieldNumber();
+    switch (field) {
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
 
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.GenerateFriendKeyRequest.prototype.serializeBinary =
-  function () {
-    var writer = new jspb.BinaryWriter();
-    proto.asphrdaemon.GenerateFriendKeyRequest.serializeBinaryToWriter(
-      this,
-      writer
-    );
-    return writer.getResultBuffer();
-  };
+proto.asphrdaemon.GetPublicIDRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.asphrdaemon.GetPublicIDRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.asphrdaemon.GenerateFriendKeyRequest} message
+ * @param {!proto.asphrdaemon.GetPublicIDRequest} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.GenerateFriendKeyRequest.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.GetPublicIDRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.GetPublicIDResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.GetPublicIDResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.GetPublicIDResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetPublicIDResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    publicId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    story: jspb.Message.getFieldWithDefault(msg, 2, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.asphrdaemon.GetPublicIDResponse}
+ */
+proto.asphrdaemon.GetPublicIDResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.asphrdaemon.GetPublicIDResponse;
+  return proto.asphrdaemon.GetPublicIDResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.asphrdaemon.GetPublicIDResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.asphrdaemon.GetPublicIDResponse}
+ */
+proto.asphrdaemon.GetPublicIDResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setPublicId(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setStory(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.asphrdaemon.GetPublicIDResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.asphrdaemon.GetPublicIDResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.asphrdaemon.GetPublicIDResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetPublicIDResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getPublicId();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getStory();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string public_id = 1;
+ * @return {string}
+ */
+proto.asphrdaemon.GetPublicIDResponse.prototype.getPublicId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.asphrdaemon.GetPublicIDResponse} returns this
+ */
+proto.asphrdaemon.GetPublicIDResponse.prototype.setPublicId = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string story = 2;
+ * @return {string}
+ */
+proto.asphrdaemon.GetPublicIDResponse.prototype.getStory = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.asphrdaemon.GetPublicIDResponse} returns this
+ */
+proto.asphrdaemon.GetPublicIDResponse.prototype.setStory = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.AddSyncFriendRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.AddSyncFriendRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.AddSyncFriendRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.AddSyncFriendRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    uniqueName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    displayName: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    story: jspb.Message.getFieldWithDefault(msg, 3, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.asphrdaemon.AddSyncFriendRequest}
+ */
+proto.asphrdaemon.AddSyncFriendRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.asphrdaemon.AddSyncFriendRequest;
+  return proto.asphrdaemon.AddSyncFriendRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.asphrdaemon.AddSyncFriendRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.asphrdaemon.AddSyncFriendRequest}
+ */
+proto.asphrdaemon.AddSyncFriendRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUniqueName(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDisplayName(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setStory(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.asphrdaemon.AddSyncFriendRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.asphrdaemon.AddSyncFriendRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.asphrdaemon.AddSyncFriendRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.AddSyncFriendRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getUniqueName();
   if (f.length > 0) {
-    writer.writeString(1, f);
+    writer.writeString(
+      1,
+      f
+    );
   }
   f = message.getDisplayName();
   if (f.length > 0) {
-    writer.writeString(2, f);
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getStory();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
   }
 };
+
 
 /**
  * optional string unique_name = 1;
  * @return {string}
  */
-proto.asphrdaemon.GenerateFriendKeyRequest.prototype.getUniqueName =
-  function () {
-    return /** @type {string} */ (
-      jspb.Message.getFieldWithDefault(this, 1, "")
-    );
-  };
+proto.asphrdaemon.AddSyncFriendRequest.prototype.getUniqueName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
 
 /**
  * @param {string} value
- * @return {!proto.asphrdaemon.GenerateFriendKeyRequest} returns this
+ * @return {!proto.asphrdaemon.AddSyncFriendRequest} returns this
  */
-proto.asphrdaemon.GenerateFriendKeyRequest.prototype.setUniqueName = function (
-  value
-) {
+proto.asphrdaemon.AddSyncFriendRequest.prototype.setUniqueName = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
+
 
 /**
  * optional string display_name = 2;
  * @return {string}
  */
-proto.asphrdaemon.GenerateFriendKeyRequest.prototype.getDisplayName =
-  function () {
-    return /** @type {string} */ (
-      jspb.Message.getFieldWithDefault(this, 2, "")
-    );
-  };
+proto.asphrdaemon.AddSyncFriendRequest.prototype.getDisplayName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
 
 /**
  * @param {string} value
- * @return {!proto.asphrdaemon.GenerateFriendKeyRequest} returns this
+ * @return {!proto.asphrdaemon.AddSyncFriendRequest} returns this
  */
-proto.asphrdaemon.GenerateFriendKeyRequest.prototype.setDisplayName = function (
-  value
-) {
+proto.asphrdaemon.AddSyncFriendRequest.prototype.setDisplayName = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
 };
 
-if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.GenerateFriendKeyResponse.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.GenerateFriendKeyResponse.toObject(
-      opt_includeInstance,
-      this
-    );
-  };
-
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.GenerateFriendKeyResponse} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.GenerateFriendKeyResponse.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {
-        key: jspb.Message.getFieldWithDefault(msg, 1, ""),
-      };
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
-}
 
 /**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.asphrdaemon.GenerateFriendKeyResponse}
- */
-proto.asphrdaemon.GenerateFriendKeyResponse.deserializeBinary = function (
-  bytes
-) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.GenerateFriendKeyResponse();
-  return proto.asphrdaemon.GenerateFriendKeyResponse.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
-};
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.asphrdaemon.GenerateFriendKeyResponse} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.asphrdaemon.GenerateFriendKeyResponse}
- */
-proto.asphrdaemon.GenerateFriendKeyResponse.deserializeBinaryFromReader =
-  function (msg, reader) {
-    while (reader.nextField()) {
-      if (reader.isEndGroup()) {
-        break;
-      }
-      var field = reader.getFieldNumber();
-      switch (field) {
-        case 1:
-          var value = /** @type {string} */ (reader.readString());
-          msg.setKey(value);
-          break;
-        default:
-          reader.skipField();
-          break;
-      }
-    }
-    return msg;
-  };
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.asphrdaemon.GenerateFriendKeyResponse.prototype.serializeBinary =
-  function () {
-    var writer = new jspb.BinaryWriter();
-    proto.asphrdaemon.GenerateFriendKeyResponse.serializeBinaryToWriter(
-      this,
-      writer
-    );
-    return writer.getResultBuffer();
-  };
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.asphrdaemon.GenerateFriendKeyResponse} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.asphrdaemon.GenerateFriendKeyResponse.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
-  var f = undefined;
-  f = message.getKey();
-  if (f.length > 0) {
-    writer.writeString(1, f);
-  }
-};
-
-/**
- * optional string key = 1;
+ * optional string story = 3;
  * @return {string}
  */
-proto.asphrdaemon.GenerateFriendKeyResponse.prototype.getKey = function () {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+proto.asphrdaemon.AddSyncFriendRequest.prototype.getStory = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
 };
+
 
 /**
  * @param {string} value
- * @return {!proto.asphrdaemon.GenerateFriendKeyResponse} returns this
+ * @return {!proto.asphrdaemon.AddSyncFriendRequest} returns this
  */
-proto.asphrdaemon.GenerateFriendKeyResponse.prototype.setKey = function (
-  value
-) {
-  return jspb.Message.setProto3StringField(this, 1, value);
+proto.asphrdaemon.AddSyncFriendRequest.prototype.setStory = function(value) {
+  return jspb.Message.setProto3StringField(this, 3, value);
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.AddFriendRequest.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.AddFriendRequest.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.AddSyncFriendResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.AddSyncFriendResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.AddSyncFriendResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.AddSyncFriendResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.AddFriendRequest} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.AddFriendRequest.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {
-        uniqueName: jspb.Message.getFieldWithDefault(msg, 1, ""),
-        key: jspb.Message.getFieldWithDefault(msg, 2, ""),
-      };
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.asphrdaemon.AddFriendRequest}
+ * @return {!proto.asphrdaemon.AddSyncFriendResponse}
  */
-proto.asphrdaemon.AddFriendRequest.deserializeBinary = function (bytes) {
+proto.asphrdaemon.AddSyncFriendResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.AddFriendRequest();
-  return proto.asphrdaemon.AddFriendRequest.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.AddSyncFriendResponse;
+  return proto.asphrdaemon.AddSyncFriendResponse.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.asphrdaemon.AddFriendRequest} msg The message object to deserialize into.
+ * @param {!proto.asphrdaemon.AddSyncFriendResponse} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.asphrdaemon.AddFriendRequest}
+ * @return {!proto.asphrdaemon.AddSyncFriendResponse}
  */
-proto.asphrdaemon.AddFriendRequest.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.AddSyncFriendResponse.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      case 1:
-        var value = /** @type {string} */ (reader.readString());
-        msg.setUniqueName(value);
-        break;
-      case 2:
-        var value = /** @type {string} */ (reader.readString());
-        msg.setKey(value);
-        break;
-      default:
-        reader.skipField();
-        break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.AddFriendRequest.prototype.serializeBinary = function () {
+proto.asphrdaemon.AddSyncFriendResponse.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.asphrdaemon.AddFriendRequest.serializeBinaryToWriter(this, writer);
+  proto.asphrdaemon.AddSyncFriendResponse.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.asphrdaemon.AddFriendRequest} message
+ * @param {!proto.asphrdaemon.AddSyncFriendResponse} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.AddFriendRequest.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.AddSyncFriendResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.SendAsyncFriendRequestRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.SendAsyncFriendRequestRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.SendAsyncFriendRequestRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.SendAsyncFriendRequestRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    friendInfo: (f = msg.getFriendInfo()) && proto.asphrdaemon.FriendInfo.toObject(includeInstance, f),
+    message: jspb.Message.getFieldWithDefault(msg, 2, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.asphrdaemon.SendAsyncFriendRequestRequest}
+ */
+proto.asphrdaemon.SendAsyncFriendRequestRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.asphrdaemon.SendAsyncFriendRequestRequest;
+  return proto.asphrdaemon.SendAsyncFriendRequestRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.asphrdaemon.SendAsyncFriendRequestRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.asphrdaemon.SendAsyncFriendRequestRequest}
+ */
+proto.asphrdaemon.SendAsyncFriendRequestRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.asphrdaemon.FriendInfo;
+      reader.readMessage(value,proto.asphrdaemon.FriendInfo.deserializeBinaryFromReader);
+      msg.setFriendInfo(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setMessage(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.asphrdaemon.SendAsyncFriendRequestRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.asphrdaemon.SendAsyncFriendRequestRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.asphrdaemon.SendAsyncFriendRequestRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.SendAsyncFriendRequestRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getFriendInfo();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.asphrdaemon.FriendInfo.serializeBinaryToWriter
+    );
+  }
+  f = message.getMessage();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional FriendInfo friend_info = 1;
+ * @return {?proto.asphrdaemon.FriendInfo}
+ */
+proto.asphrdaemon.SendAsyncFriendRequestRequest.prototype.getFriendInfo = function() {
+  return /** @type{?proto.asphrdaemon.FriendInfo} */ (
+    jspb.Message.getWrapperField(this, proto.asphrdaemon.FriendInfo, 1));
+};
+
+
+/**
+ * @param {?proto.asphrdaemon.FriendInfo|undefined} value
+ * @return {!proto.asphrdaemon.SendAsyncFriendRequestRequest} returns this
+*/
+proto.asphrdaemon.SendAsyncFriendRequestRequest.prototype.setFriendInfo = function(value) {
+  return jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.asphrdaemon.SendAsyncFriendRequestRequest} returns this
+ */
+proto.asphrdaemon.SendAsyncFriendRequestRequest.prototype.clearFriendInfo = function() {
+  return this.setFriendInfo(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.asphrdaemon.SendAsyncFriendRequestRequest.prototype.hasFriendInfo = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional string message = 2;
+ * @return {string}
+ */
+proto.asphrdaemon.SendAsyncFriendRequestRequest.prototype.getMessage = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.asphrdaemon.SendAsyncFriendRequestRequest} returns this
+ */
+proto.asphrdaemon.SendAsyncFriendRequestRequest.prototype.setMessage = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.SendAsyncFriendRequestResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.SendAsyncFriendRequestResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.SendAsyncFriendRequestResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.SendAsyncFriendRequestResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.asphrdaemon.SendAsyncFriendRequestResponse}
+ */
+proto.asphrdaemon.SendAsyncFriendRequestResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.asphrdaemon.SendAsyncFriendRequestResponse;
+  return proto.asphrdaemon.SendAsyncFriendRequestResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.asphrdaemon.SendAsyncFriendRequestResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.asphrdaemon.SendAsyncFriendRequestResponse}
+ */
+proto.asphrdaemon.SendAsyncFriendRequestResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.asphrdaemon.SendAsyncFriendRequestResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.asphrdaemon.SendAsyncFriendRequestResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.asphrdaemon.SendAsyncFriendRequestResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.SendAsyncFriendRequestResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.GetOutgoingFriendRequestsRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.GetOutgoingFriendRequestsRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.asphrdaemon.GetOutgoingFriendRequestsRequest}
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.asphrdaemon.GetOutgoingFriendRequestsRequest;
+  return proto.asphrdaemon.GetOutgoingFriendRequestsRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.asphrdaemon.GetOutgoingFriendRequestsRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.asphrdaemon.GetOutgoingFriendRequestsRequest}
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.asphrdaemon.GetOutgoingFriendRequestsRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.asphrdaemon.GetOutgoingFriendRequestsRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+};
+
+
+
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.repeatedFields_ = [1,2,3];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.GetOutgoingFriendRequestsResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.GetOutgoingFriendRequestsResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    friendInfosList: jspb.Message.toObjectList(msg.getFriendInfosList(),
+    proto.asphrdaemon.FriendInfo.toObject, includeInstance),
+    messagesList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f,
+    friendRequestTypesList: (f = jspb.Message.getRepeatedField(msg, 3)) == null ? undefined : f
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.asphrdaemon.GetOutgoingFriendRequestsResponse}
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.asphrdaemon.GetOutgoingFriendRequestsResponse;
+  return proto.asphrdaemon.GetOutgoingFriendRequestsResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.asphrdaemon.GetOutgoingFriendRequestsResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.asphrdaemon.GetOutgoingFriendRequestsResponse}
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.asphrdaemon.FriendInfo;
+      reader.readMessage(value,proto.asphrdaemon.FriendInfo.deserializeBinaryFromReader);
+      msg.addFriendInfos(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addMessages(value);
+      break;
+    case 3:
+      var values = /** @type {!Array<!proto.asphrdaemon.GetOutgoingFriendRequestsResponse.FriendRequestType>} */ (reader.isDelimited() ? reader.readPackedEnum() : [reader.readEnum()]);
+      for (var i = 0; i < values.length; i++) {
+        msg.addFriendRequestTypes(values[i]);
+      }
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.asphrdaemon.GetOutgoingFriendRequestsResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.asphrdaemon.GetOutgoingFriendRequestsResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getFriendInfosList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      proto.asphrdaemon.FriendInfo.serializeBinaryToWriter
+    );
+  }
+  f = message.getMessagesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      2,
+      f
+    );
+  }
+  f = message.getFriendRequestTypesList();
+  if (f.length > 0) {
+    writer.writePackedEnum(
+      3,
+      f
+    );
+  }
+};
+
+
+/**
+ * @enum {number}
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.FriendRequestType = {
+  ASYNC: 0,
+  SYNC: 1
+};
+
+/**
+ * repeated FriendInfo friend_infos = 1;
+ * @return {!Array<!proto.asphrdaemon.FriendInfo>}
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.prototype.getFriendInfosList = function() {
+  return /** @type{!Array<!proto.asphrdaemon.FriendInfo>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.asphrdaemon.FriendInfo, 1));
+};
+
+
+/**
+ * @param {!Array<!proto.asphrdaemon.FriendInfo>} value
+ * @return {!proto.asphrdaemon.GetOutgoingFriendRequestsResponse} returns this
+*/
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.prototype.setFriendInfosList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.asphrdaemon.FriendInfo=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.asphrdaemon.FriendInfo}
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.prototype.addFriendInfos = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.asphrdaemon.FriendInfo, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.asphrdaemon.GetOutgoingFriendRequestsResponse} returns this
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.prototype.clearFriendInfosList = function() {
+  return this.setFriendInfosList([]);
+};
+
+
+/**
+ * repeated string messages = 2;
+ * @return {!Array<string>}
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.prototype.getMessagesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 2));
+};
+
+
+/**
+ * @param {!Array<string>} value
+ * @return {!proto.asphrdaemon.GetOutgoingFriendRequestsResponse} returns this
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.prototype.setMessagesList = function(value) {
+  return jspb.Message.setField(this, 2, value || []);
+};
+
+
+/**
+ * @param {string} value
+ * @param {number=} opt_index
+ * @return {!proto.asphrdaemon.GetOutgoingFriendRequestsResponse} returns this
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.prototype.addMessages = function(value, opt_index) {
+  return jspb.Message.addToRepeatedField(this, 2, value, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.asphrdaemon.GetOutgoingFriendRequestsResponse} returns this
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.prototype.clearMessagesList = function() {
+  return this.setMessagesList([]);
+};
+
+
+/**
+ * repeated FriendRequestType friend_request_types = 3;
+ * @return {!Array<!proto.asphrdaemon.GetOutgoingFriendRequestsResponse.FriendRequestType>}
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.prototype.getFriendRequestTypesList = function() {
+  return /** @type {!Array<!proto.asphrdaemon.GetOutgoingFriendRequestsResponse.FriendRequestType>} */ (jspb.Message.getRepeatedField(this, 3));
+};
+
+
+/**
+ * @param {!Array<!proto.asphrdaemon.GetOutgoingFriendRequestsResponse.FriendRequestType>} value
+ * @return {!proto.asphrdaemon.GetOutgoingFriendRequestsResponse} returns this
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.prototype.setFriendRequestTypesList = function(value) {
+  return jspb.Message.setField(this, 3, value || []);
+};
+
+
+/**
+ * @param {!proto.asphrdaemon.GetOutgoingFriendRequestsResponse.FriendRequestType} value
+ * @param {number=} opt_index
+ * @return {!proto.asphrdaemon.GetOutgoingFriendRequestsResponse} returns this
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.prototype.addFriendRequestTypes = function(value, opt_index) {
+  return jspb.Message.addToRepeatedField(this, 3, value, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.asphrdaemon.GetOutgoingFriendRequestsResponse} returns this
+ */
+proto.asphrdaemon.GetOutgoingFriendRequestsResponse.prototype.clearFriendRequestTypesList = function() {
+  return this.setFriendRequestTypesList([]);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest}
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest;
+  return proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest}
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+};
+
+
+
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.repeatedFields_ = [1,2];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    friendInfosList: jspb.Message.toObjectList(msg.getFriendInfosList(),
+    proto.asphrdaemon.FriendInfo.toObject, includeInstance),
+    messagesList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse}
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse;
+  return proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse}
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.asphrdaemon.FriendInfo;
+      reader.readMessage(value,proto.asphrdaemon.FriendInfo.deserializeBinaryFromReader);
+      msg.addFriendInfos(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addMessages(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getFriendInfosList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      proto.asphrdaemon.FriendInfo.serializeBinaryToWriter
+    );
+  }
+  f = message.getMessagesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * repeated FriendInfo friend_infos = 1;
+ * @return {!Array<!proto.asphrdaemon.FriendInfo>}
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.prototype.getFriendInfosList = function() {
+  return /** @type{!Array<!proto.asphrdaemon.FriendInfo>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.asphrdaemon.FriendInfo, 1));
+};
+
+
+/**
+ * @param {!Array<!proto.asphrdaemon.FriendInfo>} value
+ * @return {!proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse} returns this
+*/
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.prototype.setFriendInfosList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.asphrdaemon.FriendInfo=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.asphrdaemon.FriendInfo}
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.prototype.addFriendInfos = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.asphrdaemon.FriendInfo, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse} returns this
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.prototype.clearFriendInfosList = function() {
+  return this.setFriendInfosList([]);
+};
+
+
+/**
+ * repeated string messages = 2;
+ * @return {!Array<string>}
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.prototype.getMessagesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 2));
+};
+
+
+/**
+ * @param {!Array<string>} value
+ * @return {!proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse} returns this
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.prototype.setMessagesList = function(value) {
+  return jspb.Message.setField(this, 2, value || []);
+};
+
+
+/**
+ * @param {string} value
+ * @param {number=} opt_index
+ * @return {!proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse} returns this
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.prototype.addMessages = function(value, opt_index) {
+  return jspb.Message.addToRepeatedField(this, 2, value, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse} returns this
+ */
+proto.asphrdaemon.GetIncomingAsyncFriendRequestsResponse.prototype.clearMessagesList = function() {
+  return this.setMessagesList([]);
+};
+
+
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.DecideAsyncFriendRequestRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.DecideAsyncFriendRequestRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.DecideAsyncFriendRequestRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.DecideAsyncFriendRequestRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    uniqueName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    accept: jspb.Message.getBooleanFieldWithDefault(msg, 2, false)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.asphrdaemon.DecideAsyncFriendRequestRequest}
+ */
+proto.asphrdaemon.DecideAsyncFriendRequestRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.asphrdaemon.DecideAsyncFriendRequestRequest;
+  return proto.asphrdaemon.DecideAsyncFriendRequestRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.asphrdaemon.DecideAsyncFriendRequestRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.asphrdaemon.DecideAsyncFriendRequestRequest}
+ */
+proto.asphrdaemon.DecideAsyncFriendRequestRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUniqueName(value);
+      break;
+    case 2:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setAccept(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.asphrdaemon.DecideAsyncFriendRequestRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.asphrdaemon.DecideAsyncFriendRequestRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.asphrdaemon.DecideAsyncFriendRequestRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.DecideAsyncFriendRequestRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getUniqueName();
   if (f.length > 0) {
-    writer.writeString(1, f);
+    writer.writeString(
+      1,
+      f
+    );
   }
-  f = message.getKey();
-  if (f.length > 0) {
-    writer.writeString(2, f);
+  f = message.getAccept();
+  if (f) {
+    writer.writeBool(
+      2,
+      f
+    );
   }
 };
+
 
 /**
  * optional string unique_name = 1;
  * @return {string}
  */
-proto.asphrdaemon.AddFriendRequest.prototype.getUniqueName = function () {
+proto.asphrdaemon.DecideAsyncFriendRequestRequest.prototype.getUniqueName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
+
 /**
  * @param {string} value
- * @return {!proto.asphrdaemon.AddFriendRequest} returns this
+ * @return {!proto.asphrdaemon.DecideAsyncFriendRequestRequest} returns this
  */
-proto.asphrdaemon.AddFriendRequest.prototype.setUniqueName = function (value) {
+proto.asphrdaemon.DecideAsyncFriendRequestRequest.prototype.setUniqueName = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
 
-/**
- * optional string key = 2;
- * @return {string}
- */
-proto.asphrdaemon.AddFriendRequest.prototype.getKey = function () {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
-};
 
 /**
- * @param {string} value
- * @return {!proto.asphrdaemon.AddFriendRequest} returns this
+ * optional bool accept = 2;
+ * @return {boolean}
  */
-proto.asphrdaemon.AddFriendRequest.prototype.setKey = function (value) {
-  return jspb.Message.setProto3StringField(this, 2, value);
+proto.asphrdaemon.DecideAsyncFriendRequestRequest.prototype.getAccept = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 2, false));
 };
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.asphrdaemon.DecideAsyncFriendRequestRequest} returns this
+ */
+proto.asphrdaemon.DecideAsyncFriendRequestRequest.prototype.setAccept = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 2, value);
+};
+
+
+
+
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.AddFriendResponse.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.AddFriendResponse.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.DecideAsyncFriendRequestResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.DecideAsyncFriendRequestResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.DecideAsyncFriendRequestResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.DecideAsyncFriendRequestResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.AddFriendResponse} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.AddFriendResponse.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {};
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.asphrdaemon.AddFriendResponse}
+ * @return {!proto.asphrdaemon.DecideAsyncFriendRequestResponse}
  */
-proto.asphrdaemon.AddFriendResponse.deserializeBinary = function (bytes) {
+proto.asphrdaemon.DecideAsyncFriendRequestResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.AddFriendResponse();
-  return proto.asphrdaemon.AddFriendResponse.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.DecideAsyncFriendRequestResponse;
+  return proto.asphrdaemon.DecideAsyncFriendRequestResponse.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.asphrdaemon.AddFriendResponse} msg The message object to deserialize into.
+ * @param {!proto.asphrdaemon.DecideAsyncFriendRequestResponse} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.asphrdaemon.AddFriendResponse}
+ * @return {!proto.asphrdaemon.DecideAsyncFriendRequestResponse}
  */
-proto.asphrdaemon.AddFriendResponse.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.DecideAsyncFriendRequestResponse.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      default:
-        reader.skipField();
-        break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.AddFriendResponse.prototype.serializeBinary = function () {
+proto.asphrdaemon.DecideAsyncFriendRequestResponse.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.asphrdaemon.AddFriendResponse.serializeBinaryToWriter(this, writer);
+  proto.asphrdaemon.DecideAsyncFriendRequestResponse.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.asphrdaemon.AddFriendResponse} message
+ * @param {!proto.asphrdaemon.DecideAsyncFriendRequestResponse} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.AddFriendResponse.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.DecideAsyncFriendRequestResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.RemoveFriendRequest.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.RemoveFriendRequest.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.RemoveFriendRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.RemoveFriendRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.RemoveFriendRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.RemoveFriendRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    uniqueName: jspb.Message.getFieldWithDefault(msg, 1, "")
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.RemoveFriendRequest} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.RemoveFriendRequest.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {
-        uniqueName: jspb.Message.getFieldWithDefault(msg, 1, ""),
-      };
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.RemoveFriendRequest}
  */
-proto.asphrdaemon.RemoveFriendRequest.deserializeBinary = function (bytes) {
+proto.asphrdaemon.RemoveFriendRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.RemoveFriendRequest();
-  return proto.asphrdaemon.RemoveFriendRequest.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.RemoveFriendRequest;
+  return proto.asphrdaemon.RemoveFriendRequest.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -2173,37 +3479,36 @@ proto.asphrdaemon.RemoveFriendRequest.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.RemoveFriendRequest}
  */
-proto.asphrdaemon.RemoveFriendRequest.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.RemoveFriendRequest.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      case 1:
-        var value = /** @type {string} */ (reader.readString());
-        msg.setUniqueName(value);
-        break;
-      default:
-        reader.skipField();
-        break;
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUniqueName(value);
+      break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.RemoveFriendRequest.prototype.serializeBinary = function () {
+proto.asphrdaemon.RemoveFriendRequest.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.RemoveFriendRequest.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -2212,93 +3517,90 @@ proto.asphrdaemon.RemoveFriendRequest.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.RemoveFriendRequest.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.RemoveFriendRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getUniqueName();
   if (f.length > 0) {
-    writer.writeString(1, f);
+    writer.writeString(
+      1,
+      f
+    );
   }
 };
+
 
 /**
  * optional string unique_name = 1;
  * @return {string}
  */
-proto.asphrdaemon.RemoveFriendRequest.prototype.getUniqueName = function () {
+proto.asphrdaemon.RemoveFriendRequest.prototype.getUniqueName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
+
 
 /**
  * @param {string} value
  * @return {!proto.asphrdaemon.RemoveFriendRequest} returns this
  */
-proto.asphrdaemon.RemoveFriendRequest.prototype.setUniqueName = function (
-  value
-) {
+proto.asphrdaemon.RemoveFriendRequest.prototype.setUniqueName = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.RemoveFriendResponse.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.RemoveFriendResponse.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.RemoveFriendResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.RemoveFriendResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.RemoveFriendResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.RemoveFriendResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.RemoveFriendResponse} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.RemoveFriendResponse.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {};
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.RemoveFriendResponse}
  */
-proto.asphrdaemon.RemoveFriendResponse.deserializeBinary = function (bytes) {
+proto.asphrdaemon.RemoveFriendResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.RemoveFriendResponse();
-  return proto.asphrdaemon.RemoveFriendResponse.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.RemoveFriendResponse;
+  return proto.asphrdaemon.RemoveFriendResponse.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -2307,33 +3609,32 @@ proto.asphrdaemon.RemoveFriendResponse.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.RemoveFriendResponse}
  */
-proto.asphrdaemon.RemoveFriendResponse.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.RemoveFriendResponse.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      default:
-        reader.skipField();
-        break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.RemoveFriendResponse.prototype.serializeBinary = function () {
+proto.asphrdaemon.RemoveFriendResponse.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.RemoveFriendResponse.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -2342,74 +3643,66 @@ proto.asphrdaemon.RemoveFriendResponse.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.RemoveFriendResponse.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.RemoveFriendResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.SendMessageRequest.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.SendMessageRequest.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.SendMessageRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.SendMessageRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.SendMessageRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.SendMessageRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    uniqueName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    message: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.SendMessageRequest} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.SendMessageRequest.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {
-        uniqueName: jspb.Message.getFieldWithDefault(msg, 1, ""),
-        message: jspb.Message.getFieldWithDefault(msg, 2, ""),
-      };
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.SendMessageRequest}
  */
-proto.asphrdaemon.SendMessageRequest.deserializeBinary = function (bytes) {
+proto.asphrdaemon.SendMessageRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.SendMessageRequest();
-  return proto.asphrdaemon.SendMessageRequest.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.SendMessageRequest;
+  return proto.asphrdaemon.SendMessageRequest.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -2418,41 +3711,40 @@ proto.asphrdaemon.SendMessageRequest.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.SendMessageRequest}
  */
-proto.asphrdaemon.SendMessageRequest.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.SendMessageRequest.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      case 1:
-        var value = /** @type {string} */ (reader.readString());
-        msg.setUniqueName(value);
-        break;
-      case 2:
-        var value = /** @type {string} */ (reader.readString());
-        msg.setMessage(value);
-        break;
-      default:
-        reader.skipField();
-        break;
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUniqueName(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setMessage(value);
+      break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.SendMessageRequest.prototype.serializeBinary = function () {
+proto.asphrdaemon.SendMessageRequest.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.SendMessageRequest.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -2461,113 +3753,115 @@ proto.asphrdaemon.SendMessageRequest.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.SendMessageRequest.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.SendMessageRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getUniqueName();
   if (f.length > 0) {
-    writer.writeString(1, f);
+    writer.writeString(
+      1,
+      f
+    );
   }
   f = message.getMessage();
   if (f.length > 0) {
-    writer.writeString(2, f);
+    writer.writeString(
+      2,
+      f
+    );
   }
 };
+
 
 /**
  * optional string unique_name = 1;
  * @return {string}
  */
-proto.asphrdaemon.SendMessageRequest.prototype.getUniqueName = function () {
+proto.asphrdaemon.SendMessageRequest.prototype.getUniqueName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
+
 
 /**
  * @param {string} value
  * @return {!proto.asphrdaemon.SendMessageRequest} returns this
  */
-proto.asphrdaemon.SendMessageRequest.prototype.setUniqueName = function (
-  value
-) {
+proto.asphrdaemon.SendMessageRequest.prototype.setUniqueName = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
+
 
 /**
  * optional string message = 2;
  * @return {string}
  */
-proto.asphrdaemon.SendMessageRequest.prototype.getMessage = function () {
+proto.asphrdaemon.SendMessageRequest.prototype.getMessage = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
+
 
 /**
  * @param {string} value
  * @return {!proto.asphrdaemon.SendMessageRequest} returns this
  */
-proto.asphrdaemon.SendMessageRequest.prototype.setMessage = function (value) {
+proto.asphrdaemon.SendMessageRequest.prototype.setMessage = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.SendMessageResponse.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.SendMessageResponse.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.SendMessageResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.SendMessageResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.SendMessageResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.SendMessageResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.SendMessageResponse} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.SendMessageResponse.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {};
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.SendMessageResponse}
  */
-proto.asphrdaemon.SendMessageResponse.deserializeBinary = function (bytes) {
+proto.asphrdaemon.SendMessageResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.SendMessageResponse();
-  return proto.asphrdaemon.SendMessageResponse.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.SendMessageResponse;
+  return proto.asphrdaemon.SendMessageResponse.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -2576,33 +3870,32 @@ proto.asphrdaemon.SendMessageResponse.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.SendMessageResponse}
  */
-proto.asphrdaemon.SendMessageResponse.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.SendMessageResponse.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      default:
-        reader.skipField();
-        break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.SendMessageResponse.prototype.serializeBinary = function () {
+proto.asphrdaemon.SendMessageResponse.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.SendMessageResponse.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -2611,67 +3904,68 @@ proto.asphrdaemon.SendMessageResponse.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.SendMessageResponse.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.SendMessageResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.BaseMessage.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.BaseMessage.toObject(opt_includeInstance, this);
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.BaseMessage.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.BaseMessage.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.BaseMessage} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.BaseMessage.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    id: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    message: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    uniqueName: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    displayName: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.BaseMessage} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.BaseMessage.toObject = function (includeInstance, msg) {
-    var f,
-      obj = {
-        id: jspb.Message.getFieldWithDefault(msg, 1, 0),
-        message: jspb.Message.getFieldWithDefault(msg, 2, ""),
-        uniqueName: jspb.Message.getFieldWithDefault(msg, 3, ""),
-        displayName: jspb.Message.getFieldWithDefault(msg, 4, ""),
-      };
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.BaseMessage}
  */
-proto.asphrdaemon.BaseMessage.deserializeBinary = function (bytes) {
+proto.asphrdaemon.BaseMessage.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.BaseMessage();
+  var msg = new proto.asphrdaemon.BaseMessage;
   return proto.asphrdaemon.BaseMessage.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -2680,49 +3974,48 @@ proto.asphrdaemon.BaseMessage.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.BaseMessage}
  */
-proto.asphrdaemon.BaseMessage.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.BaseMessage.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      case 1:
-        var value = /** @type {number} */ (reader.readInt32());
-        msg.setId(value);
-        break;
-      case 2:
-        var value = /** @type {string} */ (reader.readString());
-        msg.setMessage(value);
-        break;
-      case 3:
-        var value = /** @type {string} */ (reader.readString());
-        msg.setUniqueName(value);
-        break;
-      case 4:
-        var value = /** @type {string} */ (reader.readString());
-        msg.setDisplayName(value);
-        break;
-      default:
-        reader.skipField();
-        break;
+    case 1:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setId(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setMessage(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUniqueName(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDisplayName(value);
+      break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.BaseMessage.prototype.serializeBinary = function () {
+proto.asphrdaemon.BaseMessage.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.BaseMessage.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -2731,157 +4024,168 @@ proto.asphrdaemon.BaseMessage.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.BaseMessage.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.BaseMessage.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getId();
   if (f !== 0) {
-    writer.writeInt32(1, f);
+    writer.writeInt32(
+      1,
+      f
+    );
   }
   f = message.getMessage();
   if (f.length > 0) {
-    writer.writeString(2, f);
+    writer.writeString(
+      2,
+      f
+    );
   }
   f = message.getUniqueName();
   if (f.length > 0) {
-    writer.writeString(3, f);
+    writer.writeString(
+      3,
+      f
+    );
   }
   f = message.getDisplayName();
   if (f.length > 0) {
-    writer.writeString(4, f);
+    writer.writeString(
+      4,
+      f
+    );
   }
 };
+
 
 /**
  * optional int32 id = 1;
  * @return {number}
  */
-proto.asphrdaemon.BaseMessage.prototype.getId = function () {
+proto.asphrdaemon.BaseMessage.prototype.getId = function() {
   return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
 };
+
 
 /**
  * @param {number} value
  * @return {!proto.asphrdaemon.BaseMessage} returns this
  */
-proto.asphrdaemon.BaseMessage.prototype.setId = function (value) {
+proto.asphrdaemon.BaseMessage.prototype.setId = function(value) {
   return jspb.Message.setProto3IntField(this, 1, value);
 };
+
 
 /**
  * optional string message = 2;
  * @return {string}
  */
-proto.asphrdaemon.BaseMessage.prototype.getMessage = function () {
+proto.asphrdaemon.BaseMessage.prototype.getMessage = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
+
 
 /**
  * @param {string} value
  * @return {!proto.asphrdaemon.BaseMessage} returns this
  */
-proto.asphrdaemon.BaseMessage.prototype.setMessage = function (value) {
+proto.asphrdaemon.BaseMessage.prototype.setMessage = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
 };
+
 
 /**
  * optional string unique_name = 3;
  * @return {string}
  */
-proto.asphrdaemon.BaseMessage.prototype.getUniqueName = function () {
+proto.asphrdaemon.BaseMessage.prototype.getUniqueName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
 };
+
 
 /**
  * @param {string} value
  * @return {!proto.asphrdaemon.BaseMessage} returns this
  */
-proto.asphrdaemon.BaseMessage.prototype.setUniqueName = function (value) {
+proto.asphrdaemon.BaseMessage.prototype.setUniqueName = function(value) {
   return jspb.Message.setProto3StringField(this, 3, value);
 };
+
 
 /**
  * optional string display_name = 4;
  * @return {string}
  */
-proto.asphrdaemon.BaseMessage.prototype.getDisplayName = function () {
+proto.asphrdaemon.BaseMessage.prototype.getDisplayName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
 };
+
 
 /**
  * @param {string} value
  * @return {!proto.asphrdaemon.BaseMessage} returns this
  */
-proto.asphrdaemon.BaseMessage.prototype.setDisplayName = function (value) {
+proto.asphrdaemon.BaseMessage.prototype.setDisplayName = function(value) {
   return jspb.Message.setProto3StringField(this, 4, value);
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.IncomingMessage.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.IncomingMessage.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.IncomingMessage.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.IncomingMessage.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.IncomingMessage} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.IncomingMessage.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    m: (f = msg.getM()) && proto.asphrdaemon.BaseMessage.toObject(includeInstance, f),
+    deliveredAt: (f = msg.getDeliveredAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
+    seen: jspb.Message.getBooleanFieldWithDefault(msg, 3, false),
+    delivered: jspb.Message.getBooleanFieldWithDefault(msg, 4, false)
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.IncomingMessage} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.IncomingMessage.toObject = function (includeInstance, msg) {
-    var f,
-      obj = {
-        m:
-          (f = msg.getM()) &&
-          proto.asphrdaemon.BaseMessage.toObject(includeInstance, f),
-        deliveredAt:
-          (f = msg.getDeliveredAt()) &&
-          google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
-        seen: jspb.Message.getBooleanFieldWithDefault(msg, 3, false),
-        delivered: jspb.Message.getBooleanFieldWithDefault(msg, 4, false),
-      };
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.IncomingMessage}
  */
-proto.asphrdaemon.IncomingMessage.deserializeBinary = function (bytes) {
+proto.asphrdaemon.IncomingMessage.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.IncomingMessage();
-  return proto.asphrdaemon.IncomingMessage.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.IncomingMessage;
+  return proto.asphrdaemon.IncomingMessage.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -2890,57 +4194,50 @@ proto.asphrdaemon.IncomingMessage.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.IncomingMessage}
  */
-proto.asphrdaemon.IncomingMessage.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.IncomingMessage.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      case 1:
-        var value = new proto.asphrdaemon.BaseMessage();
-        reader.readMessage(
-          value,
-          proto.asphrdaemon.BaseMessage.deserializeBinaryFromReader
-        );
-        msg.setM(value);
-        break;
-      case 2:
-        var value = new google_protobuf_timestamp_pb.Timestamp();
-        reader.readMessage(
-          value,
-          google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader
-        );
-        msg.setDeliveredAt(value);
-        break;
-      case 3:
-        var value = /** @type {boolean} */ (reader.readBool());
-        msg.setSeen(value);
-        break;
-      case 4:
-        var value = /** @type {boolean} */ (reader.readBool());
-        msg.setDelivered(value);
-        break;
-      default:
-        reader.skipField();
-        break;
+    case 1:
+      var value = new proto.asphrdaemon.BaseMessage;
+      reader.readMessage(value,proto.asphrdaemon.BaseMessage.deserializeBinaryFromReader);
+      msg.setM(value);
+      break;
+    case 2:
+      var value = new google_protobuf_timestamp_pb.Timestamp;
+      reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
+      msg.setDeliveredAt(value);
+      break;
+    case 3:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setSeen(value);
+      break;
+    case 4:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setDelivered(value);
+      break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.IncomingMessage.prototype.serializeBinary = function () {
+proto.asphrdaemon.IncomingMessage.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.IncomingMessage.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -2949,10 +4246,7 @@ proto.asphrdaemon.IncomingMessage.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.IncomingMessage.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.IncomingMessage.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getM();
   if (f != null) {
@@ -2972,188 +4266,188 @@ proto.asphrdaemon.IncomingMessage.serializeBinaryToWriter = function (
   }
   f = message.getSeen();
   if (f) {
-    writer.writeBool(3, f);
+    writer.writeBool(
+      3,
+      f
+    );
   }
   f = message.getDelivered();
   if (f) {
-    writer.writeBool(4, f);
+    writer.writeBool(
+      4,
+      f
+    );
   }
 };
+
 
 /**
  * optional BaseMessage m = 1;
  * @return {?proto.asphrdaemon.BaseMessage}
  */
-proto.asphrdaemon.IncomingMessage.prototype.getM = function () {
+proto.asphrdaemon.IncomingMessage.prototype.getM = function() {
   return /** @type{?proto.asphrdaemon.BaseMessage} */ (
-    jspb.Message.getWrapperField(this, proto.asphrdaemon.BaseMessage, 1)
-  );
+    jspb.Message.getWrapperField(this, proto.asphrdaemon.BaseMessage, 1));
 };
+
 
 /**
  * @param {?proto.asphrdaemon.BaseMessage|undefined} value
  * @return {!proto.asphrdaemon.IncomingMessage} returns this
- */
-proto.asphrdaemon.IncomingMessage.prototype.setM = function (value) {
+*/
+proto.asphrdaemon.IncomingMessage.prototype.setM = function(value) {
   return jspb.Message.setWrapperField(this, 1, value);
 };
+
 
 /**
  * Clears the message field making it undefined.
  * @return {!proto.asphrdaemon.IncomingMessage} returns this
  */
-proto.asphrdaemon.IncomingMessage.prototype.clearM = function () {
+proto.asphrdaemon.IncomingMessage.prototype.clearM = function() {
   return this.setM(undefined);
 };
+
 
 /**
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.asphrdaemon.IncomingMessage.prototype.hasM = function () {
+proto.asphrdaemon.IncomingMessage.prototype.hasM = function() {
   return jspb.Message.getField(this, 1) != null;
 };
+
 
 /**
  * optional google.protobuf.Timestamp delivered_at = 2;
  * @return {?proto.google.protobuf.Timestamp}
  */
-proto.asphrdaemon.IncomingMessage.prototype.getDeliveredAt = function () {
+proto.asphrdaemon.IncomingMessage.prototype.getDeliveredAt = function() {
   return /** @type{?proto.google.protobuf.Timestamp} */ (
-    jspb.Message.getWrapperField(
-      this,
-      google_protobuf_timestamp_pb.Timestamp,
-      2
-    )
-  );
+    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 2));
 };
+
 
 /**
  * @param {?proto.google.protobuf.Timestamp|undefined} value
  * @return {!proto.asphrdaemon.IncomingMessage} returns this
- */
-proto.asphrdaemon.IncomingMessage.prototype.setDeliveredAt = function (value) {
+*/
+proto.asphrdaemon.IncomingMessage.prototype.setDeliveredAt = function(value) {
   return jspb.Message.setWrapperField(this, 2, value);
 };
+
 
 /**
  * Clears the message field making it undefined.
  * @return {!proto.asphrdaemon.IncomingMessage} returns this
  */
-proto.asphrdaemon.IncomingMessage.prototype.clearDeliveredAt = function () {
+proto.asphrdaemon.IncomingMessage.prototype.clearDeliveredAt = function() {
   return this.setDeliveredAt(undefined);
 };
+
 
 /**
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.asphrdaemon.IncomingMessage.prototype.hasDeliveredAt = function () {
+proto.asphrdaemon.IncomingMessage.prototype.hasDeliveredAt = function() {
   return jspb.Message.getField(this, 2) != null;
 };
+
 
 /**
  * optional bool seen = 3;
  * @return {boolean}
  */
-proto.asphrdaemon.IncomingMessage.prototype.getSeen = function () {
-  return /** @type {boolean} */ (
-    jspb.Message.getBooleanFieldWithDefault(this, 3, false)
-  );
+proto.asphrdaemon.IncomingMessage.prototype.getSeen = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 3, false));
 };
+
 
 /**
  * @param {boolean} value
  * @return {!proto.asphrdaemon.IncomingMessage} returns this
  */
-proto.asphrdaemon.IncomingMessage.prototype.setSeen = function (value) {
+proto.asphrdaemon.IncomingMessage.prototype.setSeen = function(value) {
   return jspb.Message.setProto3BooleanField(this, 3, value);
 };
+
 
 /**
  * optional bool delivered = 4;
  * @return {boolean}
  */
-proto.asphrdaemon.IncomingMessage.prototype.getDelivered = function () {
-  return /** @type {boolean} */ (
-    jspb.Message.getBooleanFieldWithDefault(this, 4, false)
-  );
+proto.asphrdaemon.IncomingMessage.prototype.getDelivered = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 4, false));
 };
+
 
 /**
  * @param {boolean} value
  * @return {!proto.asphrdaemon.IncomingMessage} returns this
  */
-proto.asphrdaemon.IncomingMessage.prototype.setDelivered = function (value) {
+proto.asphrdaemon.IncomingMessage.prototype.setDelivered = function(value) {
   return jspb.Message.setProto3BooleanField(this, 4, value);
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.OutgoingMessage.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.OutgoingMessage.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.OutgoingMessage.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.OutgoingMessage.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.OutgoingMessage} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.OutgoingMessage.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    m: (f = msg.getM()) && proto.asphrdaemon.BaseMessage.toObject(includeInstance, f),
+    sentAt: (f = msg.getSentAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
+    delivered: jspb.Message.getBooleanFieldWithDefault(msg, 3, false),
+    deliveredAt: (f = msg.getDeliveredAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f)
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.OutgoingMessage} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.OutgoingMessage.toObject = function (includeInstance, msg) {
-    var f,
-      obj = {
-        m:
-          (f = msg.getM()) &&
-          proto.asphrdaemon.BaseMessage.toObject(includeInstance, f),
-        sentAt:
-          (f = msg.getSentAt()) &&
-          google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
-        delivered: jspb.Message.getBooleanFieldWithDefault(msg, 3, false),
-        deliveredAt:
-          (f = msg.getDeliveredAt()) &&
-          google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
-      };
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.OutgoingMessage}
  */
-proto.asphrdaemon.OutgoingMessage.deserializeBinary = function (bytes) {
+proto.asphrdaemon.OutgoingMessage.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.OutgoingMessage();
-  return proto.asphrdaemon.OutgoingMessage.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.OutgoingMessage;
+  return proto.asphrdaemon.OutgoingMessage.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -3162,61 +4456,51 @@ proto.asphrdaemon.OutgoingMessage.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.OutgoingMessage}
  */
-proto.asphrdaemon.OutgoingMessage.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.OutgoingMessage.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      case 1:
-        var value = new proto.asphrdaemon.BaseMessage();
-        reader.readMessage(
-          value,
-          proto.asphrdaemon.BaseMessage.deserializeBinaryFromReader
-        );
-        msg.setM(value);
-        break;
-      case 2:
-        var value = new google_protobuf_timestamp_pb.Timestamp();
-        reader.readMessage(
-          value,
-          google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader
-        );
-        msg.setSentAt(value);
-        break;
-      case 3:
-        var value = /** @type {boolean} */ (reader.readBool());
-        msg.setDelivered(value);
-        break;
-      case 4:
-        var value = new google_protobuf_timestamp_pb.Timestamp();
-        reader.readMessage(
-          value,
-          google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader
-        );
-        msg.setDeliveredAt(value);
-        break;
-      default:
-        reader.skipField();
-        break;
+    case 1:
+      var value = new proto.asphrdaemon.BaseMessage;
+      reader.readMessage(value,proto.asphrdaemon.BaseMessage.deserializeBinaryFromReader);
+      msg.setM(value);
+      break;
+    case 2:
+      var value = new google_protobuf_timestamp_pb.Timestamp;
+      reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
+      msg.setSentAt(value);
+      break;
+    case 3:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setDelivered(value);
+      break;
+    case 4:
+      var value = new google_protobuf_timestamp_pb.Timestamp;
+      reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
+      msg.setDeliveredAt(value);
+      break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.OutgoingMessage.prototype.serializeBinary = function () {
+proto.asphrdaemon.OutgoingMessage.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.OutgoingMessage.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -3225,10 +4509,7 @@ proto.asphrdaemon.OutgoingMessage.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.OutgoingMessage.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.OutgoingMessage.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getM();
   if (f != null) {
@@ -3248,7 +4529,10 @@ proto.asphrdaemon.OutgoingMessage.serializeBinaryToWriter = function (
   }
   f = message.getDelivered();
   if (f) {
-    writer.writeBool(3, f);
+    writer.writeBool(
+      3,
+      f
+    );
   }
   f = message.getDeliveredAt();
   if (f != null) {
@@ -3260,194 +4544,190 @@ proto.asphrdaemon.OutgoingMessage.serializeBinaryToWriter = function (
   }
 };
 
+
 /**
  * optional BaseMessage m = 1;
  * @return {?proto.asphrdaemon.BaseMessage}
  */
-proto.asphrdaemon.OutgoingMessage.prototype.getM = function () {
+proto.asphrdaemon.OutgoingMessage.prototype.getM = function() {
   return /** @type{?proto.asphrdaemon.BaseMessage} */ (
-    jspb.Message.getWrapperField(this, proto.asphrdaemon.BaseMessage, 1)
-  );
+    jspb.Message.getWrapperField(this, proto.asphrdaemon.BaseMessage, 1));
 };
+
 
 /**
  * @param {?proto.asphrdaemon.BaseMessage|undefined} value
  * @return {!proto.asphrdaemon.OutgoingMessage} returns this
- */
-proto.asphrdaemon.OutgoingMessage.prototype.setM = function (value) {
+*/
+proto.asphrdaemon.OutgoingMessage.prototype.setM = function(value) {
   return jspb.Message.setWrapperField(this, 1, value);
 };
+
 
 /**
  * Clears the message field making it undefined.
  * @return {!proto.asphrdaemon.OutgoingMessage} returns this
  */
-proto.asphrdaemon.OutgoingMessage.prototype.clearM = function () {
+proto.asphrdaemon.OutgoingMessage.prototype.clearM = function() {
   return this.setM(undefined);
 };
+
 
 /**
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.asphrdaemon.OutgoingMessage.prototype.hasM = function () {
+proto.asphrdaemon.OutgoingMessage.prototype.hasM = function() {
   return jspb.Message.getField(this, 1) != null;
 };
+
 
 /**
  * optional google.protobuf.Timestamp sent_at = 2;
  * @return {?proto.google.protobuf.Timestamp}
  */
-proto.asphrdaemon.OutgoingMessage.prototype.getSentAt = function () {
+proto.asphrdaemon.OutgoingMessage.prototype.getSentAt = function() {
   return /** @type{?proto.google.protobuf.Timestamp} */ (
-    jspb.Message.getWrapperField(
-      this,
-      google_protobuf_timestamp_pb.Timestamp,
-      2
-    )
-  );
+    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 2));
 };
+
 
 /**
  * @param {?proto.google.protobuf.Timestamp|undefined} value
  * @return {!proto.asphrdaemon.OutgoingMessage} returns this
- */
-proto.asphrdaemon.OutgoingMessage.prototype.setSentAt = function (value) {
+*/
+proto.asphrdaemon.OutgoingMessage.prototype.setSentAt = function(value) {
   return jspb.Message.setWrapperField(this, 2, value);
 };
+
 
 /**
  * Clears the message field making it undefined.
  * @return {!proto.asphrdaemon.OutgoingMessage} returns this
  */
-proto.asphrdaemon.OutgoingMessage.prototype.clearSentAt = function () {
+proto.asphrdaemon.OutgoingMessage.prototype.clearSentAt = function() {
   return this.setSentAt(undefined);
 };
+
 
 /**
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.asphrdaemon.OutgoingMessage.prototype.hasSentAt = function () {
+proto.asphrdaemon.OutgoingMessage.prototype.hasSentAt = function() {
   return jspb.Message.getField(this, 2) != null;
 };
+
 
 /**
  * optional bool delivered = 3;
  * @return {boolean}
  */
-proto.asphrdaemon.OutgoingMessage.prototype.getDelivered = function () {
-  return /** @type {boolean} */ (
-    jspb.Message.getBooleanFieldWithDefault(this, 3, false)
-  );
+proto.asphrdaemon.OutgoingMessage.prototype.getDelivered = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 3, false));
 };
+
 
 /**
  * @param {boolean} value
  * @return {!proto.asphrdaemon.OutgoingMessage} returns this
  */
-proto.asphrdaemon.OutgoingMessage.prototype.setDelivered = function (value) {
+proto.asphrdaemon.OutgoingMessage.prototype.setDelivered = function(value) {
   return jspb.Message.setProto3BooleanField(this, 3, value);
 };
+
 
 /**
  * optional google.protobuf.Timestamp delivered_at = 4;
  * @return {?proto.google.protobuf.Timestamp}
  */
-proto.asphrdaemon.OutgoingMessage.prototype.getDeliveredAt = function () {
+proto.asphrdaemon.OutgoingMessage.prototype.getDeliveredAt = function() {
   return /** @type{?proto.google.protobuf.Timestamp} */ (
-    jspb.Message.getWrapperField(
-      this,
-      google_protobuf_timestamp_pb.Timestamp,
-      4
-    )
-  );
+    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 4));
 };
+
 
 /**
  * @param {?proto.google.protobuf.Timestamp|undefined} value
  * @return {!proto.asphrdaemon.OutgoingMessage} returns this
- */
-proto.asphrdaemon.OutgoingMessage.prototype.setDeliveredAt = function (value) {
+*/
+proto.asphrdaemon.OutgoingMessage.prototype.setDeliveredAt = function(value) {
   return jspb.Message.setWrapperField(this, 4, value);
 };
+
 
 /**
  * Clears the message field making it undefined.
  * @return {!proto.asphrdaemon.OutgoingMessage} returns this
  */
-proto.asphrdaemon.OutgoingMessage.prototype.clearDeliveredAt = function () {
+proto.asphrdaemon.OutgoingMessage.prototype.clearDeliveredAt = function() {
   return this.setDeliveredAt(undefined);
 };
+
 
 /**
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.asphrdaemon.OutgoingMessage.prototype.hasDeliveredAt = function () {
+proto.asphrdaemon.OutgoingMessage.prototype.hasDeliveredAt = function() {
   return jspb.Message.getField(this, 4) != null;
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.GetMessagesRequest.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.GetMessagesRequest.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.GetMessagesRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.GetMessagesRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.GetMessagesRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetMessagesRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    filter: jspb.Message.getFieldWithDefault(msg, 1, 0)
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.GetMessagesRequest} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.GetMessagesRequest.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {
-        filter: jspb.Message.getFieldWithDefault(msg, 1, 0),
-      };
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.GetMessagesRequest}
  */
-proto.asphrdaemon.GetMessagesRequest.deserializeBinary = function (bytes) {
+proto.asphrdaemon.GetMessagesRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.GetMessagesRequest();
-  return proto.asphrdaemon.GetMessagesRequest.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.GetMessagesRequest;
+  return proto.asphrdaemon.GetMessagesRequest.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -3456,40 +4736,36 @@ proto.asphrdaemon.GetMessagesRequest.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.GetMessagesRequest}
  */
-proto.asphrdaemon.GetMessagesRequest.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.GetMessagesRequest.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      case 1:
-        var value =
-          /** @type {!proto.asphrdaemon.GetMessagesRequest.Filter} */ (
-            reader.readEnum()
-          );
-        msg.setFilter(value);
-        break;
-      default:
-        reader.skipField();
-        break;
+    case 1:
+      var value = /** @type {!proto.asphrdaemon.GetMessagesRequest.Filter} */ (reader.readEnum());
+      msg.setFilter(value);
+      break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.GetMessagesRequest.prototype.serializeBinary = function () {
+proto.asphrdaemon.GetMessagesRequest.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.GetMessagesRequest.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -3498,42 +4774,44 @@ proto.asphrdaemon.GetMessagesRequest.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.GetMessagesRequest.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.GetMessagesRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getFilter();
   if (f !== 0.0) {
-    writer.writeEnum(1, f);
+    writer.writeEnum(
+      1,
+      f
+    );
   }
 };
+
 
 /**
  * @enum {number}
  */
 proto.asphrdaemon.GetMessagesRequest.Filter = {
   ALL: 0,
-  NEW: 1,
+  NEW: 1
 };
 
 /**
  * optional Filter filter = 1;
  * @return {!proto.asphrdaemon.GetMessagesRequest.Filter}
  */
-proto.asphrdaemon.GetMessagesRequest.prototype.getFilter = function () {
-  return /** @type {!proto.asphrdaemon.GetMessagesRequest.Filter} */ (
-    jspb.Message.getFieldWithDefault(this, 1, 0)
-  );
+proto.asphrdaemon.GetMessagesRequest.prototype.getFilter = function() {
+  return /** @type {!proto.asphrdaemon.GetMessagesRequest.Filter} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
 };
+
 
 /**
  * @param {!proto.asphrdaemon.GetMessagesRequest.Filter} value
  * @return {!proto.asphrdaemon.GetMessagesRequest} returns this
  */
-proto.asphrdaemon.GetMessagesRequest.prototype.setFilter = function (value) {
+proto.asphrdaemon.GetMessagesRequest.prototype.setFilter = function(value) {
   return jspb.Message.setProto3EnumField(this, 1, value);
 };
+
+
 
 /**
  * List of repeated fields within this message type.
@@ -3542,70 +4820,60 @@ proto.asphrdaemon.GetMessagesRequest.prototype.setFilter = function (value) {
  */
 proto.asphrdaemon.GetMessagesResponse.repeatedFields_ = [1];
 
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.GetMessagesResponse.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.GetMessagesResponse.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.GetMessagesResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.GetMessagesResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.GetMessagesResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetMessagesResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    messagesList: jspb.Message.toObjectList(msg.getMessagesList(),
+    proto.asphrdaemon.IncomingMessage.toObject, includeInstance)
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.GetMessagesResponse} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.GetMessagesResponse.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {
-        messagesList: jspb.Message.toObjectList(
-          msg.getMessagesList(),
-          proto.asphrdaemon.IncomingMessage.toObject,
-          includeInstance
-        ),
-      };
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.GetMessagesResponse}
  */
-proto.asphrdaemon.GetMessagesResponse.deserializeBinary = function (bytes) {
+proto.asphrdaemon.GetMessagesResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.GetMessagesResponse();
-  return proto.asphrdaemon.GetMessagesResponse.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.GetMessagesResponse;
+  return proto.asphrdaemon.GetMessagesResponse.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -3614,41 +4882,37 @@ proto.asphrdaemon.GetMessagesResponse.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.GetMessagesResponse}
  */
-proto.asphrdaemon.GetMessagesResponse.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.GetMessagesResponse.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      case 1:
-        var value = new proto.asphrdaemon.IncomingMessage();
-        reader.readMessage(
-          value,
-          proto.asphrdaemon.IncomingMessage.deserializeBinaryFromReader
-        );
-        msg.addMessages(value);
-        break;
-      default:
-        reader.skipField();
-        break;
+    case 1:
+      var value = new proto.asphrdaemon.IncomingMessage;
+      reader.readMessage(value,proto.asphrdaemon.IncomingMessage.deserializeBinaryFromReader);
+      msg.addMessages(value);
+      break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.GetMessagesResponse.prototype.serializeBinary = function () {
+proto.asphrdaemon.GetMessagesResponse.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.GetMessagesResponse.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -3657,10 +4921,7 @@ proto.asphrdaemon.GetMessagesResponse.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.GetMessagesResponse.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.GetMessagesResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getMessagesList();
   if (f.length > 0) {
@@ -3672,117 +4933,99 @@ proto.asphrdaemon.GetMessagesResponse.serializeBinaryToWriter = function (
   }
 };
 
+
 /**
  * repeated IncomingMessage messages = 1;
  * @return {!Array<!proto.asphrdaemon.IncomingMessage>}
  */
-proto.asphrdaemon.GetMessagesResponse.prototype.getMessagesList = function () {
+proto.asphrdaemon.GetMessagesResponse.prototype.getMessagesList = function() {
   return /** @type{!Array<!proto.asphrdaemon.IncomingMessage>} */ (
-    jspb.Message.getRepeatedWrapperField(
-      this,
-      proto.asphrdaemon.IncomingMessage,
-      1
-    )
-  );
+    jspb.Message.getRepeatedWrapperField(this, proto.asphrdaemon.IncomingMessage, 1));
 };
+
 
 /**
  * @param {!Array<!proto.asphrdaemon.IncomingMessage>} value
  * @return {!proto.asphrdaemon.GetMessagesResponse} returns this
- */
-proto.asphrdaemon.GetMessagesResponse.prototype.setMessagesList = function (
-  value
-) {
+*/
+proto.asphrdaemon.GetMessagesResponse.prototype.setMessagesList = function(value) {
   return jspb.Message.setRepeatedWrapperField(this, 1, value);
 };
+
 
 /**
  * @param {!proto.asphrdaemon.IncomingMessage=} opt_value
  * @param {number=} opt_index
  * @return {!proto.asphrdaemon.IncomingMessage}
  */
-proto.asphrdaemon.GetMessagesResponse.prototype.addMessages = function (
-  opt_value,
-  opt_index
-) {
-  return jspb.Message.addToRepeatedWrapperField(
-    this,
-    1,
-    opt_value,
-    proto.asphrdaemon.IncomingMessage,
-    opt_index
-  );
+proto.asphrdaemon.GetMessagesResponse.prototype.addMessages = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.asphrdaemon.IncomingMessage, opt_index);
 };
+
 
 /**
  * Clears the list making it empty but non-null.
  * @return {!proto.asphrdaemon.GetMessagesResponse} returns this
  */
-proto.asphrdaemon.GetMessagesResponse.prototype.clearMessagesList =
-  function () {
-    return this.setMessagesList([]);
-  };
+proto.asphrdaemon.GetMessagesResponse.prototype.clearMessagesList = function() {
+  return this.setMessagesList([]);
+};
+
+
+
+
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.GetOutboxMessagesRequest.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.GetOutboxMessagesRequest.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.GetOutboxMessagesRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.GetOutboxMessagesRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.GetOutboxMessagesRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetOutboxMessagesRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.GetOutboxMessagesRequest} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.GetOutboxMessagesRequest.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {};
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.GetOutboxMessagesRequest}
  */
-proto.asphrdaemon.GetOutboxMessagesRequest.deserializeBinary = function (
-  bytes
-) {
+proto.asphrdaemon.GetOutboxMessagesRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.GetOutboxMessagesRequest();
-  return proto.asphrdaemon.GetOutboxMessagesRequest.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.GetOutboxMessagesRequest;
+  return proto.asphrdaemon.GetOutboxMessagesRequest.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -3791,35 +5034,32 @@ proto.asphrdaemon.GetOutboxMessagesRequest.deserializeBinary = function (
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.GetOutboxMessagesRequest}
  */
-proto.asphrdaemon.GetOutboxMessagesRequest.deserializeBinaryFromReader =
-  function (msg, reader) {
-    while (reader.nextField()) {
-      if (reader.isEndGroup()) {
-        break;
-      }
-      var field = reader.getFieldNumber();
-      switch (field) {
-        default:
-          reader.skipField();
-          break;
-      }
+proto.asphrdaemon.GetOutboxMessagesRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
     }
-    return msg;
-  };
+    var field = reader.getFieldNumber();
+    switch (field) {
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
 
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.GetOutboxMessagesRequest.prototype.serializeBinary =
-  function () {
-    var writer = new jspb.BinaryWriter();
-    proto.asphrdaemon.GetOutboxMessagesRequest.serializeBinaryToWriter(
-      this,
-      writer
-    );
-    return writer.getResultBuffer();
-  };
+proto.asphrdaemon.GetOutboxMessagesRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.asphrdaemon.GetOutboxMessagesRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -3828,12 +5068,11 @@ proto.asphrdaemon.GetOutboxMessagesRequest.prototype.serializeBinary =
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.GetOutboxMessagesRequest.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.GetOutboxMessagesRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
 };
+
+
 
 /**
  * List of repeated fields within this message type.
@@ -3842,72 +5081,60 @@ proto.asphrdaemon.GetOutboxMessagesRequest.serializeBinaryToWriter = function (
  */
 proto.asphrdaemon.GetOutboxMessagesResponse.repeatedFields_ = [1];
 
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.GetOutboxMessagesResponse.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.GetOutboxMessagesResponse.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.GetOutboxMessagesResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.GetOutboxMessagesResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.GetOutboxMessagesResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetOutboxMessagesResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    messagesList: jspb.Message.toObjectList(msg.getMessagesList(),
+    proto.asphrdaemon.OutgoingMessage.toObject, includeInstance)
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.GetOutboxMessagesResponse} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.GetOutboxMessagesResponse.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {
-        messagesList: jspb.Message.toObjectList(
-          msg.getMessagesList(),
-          proto.asphrdaemon.OutgoingMessage.toObject,
-          includeInstance
-        ),
-      };
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.GetOutboxMessagesResponse}
  */
-proto.asphrdaemon.GetOutboxMessagesResponse.deserializeBinary = function (
-  bytes
-) {
+proto.asphrdaemon.GetOutboxMessagesResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.GetOutboxMessagesResponse();
-  return proto.asphrdaemon.GetOutboxMessagesResponse.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.GetOutboxMessagesResponse;
+  return proto.asphrdaemon.GetOutboxMessagesResponse.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -3916,43 +5143,37 @@ proto.asphrdaemon.GetOutboxMessagesResponse.deserializeBinary = function (
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.GetOutboxMessagesResponse}
  */
-proto.asphrdaemon.GetOutboxMessagesResponse.deserializeBinaryFromReader =
-  function (msg, reader) {
-    while (reader.nextField()) {
-      if (reader.isEndGroup()) {
-        break;
-      }
-      var field = reader.getFieldNumber();
-      switch (field) {
-        case 1:
-          var value = new proto.asphrdaemon.OutgoingMessage();
-          reader.readMessage(
-            value,
-            proto.asphrdaemon.OutgoingMessage.deserializeBinaryFromReader
-          );
-          msg.addMessages(value);
-          break;
-        default:
-          reader.skipField();
-          break;
-      }
+proto.asphrdaemon.GetOutboxMessagesResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
     }
-    return msg;
-  };
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.asphrdaemon.OutgoingMessage;
+      reader.readMessage(value,proto.asphrdaemon.OutgoingMessage.deserializeBinaryFromReader);
+      msg.addMessages(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
 
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.GetOutboxMessagesResponse.prototype.serializeBinary =
-  function () {
-    var writer = new jspb.BinaryWriter();
-    proto.asphrdaemon.GetOutboxMessagesResponse.serializeBinaryToWriter(
-      this,
-      writer
-    );
-    return writer.getResultBuffer();
-  };
+proto.asphrdaemon.GetOutboxMessagesResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.asphrdaemon.GetOutboxMessagesResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -3961,10 +5182,7 @@ proto.asphrdaemon.GetOutboxMessagesResponse.prototype.serializeBinary =
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.GetOutboxMessagesResponse.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.GetOutboxMessagesResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getMessagesList();
   if (f.length > 0) {
@@ -3976,115 +5194,99 @@ proto.asphrdaemon.GetOutboxMessagesResponse.serializeBinaryToWriter = function (
   }
 };
 
+
 /**
  * repeated OutgoingMessage messages = 1;
  * @return {!Array<!proto.asphrdaemon.OutgoingMessage>}
  */
-proto.asphrdaemon.GetOutboxMessagesResponse.prototype.getMessagesList =
-  function () {
-    return /** @type{!Array<!proto.asphrdaemon.OutgoingMessage>} */ (
-      jspb.Message.getRepeatedWrapperField(
-        this,
-        proto.asphrdaemon.OutgoingMessage,
-        1
-      )
-    );
-  };
+proto.asphrdaemon.GetOutboxMessagesResponse.prototype.getMessagesList = function() {
+  return /** @type{!Array<!proto.asphrdaemon.OutgoingMessage>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.asphrdaemon.OutgoingMessage, 1));
+};
+
 
 /**
  * @param {!Array<!proto.asphrdaemon.OutgoingMessage>} value
  * @return {!proto.asphrdaemon.GetOutboxMessagesResponse} returns this
- */
-proto.asphrdaemon.GetOutboxMessagesResponse.prototype.setMessagesList =
-  function (value) {
-    return jspb.Message.setRepeatedWrapperField(this, 1, value);
-  };
+*/
+proto.asphrdaemon.GetOutboxMessagesResponse.prototype.setMessagesList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
 
 /**
  * @param {!proto.asphrdaemon.OutgoingMessage=} opt_value
  * @param {number=} opt_index
  * @return {!proto.asphrdaemon.OutgoingMessage}
  */
-proto.asphrdaemon.GetOutboxMessagesResponse.prototype.addMessages = function (
-  opt_value,
-  opt_index
-) {
-  return jspb.Message.addToRepeatedWrapperField(
-    this,
-    1,
-    opt_value,
-    proto.asphrdaemon.OutgoingMessage,
-    opt_index
-  );
+proto.asphrdaemon.GetOutboxMessagesResponse.prototype.addMessages = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.asphrdaemon.OutgoingMessage, opt_index);
 };
+
 
 /**
  * Clears the list making it empty but non-null.
  * @return {!proto.asphrdaemon.GetOutboxMessagesResponse} returns this
  */
-proto.asphrdaemon.GetOutboxMessagesResponse.prototype.clearMessagesList =
-  function () {
-    return this.setMessagesList([]);
-  };
+proto.asphrdaemon.GetOutboxMessagesResponse.prototype.clearMessagesList = function() {
+  return this.setMessagesList([]);
+};
+
+
+
+
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.GetSentMessagesRequest.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.GetSentMessagesRequest.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.GetSentMessagesRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.GetSentMessagesRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.GetSentMessagesRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetSentMessagesRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.GetSentMessagesRequest} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.GetSentMessagesRequest.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {};
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.GetSentMessagesRequest}
  */
-proto.asphrdaemon.GetSentMessagesRequest.deserializeBinary = function (bytes) {
+proto.asphrdaemon.GetSentMessagesRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.GetSentMessagesRequest();
-  return proto.asphrdaemon.GetSentMessagesRequest.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.GetSentMessagesRequest;
+  return proto.asphrdaemon.GetSentMessagesRequest.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -4093,35 +5295,32 @@ proto.asphrdaemon.GetSentMessagesRequest.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.GetSentMessagesRequest}
  */
-proto.asphrdaemon.GetSentMessagesRequest.deserializeBinaryFromReader =
-  function (msg, reader) {
-    while (reader.nextField()) {
-      if (reader.isEndGroup()) {
-        break;
-      }
-      var field = reader.getFieldNumber();
-      switch (field) {
-        default:
-          reader.skipField();
-          break;
-      }
+proto.asphrdaemon.GetSentMessagesRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
     }
-    return msg;
-  };
+    var field = reader.getFieldNumber();
+    switch (field) {
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
 
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.GetSentMessagesRequest.prototype.serializeBinary =
-  function () {
-    var writer = new jspb.BinaryWriter();
-    proto.asphrdaemon.GetSentMessagesRequest.serializeBinaryToWriter(
-      this,
-      writer
-    );
-    return writer.getResultBuffer();
-  };
+proto.asphrdaemon.GetSentMessagesRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.asphrdaemon.GetSentMessagesRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -4130,12 +5329,11 @@ proto.asphrdaemon.GetSentMessagesRequest.prototype.serializeBinary =
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.GetSentMessagesRequest.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.GetSentMessagesRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
 };
+
+
 
 /**
  * List of repeated fields within this message type.
@@ -4144,70 +5342,60 @@ proto.asphrdaemon.GetSentMessagesRequest.serializeBinaryToWriter = function (
  */
 proto.asphrdaemon.GetSentMessagesResponse.repeatedFields_ = [1];
 
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.GetSentMessagesResponse.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.GetSentMessagesResponse.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.GetSentMessagesResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.GetSentMessagesResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.GetSentMessagesResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetSentMessagesResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    messagesList: jspb.Message.toObjectList(msg.getMessagesList(),
+    proto.asphrdaemon.OutgoingMessage.toObject, includeInstance)
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.GetSentMessagesResponse} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.GetSentMessagesResponse.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {
-        messagesList: jspb.Message.toObjectList(
-          msg.getMessagesList(),
-          proto.asphrdaemon.OutgoingMessage.toObject,
-          includeInstance
-        ),
-      };
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.GetSentMessagesResponse}
  */
-proto.asphrdaemon.GetSentMessagesResponse.deserializeBinary = function (bytes) {
+proto.asphrdaemon.GetSentMessagesResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.GetSentMessagesResponse();
-  return proto.asphrdaemon.GetSentMessagesResponse.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.GetSentMessagesResponse;
+  return proto.asphrdaemon.GetSentMessagesResponse.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -4216,43 +5404,37 @@ proto.asphrdaemon.GetSentMessagesResponse.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.GetSentMessagesResponse}
  */
-proto.asphrdaemon.GetSentMessagesResponse.deserializeBinaryFromReader =
-  function (msg, reader) {
-    while (reader.nextField()) {
-      if (reader.isEndGroup()) {
-        break;
-      }
-      var field = reader.getFieldNumber();
-      switch (field) {
-        case 1:
-          var value = new proto.asphrdaemon.OutgoingMessage();
-          reader.readMessage(
-            value,
-            proto.asphrdaemon.OutgoingMessage.deserializeBinaryFromReader
-          );
-          msg.addMessages(value);
-          break;
-        default:
-          reader.skipField();
-          break;
-      }
+proto.asphrdaemon.GetSentMessagesResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
     }
-    return msg;
-  };
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.asphrdaemon.OutgoingMessage;
+      reader.readMessage(value,proto.asphrdaemon.OutgoingMessage.deserializeBinaryFromReader);
+      msg.addMessages(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
 
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.GetSentMessagesResponse.prototype.serializeBinary =
-  function () {
-    var writer = new jspb.BinaryWriter();
-    proto.asphrdaemon.GetSentMessagesResponse.serializeBinaryToWriter(
-      this,
-      writer
-    );
-    return writer.getResultBuffer();
-  };
+proto.asphrdaemon.GetSentMessagesResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.asphrdaemon.GetSentMessagesResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -4261,10 +5443,7 @@ proto.asphrdaemon.GetSentMessagesResponse.prototype.serializeBinary =
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.GetSentMessagesResponse.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.GetSentMessagesResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getMessagesList();
   if (f.length > 0) {
@@ -4276,118 +5455,99 @@ proto.asphrdaemon.GetSentMessagesResponse.serializeBinaryToWriter = function (
   }
 };
 
+
 /**
  * repeated OutgoingMessage messages = 1;
  * @return {!Array<!proto.asphrdaemon.OutgoingMessage>}
  */
-proto.asphrdaemon.GetSentMessagesResponse.prototype.getMessagesList =
-  function () {
-    return /** @type{!Array<!proto.asphrdaemon.OutgoingMessage>} */ (
-      jspb.Message.getRepeatedWrapperField(
-        this,
-        proto.asphrdaemon.OutgoingMessage,
-        1
-      )
-    );
-  };
+proto.asphrdaemon.GetSentMessagesResponse.prototype.getMessagesList = function() {
+  return /** @type{!Array<!proto.asphrdaemon.OutgoingMessage>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.asphrdaemon.OutgoingMessage, 1));
+};
+
 
 /**
  * @param {!Array<!proto.asphrdaemon.OutgoingMessage>} value
  * @return {!proto.asphrdaemon.GetSentMessagesResponse} returns this
- */
-proto.asphrdaemon.GetSentMessagesResponse.prototype.setMessagesList = function (
-  value
-) {
+*/
+proto.asphrdaemon.GetSentMessagesResponse.prototype.setMessagesList = function(value) {
   return jspb.Message.setRepeatedWrapperField(this, 1, value);
 };
+
 
 /**
  * @param {!proto.asphrdaemon.OutgoingMessage=} opt_value
  * @param {number=} opt_index
  * @return {!proto.asphrdaemon.OutgoingMessage}
  */
-proto.asphrdaemon.GetSentMessagesResponse.prototype.addMessages = function (
-  opt_value,
-  opt_index
-) {
-  return jspb.Message.addToRepeatedWrapperField(
-    this,
-    1,
-    opt_value,
-    proto.asphrdaemon.OutgoingMessage,
-    opt_index
-  );
+proto.asphrdaemon.GetSentMessagesResponse.prototype.addMessages = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.asphrdaemon.OutgoingMessage, opt_index);
 };
+
 
 /**
  * Clears the list making it empty but non-null.
  * @return {!proto.asphrdaemon.GetSentMessagesResponse} returns this
  */
-proto.asphrdaemon.GetSentMessagesResponse.prototype.clearMessagesList =
-  function () {
-    return this.setMessagesList([]);
-  };
+proto.asphrdaemon.GetSentMessagesResponse.prototype.clearMessagesList = function() {
+  return this.setMessagesList([]);
+};
+
+
+
+
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.MessageSeenRequest.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.MessageSeenRequest.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.MessageSeenRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.MessageSeenRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.MessageSeenRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.MessageSeenRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    id: jspb.Message.getFieldWithDefault(msg, 1, 0)
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.MessageSeenRequest} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.MessageSeenRequest.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {
-        id: jspb.Message.getFieldWithDefault(msg, 1, 0),
-      };
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.MessageSeenRequest}
  */
-proto.asphrdaemon.MessageSeenRequest.deserializeBinary = function (bytes) {
+proto.asphrdaemon.MessageSeenRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.MessageSeenRequest();
-  return proto.asphrdaemon.MessageSeenRequest.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.MessageSeenRequest;
+  return proto.asphrdaemon.MessageSeenRequest.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -4396,37 +5556,36 @@ proto.asphrdaemon.MessageSeenRequest.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.MessageSeenRequest}
  */
-proto.asphrdaemon.MessageSeenRequest.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.MessageSeenRequest.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      case 1:
-        var value = /** @type {number} */ (reader.readInt32());
-        msg.setId(value);
-        break;
-      default:
-        reader.skipField();
-        break;
+    case 1:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setId(value);
+      break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.MessageSeenRequest.prototype.serializeBinary = function () {
+proto.asphrdaemon.MessageSeenRequest.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.MessageSeenRequest.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -4435,91 +5594,90 @@ proto.asphrdaemon.MessageSeenRequest.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.MessageSeenRequest.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.MessageSeenRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getId();
   if (f !== 0) {
-    writer.writeInt32(1, f);
+    writer.writeInt32(
+      1,
+      f
+    );
   }
 };
+
 
 /**
  * optional int32 id = 1;
  * @return {number}
  */
-proto.asphrdaemon.MessageSeenRequest.prototype.getId = function () {
+proto.asphrdaemon.MessageSeenRequest.prototype.getId = function() {
   return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
 };
+
 
 /**
  * @param {number} value
  * @return {!proto.asphrdaemon.MessageSeenRequest} returns this
  */
-proto.asphrdaemon.MessageSeenRequest.prototype.setId = function (value) {
+proto.asphrdaemon.MessageSeenRequest.prototype.setId = function(value) {
   return jspb.Message.setProto3IntField(this, 1, value);
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.MessageSeenResponse.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.MessageSeenResponse.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.MessageSeenResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.MessageSeenResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.MessageSeenResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.MessageSeenResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.MessageSeenResponse} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.MessageSeenResponse.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {};
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.MessageSeenResponse}
  */
-proto.asphrdaemon.MessageSeenResponse.deserializeBinary = function (bytes) {
+proto.asphrdaemon.MessageSeenResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.MessageSeenResponse();
-  return proto.asphrdaemon.MessageSeenResponse.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.MessageSeenResponse;
+  return proto.asphrdaemon.MessageSeenResponse.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -4528,33 +5686,32 @@ proto.asphrdaemon.MessageSeenResponse.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.MessageSeenResponse}
  */
-proto.asphrdaemon.MessageSeenResponse.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.MessageSeenResponse.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      default:
-        reader.skipField();
-        break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.MessageSeenResponse.prototype.serializeBinary = function () {
+proto.asphrdaemon.MessageSeenResponse.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.MessageSeenResponse.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -4563,71 +5720,65 @@ proto.asphrdaemon.MessageSeenResponse.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.MessageSeenResponse.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.MessageSeenResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.GetStatusRequest.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.GetStatusRequest.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.GetStatusRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.GetStatusRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.GetStatusRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetStatusRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.GetStatusRequest} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.GetStatusRequest.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {};
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.GetStatusRequest}
  */
-proto.asphrdaemon.GetStatusRequest.deserializeBinary = function (bytes) {
+proto.asphrdaemon.GetStatusRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.GetStatusRequest();
-  return proto.asphrdaemon.GetStatusRequest.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.GetStatusRequest;
+  return proto.asphrdaemon.GetStatusRequest.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -4636,33 +5787,32 @@ proto.asphrdaemon.GetStatusRequest.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.GetStatusRequest}
  */
-proto.asphrdaemon.GetStatusRequest.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.GetStatusRequest.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      default:
-        reader.skipField();
-        break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.GetStatusRequest.prototype.serializeBinary = function () {
+proto.asphrdaemon.GetStatusRequest.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.GetStatusRequest.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -4671,76 +5821,68 @@ proto.asphrdaemon.GetStatusRequest.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.GetStatusRequest.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.GetStatusRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.GetStatusResponse.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.GetStatusResponse.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.GetStatusResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.GetStatusResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.GetStatusResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetStatusResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    registered: jspb.Message.getBooleanFieldWithDefault(msg, 1, false),
+    releaseHash: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    latencySeconds: jspb.Message.getFieldWithDefault(msg, 3, 0),
+    serverAddress: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.GetStatusResponse} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.GetStatusResponse.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {
-        registered: jspb.Message.getBooleanFieldWithDefault(msg, 1, false),
-        releaseHash: jspb.Message.getFieldWithDefault(msg, 2, ""),
-        latencySeconds: jspb.Message.getFieldWithDefault(msg, 3, 0),
-        serverAddress: jspb.Message.getFieldWithDefault(msg, 4, ""),
-      };
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.GetStatusResponse}
  */
-proto.asphrdaemon.GetStatusResponse.deserializeBinary = function (bytes) {
+proto.asphrdaemon.GetStatusResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.GetStatusResponse();
-  return proto.asphrdaemon.GetStatusResponse.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.GetStatusResponse;
+  return proto.asphrdaemon.GetStatusResponse.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -4749,49 +5891,48 @@ proto.asphrdaemon.GetStatusResponse.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.GetStatusResponse}
  */
-proto.asphrdaemon.GetStatusResponse.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.GetStatusResponse.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      case 1:
-        var value = /** @type {boolean} */ (reader.readBool());
-        msg.setRegistered(value);
-        break;
-      case 2:
-        var value = /** @type {string} */ (reader.readString());
-        msg.setReleaseHash(value);
-        break;
-      case 3:
-        var value = /** @type {number} */ (reader.readInt32());
-        msg.setLatencySeconds(value);
-        break;
-      case 4:
-        var value = /** @type {string} */ (reader.readString());
-        msg.setServerAddress(value);
-        break;
-      default:
-        reader.skipField();
-        break;
+    case 1:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setRegistered(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setReleaseHash(value);
+      break;
+    case 3:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setLatencySeconds(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setServerAddress(value);
+      break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.GetStatusResponse.prototype.serializeBinary = function () {
+proto.asphrdaemon.GetStatusResponse.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.GetStatusResponse.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -4800,159 +5941,165 @@ proto.asphrdaemon.GetStatusResponse.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.GetStatusResponse.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.GetStatusResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getRegistered();
   if (f) {
-    writer.writeBool(1, f);
+    writer.writeBool(
+      1,
+      f
+    );
   }
   f = message.getReleaseHash();
   if (f.length > 0) {
-    writer.writeString(2, f);
+    writer.writeString(
+      2,
+      f
+    );
   }
   f = message.getLatencySeconds();
   if (f !== 0) {
-    writer.writeInt32(3, f);
+    writer.writeInt32(
+      3,
+      f
+    );
   }
   f = message.getServerAddress();
   if (f.length > 0) {
-    writer.writeString(4, f);
+    writer.writeString(
+      4,
+      f
+    );
   }
 };
+
 
 /**
  * optional bool registered = 1;
  * @return {boolean}
  */
-proto.asphrdaemon.GetStatusResponse.prototype.getRegistered = function () {
-  return /** @type {boolean} */ (
-    jspb.Message.getBooleanFieldWithDefault(this, 1, false)
-  );
+proto.asphrdaemon.GetStatusResponse.prototype.getRegistered = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 1, false));
 };
+
 
 /**
  * @param {boolean} value
  * @return {!proto.asphrdaemon.GetStatusResponse} returns this
  */
-proto.asphrdaemon.GetStatusResponse.prototype.setRegistered = function (value) {
+proto.asphrdaemon.GetStatusResponse.prototype.setRegistered = function(value) {
   return jspb.Message.setProto3BooleanField(this, 1, value);
 };
+
 
 /**
  * optional string release_hash = 2;
  * @return {string}
  */
-proto.asphrdaemon.GetStatusResponse.prototype.getReleaseHash = function () {
+proto.asphrdaemon.GetStatusResponse.prototype.getReleaseHash = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
+
 
 /**
  * @param {string} value
  * @return {!proto.asphrdaemon.GetStatusResponse} returns this
  */
-proto.asphrdaemon.GetStatusResponse.prototype.setReleaseHash = function (
-  value
-) {
+proto.asphrdaemon.GetStatusResponse.prototype.setReleaseHash = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
 };
+
 
 /**
  * optional int32 latency_seconds = 3;
  * @return {number}
  */
-proto.asphrdaemon.GetStatusResponse.prototype.getLatencySeconds = function () {
+proto.asphrdaemon.GetStatusResponse.prototype.getLatencySeconds = function() {
   return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
 };
+
 
 /**
  * @param {number} value
  * @return {!proto.asphrdaemon.GetStatusResponse} returns this
  */
-proto.asphrdaemon.GetStatusResponse.prototype.setLatencySeconds = function (
-  value
-) {
+proto.asphrdaemon.GetStatusResponse.prototype.setLatencySeconds = function(value) {
   return jspb.Message.setProto3IntField(this, 3, value);
 };
+
 
 /**
  * optional string server_address = 4;
  * @return {string}
  */
-proto.asphrdaemon.GetStatusResponse.prototype.getServerAddress = function () {
+proto.asphrdaemon.GetStatusResponse.prototype.getServerAddress = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
 };
+
 
 /**
  * @param {string} value
  * @return {!proto.asphrdaemon.GetStatusResponse} returns this
  */
-proto.asphrdaemon.GetStatusResponse.prototype.setServerAddress = function (
-  value
-) {
+proto.asphrdaemon.GetStatusResponse.prototype.setServerAddress = function(value) {
   return jspb.Message.setProto3StringField(this, 4, value);
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.GetLatencyRequest.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.GetLatencyRequest.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.GetLatencyRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.GetLatencyRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.GetLatencyRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetLatencyRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.GetLatencyRequest} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.GetLatencyRequest.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {};
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.GetLatencyRequest}
  */
-proto.asphrdaemon.GetLatencyRequest.deserializeBinary = function (bytes) {
+proto.asphrdaemon.GetLatencyRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.GetLatencyRequest();
-  return proto.asphrdaemon.GetLatencyRequest.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.GetLatencyRequest;
+  return proto.asphrdaemon.GetLatencyRequest.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -4961,33 +6108,32 @@ proto.asphrdaemon.GetLatencyRequest.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.GetLatencyRequest}
  */
-proto.asphrdaemon.GetLatencyRequest.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.GetLatencyRequest.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      default:
-        reader.skipField();
-        break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.GetLatencyRequest.prototype.serializeBinary = function () {
+proto.asphrdaemon.GetLatencyRequest.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.GetLatencyRequest.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -4996,73 +6142,65 @@ proto.asphrdaemon.GetLatencyRequest.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.GetLatencyRequest.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.GetLatencyRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.GetLatencyResponse.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.GetLatencyResponse.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.GetLatencyResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.GetLatencyResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.GetLatencyResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.GetLatencyResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    latencySeconds: jspb.Message.getFieldWithDefault(msg, 1, 0)
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.GetLatencyResponse} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.GetLatencyResponse.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {
-        latencySeconds: jspb.Message.getFieldWithDefault(msg, 1, 0),
-      };
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.GetLatencyResponse}
  */
-proto.asphrdaemon.GetLatencyResponse.deserializeBinary = function (bytes) {
+proto.asphrdaemon.GetLatencyResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.GetLatencyResponse();
-  return proto.asphrdaemon.GetLatencyResponse.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.GetLatencyResponse;
+  return proto.asphrdaemon.GetLatencyResponse.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -5071,37 +6209,36 @@ proto.asphrdaemon.GetLatencyResponse.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.GetLatencyResponse}
  */
-proto.asphrdaemon.GetLatencyResponse.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.GetLatencyResponse.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      case 1:
-        var value = /** @type {number} */ (reader.readInt32());
-        msg.setLatencySeconds(value);
-        break;
-      default:
-        reader.skipField();
-        break;
+    case 1:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setLatencySeconds(value);
+      break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.GetLatencyResponse.prototype.serializeBinary = function () {
+proto.asphrdaemon.GetLatencyResponse.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.GetLatencyResponse.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -5110,95 +6247,90 @@ proto.asphrdaemon.GetLatencyResponse.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.GetLatencyResponse.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.GetLatencyResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getLatencySeconds();
   if (f !== 0) {
-    writer.writeInt32(1, f);
+    writer.writeInt32(
+      1,
+      f
+    );
   }
 };
+
 
 /**
  * optional int32 latency_seconds = 1;
  * @return {number}
  */
-proto.asphrdaemon.GetLatencyResponse.prototype.getLatencySeconds = function () {
+proto.asphrdaemon.GetLatencyResponse.prototype.getLatencySeconds = function() {
   return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
 };
+
 
 /**
  * @param {number} value
  * @return {!proto.asphrdaemon.GetLatencyResponse} returns this
  */
-proto.asphrdaemon.GetLatencyResponse.prototype.setLatencySeconds = function (
-  value
-) {
+proto.asphrdaemon.GetLatencyResponse.prototype.setLatencySeconds = function(value) {
   return jspb.Message.setProto3IntField(this, 1, value);
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.ChangeLatencyRequest.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.ChangeLatencyRequest.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.ChangeLatencyRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.ChangeLatencyRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.ChangeLatencyRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.ChangeLatencyRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    latencySeconds: jspb.Message.getFieldWithDefault(msg, 1, 0)
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.ChangeLatencyRequest} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.ChangeLatencyRequest.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {
-        latencySeconds: jspb.Message.getFieldWithDefault(msg, 1, 0),
-      };
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.ChangeLatencyRequest}
  */
-proto.asphrdaemon.ChangeLatencyRequest.deserializeBinary = function (bytes) {
+proto.asphrdaemon.ChangeLatencyRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.ChangeLatencyRequest();
-  return proto.asphrdaemon.ChangeLatencyRequest.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.ChangeLatencyRequest;
+  return proto.asphrdaemon.ChangeLatencyRequest.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -5207,37 +6339,36 @@ proto.asphrdaemon.ChangeLatencyRequest.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.ChangeLatencyRequest}
  */
-proto.asphrdaemon.ChangeLatencyRequest.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.ChangeLatencyRequest.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      case 1:
-        var value = /** @type {number} */ (reader.readInt32());
-        msg.setLatencySeconds(value);
-        break;
-      default:
-        reader.skipField();
-        break;
+    case 1:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setLatencySeconds(value);
+      break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.ChangeLatencyRequest.prototype.serializeBinary = function () {
+proto.asphrdaemon.ChangeLatencyRequest.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.ChangeLatencyRequest.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -5246,94 +6377,90 @@ proto.asphrdaemon.ChangeLatencyRequest.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.ChangeLatencyRequest.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.ChangeLatencyRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getLatencySeconds();
   if (f !== 0) {
-    writer.writeInt32(1, f);
+    writer.writeInt32(
+      1,
+      f
+    );
   }
 };
+
 
 /**
  * optional int32 latency_seconds = 1;
  * @return {number}
  */
-proto.asphrdaemon.ChangeLatencyRequest.prototype.getLatencySeconds =
-  function () {
-    return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
-  };
+proto.asphrdaemon.ChangeLatencyRequest.prototype.getLatencySeconds = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
+};
+
 
 /**
  * @param {number} value
  * @return {!proto.asphrdaemon.ChangeLatencyRequest} returns this
  */
-proto.asphrdaemon.ChangeLatencyRequest.prototype.setLatencySeconds = function (
-  value
-) {
+proto.asphrdaemon.ChangeLatencyRequest.prototype.setLatencySeconds = function(value) {
   return jspb.Message.setProto3IntField(this, 1, value);
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.ChangeLatencyResponse.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.ChangeLatencyResponse.toObject(
-      opt_includeInstance,
-      this
-    );
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.ChangeLatencyResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.ChangeLatencyResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.ChangeLatencyResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.ChangeLatencyResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.ChangeLatencyResponse} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.ChangeLatencyResponse.toObject = function (
-    includeInstance,
-    msg
-  ) {
-    var f,
-      obj = {};
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.ChangeLatencyResponse}
  */
-proto.asphrdaemon.ChangeLatencyResponse.deserializeBinary = function (bytes) {
+proto.asphrdaemon.ChangeLatencyResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.ChangeLatencyResponse();
-  return proto.asphrdaemon.ChangeLatencyResponse.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.ChangeLatencyResponse;
+  return proto.asphrdaemon.ChangeLatencyResponse.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -5342,37 +6469,32 @@ proto.asphrdaemon.ChangeLatencyResponse.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.ChangeLatencyResponse}
  */
-proto.asphrdaemon.ChangeLatencyResponse.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.ChangeLatencyResponse.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      default:
-        reader.skipField();
-        break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.ChangeLatencyResponse.prototype.serializeBinary =
-  function () {
-    var writer = new jspb.BinaryWriter();
-    proto.asphrdaemon.ChangeLatencyResponse.serializeBinaryToWriter(
-      this,
-      writer
-    );
-    return writer.getResultBuffer();
-  };
+proto.asphrdaemon.ChangeLatencyResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.asphrdaemon.ChangeLatencyResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -5381,62 +6503,65 @@ proto.asphrdaemon.ChangeLatencyResponse.prototype.serializeBinary =
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.ChangeLatencyResponse.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.ChangeLatencyResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.KillRequest.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.KillRequest.toObject(opt_includeInstance, this);
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.KillRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.KillRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.KillRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.KillRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.KillRequest} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.KillRequest.toObject = function (includeInstance, msg) {
-    var f,
-      obj = {};
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.KillRequest}
  */
-proto.asphrdaemon.KillRequest.deserializeBinary = function (bytes) {
+proto.asphrdaemon.KillRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.KillRequest();
+  var msg = new proto.asphrdaemon.KillRequest;
   return proto.asphrdaemon.KillRequest.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -5445,33 +6570,32 @@ proto.asphrdaemon.KillRequest.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.KillRequest}
  */
-proto.asphrdaemon.KillRequest.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.KillRequest.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      default:
-        reader.skipField();
-        break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.KillRequest.prototype.serializeBinary = function () {
+proto.asphrdaemon.KillRequest.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.KillRequest.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -5480,65 +6604,65 @@ proto.asphrdaemon.KillRequest.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.KillRequest.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.KillRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
 };
 
+
+
+
+
 if (jspb.Message.GENERATE_TO_OBJECT) {
-  /**
-   * Creates an object representation of this proto.
-   * Field names that are reserved in JavaScript and will be renamed to pb_name.
-   * Optional fields that are not set will be set to undefined.
-   * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
-   * For the list of reserved names please see:
-   *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
-   * @param {boolean=} opt_includeInstance Deprecated. whether to include the
-   *     JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @return {!Object}
-   */
-  proto.asphrdaemon.KillResponse.prototype.toObject = function (
-    opt_includeInstance
-  ) {
-    return proto.asphrdaemon.KillResponse.toObject(opt_includeInstance, this);
+/**
+ * Creates an object representation of this proto.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * Optional fields that are not set will be set to undefined.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     net/proto2/compiler/js/internal/generator.cc#kKeyword.
+ * @param {boolean=} opt_includeInstance Deprecated. whether to include the
+ *     JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.asphrdaemon.KillResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.asphrdaemon.KillResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Deprecated. Whether to include
+ *     the JSPB instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.asphrdaemon.KillResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.asphrdaemon.KillResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
   };
 
-  /**
-   * Static version of the {@see toObject} method.
-   * @param {boolean|undefined} includeInstance Deprecated. Whether to include
-   *     the JSPB instance for transitional soy proto support:
-   *     http://goto/soy-param-migration
-   * @param {!proto.asphrdaemon.KillResponse} msg The msg instance to transform.
-   * @return {!Object}
-   * @suppress {unusedLocalVariables} f is only used for nested messages
-   */
-  proto.asphrdaemon.KillResponse.toObject = function (includeInstance, msg) {
-    var f,
-      obj = {};
-
-    if (includeInstance) {
-      obj.$jspbMessageInstance = msg;
-    }
-    return obj;
-  };
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
 }
+
 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
  * @return {!proto.asphrdaemon.KillResponse}
  */
-proto.asphrdaemon.KillResponse.deserializeBinary = function (bytes) {
+proto.asphrdaemon.KillResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.asphrdaemon.KillResponse();
-  return proto.asphrdaemon.KillResponse.deserializeBinaryFromReader(
-    msg,
-    reader
-  );
+  var msg = new proto.asphrdaemon.KillResponse;
+  return proto.asphrdaemon.KillResponse.deserializeBinaryFromReader(msg, reader);
 };
+
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
@@ -5547,33 +6671,32 @@ proto.asphrdaemon.KillResponse.deserializeBinary = function (bytes) {
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
  * @return {!proto.asphrdaemon.KillResponse}
  */
-proto.asphrdaemon.KillResponse.deserializeBinaryFromReader = function (
-  msg,
-  reader
-) {
+proto.asphrdaemon.KillResponse.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
     }
     var field = reader.getFieldNumber();
     switch (field) {
-      default:
-        reader.skipField();
-        break;
+    default:
+      reader.skipField();
+      break;
     }
   }
   return msg;
 };
 
+
 /**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.asphrdaemon.KillResponse.prototype.serializeBinary = function () {
+proto.asphrdaemon.KillResponse.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
   proto.asphrdaemon.KillResponse.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
+
 
 /**
  * Serializes the given message to binary data (in protobuf wire
@@ -5582,11 +6705,9 @@ proto.asphrdaemon.KillResponse.prototype.serializeBinary = function () {
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.asphrdaemon.KillResponse.serializeBinaryToWriter = function (
-  message,
-  writer
-) {
+proto.asphrdaemon.KillResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
 };
+
 
 goog.object.extend(exports, proto.asphrdaemon);
