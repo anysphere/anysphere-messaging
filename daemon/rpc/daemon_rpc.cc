@@ -192,7 +192,7 @@ auto DaemonRpc::convertStructRPCtoDB(asphrdaemon::FriendInfo& friend_info,
   const int FRIEND_REQUEST_MESSAGE_LENGTH_LIMIT = 500;
   // TODO: figure out a reasonable message length limit
   if (message.size() > FRIEND_REQUEST_MESSAGE_LENGTH_LIMIT) {
-    ASPHR_LOG_ERR("Message is too long.", rpc_call, "SendAsyncFriendRequest");
+    ASPHR_LOG_ERR("Message is too long.", rpc_call, "AddAsyncFriend");
     return absl::InvalidArgumentError("friend request message is too long");
   }
 
@@ -200,8 +200,7 @@ auto DaemonRpc::convertStructRPCtoDB(asphrdaemon::FriendInfo& friend_info,
   // friend
   auto friend_public_id_ = crypto::decode_user_id(friend_info.public_id());
   if (!friend_public_id_.ok()) {
-    ASPHR_LOG_ERR("Failed to decode public ID.", rpc_call,
-                  "SendAsyncFriendRequest");
+    ASPHR_LOG_ERR("Failed to decode public ID.", rpc_call, "AddAsyncFriend");
     return absl::InvalidArgumentError("friend requestmessage is too long");
   }
   auto [friend_username, friend_allocation, friend_kx_public_key,
@@ -265,23 +264,20 @@ Status DaemonRpc::AddSyncFriend(
   return Status(grpc::StatusCode::UNIMPLEMENTED, "not implemented");
 }
 
-Status DaemonRpc::SendAsyncFriendRequest(
+grpc::Status DaemonRpc::AddAsyncFriend(
     grpc::ServerContext* context,
-    const asphrdaemon::SendAsyncFriendRequestRequest*
-        sendAsyncFriendRequestRequest,
-    asphrdaemon::SendAsyncFriendRequestResponse*) {
-  ASPHR_LOG_INFO("SendAsyncFriendRequest() called.", rpc_call,
-                 "SendAsyncFriendRequest");
+    const asphrdaemon::AddAsyncFriendRequest* addAsyncFriendRequest,
+    asphrdaemon::AddAsyncFriendResponse* addAsyncFriendResponse) {
+  ASPHR_LOG_INFO("AddAsyncFriend() called.", rpc_call, "AddAsyncFriend");
 
-  auto friend_info = sendAsyncFriendRequestRequest->friend_info();
-  std::string message = sendAsyncFriendRequestRequest->message();
+  auto friend_info = addAsyncFriendRequest->friend_info();
+  std::string message = addAsyncFriendRequest->message();
 
   // We need to decode the friend's id to figure out the public keys of our
   // friend
   auto friend_public_id_ = crypto::decode_user_id(friend_info.public_id());
   if (!friend_public_id_.ok()) {
-    ASPHR_LOG_ERR("Failed to decode public ID.", rpc_call,
-                  "SendAsyncFriendRequest");
+    ASPHR_LOG_ERR("Failed to decode public ID.", rpc_call, "AddAsyncFriend");
     return Status(grpc::StatusCode::INVALID_ARGUMENT,
                   "failed to decode public ID");
   }
@@ -300,8 +296,7 @@ Status DaemonRpc::SendAsyncFriendRequest(
     auto conversion_result = convertStructRPCtoDB(
         friend_info, message, OUTGOING_ASYNC_REQUEST, read_key, write_key);
     if (!conversion_result.ok()) {
-      ASPHR_LOG_ERR("Failed to convert RPC to DB.", rpc_call,
-                    "SendAsyncFriendRequest");
+      ASPHR_LOG_ERR("Failed to convert RPC to DB.", rpc_call, "AddAsyncFriend");
       return Status(grpc::StatusCode::INVALID_ARGUMENT,
                     "failed to convert RPC to DB");
     }
@@ -309,11 +304,10 @@ Status DaemonRpc::SendAsyncFriendRequest(
     G.db->add_outgoing_async_friend_requests(db_friend, db_address);
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Failed to add friend.", error, e.what(), rpc_call,
-                  "AddFriend");
+                  "AddAsyncFriend");
     return Status(grpc::StatusCode::UNKNOWN, e.what());
   }
-  ASPHR_LOG_INFO("SendAsyncFriendRequest() done.", rpc_call,
-                 "SendAsyncFriendRequest");
+  ASPHR_LOG_INFO("AddAsyncFriend() done.", rpc_call, "AddAsyncFriend");
   return Status::OK;
 }
 
