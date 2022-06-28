@@ -200,7 +200,7 @@ export namespace AddSyncFriendResponse {
   }
 }
 
-export class SendAsyncFriendRequestRequest extends jspb.Message {
+export class AddAsyncFriendRequest extends jspb.Message {
   hasFriendInfo(): boolean;
   clearFriendInfo(): void;
   getFriendInfo(): FriendInfo | undefined;
@@ -210,34 +210,34 @@ export class SendAsyncFriendRequestRequest extends jspb.Message {
   setMessage(value: string): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): SendAsyncFriendRequestRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: SendAsyncFriendRequestRequest): SendAsyncFriendRequestRequest.AsObject;
+  toObject(includeInstance?: boolean): AddAsyncFriendRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: AddAsyncFriendRequest): AddAsyncFriendRequest.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: SendAsyncFriendRequestRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): SendAsyncFriendRequestRequest;
-  static deserializeBinaryFromReader(message: SendAsyncFriendRequestRequest, reader: jspb.BinaryReader): SendAsyncFriendRequestRequest;
+  static serializeBinaryToWriter(message: AddAsyncFriendRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AddAsyncFriendRequest;
+  static deserializeBinaryFromReader(message: AddAsyncFriendRequest, reader: jspb.BinaryReader): AddAsyncFriendRequest;
 }
 
-export namespace SendAsyncFriendRequestRequest {
+export namespace AddAsyncFriendRequest {
   export type AsObject = {
     friendInfo?: FriendInfo.AsObject,
     message: string,
   }
 }
 
-export class SendAsyncFriendRequestResponse extends jspb.Message {
+export class AddAsyncFriendResponse extends jspb.Message {
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): SendAsyncFriendRequestResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: SendAsyncFriendRequestResponse): SendAsyncFriendRequestResponse.AsObject;
+  toObject(includeInstance?: boolean): AddAsyncFriendResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: AddAsyncFriendResponse): AddAsyncFriendResponse.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: SendAsyncFriendRequestResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): SendAsyncFriendRequestResponse;
-  static deserializeBinaryFromReader(message: SendAsyncFriendRequestResponse, reader: jspb.BinaryReader): SendAsyncFriendRequestResponse;
+  static serializeBinaryToWriter(message: AddAsyncFriendResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AddAsyncFriendResponse;
+  static deserializeBinaryFromReader(message: AddAsyncFriendResponse, reader: jspb.BinaryReader): AddAsyncFriendResponse;
 }
 
-export namespace SendAsyncFriendRequestResponse {
+export namespace AddAsyncFriendResponse {
   export type AsObject = {
   }
 }
@@ -269,11 +269,6 @@ export class GetOutgoingFriendRequestsResponse extends jspb.Message {
   setMessagesList(value: Array<string>): void;
   addMessages(value: string, index?: number): string;
 
-  clearFriendRequestTypesList(): void;
-  getFriendRequestTypesList(): Array<GetOutgoingFriendRequestsResponse.FriendRequestTypeMap[keyof GetOutgoingFriendRequestsResponse.FriendRequestTypeMap]>;
-  setFriendRequestTypesList(value: Array<GetOutgoingFriendRequestsResponse.FriendRequestTypeMap[keyof GetOutgoingFriendRequestsResponse.FriendRequestTypeMap]>): void;
-  addFriendRequestTypes(value: GetOutgoingFriendRequestsResponse.FriendRequestTypeMap[keyof GetOutgoingFriendRequestsResponse.FriendRequestTypeMap], index?: number): GetOutgoingFriendRequestsResponse.FriendRequestTypeMap[keyof GetOutgoingFriendRequestsResponse.FriendRequestTypeMap];
-
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetOutgoingFriendRequestsResponse.AsObject;
   static toObject(includeInstance: boolean, msg: GetOutgoingFriendRequestsResponse): GetOutgoingFriendRequestsResponse.AsObject;
@@ -288,15 +283,7 @@ export namespace GetOutgoingFriendRequestsResponse {
   export type AsObject = {
     friendInfosList: Array<FriendInfo.AsObject>,
     messagesList: Array<string>,
-    friendRequestTypesList: Array<GetOutgoingFriendRequestsResponse.FriendRequestTypeMap[keyof GetOutgoingFriendRequestsResponse.FriendRequestTypeMap]>,
   }
-
-  export interface FriendRequestTypeMap {
-    ASYNC: 0;
-    SYNC: 1;
-  }
-
-  export const FriendRequestType: FriendRequestTypeMap;
 }
 
 export class GetIncomingAsyncFriendRequestsRequest extends jspb.Message {

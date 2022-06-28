@@ -13,7 +13,7 @@ interface IDaemonService extends grpc.ServiceDefinition<grpc.UntypedServiceImple
   getFriendList: grpc.MethodDefinition<schema_daemon_pb.GetFriendListRequest, schema_daemon_pb.GetFriendListResponse>;
   getPublicID: grpc.MethodDefinition<schema_daemon_pb.GetPublicIDRequest, schema_daemon_pb.GetPublicIDResponse>;
   addSyncFriend: grpc.MethodDefinition<schema_daemon_pb.AddSyncFriendRequest, schema_daemon_pb.AddSyncFriendResponse>;
-  sendAsyncFriendRequest: grpc.MethodDefinition<schema_daemon_pb.SendAsyncFriendRequestRequest, schema_daemon_pb.SendAsyncFriendRequestResponse>;
+  addAsyncFriend: grpc.MethodDefinition<schema_daemon_pb.AddAsyncFriendRequest, schema_daemon_pb.AddAsyncFriendResponse>;
   getOutgoingFriendRequests: grpc.MethodDefinition<schema_daemon_pb.GetOutgoingFriendRequestsRequest, schema_daemon_pb.GetOutgoingFriendRequestsResponse>;
   getIncomingAsyncFriendRequests: grpc.MethodDefinition<schema_daemon_pb.GetIncomingAsyncFriendRequestsRequest, schema_daemon_pb.GetIncomingAsyncFriendRequestsResponse>;
   decideAsyncFriendRequest: grpc.MethodDefinition<schema_daemon_pb.DecideAsyncFriendRequestRequest, schema_daemon_pb.DecideAsyncFriendRequestResponse>;
@@ -37,7 +37,7 @@ export interface IDaemonServer extends grpc.UntypedServiceImplementation {
   getFriendList: grpc.handleUnaryCall<schema_daemon_pb.GetFriendListRequest, schema_daemon_pb.GetFriendListResponse>;
   getPublicID: grpc.handleUnaryCall<schema_daemon_pb.GetPublicIDRequest, schema_daemon_pb.GetPublicIDResponse>;
   addSyncFriend: grpc.handleUnaryCall<schema_daemon_pb.AddSyncFriendRequest, schema_daemon_pb.AddSyncFriendResponse>;
-  sendAsyncFriendRequest: grpc.handleUnaryCall<schema_daemon_pb.SendAsyncFriendRequestRequest, schema_daemon_pb.SendAsyncFriendRequestResponse>;
+  addAsyncFriend: grpc.handleUnaryCall<schema_daemon_pb.AddAsyncFriendRequest, schema_daemon_pb.AddAsyncFriendResponse>;
   getOutgoingFriendRequests: grpc.handleUnaryCall<schema_daemon_pb.GetOutgoingFriendRequestsRequest, schema_daemon_pb.GetOutgoingFriendRequestsResponse>;
   getIncomingAsyncFriendRequests: grpc.handleUnaryCall<schema_daemon_pb.GetIncomingAsyncFriendRequestsRequest, schema_daemon_pb.GetIncomingAsyncFriendRequestsResponse>;
   decideAsyncFriendRequest: grpc.handleUnaryCall<schema_daemon_pb.DecideAsyncFriendRequestRequest, schema_daemon_pb.DecideAsyncFriendRequestResponse>;
@@ -68,9 +68,9 @@ export class DaemonClient extends grpc.Client {
   addSyncFriend(argument: schema_daemon_pb.AddSyncFriendRequest, callback: grpc.requestCallback<schema_daemon_pb.AddSyncFriendResponse>): grpc.ClientUnaryCall;
   addSyncFriend(argument: schema_daemon_pb.AddSyncFriendRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.AddSyncFriendResponse>): grpc.ClientUnaryCall;
   addSyncFriend(argument: schema_daemon_pb.AddSyncFriendRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.AddSyncFriendResponse>): grpc.ClientUnaryCall;
-  sendAsyncFriendRequest(argument: schema_daemon_pb.SendAsyncFriendRequestRequest, callback: grpc.requestCallback<schema_daemon_pb.SendAsyncFriendRequestResponse>): grpc.ClientUnaryCall;
-  sendAsyncFriendRequest(argument: schema_daemon_pb.SendAsyncFriendRequestRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.SendAsyncFriendRequestResponse>): grpc.ClientUnaryCall;
-  sendAsyncFriendRequest(argument: schema_daemon_pb.SendAsyncFriendRequestRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.SendAsyncFriendRequestResponse>): grpc.ClientUnaryCall;
+  addAsyncFriend(argument: schema_daemon_pb.AddAsyncFriendRequest, callback: grpc.requestCallback<schema_daemon_pb.AddAsyncFriendResponse>): grpc.ClientUnaryCall;
+  addAsyncFriend(argument: schema_daemon_pb.AddAsyncFriendRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.AddAsyncFriendResponse>): grpc.ClientUnaryCall;
+  addAsyncFriend(argument: schema_daemon_pb.AddAsyncFriendRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.AddAsyncFriendResponse>): grpc.ClientUnaryCall;
   getOutgoingFriendRequests(argument: schema_daemon_pb.GetOutgoingFriendRequestsRequest, callback: grpc.requestCallback<schema_daemon_pb.GetOutgoingFriendRequestsResponse>): grpc.ClientUnaryCall;
   getOutgoingFriendRequests(argument: schema_daemon_pb.GetOutgoingFriendRequestsRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetOutgoingFriendRequestsResponse>): grpc.ClientUnaryCall;
   getOutgoingFriendRequests(argument: schema_daemon_pb.GetOutgoingFriendRequestsRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetOutgoingFriendRequestsResponse>): grpc.ClientUnaryCall;
