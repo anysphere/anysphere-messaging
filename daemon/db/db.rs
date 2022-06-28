@@ -114,9 +114,11 @@ where
 
 ////////////////////////////////////////////////////////////////////////////////
 // Constants for the "Progress" Field in friend
+// When updating this, also update constants.hpp
 pub const INCOMING_REQUEST: i32 = 0;
-pub const OUTGOING_REQUEST: i32 = 1;
-pub const ACTUAL_FRIEND: i32 = 2;
+pub const OUTGOING_ASYNC_REQUEST: i32 = 1;
+pub const OUTGOING_SYNC_REQUEST: i32 = 2;
+pub const ACTUAL_FRIEND: i32 = 3;
 ////////////////////////////////////////////////////////////////////////////////
 ///
 /// Source of truth is in the migrations folder. Schema.rs is generated from them.
@@ -1608,8 +1610,8 @@ impl DB {
     friend_struct: ffi::FriendFragment,
     address_struct: ffi::AddAddress,
   ) -> Result<(), DbError> {
-    if friend_struct.progress != OUTGOING_REQUEST {
-      return Err(DbError::InvalidArgument("not an outgoing request".to_string()));
+    if friend_struct.progress != OUTGOING_ASYNC_REQUEST {
+      return Err(DbError::InvalidArgument("not an outgoing async request".to_string()));
     }
     let mut conn = self.connect().unwrap();
     use crate::schema::address;
@@ -1653,7 +1655,7 @@ impl DB {
 
     if let Ok(f) = friend::table
       .filter(friend::deleted.eq(false))
-      .filter(friend::progress.eq(OUTGOING_REQUEST))
+      .filter(friend::progress.eq(OUTGOING_ASYNC_REQUEST))
       .load::<ffi::Friend>(&mut conn)
     {
       Ok(f)

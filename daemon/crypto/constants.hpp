@@ -9,9 +9,10 @@
 
 // constant for the progress field in the db
 // if you update this, be sure to update db.rs as well
-const int INCOMING_REQUEST = 0;
-const int OUTGOING_REQUEST = 1;
-const int ACTUAL_FRIEND = 2;
+constexpr int INCOMING_REQUEST = 0;
+constexpr int OUTGOING_ASYNC_REQUEST = 1;
+constexpr int OUTGOING_SYNC_REQUEST = 2;
+constexpr int ACTUAL_FRIEND = 2;
 
 // MAC bytes
 constexpr size_t CRYPTO_ABYTES = crypto_aead_xchacha20poly1305_ietf_ABYTES;

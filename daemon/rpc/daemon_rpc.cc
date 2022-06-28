@@ -298,7 +298,7 @@ Status DaemonRpc::SendAsyncFriendRequest(
         rust_u8Vec_to_string(self_kx_private_key), friend_kx_public_key);
     auto [read_key, write_key] = key_exchange_;
     auto conversion_result = convertStructRPCtoDB(
-        friend_info, message, OUTGOING_REQUEST, read_key, write_key);
+        friend_info, message, OUTGOING_ASYNC_REQUEST, read_key, write_key);
     if (!conversion_result.ok()) {
       ASPHR_LOG_ERR("Failed to convert RPC to DB.", rpc_call,
                     "SendAsyncFriendRequest");
@@ -341,8 +341,6 @@ Status DaemonRpc::GetOutgoingFriendRequests(
       getOutgoingFriendRequestsResponse->add_friend_infos()->CopyFrom(
           friend_info);
       getOutgoingFriendRequestsResponse->add_messages(message);
-      getOutgoingFriendRequestsResponse->add_friend_request_types(
-          asphrdaemon::GetOutgoingFriendRequestsResponse::ASYNC);
     }
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Failed to get outgoing friend requests.", error, e.what(),

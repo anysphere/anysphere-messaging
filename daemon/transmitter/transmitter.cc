@@ -705,7 +705,8 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
                 "Ignoring friend request because friend is incoming.",
                 "Friend ID", friend_id);
             continue;
-          } else if (db_friend.progress == OUTGOING_REQUEST) {
+          } else if (db_friend.progress == OUTGOING_ASYNC_REQUEST ||
+                     db_friend.progress == OUTGOING_SYNC_REQUEST) {
             // approve this request
             ASPHR_LOG_INFO(
                 "Approving friend request because friend is outgoing.",
