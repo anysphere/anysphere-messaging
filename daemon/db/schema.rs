@@ -36,7 +36,7 @@ diesel::table! {
         unique_name -> Text,
         display_name -> Text,
         public_id -> Text,
-        progress -> Integer,
+        request_progress -> Integer,
         deleted -> Bool,
     }
 }

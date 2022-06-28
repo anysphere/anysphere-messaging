@@ -1,13 +1,15 @@
 use diesel::prelude::*;
 
-use crate::{db::*};
-use rand::{Rng};
+use crate::db::*;
+use rand::Rng;
 
 fn get_registration_fragment() -> ffi::RegistrationFragment {
   let kx_public_key: Vec<u8> = br#"zIUWz21AsWme9KxgS43TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
   let kx_private_key: Vec<u8> = br#""EUSOOwjVEHRD1XzruR93LcK8YosZ3gWUkrrk8yjrpIQ="#.to_vec();
-  let friend_request_public_key: Vec<u8> = br#"zIUWz21AsWme9KxgS56TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
-  let friend_request_private_key: Vec<u8> = br#"zIUWz21AsWme9KxgS78TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
+  let friend_request_public_key: Vec<u8> =
+    br#"zIUWz21AsWme9KxgS56TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
+  let friend_request_private_key: Vec<u8> =
+    br#"zIUWz21AsWme9KxgS78TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
   let allocation: i32 = 34;
   let pir_secret_key: Vec<u8> = br#""hi hi"#.to_vec();
   let pir_galois_key: Vec<u8> = br#""hi hi hi"#.to_vec();
@@ -23,7 +25,7 @@ fn get_registration_fragment() -> ffi::RegistrationFragment {
     pir_secret_key,
     pir_galois_key,
     authentication_token,
-    public_id
+    public_id,
   }
 }
 
@@ -226,7 +228,7 @@ fn test_async_add_friend() {
     unique_name: friend_name.to_string(),
     display_name: "lyrica".to_string(),
     public_id: "tttt".to_string(),
-    progress: INCOMING_REQUEST,
+    request_progress: ffi::FriendRequestProgress::Incoming,
     deleted: false,
   };
 

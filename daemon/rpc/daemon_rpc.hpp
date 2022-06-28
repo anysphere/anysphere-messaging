@@ -26,22 +26,20 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
       const asphrdaemon::GetFriendListRequest* getFriendListRequest,
       asphrdaemon::GetFriendListResponse* getFriendListResponse) override;
 
-  grpc::Status GetPublicID(
+  grpc::Status GetMyPublicID(
       grpc::ServerContext* context,
-      const asphrdaemon::GetPublicIDRequest* getPublicIDRequest,
-      asphrdaemon::GetPublicIDResponse* getPublicIDResponse) override;
+      const asphrdaemon::GetMyPublicIDRequest* getMyPublicIDRequest,
+      asphrdaemon::GetMyPublicIDResponse* getMyPublicIDResponse) override;
 
   grpc::Status AddSyncFriend(
       grpc::ServerContext* context,
       const asphrdaemon::AddSyncFriendRequest* addSyncFriendRequest,
       asphrdaemon::AddSyncFriendResponse* addSyncFriendResponse) override;
 
-  grpc::Status SendAsyncFriendRequest(
+  grpc::Status AddAsyncFriend(
       grpc::ServerContext* context,
-      const asphrdaemon::SendAsyncFriendRequestRequest*
-          sendAsyncFriendRequestRequest,
-      asphrdaemon::SendAsyncFriendRequestResponse*
-          sendAsyncFriendRequestResponse) override;
+      const asphrdaemon::AddAsyncFriendRequest* addAsyncFriendRequest,
+      asphrdaemon::AddAsyncFriendResponse* addAsyncFriendResponse) override;
 
   grpc::Status GetOutgoingFriendRequests(
       grpc::ServerContext* context,
@@ -126,9 +124,9 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
   // The RPC speaks in the FriendInfo Struct
   // The DB speaks in the Friend and Address Structs
   // we provide a way to translate between them
-  auto convertStructRPCtoDB(asphrdaemon::FriendInfo& friend_info,
-                            string message, int progress, string read_key,
-                            string write_key)
+  auto convertStructRPCtoDB(
+      const asphrdaemon::AddAsyncFriendRequest& friend_info, string message,
+      db::FriendRequestProgress progress, string read_key, string write_key)
       -> asphr::StatusOr<std::pair<db::FriendFragment, db::AddAddress>>;
 
   auto convertStructDBtoRPC(const db::Friend& db_friend,

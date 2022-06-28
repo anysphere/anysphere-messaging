@@ -1,4 +1,4 @@
-use diesel::prelude::*;
+use diesel::{deserialize::FromSql, prelude::*};
 
 use std::{error::Error, fmt};
 
@@ -112,14 +112,45 @@ where
   }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Constants for the "Progress" Field in friend
-// When updating this, also update constants.hpp
-pub const INCOMING_REQUEST: i32 = 0;
-pub const OUTGOING_ASYNC_REQUEST: i32 = 1;
-pub const OUTGOING_SYNC_REQUEST: i32 = 2;
-pub const ACTUAL_FRIEND: i32 = 3;
-////////////////////////////////////////////////////////////////////////////////
+impl<DB> Queryable<diesel::sql_types::Integer, DB> for ffi::FriendRequestProgress
+where
+  DB: diesel::backend::Backend,
+  i32: diesel::deserialize::FromSql<diesel::sql_types::Integer, DB>,
+{
+  type Row = i32;
+  fn build(s: i32) -> diesel::deserialize::Result<Self> {
+    match s {
+      0 => Ok(ffi::FriendRequestProgress::Incoming),
+      1 => Ok(ffi::FriendRequestProgress::OutgoingAsync),
+      2 => Ok(ffi::FriendRequestProgress::OutgoingSync),
+      3 => Ok(ffi::FriendRequestProgress::Complete),
+      _ => Err("invalid friend request progress".into()),
+    }
+  }
+}
+
+use diesel::serialize::Output;
+use diesel::serialize::ToSql;
+impl ToSql<diesel::sql_types::Integer, diesel::sqlite::Sqlite> for ffi::FriendRequestProgress
+where
+  i32: ToSql<diesel::sql_types::Integer, diesel::sqlite::Sqlite>,
+{
+  fn to_sql<'b>(
+    &'b self,
+    out: &mut Output<'b, '_, diesel::sqlite::Sqlite>,
+  ) -> diesel::serialize::Result {
+    // out.set_value(*self as i32);
+    match *self {
+      ffi::FriendRequestProgress::Incoming => out.set_value(0 as i32),
+      ffi::FriendRequestProgress::OutgoingAsync => out.set_value(1 as i32),
+      ffi::FriendRequestProgress::OutgoingSync => out.set_value(2 as i32),
+      ffi::FriendRequestProgress::Complete => out.set_value(3 as i32),
+      _ => return Err("invalid friend request progress".into()),
+    }
+    Ok(diesel::serialize::IsNull::No)
+  }
+}
+
 ///
 /// Source of truth is in the migrations folder. Schema.rs is generated from them.
 /// This right here is just a query interface. It will not correspond exactly. It should not.
@@ -137,13 +168,23 @@ pub mod ffi {
   // TODO: try to write a macro for enforcing this in code.
   //
 
+  // THIS SHOULD BE SAME AS THE SQL VERSIONS ABOVE
+  #[derive(Debug, AsExpression)]
+  #[diesel(sql_type = diesel::sql_types::Integer)]
+  enum FriendRequestProgress {
+    Incoming,
+    OutgoingAsync,
+    OutgoingSync,
+    Complete,
+  }
   #[derive(Queryable)]
   struct Friend {
     pub uid: i32,
     pub unique_name: String,
     pub display_name: String,
     pub public_id: String,
-    pub progress: i32,
+    #[diesel(deserialize_as = FriendRequestProgress)]
+    pub request_progress: FriendRequestProgress,
     pub deleted: bool,
   }
 
@@ -153,7 +194,7 @@ pub mod ffi {
     pub unique_name: String,
     pub display_name: String,
     pub public_id: String,
-    pub progress: i32,
+    pub request_progress: FriendRequestProgress,
     pub deleted: bool,
   }
 
@@ -695,7 +736,7 @@ impl DB {
     use crate::schema::friend;
 
     if let Ok(v) = friend::table
-      .filter(friend::progress.eq(ACTUAL_FRIEND))
+      .filter(friend::request_progress.eq(ffi::FriendRequestProgress::Complete))
       .filter(friend::deleted.eq(false))
       .load::<ffi::Friend>(&mut conn)
     {
@@ -730,7 +771,7 @@ impl DB {
       unique_name: unique_name.to_string(),
       display_name: display_name.to_string(),
       public_id: public_id.to_string(),
-      progress: ACTUAL_FRIEND,
+      request_progress: ffi::FriendRequestProgress::Complete,
       deleted: false,
     };
     let r = conn.transaction(|conn_b| {
@@ -778,7 +819,7 @@ impl DB {
 
         let ack_indices = address::table
           .inner_join(friend::table)
-          .filter(friend::progress.eq(ACTUAL_FRIEND))
+          .filter(friend::request_progress.eq(ffi::FriendRequestProgress::Complete))
           .filter(friend::deleted.eq(false))
           .select(address::ack_index)
           .load::<i32>(conn_b)?;
@@ -804,7 +845,7 @@ impl DB {
         diesel::insert_into(address::table).values(&address).execute(conn_b)?;
 
         diesel::update(friend::table.find(uid))
-          .set(friend::progress.eq(ACTUAL_FRIEND))
+          .set(friend::request_progress.eq(ffi::FriendRequestProgress::Complete))
           .execute(conn_b)?;
 
         let status = ffi::Status { uid, sent_acked_seqnum: 0, received_seqnum: 0 };
@@ -908,7 +949,7 @@ impl DB {
           if control_message == CONTROL_MESSAGE_OUTGOING_FRIEND_REQUEST {
             // yay! they shall now be considered a Real Friend
             diesel::update(friend::table.find(uid))
-              .set(friend::progress.eq(ACTUAL_FRIEND))
+              .set(friend::request_progress.eq(ffi::FriendRequestProgress::Complete))
               .execute(conn_b)?;
           }
         }
@@ -1105,7 +1146,7 @@ impl DB {
       }
       // move the friend to become an actual friend
       diesel::update(friend::table.find(from_friend))
-        .set(friend::progress.eq(ACTUAL_FRIEND))
+        .set(friend::request_progress.eq(ffi::FriendRequestProgress::Complete))
         .execute(conn_b)?;
 
       Ok(ffi::ReceiveChunkStatus::NewChunk)
@@ -1188,7 +1229,7 @@ impl DB {
     use crate::schema::friend;
     use crate::schema::status;
     let wide_friends = friend::table
-      .filter(friend::progress.eq(ACTUAL_FRIEND))
+      .filter(friend::request_progress.eq(ffi::FriendRequestProgress::Complete))
       .filter(friend::deleted.eq(false))
       .inner_join(status::table)
       .inner_join(address::table);
@@ -1225,8 +1266,9 @@ impl DB {
     use crate::schema::friend;
 
     // get a random friend that is not deleted excluding the ones in the uids list
-    let q =
-      friend::table.filter(friend::progress.eq(ACTUAL_FRIEND)).filter(friend::deleted.eq(false));
+    let q = friend::table
+      .filter(friend::request_progress.eq(ffi::FriendRequestProgress::Complete))
+      .filter(friend::deleted.eq(false));
 
     // Inner join to get the (friend, address) pairs and then select the address.
     let q = q.inner_join(address::table).select(address::all_columns);
@@ -1610,7 +1652,7 @@ impl DB {
     friend_struct: ffi::FriendFragment,
     address_struct: ffi::AddAddress,
   ) -> Result<(), DbError> {
-    if friend_struct.progress != OUTGOING_ASYNC_REQUEST {
+    if friend_struct.request_progress != ffi::FriendRequestProgress::OutgoingAsync {
       return Err(DbError::InvalidArgument("not an outgoing async request".to_string()));
     }
     let mut conn = self.connect().unwrap();
@@ -1655,7 +1697,7 @@ impl DB {
 
     if let Ok(f) = friend::table
       .filter(friend::deleted.eq(false))
-      .filter(friend::progress.eq(OUTGOING_ASYNC_REQUEST))
+      .filter(friend::request_progress.eq(ffi::FriendRequestProgress::OutgoingAsync))
       .load::<ffi::Friend>(&mut conn)
     {
       Ok(f)
@@ -1669,7 +1711,7 @@ impl DB {
     friend_struct: ffi::FriendFragment,
     address_struct: ffi::AddAddress,
   ) -> Result<(), DbError> {
-    if friend_struct.progress != INCOMING_REQUEST {
+    if friend_struct.request_progress != ffi::FriendRequestProgress::Incoming {
       return Err(DbError::InvalidArgument("not an incoming request".to_string()));
     }
     let mut conn = self.connect().unwrap();
@@ -1715,7 +1757,7 @@ impl DB {
 
     if let Ok(f) = friend::table
       .filter(friend::deleted.eq(false))
-      .filter(friend::progress.eq(INCOMING_REQUEST))
+      .filter(friend::request_progress.eq(ffi::FriendRequestProgress::Incoming))
       .load::<ffi::Friend>(&mut conn)
     {
       Ok(f)
@@ -1740,7 +1782,7 @@ impl DB {
       .transaction::<_, diesel::result::Error, _>(|conn_b| {
         // update the progress field of friend
         diesel::update(friend::table.filter(friend::unique_name.eq(unique_name)))
-          .set(friend::progress.eq(ACTUAL_FRIEND))
+          .set(friend::request_progress.eq(ffi::FriendRequestProgress::Complete))
           .execute(conn_b)?;
         // we need to get the uid of the friend to update the address
         let uid = friend::table
@@ -1751,7 +1793,7 @@ impl DB {
         // we do this by updating the address table
         let ack_indices = address::table
           .inner_join(friend::table)
-          .filter(friend::progress.eq(ACTUAL_FRIEND))
+          .filter(friend::request_progress.eq(ffi::FriendRequestProgress::Complete))
           .filter(friend::deleted.eq(false))
           .select(address::ack_index)
           .load::<i32>(conn_b)?;

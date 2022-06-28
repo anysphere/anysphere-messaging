@@ -34,7 +34,7 @@ CREATE TABLE friend (
     unique_name text UNIQUE NOT NULL,
     display_name text NOT NULL,
     public_id text NOT NULL, -- redundant, but as this is used so prevalent, we'll keep it.
-    progress integer NOT NULL, -- enum, values defined in db.rs and constants.hpp
+    request_progress integer NOT NULL, -- enum, values defined in db.rs and constants.hpp
     deleted boolean NOT NULL
 );
 
