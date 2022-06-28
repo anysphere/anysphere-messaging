@@ -183,28 +183,6 @@ function deserialize_asphrdaemon_GetMessagesResponse(buffer_arg) {
   return schema_daemon_pb.GetMessagesResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
-function serialize_asphrdaemon_GetMyPublicIDRequest(arg) {
-  if (!(arg instanceof schema_daemon_pb.GetMyPublicIDRequest)) {
-    throw new Error('Expected argument of type asphrdaemon.GetMyPublicIDRequest');
-  }
-  return Buffer.from(arg.serializeBinary());
-}
-
-function deserialize_asphrdaemon_GetMyPublicIDRequest(buffer_arg) {
-  return schema_daemon_pb.GetMyPublicIDRequest.deserializeBinary(new Uint8Array(buffer_arg));
-}
-
-function serialize_asphrdaemon_GetMyPublicIDResponse(arg) {
-  if (!(arg instanceof schema_daemon_pb.GetMyPublicIDResponse)) {
-    throw new Error('Expected argument of type asphrdaemon.GetMyPublicIDResponse');
-  }
-  return Buffer.from(arg.serializeBinary());
-}
-
-function deserialize_asphrdaemon_GetMyPublicIDResponse(buffer_arg) {
-  return schema_daemon_pb.GetMyPublicIDResponse.deserializeBinary(new Uint8Array(buffer_arg));
-}
-
 function serialize_asphrdaemon_GetOutboxMessagesRequest(arg) {
   if (!(arg instanceof schema_daemon_pb.GetOutboxMessagesRequest)) {
     throw new Error('Expected argument of type asphrdaemon.GetOutboxMessagesRequest');
@@ -247,6 +225,28 @@ function serialize_asphrdaemon_GetOutgoingFriendRequestsResponse(arg) {
 
 function deserialize_asphrdaemon_GetOutgoingFriendRequestsResponse(buffer_arg) {
   return schema_daemon_pb.GetOutgoingFriendRequestsResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_asphrdaemon_GetPublicIDRequest(arg) {
+  if (!(arg instanceof schema_daemon_pb.GetPublicIDRequest)) {
+    throw new Error('Expected argument of type asphrdaemon.GetPublicIDRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_GetPublicIDRequest(buffer_arg) {
+  return schema_daemon_pb.GetPublicIDRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_asphrdaemon_GetPublicIDResponse(arg) {
+  if (!(arg instanceof schema_daemon_pb.GetPublicIDResponse)) {
+    throw new Error('Expected argument of type asphrdaemon.GetPublicIDResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_GetPublicIDResponse(buffer_arg) {
+  return schema_daemon_pb.GetPublicIDResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_asphrdaemon_GetSentMessagesRequest(arg) {
@@ -427,16 +427,16 @@ var DaemonService = exports.DaemonService = {
     responseSerialize: serialize_asphrdaemon_GetFriendListResponse,
     responseDeserialize: deserialize_asphrdaemon_GetFriendListResponse,
   },
-  getMyPublicID: {
-    path: '/asphrdaemon.Daemon/GetMyPublicID',
+  getPublicID: {
+    path: '/asphrdaemon.Daemon/GetPublicID',
     requestStream: false,
     responseStream: false,
-    requestType: schema_daemon_pb.GetMyPublicIDRequest,
-    responseType: schema_daemon_pb.GetMyPublicIDResponse,
-    requestSerialize: serialize_asphrdaemon_GetMyPublicIDRequest,
-    requestDeserialize: deserialize_asphrdaemon_GetMyPublicIDRequest,
-    responseSerialize: serialize_asphrdaemon_GetMyPublicIDResponse,
-    responseDeserialize: deserialize_asphrdaemon_GetMyPublicIDResponse,
+    requestType: schema_daemon_pb.GetPublicIDRequest,
+    responseType: schema_daemon_pb.GetPublicIDResponse,
+    requestSerialize: serialize_asphrdaemon_GetPublicIDRequest,
+    requestDeserialize: deserialize_asphrdaemon_GetPublicIDRequest,
+    responseSerialize: serialize_asphrdaemon_GetPublicIDResponse,
+    responseDeserialize: deserialize_asphrdaemon_GetPublicIDResponse,
   },
   addSyncFriend: {
     path: '/asphrdaemon.Daemon/AddSyncFriend',
