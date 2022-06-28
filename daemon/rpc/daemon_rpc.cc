@@ -237,6 +237,13 @@ auto DaemonRpc::convertStructDBtoRPC(const db::Friend& db_friend,
   friend_info.set_unique_name(std::string(db_friend.unique_name));
   friend_info.set_display_name(std::string(db_friend.display_name));
   friend_info.set_public_id(std::string(db_friend.public_id));
+
+  // WARNING: this is SkEtCHy!!
+  // TODO(sualeh): can we cast this with a proper function on either of the
+  // structs.
+  friend_info.set_request_progress(
+      static_cast<asphrdaemon::FriendRequestProgress>(
+          db_friend.request_progress));
   return std::pair(friend_info, std::string(db_address.friend_request_message));
 }
 
