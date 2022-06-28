@@ -28,6 +28,10 @@ class Transmitter {
   // may throw rust::Error if there is a database problem
   auto send() -> void;
 
+  // method for testing
+  // because during microtests, we do not want to full db scan
+  auto reset_async_scanner(int index) { next_async_friend_request_retrieve_index = index; }
+
  private:
   Global& G;
   shared_ptr<asphrserver::Server::Stub> stub;
@@ -52,12 +56,32 @@ class Transmitter {
   optional<int> previous_success_receive_friend;
   optional<int> just_acked_friend;
 
+  // used to crawl the db
+  int next_async_friend_request_retrieve_index;
+
   // for each index, get the PIR response for that index
   auto batch_retrieve_pir(FastPIRClient& client, vector<pir_index_t> indices)
       -> vector<asphr::StatusOr<asphrserver::ReceiveMessageResponse>>;
 
   auto encrypt_ack_row(const vector<db::OutgoingAck>& acks,
                        const string& write_key) -> asphr::StatusOr<pir_value_t>;
+
+  // transmit async friend request to the server
+  // we must reencrypt each round, to avoid
+  // replaying the same message to the server
+  auto transmit_async_friend_request() -> void;
+
+  // retrieve and process async friend request from the server
+  // and push them to the database
+  // It is important to define the behavior of this function in the case of
+  // duplicate requests. i.e. when a friend (request) with the same public key
+  // is already in the database. Here's the definition for now.
+  // 1. If the friend is marked as deleted, then we ignore the request.
+  // 2. If the friend is marked as accepted, then we ignore the request.
+  // 3. If the friend is marked as incoming, then we ignore the request.
+  // 4. If the friend is marked as outgoing, then we approve this request
+  // immediately.
+  auto retrieve_async_friend_request(int start_index, int end_index) -> void;
 
   auto check_rep() const noexcept -> void;
 };

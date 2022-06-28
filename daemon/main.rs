@@ -6,12 +6,14 @@ fn main() {
 
   let result = cli::cli(args);
   ffi::main_cc(result);
+  // we can never get here. main_cc will always exit the process.
+  panic!("main_cc should never return");
 }
 
 #[cxx::bridge]
 mod ffi {
   unsafe extern "C++" {
     include!("daemon/main.hpp");
-    fn main_cc(args: Vec<String>) -> i32;
+    fn main_cc(args: Vec<String>);
   }
 }

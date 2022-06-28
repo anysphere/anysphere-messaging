@@ -6,7 +6,7 @@
 #include "crypto.hpp"
 
 namespace crypto {
-auto generate_keypair() -> std::pair<string, string> {
+auto generate_kx_keypair() -> std::pair<string, string> {
   unsigned char public_key[crypto_kx_PUBLICKEYBYTES];
   unsigned char secret_key[crypto_kx_SECRETKEYBYTES];
   crypto_kx_keypair(public_key, secret_key);
@@ -15,55 +15,21 @@ auto generate_keypair() -> std::pair<string, string> {
       string(reinterpret_cast<char*>(secret_key), crypto_kx_SECRETKEYBYTES)};
 }
 
+auto generate_friend_request_keypair() -> std::pair<string, string> {
+  unsigned char public_key[crypto_box_PUBLICKEYBYTES];
+  unsigned char secret_key[crypto_box_SECRETKEYBYTES];
+  crypto_box_keypair(public_key, secret_key);
+  return {
+      string(reinterpret_cast<char*>(public_key), crypto_box_PUBLICKEYBYTES),
+      string(reinterpret_cast<char*>(secret_key), crypto_box_SECRETKEYBYTES)};
+}
+
 auto generic_hash(string_view data) -> std::string {
   unsigned char hash[crypto_generichash_BYTES];
   crypto_generichash(hash, sizeof hash,
                      reinterpret_cast<const unsigned char*>(data.data()),
                      data.size(), nullptr, 0);
   return string(reinterpret_cast<char*>(hash), sizeof hash);
-}
-
-auto generate_friend_key(const string& my_public_key, int index) -> string {
-  string public_key_b64;
-  public_key_b64.resize(sodium_base64_ENCODED_LEN(
-      my_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
-  sodium_bin2base64(
-      public_key_b64.data(), public_key_b64.size(),
-      reinterpret_cast<const unsigned char*>(my_public_key.data()),
-      my_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING);
-
-  // TODO: figure out a better way to encode both index and public key
-  return asphr::StrCat(index, "a", public_key_b64);
-}
-
-auto decode_friend_key(const string& friend_key)
-    -> asphr::StatusOr<std::pair<int, string>> {
-  string index_str;
-  string public_key_b64;
-  for (size_t i = 0; i < friend_key.size(); ++i) {
-    if (friend_key.at(i) == 'a') {
-      public_key_b64 = friend_key.substr(i + 1);
-      break;
-    }
-    index_str += friend_key.at(i);
-  }
-  int index;
-  auto success = absl::SimpleAtoi(index_str, &index);
-  if (!success) {
-    return asphr::InvalidArgumentError("friend key index must be an integer");
-  }
-
-  string public_key;
-  public_key.resize(public_key_b64.size());
-  size_t public_key_len;
-  const char* b64_end;
-  sodium_base642bin(reinterpret_cast<unsigned char*>(public_key.data()),
-                    public_key.size(), public_key_b64.data(),
-                    public_key_b64.size(), "", &public_key_len, &b64_end,
-                    sodium_base64_VARIANT_URLSAFE_NO_PADDING);
-  public_key.resize(public_key_len);
-
-  return make_pair(index, public_key);
 }
 
 auto derive_read_write_keys(string my_public_key, string my_private_key,
@@ -299,5 +265,289 @@ auto decrypt_ack(const string& ciphertext, const string& read_key)
   uint32_t ack_id = reinterpret_cast<uint32_t*>(plaintext.data())[0];
 
   return ack_id;
+}
+
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+// |||                       Async Friending Methods |||
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+
+// NEW: generate / decode user ID.
+// user ID is a string stored on the server that encompases username,
+// allocation, kx_public_key, and friend_request_public_key
+// we use Base64 encoding as before
+// TODO: what is included here is an IMPORTANT DECISION pending discussion.
+// ASSUMPTION: username should not contain '@'
+auto generate_user_id(const string& username, int allocation,
+                      const string& kx_public_key,
+                      const string& friend_request_public_key)
+    -> asphr::StatusOr<string> {
+  string kx_public_key_b64;
+  string friend_request_public_key_b64;
+  // encode them using libsodium b64
+  kx_public_key_b64.resize(sodium_base64_ENCODED_LEN(
+      kx_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
+
+  sodium_bin2base64(
+      kx_public_key_b64.data(), kx_public_key_b64.size(),
+      reinterpret_cast<const unsigned char*>(kx_public_key.data()),
+      kx_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING);
+  // repeat for public key
+  friend_request_public_key_b64.resize(
+      sodium_base64_ENCODED_LEN(friend_request_public_key.size(),
+                                sodium_base64_VARIANT_URLSAFE_NO_PADDING));
+  sodium_bin2base64(
+      friend_request_public_key_b64.data(),
+      friend_request_public_key_b64.size(),
+      reinterpret_cast<const unsigned char*>(friend_request_public_key.data()),
+      friend_request_public_key.size(),
+      sodium_base64_VARIANT_URLSAFE_NO_PADDING);
+  // assert that username is well formed
+  if (username.find('@') != string::npos) {
+    return asphr::InvalidArgumentError("username cannot contain '@'");
+  }
+  // construct user ID
+  // return final string, separated by @
+  return username + "@" + std::to_string(allocation) + "@" + kx_public_key_b64 +
+         "@" + friend_request_public_key_b64;
+}
+
+auto split(const string& s, char del) -> vector<string> {
+  int start = 0;
+  int end = s.find(del);
+  vector<string> result = {};
+  while (end != -1) {
+    result.push_back(s.substr(start, end - start));
+    start = end + 1;
+    end = s.find(del, start);
+  }
+  result.push_back(s.substr(start, end - start));
+  return result;
+}
+
+auto decode_user_id(const string& user_id)
+    -> asphr::StatusOr<std::tuple<string, int, string, string>> {
+  // split user_id by @
+  auto user_id_split = split(user_id, '@');
+  if (user_id_split.size() != 4) {
+    return asphr::InvalidArgumentError("user_id is not well formed");
+  }
+  // decode the public keys
+  string kx_public_key_b64 = user_id_split[2];
+  string friend_request_public_key_b64 = user_id_split[3];
+  string kx_public_key;
+  string friend_request_public_key;
+  size_t kx_public_key_len;
+  size_t friend_request_public_key_len;
+  const char* b64_end;
+  kx_public_key.resize(kx_public_key_b64.size());
+  friend_request_public_key.resize(friend_request_public_key_b64.size());
+  if (sodium_base642bin(reinterpret_cast<unsigned char*>(kx_public_key.data()),
+                        kx_public_key.size(), kx_public_key_b64.data(),
+                        kx_public_key_b64.size(), "", &kx_public_key_len,
+                        &b64_end,
+                        sodium_base64_VARIANT_URLSAFE_NO_PADDING) != 0) {
+    return absl::UnknownError("failed to decode kx_public_key");
+  }
+  if (sodium_base642bin(
+          reinterpret_cast<unsigned char*>(friend_request_public_key.data()),
+          friend_request_public_key.size(),
+          friend_request_public_key_b64.data(),
+          friend_request_public_key_b64.size(), "",
+          &friend_request_public_key_len, &b64_end,
+          sodium_base64_VARIANT_URLSAFE_NO_PADDING) != 0) {
+    return absl::UnknownError("failed to decode kx_public_key");
+  }
+  kx_public_key.resize(kx_public_key_len);
+  friend_request_public_key.resize(friend_request_public_key_len);
+  // return the decoded values
+  return std::make_tuple(user_id_split[0], std::stoi(user_id_split[1]),
+                         kx_public_key, friend_request_public_key);
+}
+
+// encrypt an asynchronous friend request
+// The async friend request from A->B is Enc(ID_B, ID_A || msg) =
+// = Enc(f_sk_A, f_pk_B, ID_A || msg)
+// Note: there's a lot of redundant information here
+// TODO: optimize message length
+auto encrypt_async_friend_request(const string& self_id,
+                                  const string& self_friend_request_private_key,
+                                  const string& friend_id,
+                                  const string& message)
+    -> asphr::StatusOr<string> {
+  // decode the keys
+  auto friend_keys_ = crypto::decode_user_id(friend_id);
+  if (!friend_keys_.ok()) {
+    return friend_keys_.status();
+  }
+  // get the keys
+  // decode the friend_id
+  string friend_friend_request_public_key = std::get<3>(friend_keys_.value());
+
+  if (friend_friend_request_public_key.size() != crypto_box_PUBLICKEYBYTES) {
+    return asphr::InvalidArgumentError(
+        "friend_public_key is not the correct size");
+  }
+  if (self_friend_request_private_key.size() != crypto_box_SECRETKEYBYTES) {
+    return asphr::InvalidArgumentError(
+        "self_private_key is not the correct size");
+  }
+  // formmat the message we want to send
+  // assert message does not contain '|'
+  assert(message.find('|') == string::npos);
+  string message_to_send = self_id + "|" + message;
+
+  if (message_to_send.size() > GUARANTEED_SINGLE_MESSAGE_SIZE) {
+    return asphr::InvalidArgumentError("friend request message too long!!");
+  }
+
+  // We now encrypt the message, using a clone of the code above
+  string plaintext = message_to_send;
+  size_t unpadded_plaintext_size = plaintext.size();
+  // I couldn't find any documentation on what the max length is for this
+  // so i'll leave it for now
+
+  // Here we need to pad the plaintext to the max length
+  // to prevent length attack
+  // since the public key crypto protocol asserts that
+  // "ciphertextlength = plaintextlength + const"
+
+  size_t plaintext_size = ASYNC_FRIEND_REQUEST_SIZE;
+  plaintext.resize(plaintext_size);
+
+  // use libsodium to pad the plaintext
+  if (sodium_pad(&plaintext_size,
+                 reinterpret_cast<unsigned char*>(plaintext.data()),
+                 unpadded_plaintext_size, ASYNC_FRIEND_REQUEST_SIZE,
+                 plaintext.size()) != 0) {
+    return absl::UnknownError("failed to pad message");
+  }
+
+  cout << "Friend Request Plaintext: " << plaintext << endl;
+
+  // encrypt it!
+  std::string ciphertext;
+  unsigned long long ciphertext_size = plaintext_size + crypto_box_MACBYTES;
+  ciphertext.resize(ciphertext_size + crypto_box_NONCEBYTES);
+
+  unsigned char nonce[crypto_box_NONCEBYTES];
+  randombytes_buf(nonce, sizeof nonce);
+
+  if (crypto_box_easy(reinterpret_cast<unsigned char*>(ciphertext.data()),
+                      reinterpret_cast<const unsigned char*>(plaintext.data()),
+                      plaintext.size(), nonce,
+                      reinterpret_cast<const unsigned char*>(
+                          friend_friend_request_public_key.data()),
+                      reinterpret_cast<const unsigned char*>(
+                          self_friend_request_private_key.data())) != 0) {
+    return absl::UnknownError("failed to encrypt message");
+  }
+  // append the nounce to the end of the ciphertext
+
+  for (size_t i = 0; i < crypto_box_NONCEBYTES; i++) {
+    ciphertext[i + ciphertext_size] += nonce[i];
+  }
+
+  // Sanity check the length of everything
+  assert(ciphertext.size() == ciphertext_size + crypto_box_NONCEBYTES);
+  assert(ciphertext_size == plaintext_size + crypto_box_MACBYTES);
+  assert(plaintext.size() == plaintext_size);
+  assert(plaintext_size == ASYNC_FRIEND_REQUEST_SIZE);
+
+  // the ciphertext consists of non-utf-8 characters
+  // cout << "Friend Request Ciphertext: " << ciphertext << endl;
+
+  return ciphertext;
+}
+
+// decrypt the asynchronous friend requests
+// returns the ID_STRING and the MESSAGE
+// or create a new one.
+// I'm using the second plan for now.
+auto decrypt_async_friend_request(const string& self_id,
+                                  const string& self_friend_request_private_key,
+                                  const string& friend_id,
+                                  const string& ciphertext)
+    -> asphr::StatusOr<pair<string, string>> {
+  // We now decrypt the message, using a clone of the code above
+  // decode the keys
+  auto friend_keys_ = crypto::decode_user_id(friend_id);
+  if (!friend_keys_.ok()) {
+    return friend_keys_.status();
+  }
+  // get the keys
+  string friend_friend_request_public_key = std::get<3>(friend_keys_.value());
+  return crypto::decrypt_async_friend_request_public_key_only(
+      self_id, self_friend_request_private_key,
+      friend_friend_request_public_key, ciphertext);
+}
+
+auto decrypt_async_friend_request_public_key_only(
+    const string& self_id, const string& self_friend_request_private_key,
+    const string& friend_friend_request_public_key, const string& ciphertext)
+    -> asphr::StatusOr<pair<string, string>> {
+  // We now decrypt the message, using a clone of the code above
+  if (friend_friend_request_public_key.size() != crypto_box_PUBLICKEYBYTES) {
+    return asphr::InvalidArgumentError(
+        "friend_public_key is not the correct size");
+  }
+  if (self_friend_request_private_key.size() != crypto_box_SECRETKEYBYTES) {
+    return asphr::InvalidArgumentError(
+        "self_private_key is not the correct size");
+  }
+  auto ciphertext_len = ciphertext.size() - crypto_box_NONCEBYTES;
+  auto padded_plaintext_len = ciphertext_len - crypto_box_MACBYTES;
+
+  // make sure the plaintext is of the correct length
+  if (padded_plaintext_len != ASYNC_FRIEND_REQUEST_SIZE) {
+    return asphr::InvalidArgumentError("ciphertext is not the correct size");
+  }
+
+  // Extract the nounce from the end of the ciphertext
+  unsigned char nonce[crypto_box_NONCEBYTES];
+  for (size_t i = 0; i < crypto_box_NONCEBYTES; i++) {
+    nonce[i] = ciphertext[i + ciphertext_len];
+  }
+  // convert the ciphertext to the string form
+  string ciphertext_str = "";
+  for (size_t i = 0; i < ciphertext_len; i++) {
+    ciphertext_str += ciphertext.at(i);
+  }
+  // decrypt it!!
+  std::string plaintext;
+  plaintext.resize(padded_plaintext_len);
+  if (crypto_box_open_easy(
+          reinterpret_cast<unsigned char*>(plaintext.data()),
+          reinterpret_cast<const unsigned char*>(ciphertext_str.data()),
+          ciphertext_str.size(), nonce,
+          reinterpret_cast<const unsigned char*>(
+              friend_friend_request_public_key.data()),
+          reinterpret_cast<const unsigned char*>(
+              self_friend_request_private_key.data())) != 0) {
+    return absl::UnknownError("failed to decrypt friend request");
+  }
+  assert(padded_plaintext_len == plaintext.size());
+
+  // remove padding
+  size_t unpadded_plaintext_len = 0;
+  plaintext.resize(padded_plaintext_len);
+  if (sodium_unpad(&unpadded_plaintext_len,
+                   reinterpret_cast<unsigned char*>(plaintext.data()),
+                   padded_plaintext_len, ASYNC_FRIEND_REQUEST_SIZE) != 0) {
+    return absl::UnknownError("failed to unpad message");
+  }
+
+  plaintext.resize(unpadded_plaintext_len);
+
+  // split the plaintext by '|'
+  std::vector<string> split_plaintext = split(plaintext, '|');
+  if (split_plaintext.size() != 2) {
+    return absl::UnknownError("failed to split plaintext");
+  }
+  // TODO: insert additional checks here
+  // read the allocation
+  // create the friend
+  return std::make_pair(split_plaintext[0], split_plaintext[1]);
 }
 }  // namespace crypto
