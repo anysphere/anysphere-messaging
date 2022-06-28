@@ -348,11 +348,10 @@ Status DaemonRpc::GetOutgoingFriendRequests(
       }
       auto [friend_info, message] = conversion_result.value();
       // add to response
-      asphrdaemon::FriendRequest friend_request;
-      friend_request->set_friend_info()->CopyFrom(friend_info);
+      auto friend_request =
+          getOutgoingFriendRequestsResponse->add_friend_requests();
+      friend_request->mutable_friend_info()->CopyFrom(friend_info);
       friend_request->set_message(message);
-      getOutgoingFriendRequestsResponse->add_friend_requests(friend_request);
-      getOutgoingFriendRequestsResponse->add_messages(message);
     }
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Failed to get outgoing friend requests.", error, e.what(),
@@ -385,9 +384,10 @@ Status DaemonRpc::GetIncomingAsyncFriendRequests(
       }
       auto [friend_info, message] = conversion_result.value();
       // add to response
-      getIncomingAsyncFriendRequestsResponse->add_friend_infos()->CopyFrom(
-          friend_info);
-      getIncomingAsyncFriendRequestsResponse->add_messages(message);
+      auto friend_request =
+          getIncomingAsyncFriendRequestsResponse->add_friend_requests();
+      friend_request->mutable_friend_info()->CopyFrom(friend_info);
+      friend_request->set_message(message);
     }
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Failed to get incoming friend requests.", error, e.what(),
