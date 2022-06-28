@@ -129,7 +129,8 @@ Status DaemonRpc::GetFriendList(
       new_friend->set_unique_name(std::string(s.unique_name));
       new_friend->set_display_name(std::string(s.display_name));
       new_friend->set_public_id(std::string(s.public_id));
-      new_friend->set_progress(ACTUAL_FRIEND);
+      new_friend->set_request_progress(
+          asphrdaemon::FriendRequestProgress::Complete);
     }
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Database failed.", error, e.what(), rpc_call,
@@ -140,13 +141,13 @@ Status DaemonRpc::GetFriendList(
   return Status::OK;
 }
 
-Status DaemonRpc::GetPublicID(
+Status DaemonRpc::GetMyPublicID(
     grpc::ServerContext* context,
-    const asphrdaemon::GetPublicIDRequest* getPublicIDRequest,
-    asphrdaemon::GetPublicIDResponse* getPublicIDResponse) {
-  ASPHR_LOG_INFO("GetPublicID() called.");
+    const asphrdaemon::GetMyPublicIDRequest* getMyPublicIDRequest,
+    asphrdaemon::GetMyPublicIDResponse* getMyPublicIDResponse) {
+  ASPHR_LOG_INFO("GetMyPublicID() called.");
   if (!G.db->has_registered()) {
-    ASPHR_LOG_INFO("Need to register first.", rpc_call, "GetPublicID");
+    ASPHR_LOG_INFO("Need to register first.", rpc_call, "GetMyPublicID");
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
@@ -165,13 +166,14 @@ Status DaemonRpc::GetPublicID(
                                                friend_request_public_key);
 
     if (!public_id_.ok()) {
-      ASPHR_LOG_ERR("Failed to generate public ID.", rpc_call, "GetPublicID");
+      ASPHR_LOG_ERR("Failed to generate public ID.", rpc_call, "GetMyPublicID");
       return Status(grpc::StatusCode::UNKNOWN, "failed to generate public ID");
     }
     // set the public ID in the response
-    getPublicIDResponse->set_public_id(public_id_.value());
+    getMyPublicIDResponse->set_public_id(public_id_.value());
   } catch (const rust::Error& e) {
-    ASPHR_LOG_ERR("Database failed.", error, e.what(), rpc_call, "GetPublicID");
+    ASPHR_LOG_ERR("Database failed.", error, e.what(), rpc_call,
+                  "GetMyPublicID");
     return Status(grpc::StatusCode::UNKNOWN, e.what());
   }
   return Status::OK;
@@ -212,7 +214,7 @@ auto DaemonRpc::convertStructRPCtoDB(asphrdaemon::FriendInfo& friend_info,
           .unique_name = friend_info.unique_name(),
           .display_name = friend_info.display_name(),
           .public_id = friend_info.public_id(),
-          .progress = progress,
+          .request_progress = progress,
           .deleted = false,
       },
       db::AddAddress{
@@ -235,7 +237,7 @@ auto DaemonRpc::convertStructDBtoRPC(const db::Friend& db_friend,
   friend_info.set_unique_name(std::string(db_friend.unique_name));
   friend_info.set_display_name(std::string(db_friend.display_name));
   friend_info.set_public_id(std::string(db_friend.public_id));
-  friend_info.set_progress(db_friend.progress);
+  friend_info.set_progress(db_friend.request_progress);
   return std::pair(friend_info, std::string(db_address.friend_request_message));
 }
 

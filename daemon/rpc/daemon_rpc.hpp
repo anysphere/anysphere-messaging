@@ -26,10 +26,10 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
       const asphrdaemon::GetFriendListRequest* getFriendListRequest,
       asphrdaemon::GetFriendListResponse* getFriendListResponse) override;
 
-  grpc::Status GetPublicID(
+  grpc::Status GetMyPublicID(
       grpc::ServerContext* context,
-      const asphrdaemon::GetPublicIDRequest* getPublicIDRequest,
-      asphrdaemon::GetPublicIDResponse* getPublicIDResponse) override;
+      const asphrdaemon::GetMyPublicIDRequest* getMyPublicIDRequest,
+      asphrdaemon::GetMyPublicIDResponse* getMyPublicIDResponse) override;
 
   grpc::Status AddSyncFriend(
       grpc::ServerContext* context,
