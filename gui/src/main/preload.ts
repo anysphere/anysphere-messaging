@@ -522,8 +522,53 @@ contextBridge.exposeInMainWorld(
 );
 
 // Daemon async friending functions
-contextBridge.exposeInMainWorld("getPublicID", async () => {});
-contextBridge.exposeInMainWorld("addAsyncFriend", async () => {});
+contextBridge.exposeInMainWorld(
+  "getPublicID",
+  async (): Promise<daemonM.GetPublicIDResponse> => {
+    if (FAKE_DATA) {
+      const response = new daemonM.GetPublicIDResponse();
+      response.setPublicId("123456789");
+      response.setStory("This is a story");
+      return response;
+    }
+    const request = new daemonM.GetPublicIDRequest();
+    const getPublicID = promisify(daemonClient.getPublicID).bind(daemonClient);
+    try {
+      const response = (await getPublicID(
+        request
+      )) as daemonM.GetPublicIDResponse;
+      return response;
+    } catch (e) {
+      console.log(`error in getPublicID: ${e}`);
+      throw new Error("error in getPublicID");
+    }
+  }
+);
+
+contextBridge.exposeInMainWorld(
+  "addAsyncFriend",
+  async (): Promise<boolean> => {
+    if (FAKE_DATA) {
+      return true;
+    }
+    const request = new daemonM.AddAsyncFriendRequest();
+    const addAsyncFriend = promisify(daemonClient.addAsyncFriend).bind(
+      daemonClient
+    );
+    try {
+      const response = (await addAsyncFriend(
+        request
+      )) as daemonM.AddAsyncFriendResponse;
+
+      return true;
+    } catch (e) {
+      console.log(`error in addAsyncFriend: ${e}`);
+
+      throw new Error("error in addAsyncFriend");
+    }
+  }
+);
+
 contextBridge.exposeInMainWorld("sendAsyncFriendRequest", async () => {});
 
 contextBridge.exposeInMainWorld("isPlatformMac", () => {
