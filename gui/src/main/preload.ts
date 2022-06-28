@@ -76,6 +76,11 @@ contextBridge.exposeInMainWorld("getNewMessages", async () => {
   }
 });
 
+// warn that it is deprecated
+/**
+ * @deprecated
+ * @param requestedFriend the friend to get messages for
+ */
 contextBridge.exposeInMainWorld(
   "generateFriendKey",
   async (requestedFriend: string) => {
@@ -85,18 +90,18 @@ contextBridge.exposeInMainWorld(
         key: "6aFLPa03ldA9OyY-XlCRibbo3SG8Wsprw1iylnjvZIiFc",
       };
     }
-    const request = new daemonM.GenerateFriendKeyRequest();
-    request.setUniqueName(requestedFriend);
-    const generateFriendKey = promisify(daemonClient.generateFriendKey).bind(
-      daemonClient
-    );
+    // const request = new daemonM.GenerateFriendKeyRequest();
+    // request.setUniqueName(requestedFriend);
+    // const generateFriendKey = promisify(daemonClient.generateFriendKey).bind(
+    // daemonClient
+    // );
     try {
-      const response = (await generateFriendKey(
-        request
-      )) as daemonM.GenerateFriendKeyResponse;
+      // const response = (await generateFriendKey(
+      //   // request
+      // )) as daemonM.GenerateFriendKeyResponse;
       return {
         friend: requestedFriend,
-        key: response.getKey(),
+        key: "6aFLPa03ldA9OyY-XlCRibbo3SG8Wsprw1iylnjvZIiFc",
       };
     } catch (e) {
       console.log(`error in generateFriendKey: ${e}`);
@@ -105,16 +110,14 @@ contextBridge.exposeInMainWorld(
   }
 );
 
+/**
+ * @deprecated
+ * @param requestedFriend the friend to add.
+ */
 contextBridge.exposeInMainWorld(
   "addFriend",
-  async (requestedFriend: string, requestedFriendKey: string) => {
-    const request = new daemonM.AddFriendRequest();
-    request.setUniqueName(requestedFriend);
-    request.setKey(requestedFriendKey);
-    const addFriend = promisify(daemonClient.addFriend).bind(daemonClient);
+  async (_requestedFriend: string, _requestedFriendKey: string) => {
     try {
-      const response = await addFriend(request);
-      console.log("addFriend response", response);
       return true;
     } catch (e) {
       console.log(`error in addFriend: ${e}`);
@@ -462,9 +465,10 @@ contextBridge.exposeInMainWorld("getFriendList", async () => {
     )) as daemonM.GetFriendListResponse;
     const lm = response.getFriendInfosList();
     const l = lm.map((m) => {
+      // TODO: fix this when the schema is cleaned up.
       return {
         name: m.getUniqueName(),
-        status: m.getEnabled() ? "added" : "initiated",
+        status: m.getProgress() ? "added" : "initiated",
       };
     });
     return l;
@@ -556,9 +560,7 @@ contextBridge.exposeInMainWorld(
       daemonClient
     );
     try {
-      const response = (await addAsyncFriend(
-        request
-      )) as daemonM.AddAsyncFriendResponse;
+      await addAsyncFriend(request);
 
       return true;
     } catch (e) {
