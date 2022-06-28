@@ -270,6 +270,11 @@ grpc::Status DaemonRpc::AddAsyncFriend(
     asphrdaemon::AddAsyncFriendResponse* addAsyncFriendResponse) {
   ASPHR_LOG_INFO("AddAsyncFriend() called.", rpc_call, "AddAsyncFriend");
 
+  if (!G.db->has_registered()) {
+    ASPHR_LOG_INFO("Need to register first.", rpc_call, "AddAsyncFriend");
+    return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
+  }
+
   auto friend_info = addAsyncFriendRequest->friend_info();
   std::string message = addAsyncFriendRequest->message();
 
@@ -317,6 +322,15 @@ Status DaemonRpc::GetOutgoingFriendRequests(
         getOutgoingFriendRequestsRequest,
     asphrdaemon::GetOutgoingFriendRequestsResponse*
         getOutgoingFriendRequestsResponse) {
+  ASPHR_LOG_INFO("GetOutgoingFriendRequests() called.", rpc_call,
+                 "GetOutgoingFriendRequests");
+
+  if (!G.db->has_registered()) {
+    ASPHR_LOG_INFO("Need to register first.", rpc_call,
+                   "GetOutgoingFriendRequests");
+    return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
+  }
+
   try {
     // call rust db to get all outgoing friend requests
     auto outgoing_requests = G.db->get_outgoing_async_friend_requests();
