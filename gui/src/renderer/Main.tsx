@@ -132,7 +132,7 @@ function Main() {
     setModal(<AddFriend onClose={closeModal} />);
   }, [setModal, closeModal]);
 
-  const openAddFriendModal = React.useCallback(
+  const openAddFriendModalOLD = React.useCallback(
     (_: string) => {
       // window
       //   .generateFriendKey(friend)
