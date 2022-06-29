@@ -209,10 +209,6 @@ fn test_send_msg() {
   let msg = "hi im a single chunk";
   db.queue_message_to_send("friend_1", msg, vec![msg.to_string()]).unwrap();
 
-  unsafe {
-    db.dump();
-  }
-
   let chunk_to_send = db.chunk_to_send(vec![]).unwrap();
 
   // the chunk to send will be the system message for the outgoing invitation
