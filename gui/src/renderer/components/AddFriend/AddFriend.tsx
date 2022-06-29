@@ -46,8 +46,8 @@ export function StoryForm() {
   return (
     <div className="isolate -space-y-px rounded-md shadow-sm">
       {
-        [1, 2, 3, 4, 5, 6, 7, 8].map((lineNumber) => (
-          <SimpleStoryLine key={lineNumber} lineNumber={lineNumber} />
+        [...Array(numberOfLines)].map((_, i) => (
+          <SimpleStoryLine key={i} lineNumber={i + 1} />
         ))
       }
     </div>
