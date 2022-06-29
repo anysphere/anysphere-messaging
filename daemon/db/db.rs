@@ -848,6 +848,19 @@ impl DB {
           sent_and_received_count
         );
 
+        // exactly 1 config always
+        let config_count = config::table.count().get_result::<i64>(conn_b).unwrap();
+        assert!(config_count == 1, "config_count = {}", config_count);
+
+        // if has_registered is true, then should have exactly 1 registration
+        let has_registered = config::table.select(config::has_registered).first::<bool>(conn_b).unwrap();
+        let registration_count = registration::table.count().get_result::<i64>(conn_b).unwrap();
+        if has_registered {
+          assert!(registration_count == 1, "registration_count = {}, has_registered = {}", registration_count, has_registered);
+        } else {
+          assert!(registration_count == 0, "registration_count = {}, has_registered = {}", registration_count, has_registered);
+        }
+
         Ok(())
       })
       .unwrap();
