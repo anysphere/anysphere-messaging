@@ -149,6 +149,19 @@ impl From<I32ButMinusOneIsNone> for i32 {
   }
 }
 
+impl From<diesel::result::Error> for DbError {
+  fn from(e: diesel::result::Error) -> Self {
+    match e {
+      diesel::result::Error::NotFound => DbError::NotFound("not found".into()),
+      diesel::result::Error::DatabaseError(
+        diesel::result::DatabaseErrorKind::UniqueViolation,
+        _,
+      ) => DbError::AlreadyExists("already exists".into()),
+      _ => DbError::Internal(format!("{:?}", e)),
+    }
+  }
+}
+
 impl<DB> Queryable<diesel::sql_types::Nullable<diesel::sql_types::Integer>, DB>
   for I32ButMinusOneIsNone
 where
@@ -623,6 +636,8 @@ pub fn init(address: &str) -> Result<Box<DB>, DbError> {
   use diesel_migrations::MigrationHarness;
   conn.run_pending_migrations(MIGRATIONS).map_err(|e| DbError::Unavailable(e.to_string()))?;
 
+  db.check_rep(&mut conn)?;
+
   Ok(Box::new(db))
 }
 
@@ -643,6 +658,84 @@ impl DB {
       Ok(c) => Ok(c),
       Err(e) => return Err(DbError::Unknown(format!("failed to connect to database, {}", e,))),
     }
+  }
+
+  #[cfg(debug_assertions)]
+  pub fn check_rep(&self, conn: &mut SqliteConnection) -> Result<(), DbError> {
+    use crate::schema::*;
+    conn.transaction::<(), DbError, _>(|conn_b| {
+      // invitation_progress should correspond to the correct table existing
+      let friends = friend::table
+        .filter(friend::deleted.eq(false))
+        .select((
+          friend::uid,
+          friend::unique_name,
+          friend::display_name,
+          friend::invitation_progress,
+          friend::deleted,
+        ))
+        .load::<ffi::Friend>(conn_b)
+        .map_err(|e| DbError::Unknown(format!("failed to load friends, {}", e,)))?;
+
+      for friend in friends {
+        match friend.invitation_progress {
+          ffi::InvitationProgress::Complete => {
+            let complete_count = complete_friend::table
+              .filter(complete_friend::friend_uid.eq(friend.uid))
+              .count()
+              .get_result::<i64>(conn_b)
+              .map_err(|e| DbError::Internal(format!("unable to get complete_count: {}", e,)))?;
+            if complete_count != 1 {
+              return Err(DbError::Internal(format!(
+                "complete_friend table has {} entries for friend with uid {}",
+                complete_count, friend.uid,
+              )));
+            }
+          }
+          ffi::InvitationProgress::OutgoingSync => {
+            let sync_count = outgoing_sync_invitation::table
+              .filter(outgoing_sync_invitation::friend_uid.eq(friend.uid))
+              .count()
+              .get_result::<i64>(conn_b)
+              .map_err(|e| DbError::Internal(format!("unable to get sync_count: {}", e,)))?;
+            if sync_count != 1 {
+              return Err(DbError::Internal(format!(
+                "outgoing_sync_invitation table has {} entries for friend with uid {}",
+                sync_count, friend.uid,
+              )));
+            }
+          }
+          ffi::InvitationProgress::OutgoingAsync => {
+            let async_count = outgoing_async_invitation::table
+              .filter(outgoing_async_invitation::friend_uid.eq(friend.uid))
+              .count()
+              .get_result::<i64>(conn_b)
+              .map_err(|e| DbError::Internal(format!("unable to get async_count: {}", e,)))?;
+            if async_count != 1 {
+              return Err(DbError::Internal(format!(
+                "outgoing_async_invitation table has {} entries for friend with uid {}",
+                async_count, friend.uid,
+              )));
+            }
+          }
+          _ => {
+            return Err(DbError::Internal(format!(
+              "friend with uid {} has unsupported invitation_progress",
+              friend.uid,
+            )))
+          }
+        }
+      }
+
+      Ok(())
+    })?;
+
+    Ok(())
+  }
+
+  #[cfg(not(debug_assertions))]
+  pub fn check_rep(&self, conn: &mut SqliteConnection) -> Result<(), DbError> {
+    Ok(())
   }
 
   /// # Safety
