@@ -236,6 +236,8 @@ pub mod ffi {
     pub display_name: String,
     pub invitation_progress: InvitationProgress,
     pub public_id: String,
+    pub friend_request_public_key: Vec<u8>,
+    pub kx_public_key: Vec<u8>,
     pub message: String,
     pub sent_at: i64, // unix micros
   }
@@ -280,10 +282,13 @@ pub mod ffi {
   #[derive(Queryable)]
   struct SmallRegistrationFragment {
     pub uid: i32,
+    pub friend_request_public_key: Vec<u8>,
+    pub friend_request_private_key: Vec<u8>,
     pub kx_public_key: Vec<u8>,
     pub kx_private_key: Vec<u8>,
     pub allocation: i32,
     pub authentication_token: String,
+    pub public_id: String,
   }
 
   #[derive(Queryable, Insertable)]
@@ -474,9 +479,14 @@ pub mod ffi {
       write_key: Vec<u8>,
       max_friends: i32, // this is the constant defined in constants.hpp. TODO(sualeh): move it to the ffi.
     ) -> Result<Friend>;
-    // if an invitation with the same public_id already exists, we replace the message
-    // if an outgoing invitation with the same public_id already exists, we automatically make them become friends
-    // if a friend with the same public_id already exists or is deleted, we ignore
+    // It is important to define the behavior of this function in the case of
+    // duplicate requests. i.e. when a friend (request) with the same public key
+    // is already in the database. Here's the definition for now.
+    // 1. If the friend is marked as deleted, then we ignore the request.
+    // 2. If the friend is marked as accepted, then we ignore the request.
+    // 3. If the friend is marked as incoming, then we update the message.
+    // 4. If the friend is marked as outgoing, then we approve this request
+    // immediately.
     fn add_incoming_async_invitation(&self, public_id: &str, message: &str) -> Result<()>;
     // get invitations
     fn get_outgoing_sync_invitations(&self) -> Result<Vec<OutgoingSyncInvitation>>;
@@ -732,10 +742,13 @@ impl DB {
 
     let q = registration::table.select((
       registration::uid,
+      registration::friend_request_public_key,
+      registration::friend_request_private_key,
       registration::kx_public_key,
       registration::kx_private_key,
       registration::allocation,
       registration::authentication_token,
+      registration::public_id,
     ));
     let registration = q
       .first::<ffi::SmallRegistrationFragment>(&mut conn)
@@ -1195,16 +1208,14 @@ impl DB {
     let mut conn = self.connect()?;
     use crate::schema::address;
     use crate::schema::friend;
-    use crate::schema::status;
-    let wide_friends = friend::table
-      .filter(friend::deleted.eq(false))
-      .inner_join(status::table)
-      .inner_join(address::table);
+    use crate::schema::transmission;
+    let wide_friends =
+      friend::table.filter(friend::deleted.eq(false)).inner_join(transmission::table);
     let q = wide_friends.select((
       friend::uid,
-      status::received_seqnum,
-      address::write_key,
-      address::ack_index,
+      transmission::received_seqnum,
+      transmission::write_key,
+      transmission::ack_index,
     ));
     let r = q.load::<ffi::OutgoingAck>(&mut conn);
     match r {

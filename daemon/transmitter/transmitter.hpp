@@ -46,6 +46,7 @@ class Transmitter {
   // actual friend to send to. This is critically important in order to
   // not leak metadata!!
   optional<db::Address> dummy_address;
+  optional<db::OutgoingAsyncInvitation> dummy_outgoing_invitation;
 
   // some caching work the first time we set up, setting up the things above
   auto setup_registration_caching() -> void;
@@ -80,7 +81,8 @@ class Transmitter {
   // is already in the database. Here's the definition for now.
   // 1. If the friend is marked as deleted, then we ignore the request.
   // 2. If the friend is marked as accepted, then we ignore the request.
-  // 3. If the friend is marked as incoming, then we ignore the request.
+  // 3. If the friend is marked as incoming, then we update the invitation with
+  // the new message.
   // 4. If the friend is marked as outgoing, then we approve this request
   // immediately.
   auto retrieve_async_invitations(int start_index, int end_index) -> void;
