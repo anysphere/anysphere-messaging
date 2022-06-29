@@ -688,6 +688,11 @@ impl DB {
 
   #[cfg(debug_assertions)]
   pub fn check_rep(&self, conn: &mut SqliteConnection) {
+    // check_rep checks all invariants that we want to hold in the database.
+    // if any of these invariants are violated, we will panic. this is okay, because check_rep is only defined in debug mode.
+    // these checks may be kind of slow, in which case it might be worth exploring whether we should disable some of them in some tests
+    // i definitely do not believe that they are a big bottleneck though. please profile before disabling them, because having
+    // a complete check_rep that is called every single time is a HUGE security advantage.
     use crate::schema::*;
     // we unwrap everything here because we're in check_rep! so we want to fail fast.
     conn
