@@ -15,7 +15,7 @@ auto generate_kx_keypair() -> std::pair<string, string> {
       string(reinterpret_cast<char*>(secret_key), crypto_kx_SECRETKEYBYTES)};
 }
 
-auto generate_friend_request_keypair() -> std::pair<string, string> {
+auto generate_invitation_keypair() -> std::pair<string, string> {
   unsigned char public_key[crypto_box_PUBLICKEYBYTES];
   unsigned char secret_key[crypto_box_SECRETKEYBYTES];
   crypto_box_keypair(public_key, secret_key);
@@ -275,16 +275,16 @@ auto decrypt_ack(const string& ciphertext, const string& read_key)
 
 // NEW: generate / decode user ID.
 // user ID is a string stored on the server that encompases username,
-// allocation, kx_public_key, and friend_request_public_key
+// allocation, kx_public_key, and invitation_public_key
 // we use Base64 encoding as before
 // TODO: what is included here is an IMPORTANT DECISION pending discussion.
 // ASSUMPTION: username should not contain '@'
 auto generate_user_id(const string& username, int allocation,
                       const string& kx_public_key,
-                      const string& friend_request_public_key)
+                      const string& invitation_public_key)
     -> asphr::StatusOr<string> {
   string kx_public_key_b64;
-  string friend_request_public_key_b64;
+  string invitation_public_key_b64;
   // encode them using libsodium b64
   kx_public_key_b64.resize(sodium_base64_ENCODED_LEN(
       kx_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
@@ -294,15 +294,12 @@ auto generate_user_id(const string& username, int allocation,
       reinterpret_cast<const unsigned char*>(kx_public_key.data()),
       kx_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING);
   // repeat for public key
-  friend_request_public_key_b64.resize(
-      sodium_base64_ENCODED_LEN(friend_request_public_key.size(),
-                                sodium_base64_VARIANT_URLSAFE_NO_PADDING));
+  invitation_public_key_b64.resize(sodium_base64_ENCODED_LEN(
+      invitation_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
   sodium_bin2base64(
-      friend_request_public_key_b64.data(),
-      friend_request_public_key_b64.size(),
-      reinterpret_cast<const unsigned char*>(friend_request_public_key.data()),
-      friend_request_public_key.size(),
-      sodium_base64_VARIANT_URLSAFE_NO_PADDING);
+      invitation_public_key_b64.data(), invitation_public_key_b64.size(),
+      reinterpret_cast<const unsigned char*>(invitation_public_key.data()),
+      invitation_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING);
   // assert that username is well formed
   if (username.find('@') != string::npos) {
     return asphr::InvalidArgumentError("username cannot contain '@'");
@@ -310,7 +307,7 @@ auto generate_user_id(const string& username, int allocation,
   // construct user ID
   // return final string, separated by @
   return username + "@" + std::to_string(allocation) + "@" + kx_public_key_b64 +
-         "@" + friend_request_public_key_b64;
+         "@" + invitation_public_key_b64;
 }
 
 auto split(const string& s, char del) -> vector<string> {
@@ -335,14 +332,14 @@ auto decode_user_id(const string& user_id)
   }
   // decode the public keys
   string kx_public_key_b64 = user_id_split[2];
-  string friend_request_public_key_b64 = user_id_split[3];
+  string invitation_public_key_b64 = user_id_split[3];
   string kx_public_key;
-  string friend_request_public_key;
+  string invitation_public_key;
   size_t kx_public_key_len;
-  size_t friend_request_public_key_len;
+  size_t invitation_public_key_len;
   const char* b64_end;
   kx_public_key.resize(kx_public_key_b64.size());
-  friend_request_public_key.resize(friend_request_public_key_b64.size());
+  invitation_public_key.resize(invitation_public_key_b64.size());
   if (sodium_base642bin(reinterpret_cast<unsigned char*>(kx_public_key.data()),
                         kx_public_key.size(), kx_public_key_b64.data(),
                         kx_public_key_b64.size(), "", &kx_public_key_len,
@@ -351,19 +348,17 @@ auto decode_user_id(const string& user_id)
     return absl::UnknownError("failed to decode kx_public_key");
   }
   if (sodium_base642bin(
-          reinterpret_cast<unsigned char*>(friend_request_public_key.data()),
-          friend_request_public_key.size(),
-          friend_request_public_key_b64.data(),
-          friend_request_public_key_b64.size(), "",
-          &friend_request_public_key_len, &b64_end,
-          sodium_base64_VARIANT_URLSAFE_NO_PADDING) != 0) {
+          reinterpret_cast<unsigned char*>(invitation_public_key.data()),
+          invitation_public_key.size(), invitation_public_key_b64.data(),
+          invitation_public_key_b64.size(), "", &invitation_public_key_len,
+          &b64_end, sodium_base64_VARIANT_URLSAFE_NO_PADDING) != 0) {
     return absl::UnknownError("failed to decode kx_public_key");
   }
   kx_public_key.resize(kx_public_key_len);
-  friend_request_public_key.resize(friend_request_public_key_len);
+  invitation_public_key.resize(invitation_public_key_len);
   // return the decoded values
   return std::make_tuple(user_id_split[0], std::stoi(user_id_split[1]),
-                         kx_public_key, friend_request_public_key);
+                         kx_public_key, invitation_public_key);
 }
 
 // encrypt an asynchronous friend request
@@ -371,31 +366,24 @@ auto decode_user_id(const string& user_id)
 // = Enc(f_sk_A, f_pk_B, ID_A || msg)
 // Note: there's a lot of redundant information here
 // TODO: optimize message length
-auto encrypt_async_friend_request(const string& self_id,
-                                  const string& self_friend_request_private_key,
-                                  const string& friend_id,
-                                  const string& message)
+auto encrypt_async_invitation(const string& self_id,
+                              const string& self_invitation_private_key,
+                              const string& friend_invitation_public_key,
+                              const string& message)
     -> asphr::StatusOr<string> {
-  // decode the keys
-  auto friend_keys_ = crypto::decode_user_id(friend_id);
-  if (!friend_keys_.ok()) {
-    return friend_keys_.status();
-  }
-  // get the keys
-  // decode the friend_id
-  string friend_friend_request_public_key = std::get<3>(friend_keys_.value());
-
-  if (friend_friend_request_public_key.size() != crypto_box_PUBLICKEYBYTES) {
+  // check integrity of the keys
+  if (friend_invitation_public_key.size() != crypto_box_PUBLICKEYBYTES) {
     return asphr::InvalidArgumentError(
         "friend_public_key is not the correct size");
   }
-  if (self_friend_request_private_key.size() != crypto_box_SECRETKEYBYTES) {
+  if (self_invitation_private_key.size() != crypto_box_SECRETKEYBYTES) {
     return asphr::InvalidArgumentError(
         "self_private_key is not the correct size");
   }
   // formmat the message we want to send
-  // assert message does not contain '|'
+  // assert message and self_id does not contain '|'
   assert(message.find('|') == string::npos);
+  assert(self_id.find('|') == string::npos);
   string message_to_send = self_id + "|" + message;
 
   if (message_to_send.size() > GUARANTEED_SINGLE_MESSAGE_SIZE) {
@@ -436,9 +424,9 @@ auto encrypt_async_friend_request(const string& self_id,
                       reinterpret_cast<const unsigned char*>(plaintext.data()),
                       plaintext.size(), nonce,
                       reinterpret_cast<const unsigned char*>(
-                          friend_friend_request_public_key.data()),
+                          friend_invitation_public_key.data()),
                       reinterpret_cast<const unsigned char*>(
-                          self_friend_request_private_key.data())) != 0) {
+                          self_invitation_private_key.data())) != 0) {
     return absl::UnknownError("failed to encrypt message");
   }
   // append the nounce to the end of the ciphertext
@@ -460,37 +448,17 @@ auto encrypt_async_friend_request(const string& self_id,
 }
 
 // decrypt the asynchronous friend requests
-// returns the ID_STRING and the MESSAGE
-// or create a new one.
-// I'm using the second plan for now.
-auto decrypt_async_friend_request(const string& self_id,
-                                  const string& self_friend_request_private_key,
-                                  const string& friend_id,
-                                  const string& ciphertext)
-    -> asphr::StatusOr<pair<string, string>> {
-  // We now decrypt the message, using a clone of the code above
-  // decode the keys
-  auto friend_keys_ = crypto::decode_user_id(friend_id);
-  if (!friend_keys_.ok()) {
-    return friend_keys_.status();
-  }
-  // get the keys
-  string friend_friend_request_public_key = std::get<3>(friend_keys_.value());
-  return crypto::decrypt_async_friend_request_public_key_only(
-      self_id, self_friend_request_private_key,
-      friend_friend_request_public_key, ciphertext);
-}
 
-auto decrypt_async_friend_request_public_key_only(
-    const string& self_id, const string& self_friend_request_private_key,
-    const string& friend_friend_request_public_key, const string& ciphertext)
+auto decrypt_async_invitation(const string& self_invitation_private_key,
+                              const string& friend_invitation_public_key,
+                              const string& ciphertext)
     -> asphr::StatusOr<pair<string, string>> {
   // We now decrypt the message, using a clone of the code above
-  if (friend_friend_request_public_key.size() != crypto_box_PUBLICKEYBYTES) {
+  if (friend_invitation_public_key.size() != crypto_box_PUBLICKEYBYTES) {
     return asphr::InvalidArgumentError(
         "friend_public_key is not the correct size");
   }
-  if (self_friend_request_private_key.size() != crypto_box_SECRETKEYBYTES) {
+  if (self_invitation_private_key.size() != crypto_box_SECRETKEYBYTES) {
     return asphr::InvalidArgumentError(
         "self_private_key is not the correct size");
   }
@@ -520,9 +488,9 @@ auto decrypt_async_friend_request_public_key_only(
           reinterpret_cast<const unsigned char*>(ciphertext_str.data()),
           ciphertext_str.size(), nonce,
           reinterpret_cast<const unsigned char*>(
-              friend_friend_request_public_key.data()),
+              friend_invitation_public_key.data()),
           reinterpret_cast<const unsigned char*>(
-              self_friend_request_private_key.data())) != 0) {
+              self_invitation_private_key.data())) != 0) {
     return absl::UnknownError("failed to decrypt friend request");
   }
   assert(padded_plaintext_len == plaintext.size());
@@ -546,6 +514,9 @@ auto decrypt_async_friend_request_public_key_only(
   // TODO: insert additional checks here
   // read the allocation
   // create the friend
+  // TODO: specifically, we need to verify that the public_id in the body
+  // corresponds to the public_id that the message was authenticated with
+  // otherwise, someone might impersonate the real receiver
   return std::make_pair(split_plaintext[0], split_plaintext[1]);
 }
 }  // namespace crypto

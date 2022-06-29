@@ -31,10 +31,10 @@ auto remove_checksum(string bytes) -> asphr::StatusOr<string> {
 }
 
 PublicIdentifier::PublicIdentifier(int index, string kx_public_key,
-                                   string friend_request_public_key)
+                                   string invitation_public_key)
     : index(index),
       kx_public_key(kx_public_key),
-      friend_request_public_key(friend_request_public_key) {}
+      invitation_public_key(invitation_public_key) {}
 
 auto PublicIdentifier::from_public_id(string public_id)
     -> asphr::StatusOr<PublicIdentifier> {
@@ -53,14 +53,14 @@ auto PublicIdentifier::from_public_id(string public_id)
   }
 
   return PublicIdentifier(proto_struct.index(), proto_struct.kx_public_key(),
-                          proto_struct.friend_request_public_key());
+                          proto_struct.invitation_public_key());
 }
 
 auto PublicIdentifier::to_public_id() const -> string {
   asphrclient::PublicID proto_struct;
   proto_struct.set_index(index);
   proto_struct.set_kx_public_key(kx_public_key);
-  proto_struct.set_friend_request_public_key(friend_request_public_key);
+  proto_struct.set_invitation_public_key(invitation_public_key);
   auto bytes = proto_struct.SerializeAsString();
   return base58::Encode(append_checksum(bytes));
 }

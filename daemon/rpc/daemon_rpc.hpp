@@ -6,6 +6,7 @@
 #pragma once
 
 #include "daemon/crypto/crypto.hpp"
+#include "daemon/identifier/identifier.hpp"
 #include "daemon/global.hpp"
 #include "pir/fast_pir/fast_pir_client.hpp"
 #include "schema/daemon.grpc.pb.h"
@@ -138,16 +139,4 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
  private:
   Global& G;
   shared_ptr<asphrserver::Server::Stub> stub;
-
-  // The RPC speaks in the FriendInfo Struct
-  // The DB speaks in the Friend and Address Structs
-  // we provide a way to translate between them
-  auto convertStructRPCtoDB(
-      const asphrdaemon::AddAsyncFriendRequest& friend_info, string message,
-      db::FriendRequestProgress progress, string read_key, string write_key)
-      -> asphr::StatusOr<std::pair<db::FriendFragment, db::AddAddress>>;
-
-  auto convertStructDBtoRPC(const db::Friend& db_friend,
-                            const db::Address& db_address)
-      -> asphr::StatusOr<std::pair<asphrdaemon::FriendInfo, string>>;
 };

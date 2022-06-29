@@ -31,7 +31,7 @@ class Transmitter {
   // transmit async friend request to the server
   // we must reencrypt each round, to avoid
   // replaying the same message to the server
-  auto transmit_async_friend_request() -> void;
+  auto transmit_async_invitation() -> void;
 
   // retrieve and process async friend request from the server
   // and push them to the database
@@ -43,18 +43,18 @@ class Transmitter {
   // 3. If the friend is marked as incoming, then we ignore the request.
   // 4. If the friend is marked as outgoing, then we approve this request
   // immediately.
-  auto retrieve_async_friend_request(int start_index, int end_index) -> void;
+  auto retrieve_async_invitations(int start_index, int end_index) -> void;
 
   // method for testing
   // because during microtests, we do not want to full db scan
   auto reset_async_scanner(int index) {
-    next_async_friend_request_retrieve_index = index;
+    next_async_invitation_retrieve_index = index;
   }
   auto update_async_invitation_retrieve_index() -> pair<int, int> {
-    int start_index = next_async_friend_request_retrieve_index;
-    int end_index = std::min(next_async_friend_request_retrieve_index +
-                                 ASYNC_FRIEND_REQUEST_BATCH_SIZE,
-                             CLIENT_DB_ROWS);
+    int start_index = next_async_invitation_retrieve_index;
+    int end_index = std::min(
+        next_async_invitation_retrieve_index + ASYNC_FRIEND_REQUEST_BATCH_SIZE,
+        CLIENT_DB_ROWS);
     return make_pair(start_index, end_index);
   }
 
@@ -70,6 +70,7 @@ class Transmitter {
   // actual friend to send to. This is critically important in order to
   // not leak metadata!!
   optional<db::Address> dummy_address;
+  optional<db::OutgoingAsyncInvitation> dummy_outgoing_invitation;
 
   // some caching work the first time we set up, setting up the things above
   auto setup_registration_caching() -> void;
@@ -82,8 +83,8 @@ class Transmitter {
   optional<int> previous_success_receive_friend;
   optional<int> just_acked_friend;
 
-  // used to crawl the db
-  int next_async_friend_request_retrieve_index;
+  // used to crawl the db for the async invitations
+  int next_async_invitation_retrieve_index;
 
   // for each index, get the PIR response for that index
   auto batch_retrieve_pir(FastPIRClient& client, vector<pir_index_t> indices)

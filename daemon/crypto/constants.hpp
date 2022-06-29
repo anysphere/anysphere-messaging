@@ -8,17 +8,16 @@
 #include "sodium.h"
 
 // MAC bytes
-constexpr size_t CRYPTO_ABYTES = crypto_aead_xchacha20poly1305_ietf_ABYTES;
+constexpr int CRYPTO_ABYTES = crypto_aead_xchacha20poly1305_ietf_ABYTES;
 // nonce bytes
-constexpr size_t CRYPTO_NPUBBYTES =
-    crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
+constexpr int CRYPTO_NPUBBYTES = crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
 // the maximum size of a message such that it can be sent in a single message
 // if the message is this size or shorter, it is guaranteed to be sent in a
 // single round. 1+5 is for the uint32 ID, 1+MESSAGE_SIZE is for the header of
 // the string, and 1 + 5 is for num_chunks and 1 + 5 is for
 // chunks_start_sequence_number element. -1 at the end is for the padding which
 // reserves one byte.
-constexpr size_t GUARANTEED_SINGLE_MESSAGE_SIZE =
+constexpr int GUARANTEED_SINGLE_MESSAGE_SIZE =
     MESSAGE_SIZE - (1 + 5) -
     (1 +
      CEIL_DIV((sizeof MESSAGE_SIZE) * 8 - std::countl_zero(MESSAGE_SIZE), 8)) -
@@ -26,15 +25,17 @@ constexpr size_t GUARANTEED_SINGLE_MESSAGE_SIZE =
 
 // we support up to 4 billion messages! that's a lot.
 // (we use unsigned integers)
-constexpr size_t ACKING_BYTES = 4;
+constexpr int ACKING_BYTES = 4;
 // the encryption takes a nonce + a mac
-constexpr size_t ENCRYPTED_ACKING_BYTES =
+constexpr int ENCRYPTED_ACKING_BYTES =
     ACKING_BYTES + CRYPTO_ABYTES + CRYPTO_NPUBBYTES;
 // the maximum number of friends!
-constexpr size_t MAX_FRIENDS = MESSAGE_SIZE / ENCRYPTED_ACKING_BYTES;
+constexpr int MAX_FRIENDS = MESSAGE_SIZE / ENCRYPTED_ACKING_BYTES;
 
-constexpr size_t MAX_ASYNC_FRIEND_REQUESTS = 500;
-constexpr size_t ASYNC_FRIEND_REQUEST_BATCH_SIZE = 1000;
+constexpr int MAX_ASYNC_FRIEND_REQUESTS = 500;
+constexpr int ASYNC_FRIEND_REQUEST_BATCH_SIZE = 1000;
+// TODO: figure out a reasonable limit here...
+constexpr int INVITATION_MESSAGE_MAX_PLAINTEXT_SIZE = 500;
 
 // NOTE: whenever these default values are changed, please make a database
 // migration in the shape of UPDATE config SET value = 'new_value' WHERE value =

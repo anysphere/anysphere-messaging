@@ -7,6 +7,8 @@
 
 #include <gtest/gtest.h>
 
+#include "daemon/identifier/identifier.hpp"
+
 TEST(CryptoTest, EncryptDecrypt) {
   crypto::init();
 
@@ -116,66 +118,52 @@ TEST(CryptoTest, EncryptDecryptAcks) {
   }
 }
 
-TEST(CryptoTest, EncodeDecodeId) {
-  for (auto round = 0; round < 10; round++) {
-    string user = "user_asdf_" + to_string(round);
-    auto [kx_pk, kx_sk] = crypto::generate_kx_keypair();
-    auto [f_pk, f_sk] = crypto::generate_friend_request_keypair();
-    int allocation = rand() % 10000;
-    auto id_ = crypto::generate_user_id(user, allocation, kx_pk, f_pk);
-    EXPECT_TRUE(id_.ok());
-    auto dec = crypto::decode_user_id(id_.value());
-    EXPECT_TRUE(dec.ok());
-    auto [user_, allocation_, kx_pk_, f_pk_] = dec.value();
-    EXPECT_EQ(user, user_);
-    EXPECT_EQ(allocation, allocation_);
-    EXPECT_EQ(kx_pk, kx_pk_);
-    EXPECT_EQ(f_pk, f_pk_);
-  }
-}
-
 TEST(CryptoTest, EncryptDecryptAsyncFriendRequest) {
   for (auto round = 0; round < 10; round++) {
     string user1 = "user1_" + to_string(round);
     string user2 = "user2_" + to_string(round);
     auto [kx_pk1, kx_sk1] = crypto::generate_kx_keypair();
     auto [kx_pk2, kx_sk2] = crypto::generate_kx_keypair();
-    auto [f_pk1, f_sk1] = crypto::generate_friend_request_keypair();
-    auto [f_pk2, f_sk2] = crypto::generate_friend_request_keypair();
+    auto [f_pk1, f_sk1] = crypto::generate_invitation_keypair();
+    auto [f_pk2, f_sk2] = crypto::generate_invitation_keypair();
 
     cout << "Keypair generated" << endl;
 
     int allocation1 = rand() % 10000;
-    int allocation2 = rand() % 10000;
-    auto id1_ = crypto::generate_user_id(user1, allocation1, kx_pk1, f_pk1);
-    auto id2_ = crypto::generate_user_id(user2, allocation2, kx_pk2, f_pk2);
-    if (!id1_.ok() || !id2_.ok()) {
-      FAIL() << "Failed to generate user IDs";
-    }
-    auto id1 = id1_.value();
-    auto id2 = id2_.value();
+    // Create public ids
+    auto id1 = PublicIdentifier(allocation1, kx_pk1, f_pk1).to_public_id();
 
     cout << "Id generated: " << id1 << endl;
 
     string message = "hello from 1 to 2 on round " + to_string(round);
     // user 1 sends friend request to user 2
-    auto friend_request_ =
-        crypto::encrypt_async_friend_request(id1, f_sk1, id2, message);
-    if (!friend_request_.ok()) {
+    // note: This API have been changed in arvid's update.
+    auto invitation_ =
+        crypto::encrypt_async_invitation(id1, f_sk1, f_pk2, message);
+    if (!invitation_.ok()) {
       FAIL() << "Failed to encrypt friend request";
     }
-    auto friend_request = friend_request_.value();
+    auto invitation = invitation_.value();
 
     cout << "Friend request encrypted" << endl;
     // user 2 decrypts friend request
-    auto decrypted_friend_request_ =
-        crypto::decrypt_async_friend_request(id2, f_sk2, id1, friend_request);
-    if (!decrypted_friend_request_.ok()) {
-      cout << decrypted_friend_request_.status() << endl;
+    // Note: This API have been changed in arvid's update.
+    auto decrypted_invitation_ =
+        crypto::decrypt_async_invitation(f_sk2, f_pk1, invitation);
+    if (!decrypted_invitation_.ok()) {
+      cout << decrypted_invitation_.status() << endl;
       FAIL() << "Failed to decrypt friend request";
     }
-    auto decrypted_friend_request = decrypted_friend_request_.value();
-    EXPECT_EQ(decrypted_friend_request.first, id1);
-    EXPECT_EQ(decrypted_friend_request.second, message);
+    auto decrypted_invitation = decrypted_invitation_.value();
+    EXPECT_EQ(decrypted_invitation.first, id1);
+    EXPECT_EQ(decrypted_invitation.second, message);
+    // user 2 then decrypts the id to get the user1's kx key.
+    auto identifier_ =
+        PublicIdentifier::from_public_id(decrypted_invitation.first);
+    assert(identifier_.ok());
+    auto identifier = identifier_.value();
+    assert(identifier.index == allocation1);
+    assert(identifier.kx_public_key == kx_pk1);
+    assert(identifier.invitation_public_key == f_pk1);
   }
 }

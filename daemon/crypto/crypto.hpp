@@ -33,7 +33,7 @@ auto generic_hash(string_view data) -> std::string;
 // Generates a new keypair in the format <public_key, private_key>.
 auto generate_kx_keypair() -> std::pair<string, string>;
 
-auto generate_friend_request_keypair() -> std::pair<string, string>;
+auto generate_invitation_keypair() -> std::pair<string, string>;
 
 auto derive_read_write_keys(string my_public_key, string my_private_key,
                             string friend_public_key)
@@ -65,39 +65,17 @@ auto encrypt_ack(uint32_t ack_id, const string& write_key)
 auto decrypt_ack(const string& ciphertext, const string& read_key)
     -> asphr::StatusOr<uint32_t>;
 
-// NEW: generate / decode user ID.
-// user ID is a string stored on the server
-// that encompases username, allocation, kx_public_key, and
-// friend_request_public_key
-auto generate_user_id(const string& username, int allocation,
-                      const string& kx_public_key,
-                      const string& friend_request_public_key)
-    -> asphr::StatusOr<string>;
-
-auto decode_user_id(const string& user_id)
-    -> asphr::StatusOr<std::tuple<string, int, string, string>>;
-
 // encrypt an asynchronous friend request
 // The async friend request from A->B is Enc(ID_B, ID_A || msg) = Enc(f_pk_B,
 // ID_A || msg)
-auto encrypt_async_friend_request(const string& self_id,
-                                  const string& self_friend_request_private_key,
-                                  const string& friend_id,
-                                  const string& message)
-    -> asphr::StatusOr<string>;
-
-// decrypt the asynchronous friend requests
-// returns the NAME, ALLOCATION INDEX, KX PUBLIC KEY, MSG
-// in that order
-auto decrypt_async_friend_request(const string& self_id,
-                                  const string& self_friend_request_private_key,
-                                  const string& friend_id,
-                                  const string& ciphertext)
-    -> asphr::StatusOr<pair<string, string>>;
+auto encrypt_async_invitation(const string& self_id,
+                              const string& self_invitation_private_key,
+                              const string& friend_invitation_public_key,
+                              const string& message) -> asphr::StatusOr<string>;
 
 // this method is needed for transmission retrieval
-auto decrypt_async_friend_request_public_key_only(
-    const string& self_id, const string& self_friend_request_private_key,
-    const string& friend_friend_request_public_key, const string& ciphertext)
+auto decrypt_async_invitation(const string& self_invitation_private_key,
+                              const string& friend_invitation_public_key,
+                              const string& ciphertext)
     -> asphr::StatusOr<pair<string, string>>;
 };  // namespace crypto
