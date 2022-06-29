@@ -1899,15 +1899,10 @@ impl DB {
     write_key: Vec<u8>,
     max_friends: i32,
   ) -> Result<ffi::Friend, DbError> {
-    // TODO: check that we have space for async invitation
-
     let mut conn = self.connect().unwrap();
     use crate::schema::friend;
     use crate::schema::outgoing_async_invitation;
     use crate::schema::outgoing_chunk;
-
-    // TODO: check if we already have outgoing async friend request, and if so, we don't support adding this right now
-    // (we can currently only do one async friend request at a time)
 
     let friend_fragment = ffi::FriendFragment {
       unique_name: unique_name.to_string(),
