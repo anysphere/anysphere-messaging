@@ -2027,10 +2027,26 @@ impl DB {
   }
 
   pub fn get_outgoing_sync_invitations(&self) -> Result<Vec<ffi::OutgoingSyncInvitation>, DbError> {
-    return Err(DbError::Unimplemented(
-      "get_outgoing_sync_invitations CHECK BELOW IMPL FOR NEW INERFACE".to_string(),
-    ));
+    let mut conn = self.connect()?;
+    use crate::schema::friend;
+    use crate::schema::outgoing_sync_invitation;
+
+    friend::table
+      .filter(friend::deleted.eq(false))
+      .filter(friend::invitation_progress.eq(ffi::InvitationProgress::OutgoingSync))
+      .inner_join(outgoing_sync_invitation::table)
+      .select((
+        friend::uid,
+        friend::unique_name,
+        friend::display_name,
+        friend::invitation_progress,
+        outgoing_sync_invitation::story,
+        outgoing_sync_invitation::sent_at,
+      ))
+      .load::<ffi::OutgoingSyncInvitation>(&mut conn)
+      .map_err(|e| DbError::Unknown(format!("get_outgoing_sync_invitations: {}", e)))
   }
+
   pub fn get_outgoing_async_invitations(
     &self,
   ) -> Result<Vec<ffi::OutgoingAsyncInvitation>, DbError> {
