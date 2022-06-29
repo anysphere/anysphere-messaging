@@ -129,8 +129,8 @@ Status DaemonRpc::GetFriendList(
       new_friend->set_unique_name(std::string(s.unique_name));
       new_friend->set_display_name(std::string(s.display_name));
       new_friend->set_public_id(std::string(s.public_id));
-      new_friend->set_request_progress(
-          asphrdaemon::FriendRequestProgress::Complete);
+      new_friend->set_invitation_progress(
+          asphrdaemon::InvitationProgress::Complete);
     }
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Database failed.", error, e.what(), rpc_call,
@@ -237,6 +237,12 @@ auto DaemonRpc::convertStructDBtoRPC(const db::Friend& db_friend,
   friend_info.set_unique_name(std::string(db_friend.unique_name));
   friend_info.set_display_name(std::string(db_friend.display_name));
   friend_info.set_public_id(std::string(db_friend.public_id));
+
+  // WARNING: this is SkEtCHy!!
+  // TODO(sualeh): can we cast this with a proper function on either of the
+  // structs.
+  friend_info.set_invitation_progress(
+      static_cast<asphrdaemon::InvitationProgress>(db_friend.request_progress));
   return std::pair(friend_info, std::string(db_address.friend_request_message));
 }
 
@@ -318,18 +324,31 @@ grpc::Status DaemonRpc::AddAsyncFriend(
   return Status::OK;
 }
 
-Status DaemonRpc::GetOutgoingFriendRequests(
+grpc::Status DaemonRpc::GetOutgoingSyncInvitations(
     grpc::ServerContext* context,
-    const asphrdaemon::GetOutgoingFriendRequestsRequest*
-        getOutgoingFriendRequestsRequest,
-    asphrdaemon::GetOutgoingFriendRequestsResponse*
-        getOutgoingFriendRequestsResponse) {
-  ASPHR_LOG_INFO("GetOutgoingFriendRequests() called.", rpc_call,
-                 "GetOutgoingFriendRequests");
+    const asphrdaemon::GetOutgoingSyncInvitationsRequest*
+        getOutgoingSyncInvitationsRequest,
+    asphrdaemon::GetOutgoingSyncInvitationsResponse*
+        getOutgoingSyncInvitationsResponse) {
+  ASPHR_LOG_INFO("GetOutgoingSyncInvitations() called.", rpc_call,
+                 "GetOutgoingSyncInvitations");
+
+  // unimplemented
+  return Status(grpc::StatusCode::UNIMPLEMENTED, "not implemented");
+}
+
+Status DaemonRpc::GetOutgoingAsyncInvitations(
+    grpc::ServerContext* context,
+    const asphrdaemon::GetOutgoingAsyncInvitationsRequest*
+        getOutgoingAsyncInvitationsRequest,
+    asphrdaemon::GetOutgoingAsyncInvitationsResponse*
+        getOutgoingAsyncInvitationsResponse) {
+  ASPHR_LOG_INFO("GetOutgoingAsyncInvitations() called.", rpc_call,
+                 "GetOutgoingAsyncInvitations");
 
   if (!G.db->has_registered()) {
     ASPHR_LOG_INFO("Need to register first.", rpc_call,
-                   "GetOutgoingFriendRequests");
+                   "GetOutgoingAsyncInvitations");
     return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
   }
 
@@ -343,15 +362,30 @@ Status DaemonRpc::GetOutgoingFriendRequests(
       auto conversion_result = convertStructDBtoRPC(db_friend, address);
       if (!conversion_result.ok()) {
         ASPHR_LOG_ERR("Failed to convert DB to RPC.", rpc_call,
-                      "GetOutgoingAsyncFriendRequests");
+                      "GetOutgoingAsyncInvitations");
         return Status(grpc::StatusCode::UNKNOWN, "failed to convert DB to RPC");
       }
       auto [friend_info, message] = conversion_result.value();
       // add to response
-      auto friend_request =
-          getOutgoingFriendRequestsResponse->add_friend_requests();
-      friend_request->mutable_friend_info()->CopyFrom(friend_info);
-      friend_request->set_message(message);
+      auto invitation = getOutgoingAsyncInvitationsResponse->add_invitations();
+
+      /**
+       * message OutgoingAsyncInvitationInfo {
+          string unique_name = 1;
+          string display_name = 2;
+          string public_id = 3;
+          string message = 4;
+          google.protobuf.Timestamp sent_at = 5;
+        }
+       */
+      invitation->set_unique_name(friend_info.unique_name());
+      invitation->set_display_name(friend_info.display_name());
+      invitation->set_public_id(friend_info.public_id());
+      invitation->set_message(message);
+      // set now
+      // invitation->set_sent_at(
+      //     google::protobuf::util::TimeUtil::SecondsToTimestamp(
+      //         std::time(nullptr)));
     }
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Failed to get outgoing friend requests.", error, e.what(),
@@ -362,12 +396,12 @@ Status DaemonRpc::GetOutgoingFriendRequests(
   return Status::OK;
 }
 
-Status DaemonRpc::GetIncomingAsyncFriendRequests(
+Status DaemonRpc::GetIncomingAsyncInvitations(
     grpc::ServerContext* context,
-    const asphrdaemon::GetIncomingAsyncFriendRequestsRequest*
-        getIncomingAsyncFriendRequestsRequest,
-    asphrdaemon::GetIncomingAsyncFriendRequestsResponse*
-        getIncomingAsyncFriendRequestsResponse) {
+    const asphrdaemon::GetIncomingAsyncInvitationsRequest*
+        getIncomingAsyncInvitationsRequest,
+    asphrdaemon::GetIncomingAsyncInvitationsResponse*
+        getIncomingAsyncInvitationsResponse) {
   // clone of the above
   try {
     // call rust db to get all incoming friend requests
@@ -384,10 +418,22 @@ Status DaemonRpc::GetIncomingAsyncFriendRequests(
       }
       auto [friend_info, message] = conversion_result.value();
       // add to response
-      auto friend_request =
-          getIncomingAsyncFriendRequestsResponse->add_friend_requests();
-      friend_request->mutable_friend_info()->CopyFrom(friend_info);
-      friend_request->set_message(message);
+      auto invitation = getIncomingAsyncInvitationsResponse->add_invitations();
+
+      /**
+       * message IncomingAsyncInvitationInfo {
+          string public_id = 1;
+          string message = 2;
+          google.protobuf.Timestamp received_at = 3;
+        }
+       */
+
+      invitation->set_public_id("friend_info.public_id");
+      invitation->set_message(message);
+      // set now
+      // invitation->set_received_at(
+      //     google::protobuf::util::TimeUtil::SecondsToTimestamp(
+      //         std::time(nullptr)));
     }
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Failed to get incoming friend requests.", error, e.what(),
@@ -397,28 +443,22 @@ Status DaemonRpc::GetIncomingAsyncFriendRequests(
   return Status::OK;
 }
 
-Status DaemonRpc::DecideAsyncFriendRequest(
+Status DaemonRpc::AcceptAsyncInvitation(
     grpc::ServerContext* context,
-    const asphrdaemon::DecideAsyncFriendRequestRequest*
-        decideAsyncFriendRequestRequest,
-    asphrdaemon::DecideAsyncFriendRequestResponse*
-        decideAsyncFriendRequestResponse) {
-  try {
-    if (decideAsyncFriendRequestRequest->accept()) {
-      // call rust db to accept the friend request
-      G.db->approve_async_friend_request(
-          decideAsyncFriendRequestRequest->unique_name(), MAX_FRIENDS);
-    } else {
-      // call rust db to reject the friend request
-      G.db->deny_async_friend_request(
-          decideAsyncFriendRequestRequest->unique_name());
-    }
-  } catch (const rust::Error& e) {
-    ASPHR_LOG_ERR("Failed to decide async friend request.", error, e.what(),
-                  rpc_call, "DecideAsyncFriendRequest");
-    return Status(grpc::StatusCode::UNKNOWN, e.what());
-  }
-  return Status::OK;
+    const asphrdaemon::AcceptAsyncInvitationRequest*
+        acceptAsyncInvitationRequest,
+    asphrdaemon::AcceptAsyncInvitationResponse* acceptAsyncInvitationResponse) {
+  // unimplemented
+  return Status(grpc::StatusCode::UNIMPLEMENTED, "not implemented");
+}
+
+Status DaemonRpc::RejectAsyncInvitation(
+    grpc::ServerContext* context,
+    const asphrdaemon::RejectAsyncInvitationRequest*
+        rejectAsyncInvitationRequest,
+    asphrdaemon::RejectAsyncInvitationResponse* rejectAsyncInvitationResponse) {
+  // unimplemented
+  return Status(grpc::StatusCode::UNIMPLEMENTED, "not implemented");
 }
 
 Status DaemonRpc::RemoveFriend(

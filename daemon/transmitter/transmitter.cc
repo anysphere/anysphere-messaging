@@ -343,17 +343,11 @@ auto Transmitter::retrieve() -> void {
   // Crawl the async friend request database
   // TODO: we could accelerate / deccelerate this as the client desires/
   // by changing ASYNC_FRIEND_REQUEST_BATCH_SIZE
-  int start_index = next_async_friend_request_retrieve_index;
-  int end_index = std::min(next_async_friend_request_retrieve_index +
-                               ASYNC_FRIEND_REQUEST_BATCH_SIZE,
-                           CLIENT_DB_ROWS);
+  auto [start_index, end_index] = update_async_invitation_retrieve_index();
+
   // call the server to retrieve the async friend requests
   retrieve_async_friend_request(start_index, end_index);
-  if (end_index == CLIENT_DB_ROWS) {
-    next_async_friend_request_retrieve_index = 0;
-  } else {
-    next_async_friend_request_retrieve_index = end_index;
-  }
+
   check_rep();
 }
 
@@ -458,6 +452,7 @@ auto Transmitter::send() -> void {
                   server_status_code, status.error_code(),
                   server_status_message, status.error_message());
   }
+
   transmit_async_friend_request();
   check_rep();
 }
@@ -633,6 +628,10 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
     return;
   }
   std::map<string, db::Friend> friends = {};
+
+  ASPHR_LOG_INFO("Retrieved async friend requests from server.",
+                 "requests_size", reply.requests_size());
+
   for (int i = 0; i < reply.requests_size(); i++) {
     // Step 2.1: test if the friend request is meant for us
     // For now, we attach the friend_public_key along with every request.
@@ -726,6 +725,7 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
       // ASPHR_LOG_ERR("Could not find friend ID.", "Error", e.what());
       continue;
     }
+
     // Step 2.4: if we get here, then we have a new friend request
     // we need to create a new friend entry in the database
     // Note: the current design decision is to not transmit the actual name of
@@ -748,12 +748,19 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
         .read_key = string_to_rust_u8Vec(read_key),
         .write_key = string_to_rust_u8Vec(write_key),
     };
+
     try {
       G.db->add_incoming_async_friend_requests(new_friend, new_address);
     } catch (const rust::Error& e) {
       ASPHR_LOG_ERR("Could not add friend.", Error, e.what());
       continue;
     }
+  }
+
+  if (end_index == CLIENT_DB_ROWS) {
+    next_async_friend_request_retrieve_index = 0;
+  } else {
+    next_async_friend_request_retrieve_index = end_index;
   }
 }
 

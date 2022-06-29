@@ -21,16 +21,22 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
       const asphrdaemon::RegisterUserRequest* registerUserRequest,
       asphrdaemon::RegisterUserResponse* registerUserResponse) override;
 
-  grpc::Status GetFriendList(
-      grpc::ServerContext* context,
-      const asphrdaemon::GetFriendListRequest* getFriendListRequest,
-      asphrdaemon::GetFriendListResponse* getFriendListResponse) override;
-
   grpc::Status GetMyPublicID(
       grpc::ServerContext* context,
       const asphrdaemon::GetMyPublicIDRequest* getMyPublicIDRequest,
       asphrdaemon::GetMyPublicIDResponse* getMyPublicIDResponse) override;
 
+  grpc::Status GetFriendList(
+      grpc::ServerContext* context,
+      const asphrdaemon::GetFriendListRequest* getFriendListRequest,
+      asphrdaemon::GetFriendListResponse* getFriendListResponse) override;
+
+  grpc::Status RemoveFriend(
+      grpc::ServerContext* context,
+      const asphrdaemon::RemoveFriendRequest* removeFriendRequest,
+      asphrdaemon::RemoveFriendResponse* removeFriendResponse) override;
+
+  // Invitations (async + sync) section. Sync \similarTo InPerson.
   grpc::Status AddSyncFriend(
       grpc::ServerContext* context,
       const asphrdaemon::AddSyncFriendRequest* addSyncFriendRequest,
@@ -41,37 +47,47 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
       const asphrdaemon::AddAsyncFriendRequest* addAsyncFriendRequest,
       asphrdaemon::AddAsyncFriendResponse* addAsyncFriendResponse) override;
 
-  grpc::Status GetOutgoingFriendRequests(
+  grpc::Status GetOutgoingSyncInvitations(
       grpc::ServerContext* context,
-      const asphrdaemon::GetOutgoingFriendRequestsRequest*
-          getOutgoingFriendRequestsRequest,
-      asphrdaemon::GetOutgoingFriendRequestsResponse*
-          getOutgoingFriendRequestsResponse) override;
+      const asphrdaemon::GetOutgoingSyncInvitationsRequest*
+          getOutgoingSyncInvitationsRequest,
+      asphrdaemon::GetOutgoingSyncInvitationsResponse*
+          getOutgoingSyncInvitationsResponse) override;
 
-  grpc::Status GetIncomingAsyncFriendRequests(
+  grpc::Status GetOutgoingAsyncInvitations(
       grpc::ServerContext* context,
-      const asphrdaemon::GetIncomingAsyncFriendRequestsRequest*
-          getIncomingAsyncFriendRequestsRequest,
-      asphrdaemon::GetIncomingAsyncFriendRequestsResponse*
-          getIncomingAsyncFriendRequestsResponse) override;
+      const asphrdaemon::GetOutgoingAsyncInvitationsRequest*
+          getOutgoingAsyncInvitationsRequest,
+      asphrdaemon::GetOutgoingAsyncInvitationsResponse*
+          getOutgoingAsyncInvitationsResponse) override;
 
-  grpc::Status DecideAsyncFriendRequest(
+  grpc::Status GetIncomingAsyncInvitations(
       grpc::ServerContext* context,
-      const asphrdaemon::DecideAsyncFriendRequestRequest*
-          decideAsyncFriendRequestRequest,
-      asphrdaemon::DecideAsyncFriendRequestResponse*
-          decideAsyncFriendRequestResponse) override;
+      const asphrdaemon::GetIncomingAsyncInvitationsRequest*
+          getIncomingAsyncInvitationsRequest,
+      asphrdaemon::GetIncomingAsyncInvitationsResponse*
+          getIncomingAsyncInvitationsResponse) override;
 
-  grpc::Status RemoveFriend(
+  grpc::Status AcceptAsyncInvitation(
       grpc::ServerContext* context,
-      const asphrdaemon::RemoveFriendRequest* removeFriendRequest,
-      asphrdaemon::RemoveFriendResponse* removeFriendResponse) override;
+      const asphrdaemon::AcceptAsyncInvitationRequest*
+          acceptAsyncInvitationRequest,
+      asphrdaemon::AcceptAsyncInvitationResponse* acceptAsyncInvitationResponse)
+      override;
+
+  grpc::Status RejectAsyncInvitation(
+      grpc::ServerContext* context,
+      const asphrdaemon::RejectAsyncInvitationRequest*
+          rejectAsyncInvitationRequest,
+      asphrdaemon::RejectAsyncInvitationResponse* rejectAsyncInvitationResponse)
+      override;
 
   grpc::Status SendMessage(
       grpc::ServerContext* context,
       const asphrdaemon::SendMessageRequest* sendMessageRequest,
       asphrdaemon::SendMessageResponse* sendMessageResponse) override;
 
+  // Get Messages section
   grpc::Status GetMessages(
       grpc::ServerContext* context,
       const asphrdaemon::GetMessagesRequest* getMessagesRequest,
@@ -98,6 +114,8 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
       const asphrdaemon::MessageSeenRequest* messageSeenRequest,
       asphrdaemon::MessageSeenResponse* messageSeenResponse) override;
 
+  // GetStatus returns the status of the daemon. Things like how long since the
+  // last send/receive cycle, etc
   grpc::Status GetStatus(
       grpc::ServerContext* context,
       const asphrdaemon::GetStatusRequest* getStatusRequest,
