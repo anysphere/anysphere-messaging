@@ -2054,13 +2054,6 @@ impl DB {
       )?;
 
       Ok(friend)
-    }).map_err(|e| match e {
-      diesel::result::Error::RollbackTransaction => DbError::AlreadyExists(
-        "add_outgoing_async_invitation, friend already exists, or too many friends".to_string(),
-      ),
-      _ => {
-        DbError::Unknown(format!("add_outgoing_async_invitation, failed to insert friend: {}", e))
-      }
     })
   }
 
