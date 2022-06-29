@@ -11,8 +11,3 @@ export type Message = {
   timestamp: Date;
   type: "outgoing" | "incoming";
 };
-
-export type Friend = {
-  name: string;
-  status: "initiated" | "added";
-};
