@@ -48,8 +48,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    incoming_invitation (friend_uid) {
-        friend_uid -> Integer,
+    incoming_invitation (public_id) {
         public_id -> Text,
         message -> Text,
         received_at -> BigInt,
@@ -81,8 +80,8 @@ diesel::table! {
         chunks_start_sequence_number -> Integer,
         message_uid -> Integer,
         content -> Text,
-        control -> Bool,
-        control_message -> Integer,
+        system -> Bool,
+        system_message -> Integer,
     }
 }
 
@@ -139,7 +138,7 @@ diesel::table! {
         read_index -> Integer,
         read_key -> Binary,
         write_key -> Binary,
-        ack_index -> Nullable<Integer>,
+        ack_index -> Integer,
         sent_acked_seqnum -> Integer,
         received_seqnum -> Integer,
     }
@@ -151,7 +150,6 @@ diesel::joinable!(draft -> friend (to_friend));
 diesel::joinable!(draft -> message (uid));
 diesel::joinable!(incoming_chunk -> friend (from_friend));
 diesel::joinable!(incoming_chunk -> received (message_uid));
-diesel::joinable!(incoming_invitation -> friend (friend_uid));
 diesel::joinable!(outgoing_async_invitation -> friend (friend_uid));
 diesel::joinable!(outgoing_chunk -> friend (to_friend));
 diesel::joinable!(outgoing_chunk -> sent (message_uid));

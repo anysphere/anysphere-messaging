@@ -51,8 +51,35 @@ impl fmt::Display for DbError {
 }
 
 // keep this in sync with message.proto
-pub enum SystemMessage {
-  OutgoingInvitation = 0,
+
+impl<DB> Queryable<diesel::sql_types::Integer, DB> for ffi::SystemMessage
+where
+  DB: diesel::backend::Backend,
+  i32: diesel::deserialize::FromSql<diesel::sql_types::Integer, DB>,
+{
+  type Row = i32;
+  fn build(s: i32) -> diesel::deserialize::Result<Self> {
+    match s {
+      0 => Ok(ffi::SystemMessage::OutgoingInvitation),
+      _ => Err("invalid system message".into()),
+    }
+  }
+}
+
+impl ToSql<diesel::sql_types::Integer, diesel::sqlite::Sqlite> for ffi::SystemMessage
+where
+  i32: ToSql<diesel::sql_types::Integer, diesel::sqlite::Sqlite>,
+{
+  fn to_sql<'b>(
+    &'b self,
+    out: &mut Output<'b, '_, diesel::sqlite::Sqlite>,
+  ) -> diesel::serialize::Result {
+    match *self {
+      ffi::SystemMessage::OutgoingInvitation => out.set_value(0 as i32),
+      _ => return Err("invalid system message".into()),
+    }
+    Ok(diesel::serialize::IsNull::No)
+  }
 }
 
 // TODO(arvid): manage a connection pool for the DB here?
@@ -308,6 +335,12 @@ pub mod ffi {
     pub content: String,
   }
 
+  #[derive(Debug, AsExpression)]
+  #[diesel(sql_type = diesel::sql_types::Integer)]
+  enum SystemMessage {
+    OutgoingInvitation,
+  }
+
   #[derive(Queryable)]
   struct OutgoingChunkPlusPlus {
     pub to_friend: i32,
@@ -317,8 +350,9 @@ pub mod ffi {
     pub content: String,
     pub write_key: Vec<u8>,
     pub num_chunks: i32,
-    pub control: bool,
-    pub control_message: i32,
+    pub system: bool,
+    #[diesel(deserialize_as = SystemMessage)]
+    pub system_message: SystemMessage,
   }
 
   #[derive(Queryable)]
@@ -485,7 +519,8 @@ pub mod ffi {
     // 1. If the friend is marked as deleted, then we ignore the request.
     // 2. If the friend is marked as accepted, then we ignore the request.
     // 3. If the friend is marked as incoming, then we update the message.
-    // 4. If the friend is marked as outgoing, then we approve this request.
+    // 4. If the friend is marked as outgoing async, then we approve this request.
+    // (if async outgoing, we just won't know, so we cannot take any special action)
     // immediately.
     fn add_incoming_async_invitation(&self, public_id: &str, message: &str) -> Result<()>;
     // get invitations
@@ -522,10 +557,13 @@ pub mod ffi {
       num_chunks: i32,
     ) -> Result<ReceiveChunkStatus>;
     // receive the system message telling us to add the friend
+
     fn receive_invitation_system_message(
       &self,
       from_friend: i32,
       sequence_number: i32,
+      public_id: &str, // we want this public_id to correspond to the one we already have
+      public_id_claimed_kx_public_key: Vec<u8>, // we want to verify that this is the same as we have on file! otherwise someone might be trying to deceive us
     ) -> Result<()>;
 
     // fails if there is no chunk to send
@@ -905,33 +943,17 @@ impl DB {
 
   pub fn receive_ack(&self, uid: i32, ack: i32) -> Result<bool, DbError> {
     let mut conn = self.connect()?;
-    use crate::schema::friend;
     use crate::schema::outgoing_chunk;
     use crate::schema::sent;
-    use crate::schema::status;
+    use crate::schema::transmission;
 
     let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
       let old_acked_seqnum =
-        status::table.find(uid).select(status::sent_acked_seqnum).first(conn_b)?;
+        transmission::table.find(uid).select(transmission::sent_acked_seqnum).first(conn_b)?;
       if ack > old_acked_seqnum {
-        diesel::update(status::table.find(uid))
-          .set(status::sent_acked_seqnum.eq(ack))
+        diesel::update(transmission::table.find(uid))
+          .set(transmission::sent_acked_seqnum.eq(ack))
           .execute(conn_b)?;
-        // check if there are any control messages that were ACKed
-        let control_chunks = outgoing_chunk::table
-          .filter(outgoing_chunk::to_friend.eq(uid))
-          .filter(outgoing_chunk::sequence_number.le(ack))
-          .filter(outgoing_chunk::control.eq(true))
-          .select(outgoing_chunk::control_message)
-          .load::<i32>(conn_b)?;
-        for control_message in control_chunks {
-          if control_message == SystemMessage::OutgoingInvitation {
-            // yay! they shall now be considered a Real Friend
-            diesel::update(friend::table.find(uid))
-              .set(friend::invitation_progress.eq(ffi::InvitationProgress::Complete))
-              .execute(conn_b)?;
-          }
-        }
         // delete all outgoing chunks with seqnum <= ack
         diesel::delete(
           outgoing_chunk::table
@@ -979,11 +1001,13 @@ impl DB {
     from_friend: i32,
     sequence_number: i32,
   ) -> Result<ffi::ReceiveChunkStatus, diesel::result::Error> {
-    use crate::schema::status;
+    use crate::schema::transmission;
 
     conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
-      let old_seqnum =
-        status::table.find(from_friend).select(status::received_seqnum).first::<i32>(conn_b)?;
+      let old_seqnum = transmission::table
+        .find(from_friend)
+        .select(transmission::received_seqnum)
+        .first::<i32>(conn_b)?;
       // if chunk is before old_seqnum, we just ignore it!!
       // in other words, once a chunk has been received, it can never be patched.
       // this is good. if something bad happens, you can always retransmit in a new
@@ -995,8 +1019,8 @@ impl DB {
 
       // so we only update the seqnum if we increase exactly by one (otherwise we might miss messages!)
       if sequence_number == old_seqnum + 1 {
-        diesel::update(status::table.find(from_friend))
-          .set(status::received_seqnum.eq(sequence_number))
+        diesel::update(transmission::table.find(from_friend))
+          .set(transmission::received_seqnum.eq(sequence_number))
           .execute(conn_b)?;
       }
       Ok(ffi::ReceiveChunkStatus::NewChunk)
@@ -1110,10 +1134,12 @@ impl DB {
     }
   }
 
-  fn receive_invitation_system_message(
+  pub fn receive_invitation_system_message(
     &self,
     from_friend: i32,
     sequence_number: i32,
+    public_id: &str,
+    public_id_claimed_kx_public_key: Vec<u8>,
   ) -> Result<(), DbError> {
     let mut conn = self.connect()?;
     use crate::schema::friend;
@@ -1145,10 +1171,10 @@ impl DB {
   ) -> Result<ffi::OutgoingChunkPlusPlus, DbError> {
     let mut conn = self.connect()?;
 
-    use crate::schema::address;
     use crate::schema::friend;
     use crate::schema::outgoing_chunk;
     use crate::schema::sent;
+    use crate::schema::transmission;
 
     // We could do probably this in one query, by joining on the select statement
     // and then joining. Diesel doesn't typecheck this, and maybe it is unsafe, so
@@ -1181,7 +1207,7 @@ impl DB {
       })();
       let chunk_plusplus = outgoing_chunk::table
         .find(chosen_chunk)
-        .inner_join(friend::table.inner_join(address::table))
+        .inner_join(friend::table.inner_join(transmission::table))
         .inner_join(sent::table)
         .select((
           outgoing_chunk::to_friend,
@@ -1189,10 +1215,10 @@ impl DB {
           outgoing_chunk::chunks_start_sequence_number,
           outgoing_chunk::message_uid,
           outgoing_chunk::content,
-          address::write_key,
+          transmission::write_key,
           sent::num_chunks,
-          outgoing_chunk::control,
-          outgoing_chunk::control_message,
+          outgoing_chunk::system,
+          outgoing_chunk::system_message,
         ))
         .first::<ffi::OutgoingChunkPlusPlus>(conn_b)?;
       Ok(chunk_plusplus)
@@ -1206,7 +1232,6 @@ impl DB {
 
   pub fn acks_to_send(&self) -> Result<Vec<ffi::OutgoingAck>, DbError> {
     let mut conn = self.connect()?;
-    use crate::schema::address;
     use crate::schema::friend;
     use crate::schema::transmission;
     let wide_friends =
@@ -1227,9 +1252,19 @@ impl DB {
   pub fn get_friend_address(&self, uid: i32) -> Result<ffi::Address, DbError> {
     let mut conn = self.connect()?;
 
-    use crate::schema::address;
+    use crate::schema::transmission;
 
-    match address::table.find(uid).first(&mut conn) {
+    match transmission::table
+      .find(uid)
+      .select((
+        transmission::friend_uid,
+        transmission::read_index,
+        transmission::read_key,
+        transmission::write_key,
+        transmission::ack_index,
+      ))
+      .first(&mut conn)
+    {
       Ok(address) => Ok(address),
       Err(e) => Err(DbError::Unknown(format!("get_friend_address: {}", e))),
     }
@@ -1240,15 +1275,21 @@ impl DB {
     uids: Vec<i32>,
   ) -> Result<ffi::Address, DbError> {
     let mut conn = self.connect()?;
-    use crate::schema::address;
     use crate::schema::friend;
+    use crate::schema::transmission;
 
     // get a random friend that is not deleted excluding the ones in the uids list
     // we alow getting any outgoing friend too. they should be treated normally
     let q = friend::table.filter(friend::deleted.eq(false));
 
     // Inner join to get the (friend, address) pairs and then select the address.
-    let q = q.inner_join(address::table).select(address::all_columns);
+    let q = q.inner_join(transmission::table).select((
+      transmission::friend_uid,
+      transmission::read_index,
+      transmission::read_key,
+      transmission::write_key,
+      transmission::ack_index,
+    ));
     let addresses = q.load::<ffi::Address>(&mut conn);
 
     match addresses {
@@ -1296,7 +1337,7 @@ impl DB {
     use crate::schema::message;
     use crate::schema::outgoing_chunk;
     use crate::schema::sent;
-    use crate::schema::status;
+    use crate::schema::transmission;
 
     conn
       .transaction::<_, diesel::result::Error, _>(|conn_b| {
@@ -1327,9 +1368,10 @@ impl DB {
           .limit(1)
           .load::<i32>(conn_b)?;
         let old_seqnum = match maybe_old_seqnum.len() {
-          0 => {
-            status::table.find(friend_uid).select(status::sent_acked_seqnum).first::<i32>(conn_b)?
-          }
+          0 => transmission::table
+            .find(friend_uid)
+            .select(transmission::sent_acked_seqnum)
+            .first::<i32>(conn_b)?,
           _ => maybe_old_seqnum[0],
         };
         let new_seqnum = old_seqnum + 1;
@@ -1342,8 +1384,8 @@ impl DB {
               outgoing_chunk::chunks_start_sequence_number.eq(new_seqnum),
               outgoing_chunk::message_uid.eq(message_uid),
               outgoing_chunk::content.eq(chunk),
-              outgoing_chunk::control.eq(false),
-              outgoing_chunk::control_message.eq(0), // doesn't matter, we don't use this if control is false anyway
+              outgoing_chunk::system.eq(false),
+              outgoing_chunk::system_message.eq(ffi::SystemMessage::OutgoingInvitation), // doesn't matter, we don't use this if control is false anyway
             ))
             .execute(conn_b)?;
         }

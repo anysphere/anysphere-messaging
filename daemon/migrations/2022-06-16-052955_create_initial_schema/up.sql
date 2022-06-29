@@ -30,7 +30,7 @@ CREATE TABLE registration (
 CREATE TABLE incoming_invitation (
     public_id text PRIMARY KEY NOT NULL,
     message text NOT NULL,
-    received_at timestamp NOT NULL,
+    received_at timestamp NOT NULL
 );
 
 -- never delete a friend! instead, set `deleted` to true, or else we will lose history!
@@ -85,7 +85,7 @@ CREATE TABLE transmission (
   -- ack_index is the index into the acking data for this friend
   -- this NEEDS to be unique for every friend!!
   -- This needs to be between 0 <= ack_index < MAX_FRIENDS
-    ack_index integer, -- in the case of an incoming request, this will be NULL
+    ack_index integer NOT NULL, 
   -- sent_acked_seqnum is the latest sequence number that was ACKed by the friend
   -- any message with seqnum > sent_acked_seqnum MUST be retried.
     sent_acked_seqnum integer NOT NULL, 
@@ -139,8 +139,8 @@ CREATE TABLE outgoing_chunk (
     chunks_start_sequence_number integer NOT NULL,
     message_uid integer NOT NULL,
     content text NOT NULL,
-    control boolean NOT NULL,
-    control_message integer NOT NULL, -- corresponds to the enum value in the protobuf
+    system boolean NOT NULL,
+    system_message integer NOT NULL, -- corresponds to the enum value in the protobuf
     PRIMARY KEY (to_friend, sequence_number),
     FOREIGN KEY(message_uid) REFERENCES sent(uid),
     FOREIGN KEY(to_friend) REFERENCES friend(uid)

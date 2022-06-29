@@ -111,20 +111,23 @@ fn test_receive_msg() {
   let config_data = get_registration_fragment();
   db.do_register(config_data).unwrap();
 
-  let f = db.create_friend("friend_1", "Friend 1", "tttt", 20).unwrap();
-  db.add_friend_address(
-    ffi::AddAddress {
-      unique_name: "friend_1".to_string(),
-      kx_public_key: br#"uuuu"#.to_vec(),
-      friend_request_public_key: br#"vvvv"#.to_vec(),
-      friend_request_message: "hello".to_string(),
-      read_index: 0,
-      read_key: br#"xxxx"#.to_vec(),
-      write_key: br#"wwww"#.to_vec(),
-    },
-    20,
-  )
-  .unwrap();
+  // add friend by issuing an outgoing invitation and then accepting an incoming invitation
+  let f = db
+    .add_outgoing_async_invitation(
+      "friend_1",
+      "Friend 1",
+      "hi_this_is_a_public_id",
+      br#"fffff"#.to_vec(),
+      br#"kxkxkx"#.to_vec(),
+      "message hi hi",
+      0,
+      br#"rrrrr"#.to_vec(),
+      br#"wwww"#.to_vec(),
+      20,
+    )
+    .unwrap();
+  // will be auto accepted!
+  db.add_incoming_async_invitation("hi_this_is_a_public_id", "hi from freidn 1").unwrap();
 
   let msg = "hi im a chunk";
   let chunk_status = db
@@ -155,10 +158,10 @@ fn test_receive_msg() {
   assert_eq!(msgs[0].content, msg);
 
   let mut conn = SqliteConnection::establish(&db.address).unwrap();
-  use crate::schema::status;
-  let status_pair = status::table
+  use crate::schema::transmission;
+  let status_pair = transmission::table
     .find(msgs[0].uid)
-    .select((status::sent_acked_seqnum, status::received_seqnum))
+    .select((transmission::sent_acked_seqnum, transmission::received_seqnum))
     .first::<(i32, i32)>(&mut conn)
     .unwrap();
   assert_eq!(status_pair.0, 0);
@@ -180,20 +183,22 @@ fn test_send_msg() {
   let config_data = get_registration_fragment();
   db.do_register(config_data).unwrap();
 
-  let f = db.create_friend("friend_1", "Friend 1", "tttt", 20).unwrap();
-  db.add_friend_address(
-    ffi::AddAddress {
-      unique_name: "friend_1".to_string(),
-      kx_public_key: br#"uuuu"#.to_vec(),
-      friend_request_public_key: br#"vvvv"#.to_vec(),
-      friend_request_message: "hello".to_string(),
-      read_index: 0,
-      read_key: br#"xxxx"#.to_vec(),
-      write_key: br#"wwww"#.to_vec(),
-    },
-    20,
-  )
-  .unwrap();
+  let f = db
+    .add_outgoing_async_invitation(
+      "friend_1",
+      "Friend 1",
+      "hi_this_is_a_public_id",
+      br#"fffff"#.to_vec(),
+      br#"kxkxkx"#.to_vec(),
+      "message hi hi",
+      0,
+      br#"rrrrr"#.to_vec(),
+      br#"wwww"#.to_vec(),
+      20,
+    )
+    .unwrap();
+  // will be auto accepted!
+  db.add_incoming_async_invitation("hi_this_is_a_public_id", "hi from freidn 1").unwrap();
 
   let msg = "hi im a single chunk";
   db.queue_message_to_send("friend_1", msg, vec![msg.to_string()]).unwrap();
@@ -224,23 +229,7 @@ fn test_async_add_friend() {
   assert!(db.get_incoming_invitations().unwrap().is_empty());
   // add an incoming friend request
   let friend_name = "friend_1";
-  let friend_request = ffi::FriendFragment {
-    unique_name: friend_name.to_string(),
-    display_name: "lyrica".to_string(),
-    public_id: "tttt".to_string(),
-    request_progress: ffi::FriendRequestProgress::Incoming,
-    deleted: false,
-  };
 
-  let address = ffi::AddAddress {
-    unique_name: friend_name.to_string(),
-    read_index: 0,
-    read_key: br#"xxxx"#.to_vec(),
-    write_key: br#"wwww"#.to_vec(),
-    kx_public_key: br#"xxxx"#.to_vec(),
-    friend_request_public_key: br#"xxxx"#.to_vec(),
-    friend_request_message: "finally made a friend".to_string(),
-  };
   db.add_incoming_async_invitation("fake_public_id_string", "hi! do you want to be my friend?")
     .unwrap();
   let friend_requests = db.get_incoming_invitations().unwrap();
