@@ -324,7 +324,9 @@ auto Transmitter::retrieve() -> void {
                   G.db->receive_invitation_system_message(
                       f.uid, chunk.sequence_number(),
                       chunk.system_message_data(),
-                      string_to_rust_u8Vec(public_id.kx_public_key));
+                      string_to_rust_u8Vec(public_id.kx_public_key),
+                      string_to_rust_u8Vec(
+                          public_id.friend_request_public_key));
                 } catch (const rust::Error& e) {
                   ASPHR_LOG_ERR("Unable to receive invitation system message",
                                 error_message, e.what(), friend_uid, f.uid);

@@ -574,6 +574,7 @@ pub mod ffi {
       sequence_number: i32,
       public_id: &str, // we want this public_id to correspond to the one we already have
       public_id_claimed_kx_public_key: Vec<u8>, // we want to verify that this is the same as we have on file! otherwise someone might be trying to deceive us
+      public_id_claimed_friend_request_public_key: Vec<u8>,
     ) -> Result<()>;
 
     //
@@ -1958,6 +1959,44 @@ impl DB {
     })
   }
 
+  fn complete_outgoing_sync_friend(
+    &self,
+    conn: &mut SqliteConnection,
+    friend_uid: i32,
+    public_id: String,
+    friend_request_public_key: Vec<u8>,
+  ) -> Result<(), diesel::result::Error> {
+    // make the friend complete
+    // create a complete_friend and remove a sync_outgoing_invitation
+    use crate::schema::complete_friend;
+    use crate::schema::friend;
+    use crate::schema::outgoing_sync_invitation;
+
+    conn.transaction(|conn_b| {
+      diesel::update(friend::table.find(friend_uid))
+        .set(friend::invitation_progress.eq(ffi::InvitationProgress::Complete))
+        .execute(conn_b)?;
+
+      let kx_public_key = outgoing_sync_invitation::table
+        .find(friend_uid)
+        .select(outgoing_sync_invitation::kx_public_key)
+        .first::<Vec<u8>>(conn_b)?;
+
+      diesel::delete(outgoing_sync_invitation::table.find(friend_uid)).execute(conn_b)?;
+
+      diesel::insert_into(complete_friend::table)
+        .values((
+          complete_friend::friend_uid.eq(friend_uid),
+          complete_friend::public_id.eq(public_id),
+          complete_friend::friend_request_public_key.eq(friend_request_public_key),
+          complete_friend::kx_public_key.eq(kx_public_key),
+          complete_friend::completed_at.eq(util::unix_micros_now()),
+        ))
+        .execute(conn_b)?;
+
+      Ok(())
+    })
+  }
   fn complete_outgoing_async_friend(
     &self,
     conn: &mut SqliteConnection,
@@ -2258,23 +2297,61 @@ impl DB {
     sequence_number: i32,
     public_id: &str,
     public_id_claimed_kx_public_key: Vec<u8>,
+    public_id_claimed_friend_request_public_key: Vec<u8>,
   ) -> Result<(), DbError> {
     let mut conn = self.connect()?;
     use crate::schema::friend;
+    use crate::schema::outgoing_async_invitation;
+    use crate::schema::outgoing_sync_invitation;
 
     let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
       let chunk_status = self.update_sequence_number(conn_b, from_friend, sequence_number)?;
       if chunk_status == ffi::ReceiveChunkStatus::OldChunk {
-        return Ok(chunk_status);
+        return Ok(());
       }
-      // move the friend to become an actual friend
-      // TODO: the system message should contain their public key, and we should add it and verify it!
-      // TODO: we need to create the right kind of table record here!!! and delete the other table record
-      diesel::update(friend::table.find(from_friend))
-        .set(friend::invitation_progress.eq(ffi::InvitationProgress::Complete))
-        .execute(conn_b)?;
 
-      Ok(ffi::ReceiveChunkStatus::NewChunk)
+      let friend_status = friend::table
+        .find(from_friend)
+        .select(friend::invitation_progress)
+        .get_result::<ffi::InvitationProgress>(conn_b)?;
+
+      match friend_status {
+        ffi::InvitationProgress::OutgoingSync => {
+          // verify that the kx_public_key is correct
+          let friend_kx_public_key = outgoing_sync_invitation::table
+            .find(from_friend)
+            .select(outgoing_sync_invitation::kx_public_key)
+            .get_result::<Vec<u8>>(conn_b)?;
+          if friend_kx_public_key != public_id_claimed_kx_public_key {
+            // something fishy is happening.... they are trying to deceive us!
+            return Err(diesel::result::Error::RollbackTransaction);
+          }
+          self.complete_outgoing_sync_friend(
+            conn_b,
+            from_friend,
+            public_id.to_string(),
+            public_id_claimed_friend_request_public_key,
+          )?;
+        }
+        ffi::InvitationProgress::OutgoingAsync => {
+          // verify that the public_id is correct
+          let friend_public_id = outgoing_async_invitation::table
+            .find(from_friend)
+            .select(outgoing_async_invitation::public_id)
+            .get_result::<String>(conn_b)?;
+          if friend_public_id != public_id {
+            return Err(diesel::result::Error::RollbackTransaction);
+          }
+          // make it a real friend!
+          self.complete_outgoing_async_friend(conn_b, from_friend)?;
+        }
+        ffi::InvitationProgress::Complete => (),
+        _ => {
+          return Err(diesel::result::Error::RollbackTransaction);
+        }
+      }
+
+      Ok(())
     });
 
     match r {
