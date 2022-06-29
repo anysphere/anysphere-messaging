@@ -2034,23 +2034,29 @@ impl DB {
   pub fn get_outgoing_async_invitations(
     &self,
   ) -> Result<Vec<ffi::OutgoingAsyncInvitation>, DbError> {
-    return Err(DbError::Unimplemented(
-      "get_outgoing_async_invitations CHECK BELOW IMPL FOR NEW INERFACE".to_string(),
-    ));
+    let mut conn = self.connect()?;
+    use crate::schema::friend;
+    use crate::schema::outgoing_async_invitation;
 
-    // let mut conn = self.connect()?; // if error then crash function
-    // use crate::schema::friend;
-
-    // if let Ok(f) = friend::table
-    //   .filter(friend::deleted.eq(false))
-    //   .filter(friend::request_progress.eq(ffi::InvitationProgress::OutgoingAsync))
-    //   .load::<ffi::Friend>(&mut conn)
-    // {
-    //   Ok(f)
-    // } else {
-    //   Err(DbError::NotFound("failed to get friend".to_string()))
-    // }
+    friend::table
+      .filter(friend::deleted.eq(false))
+      .filter(friend::invitation_progress.eq(ffi::InvitationProgress::OutgoingAsync))
+      .inner_join(outgoing_async_invitation::table)
+      .select((
+        friend::uid,
+        friend::unique_name,
+        friend::display_name,
+        friend::invitation_progress,
+        outgoing_async_invitation::public_id,
+        outgoing_async_invitation::friend_request_public_key,
+        outgoing_async_invitation::kx_public_key,
+        outgoing_async_invitation::message,
+        outgoing_async_invitation::sent_at,
+      ))
+      .load::<ffi::OutgoingAsyncInvitation>(&mut conn)
+      .map_err(|e| DbError::Unknown(format!("get_outgoing_async_invitations: {}", e)))
   }
+
   pub fn get_incoming_invitations(&self) -> Result<Vec<ffi::IncomingInvitation>, DbError> {
     return Err(DbError::Unimplemented(
       "get_incoming_invitations CHECK BELOW IMPL FOR NEW INERFACE".to_string(),
