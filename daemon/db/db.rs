@@ -848,6 +848,36 @@ impl DB {
           sent_and_received_count
         );
 
+        // exactly 1 config always
+        let config_count = config::table.count().get_result::<i64>(conn_b).unwrap();
+        assert!(config_count == 1, "config_count = {}", config_count);
+
+        // if has_registered is true, then should have exactly 1 registration
+        let has_registered = config::table.select(config::has_registered).first::<bool>(conn_b).unwrap();
+        let registration_count = registration::table.count().get_result::<i64>(conn_b).unwrap();
+        if has_registered {
+          assert!(registration_count == 1, "registration_count = {}, has_registered = {}", registration_count, has_registered);
+        } else {
+          assert!(registration_count == 0, "registration_count = {}, has_registered = {}", registration_count, has_registered);
+        }
+
+        // transmission table iff !deleted
+        let transmission_non_deleted_count = friend::table.filter(friend::deleted.eq(false)).inner_join(transmission::table).count().get_result::<i64>(conn_b).unwrap();
+        let non_deleted_count = friend::table.filter(friend::deleted.eq(false)).count().get_result::<i64>(conn_b).unwrap();
+        let transmission_count = transmission::table.count().get_result::<i64>(conn_b).unwrap();
+        assert!(
+          transmission_non_deleted_count == non_deleted_count,
+          "transmission_non_deleted_count = {}, non_deleted_count = {}",
+          transmission_non_deleted_count,
+          non_deleted_count
+        );
+        assert!(
+          transmission_count == transmission_non_deleted_count,
+          "transmission_count = {}, transmission_non_deleted_count = {}",
+          transmission_count,
+          transmission_non_deleted_count
+        );
+
         Ok(())
       })
       .unwrap();
