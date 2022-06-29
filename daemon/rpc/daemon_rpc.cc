@@ -185,6 +185,7 @@ Status DaemonRpc::GetMyPublicID(
 // ---------------------------------------
 // ---------------------------------------
 
+
 Status DaemonRpc::AddSyncFriend(
     grpc::ServerContext* context,
     const asphrdaemon::AddSyncFriendRequest* addSyncFriendRequest,

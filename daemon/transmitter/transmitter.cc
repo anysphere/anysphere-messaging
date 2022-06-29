@@ -390,17 +390,11 @@ auto Transmitter::retrieve() -> void {
   // Crawl the async friend request database
   // TODO: we could accelerate / deccelerate this as the client desires/
   // by changing ASYNC_FRIEND_REQUEST_BATCH_SIZE
-  int start_index = next_async_friend_request_retrieve_index;
-  int end_index = std::min(next_async_friend_request_retrieve_index +
-                               ASYNC_FRIEND_REQUEST_BATCH_SIZE,
-                           CLIENT_DB_ROWS);
+  auto [start_index, end_index] = update_async_invitation_retrieve_index();
+
   // call the server to retrieve the async friend requests
   retrieve_async_invitations(start_index, end_index);
-  if (end_index == CLIENT_DB_ROWS) {
-    next_async_friend_request_retrieve_index = 0;
-  } else {
-    next_async_friend_request_retrieve_index = end_index;
-  }
+
   check_rep();
 }
 
@@ -520,6 +514,7 @@ auto Transmitter::send() -> void {
                   server_status_message, status.error_message());
   }
   transmit_async_invitation();
+
   check_rep();
 }
 
@@ -703,6 +698,10 @@ auto Transmitter::retrieve_async_invitations(int start_index, int end_index)
   }
 
   std::map<string, db::Friend> friends = {};
+
+  ASPHR_LOG_INFO("Retrieved async friend requests from server.",
+                 "requests_size", reply.requests_size());
+
   for (int i = 0; i < reply.requests_size(); i++) {
     // Step 2.1: test if the friend request is meant for us
     // For now, we attach the friend_public_key along with every request.
@@ -732,6 +731,7 @@ auto Transmitter::retrieve_async_invitations(int start_index, int end_index)
       continue;
     }
     // now we can insert this invitation in the DB!!! very very exciting :)
+
     try {
       G.db->add_incoming_async_invitation(friend_public_id_str, friend_message);
     } catch (const rust::Error& e) {
@@ -739,6 +739,12 @@ auto Transmitter::retrieve_async_invitations(int start_index, int end_index)
                     e.what());
       continue;
     }
+  }
+
+  if (end_index == CLIENT_DB_ROWS) {
+    next_async_friend_request_retrieve_index = 0;
+  } else {
+    next_async_friend_request_retrieve_index = end_index;
   }
 }
 
