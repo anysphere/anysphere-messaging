@@ -978,6 +978,10 @@ impl DB {
           }
         }
 
+        // ack_index must always be >= 0
+        let ack_index_count = transmission::table.filter(transmission::ack_index.lt(0)).count().get_result::<i64>(conn_b).unwrap();
+        assert!(ack_index_count == 0, "ack_index_count = {}", ack_index_count);
+
 
         Ok(())
       })
