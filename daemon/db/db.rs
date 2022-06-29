@@ -2074,21 +2074,17 @@ impl DB {
   }
 
   pub fn get_incoming_invitations(&self) -> Result<Vec<ffi::IncomingInvitation>, DbError> {
-    return Err(DbError::Unimplemented(
-      "get_incoming_invitations CHECK BELOW IMPL FOR NEW INERFACE".to_string(),
-    ));
-    // let mut conn = self.connect()?; // if error then crash function
-    // use crate::schema::friend;
+    let mut conn = self.connect()?; // if error then crash function
+    use crate::schema::incoming_invitation;
 
-    // if let Ok(f) = friend::table
-    //   .filter(friend::deleted.eq(false))
-    //   .filter(friend::request_progress.eq(ffi::InvitationProgress::Incoming))
-    //   .load::<ffi::Friend>(&mut conn)
-    // {
-    //   Ok(f)
-    // } else {
-    //   Err(DbError::NotFound("failed to get friend".to_string()))
-    // }
+    incoming_invitation::table
+      .select((
+        incoming_invitation::public_id,
+        incoming_invitation::message,
+        incoming_invitation::received_at,
+      ))
+      .load::<ffi::IncomingInvitation>(&mut conn)
+      .map_err(|e| DbError::Unknown(format!("get_incoming_invitations: {}", e)))
   }
 
   pub fn accept_incoming_invitation(
