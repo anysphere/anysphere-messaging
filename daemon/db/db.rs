@@ -152,12 +152,12 @@ impl From<I32ButMinusOneIsNone> for i32 {
 impl From<diesel::result::Error> for DbError {
   fn from(e: diesel::result::Error) -> Self {
     match e {
-      diesel::result::Error::NotFound => DbError::NotFound("not found".into()),
+      diesel::result::Error::NotFound => DbError::NotFound(format!("{}", e)),
       diesel::result::Error::DatabaseError(
         diesel::result::DatabaseErrorKind::UniqueViolation,
         _,
-      ) => DbError::AlreadyExists("already exists".into()),
-      _ => DbError::Internal(format!("{:?}", e)),
+      ) => DbError::AlreadyExists(format!("{}", e)),
+      _ => DbError::Internal(format!("{:?}: {}", e, e)),
     }
   }
 }
@@ -663,72 +663,72 @@ impl DB {
   #[cfg(debug_assertions)]
   pub fn check_rep(&self, conn: &mut SqliteConnection) -> Result<(), DbError> {
     use crate::schema::*;
-    conn.transaction::<(), DbError, _>(|conn_b| {
-      // invitation_progress should correspond to the correct table existing
-      let friends = friend::table
-        .filter(friend::deleted.eq(false))
-        .select((
-          friend::uid,
-          friend::unique_name,
-          friend::display_name,
-          friend::invitation_progress,
-          friend::deleted,
-        ))
-        .load::<ffi::Friend>(conn_b)
-        .map_err(|e| DbError::Unknown(format!("failed to load friends, {}", e,)))?;
+    // we unwrap everything here because we're in check_rep! we want to fail fast.
+    conn
+      .transaction::<(), DbError, _>(|conn_b| {
+        // invitation_progress should correspond to the correct table existing
+        let friends = friend::table
+          .filter(friend::deleted.eq(false))
+          .select((
+            friend::uid,
+            friend::unique_name,
+            friend::display_name,
+            friend::invitation_progress,
+            friend::deleted,
+          ))
+          .load::<ffi::Friend>(conn_b)
+          .unwrap();
 
-      for friend in friends {
-        match friend.invitation_progress {
-          ffi::InvitationProgress::Complete => {
-            let complete_count = complete_friend::table
-              .filter(complete_friend::friend_uid.eq(friend.uid))
-              .count()
-              .get_result::<i64>(conn_b)
-              .map_err(|e| DbError::Internal(format!("unable to get complete_count: {}", e,)))?;
-            if complete_count != 1 {
-              return Err(DbError::Internal(format!(
-                "complete_friend table has {} entries for friend with uid {}",
-                complete_count, friend.uid,
-              )));
+        for friend in friends {
+          match friend.invitation_progress {
+            ffi::InvitationProgress::Complete => {
+              let complete_count = complete_friend::table
+                .filter(complete_friend::friend_uid.eq(friend.uid))
+                .count()
+                .get_result::<i64>(conn_b)
+                .unwrap();
+              if complete_count != 1 {
+                panic!(
+                  "complete_friend table has {} entries for friend with uid {}",
+                  complete_count, friend.uid,
+                );
+              }
             }
-          }
-          ffi::InvitationProgress::OutgoingSync => {
-            let sync_count = outgoing_sync_invitation::table
-              .filter(outgoing_sync_invitation::friend_uid.eq(friend.uid))
-              .count()
-              .get_result::<i64>(conn_b)
-              .map_err(|e| DbError::Internal(format!("unable to get sync_count: {}", e,)))?;
-            if sync_count != 1 {
-              return Err(DbError::Internal(format!(
-                "outgoing_sync_invitation table has {} entries for friend with uid {}",
-                sync_count, friend.uid,
-              )));
+            ffi::InvitationProgress::OutgoingSync => {
+              let sync_count = outgoing_sync_invitation::table
+                .filter(outgoing_sync_invitation::friend_uid.eq(friend.uid))
+                .count()
+                .get_result::<i64>(conn_b)
+                .unwrap();
+              if sync_count != 1 {
+                panic!(
+                  "outgoing_sync_invitation table has {} entries for friend with uid {}",
+                  sync_count, friend.uid,
+                );
+              }
             }
-          }
-          ffi::InvitationProgress::OutgoingAsync => {
-            let async_count = outgoing_async_invitation::table
-              .filter(outgoing_async_invitation::friend_uid.eq(friend.uid))
-              .count()
-              .get_result::<i64>(conn_b)
-              .map_err(|e| DbError::Internal(format!("unable to get async_count: {}", e,)))?;
-            if async_count != 1 {
-              return Err(DbError::Internal(format!(
-                "outgoing_async_invitation table has {} entries for friend with uid {}",
-                async_count, friend.uid,
-              )));
+            ffi::InvitationProgress::OutgoingAsync => {
+              let async_count = outgoing_async_invitation::table
+                .filter(outgoing_async_invitation::friend_uid.eq(friend.uid))
+                .count()
+                .get_result::<i64>(conn_b)
+                .unwrap();
+              if async_count != 1 {
+                panic!(
+                  "outgoing_async_invitation table has {} entries for friend with uid {}",
+                  async_count, friend.uid,
+                );
+              }
             }
-          }
-          _ => {
-            return Err(DbError::Internal(format!(
-              "friend with uid {} has unsupported invitation_progress",
-              friend.uid,
-            )))
+            _ => {
+              panic!("friend with uid {} has unsupported invitation_progress", friend.uid,)
+            }
           }
         }
-      }
 
-      Ok(())
-    })?;
+        Ok(())
+      })
+      .unwrap();
 
     Ok(())
   }
@@ -1983,23 +1983,28 @@ impl DB {
       invitation_progress: ffi::InvitationProgress::OutgoingSync,
       deleted: false,
     };
-    let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+    conn.transaction::<_, DbError, _>(|conn_b| {
       let has_space = self
-        .has_space_for_async_invitations()
-        .map_err(|_| diesel::result::Error::RollbackTransaction)?;
+        .has_space_for_async_invitations()?;
       if !has_space {
-        return Err(diesel::result::Error::RollbackTransaction);
+        return Err(DbError::ResourceExhausted(format!(
+          "add_outgoing_async_invitation, too many async invitations (currently max is 1)"
+        )));
       }
       let can_add = self.can_add_friend(conn_b, unique_name, kx_public_key.clone(), max_friends)?;
       if !can_add {
-        return Err(diesel::result::Error::RollbackTransaction);
+        return Err(DbError::ResourceExhausted(format!(
+          "add_outgoing_async_invitation, cannot add friend for whatever reason"
+        )));
       }
       // if there is an incoming invitation here, we reject the new outgoing async invitation
       // and tell the user to do just accept the invitation
       let incoming_invitation_count =
         incoming_invitation::table.find(public_id).count().get_result::<i64>(conn_b)?;
       if incoming_invitation_count > 0 {
-        return Err(diesel::result::Error::RollbackTransaction);
+        return Err(DbError::ResourceExhausted(format!(
+          "add_outgoing_async_invitation, there is an incoming invitation for this public_id. please accept it"
+        )));
       }
       let friend = diesel::insert_into(friend::table)
         .values(&friend_fragment)
@@ -2049,10 +2054,9 @@ impl DB {
       )?;
 
       Ok(friend)
-    });
-    r.map_err(|e| match e {
+    }).map_err(|e| match e {
       diesel::result::Error::RollbackTransaction => DbError::AlreadyExists(
-        "add_outgoing_async_invitation: friend already exists, or too many friends".to_string(),
+        "add_outgoing_async_invitation, friend already exists, or too many friends".to_string(),
       ),
       _ => {
         DbError::Unknown(format!("add_outgoing_async_invitation, failed to insert friend: {}", e))
