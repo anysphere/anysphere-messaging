@@ -1,4 +1,5 @@
 use diesel::prelude::*;
+use std::collections::HashMap;
 
 use std::{error::Error, fmt};
 
@@ -24,6 +25,15 @@ pub enum DbError {
   Unavailable(String),
   DataLoss(String),
   Unauthenticated(String),
+}
+
+// this is only used in check_rep()
+#[cfg(debug_assertions)]
+#[derive(Queryable, Debug)]
+struct ChunkInterestingNumbers {
+  to_friend: i32,
+  chunks_start_sequence_number: i32,
+  message_uid: Option<i32>,
 }
 
 #[derive(Queryable)]
@@ -877,6 +887,49 @@ impl DB {
           transmission_count,
           transmission_non_deleted_count
         );
+
+        // outgoing chunk (to_friend, chunks_start_sequence_number) is in a 1-to-1 relationship with (to_friend, message_uid) (except for nulls in message_uid)
+        // diesel doesn't support aliases, so we have to do this manually by first getting all chunks and then processing them
+        let chunks = outgoing_chunk::table.select((
+          outgoing_chunk::to_friend,
+          outgoing_chunk::chunks_start_sequence_number,
+          outgoing_chunk::message_uid,
+        )).get_results::<ChunkInterestingNumbers>(conn_b).unwrap();
+        let mut to_friend_seqnum_map_to_message_uid = HashMap::new();
+        for chunk in &chunks {
+          let to_friend = chunk.to_friend;
+          let seqnum = chunk.chunks_start_sequence_number;
+          let message_uid = chunk.message_uid;
+          if !to_friend_seqnum_map_to_message_uid.contains_key(&(to_friend, seqnum)) {
+            to_friend_seqnum_map_to_message_uid.insert((to_friend, seqnum), message_uid);
+          } else {
+            assert!(
+              to_friend_seqnum_map_to_message_uid.get(&(to_friend, seqnum)).unwrap() == &message_uid,
+              "chunk = {:?}",
+              chunk
+            );
+          }
+        }
+        let mut to_friend_message_uid_map_to_seqnum = HashMap::new();
+        for chunk in &chunks {
+          let to_friend = chunk.to_friend;
+          let message_uid = chunk.message_uid;
+          let seqnum = chunk.chunks_start_sequence_number;
+          if message_uid.is_none() {
+            // message_uid is none, so we don't care about seqnum here
+            continue;
+          }
+          if !to_friend_message_uid_map_to_seqnum.contains_key(&(to_friend, message_uid)) {
+            to_friend_message_uid_map_to_seqnum.insert((to_friend, message_uid), seqnum);
+          } else {
+            assert!(
+              to_friend_message_uid_map_to_seqnum.get(&(to_friend, message_uid)).unwrap() == &seqnum,
+              "chunk = {:?}",
+              chunk
+            );
+          }
+        }
+
 
         Ok(())
       })
