@@ -1,7 +1,9 @@
 import Modal from "../Modal";
 import { ModalType } from "../Modal";
+import { StatusProps } from "../Status";
+import { classNames } from "../../utils";
 
-const blah = [
+const yourStory = [
   "Quia rem est sed impedit magnam",
   "Dolorem vero ratione voluptates",
   "Qui sed ab doloribus voluptatem dolore",
@@ -13,6 +15,44 @@ const blah = [
   "Dolorem vero ratione voluptates",
   "Qui sed ab doloribus voluptatem dolore",
 ];
+
+export function StoryForm() {
+  const numberOfLines = 8;
+
+  function SimpleStoryLine(
+    props: {
+      lineNumber: number;
+    }
+  ): JSX.Element {
+    return (
+      <div className={classNames(
+          props.lineNumber === 1 ? "" : "rounded-t-none",
+          props.lineNumber === numberOfLines ? "" : "rounded-b-none",
+          "relative border border-gray-300 rounded-md px-3 py-2 focus-within:z-10 focus-within:ring-1 focus-within:ring-asgreen-dark focus-within:border-asgreen-dark focus-within:rounded-md")}>
+        <label htmlFor={`Story ${props.lineNumber}`} className="block text-xs font-medium text-gray-900">
+          Sentence {props.lineNumber}
+        </label>
+        <input
+          type="text"
+          name={`Story ${props.lineNumber}`}
+          id={`Story ${props.lineNumber}`}
+          className="block w-full border-0 p-0 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+          placeholder="Jane Smith"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="isolate -space-y-px rounded-md shadow-sm">
+      {
+        [1, 2, 3, 4, 5, 6, 7, 8].map((lineNumber) => (
+          <SimpleStoryLine key={lineNumber} lineNumber={lineNumber} />
+        ))
+      }
+    </div>
+  )
+}
 
 function FocusedBlock(): JSX.Element {
   return (
@@ -39,23 +79,37 @@ function FocusedBlock(): JSX.Element {
             </h3>
           </div>
         </div>
-        <div className="rounded-b-lg bg-asbrown-100 px-6 pt-10 pb-8 sm:px-10 sm:py-10">
-          <ul role="list" className="space-y-4">
-            {blah.map((feature) => (
-              <li key={feature} className="flex items-start">
-                <div className="flex-shrink-0">
-                  {/* <CheckIcon
-                    className="h-6 w-6 flex-shrink-0 text-green-500"
-                    aria-hidden="true"
-                  /> */}
-                </div>
-                <p className="ml-3 text-base font-medium text-gray-500">
-                  {feature}
-                </p>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-10">
+
+        <div className=" bg-asbrown-100 px-6 pt-6 pb-8 sm:px-10 sm:py-10">
+          <div className="grid-col-3 mx-auto grid w-full grid-flow-col">
+            <div className="mx-auto w-fit rounded-md border border-asbrown-300">
+              <div className="text-md p-2 text-gray-700">
+                Enter the story of your friend
+              </div>
+              <ul role="list" className="space-y-3 p-2">
+                {yourStory.map((feature) => (
+                  <li key={feature} className="flex items-start">
+                    <p className="text-sm text-gray-500">{feature}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            {/* dividier vertical between the two columns */}
+            <div className="mx-auto w-fit rounded-md border border-asbrown-300" />
+
+            <div className="mx-auto w-fit rounded-md border border-asbrown-300">
+              <div className="text-md p-2 text-gray-700">Your Story</div>
+              <ul role="list" className="space-y-3 p-2">
+                {yourStory.map((feature) => (
+                  <li key={feature} className="flex items-start">
+                    <p className="text-sm text-gray-500">{feature}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-16">
             <div className="mx-auto block w-1/2 rounded-lg shadow-md">
               <a
                 href="#"
@@ -106,7 +160,13 @@ function HiddenBlock(): JSX.Element {
   );
 }
 
-export default function AddFriend({ onClose }: { onClose: () => void }) {
+export default function AddFriend({
+  onClose,
+  setStatus,
+}: {
+  onClose: () => void;
+  setStatus: (status: StatusProps) => void;
+}): JSX.Element {
   return (
     <Modal onClose={onClose} type={ModalType.Large}>
       <div className="rounded-sm bg-asbrown-dark lg:h-full">

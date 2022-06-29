@@ -7,7 +7,7 @@ import * as React from "react";
 import Modal from "./Modal";
 import { Friend } from "../../types";
 import { SelectableList, ListItem } from "./SelectableList";
-import * as daemon_pb from "daemon/schema/daemon_pb";
+import * as daemon_pb from "../../daemon/schema/daemon_pb";
 
 function LegacyFriendsModal({
   onClose,

@@ -129,56 +129,10 @@ function Main() {
   }, [setModal]);
 
   const openFriendModal = React.useCallback(() => {
-    setModal(<AddFriend onClose={closeModal} />);
+    setModal(
+      <AddFriend onClose={closeModal} setStatus={statusState.setStatus} />
+    );
   }, [setModal, closeModal]);
-
-  const openAddFriendModalOLD = React.useCallback(
-    (_: string) => {
-      // window
-      //   .generateFriendKey(friend)
-      //   .then((friendKeyMaybe: null | { friend: string; key: string }) => {
-      //     if (friendKeyMaybe) {
-      //       setModal(
-      //         <InitFriendModal
-      //           onClose={closeModal}
-      //           friend={friendKeyMaybe.friend}
-      //           friendKey={friendKeyMaybe.key}
-      //           onPasteKey={(key: string) => {
-      //             window.addFriend(friend, key).then((successOrError: any) => {
-      //               if (successOrError === true) {
-      //                 statusState.setStatus({
-      //                   message: `Added ${friend}!`,
-      //                   action: () => {},
-      //                   actionName: null,
-      //                 });
-      //                 statusState.setVisible();
-      //               } else {
-      //                 statusState.setStatus({
-      //                   message: `Friend ${friend} not added: ${successOrError}`,
-      //                   action: () => {},
-      //                   actionName: null,
-      //                 });
-      //                 statusState.setVisible();
-      //               }
-      //             });
-      //             closeModal();
-      //           }}
-      //         />
-      //       );
-      // } else {
-      statusState.setStatus({
-        message: `This is deprecated. Please use the new friend adder.`,
-        action: () => {},
-        actionName: null,
-      });
-      statusState.setVisible();
-
-      return;
-      // }
-      // });
-    },
-    [setModal, closeModal, statusState]
-  );
 
   let selectedComponent;
   console.log(selectedTab);
