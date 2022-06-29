@@ -424,8 +424,6 @@ auto encrypt_async_friend_request(const string& self_id,
     return absl::UnknownError("failed to pad message");
   }
 
-  cout << "Friend Request Plaintext: " << plaintext << endl;
-
   // encrypt it!
   std::string ciphertext;
   unsigned long long ciphertext_size = plaintext_size + crypto_box_MACBYTES;
