@@ -1893,7 +1893,7 @@ impl DB {
     let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
       let has_space = self
         .has_space_for_async_invitations()
-        .map_err(|e| diesel::result::Error::RollbackTransaction)?;
+        .map_err(|_| diesel::result::Error::RollbackTransaction)?;
       if !has_space {
         return Err(diesel::result::Error::RollbackTransaction);
       }
@@ -2287,15 +2287,17 @@ impl DB {
           .returning(message::uid)
           .get_result::<i32>(conn_b)?;
 
-        diesel::insert_into(received::table).values((
-          received::uid.eq(message_uid),
-          received::from_friend.eq(friend.uid),
-          received::num_chunks.eq(1),
-          received::received_at.eq(inc_invitation.received_at),
-          received::delivered.eq(true),
-          received::delivered_at.eq(util::unix_micros_now()),
-          received::seen.eq(false),
-        ));
+        diesel::insert_into(received::table)
+          .values((
+            received::uid.eq(message_uid),
+            received::from_friend.eq(friend.uid),
+            received::num_chunks.eq(1),
+            received::received_at.eq(inc_invitation.received_at),
+            received::delivered.eq(true),
+            received::delivered_at.eq(util::unix_micros_now()),
+            received::seen.eq(false),
+          ))
+          .execute(conn_b)?;
 
         self.create_transmission_record(
           conn_b,
