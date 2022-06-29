@@ -9,7 +9,7 @@
 
 struct PublicIdentifier {
   PublicIdentifier(int index, string kx_public_key,
-                   string friend_request_public_key);
+                   string invitation_public_key);
 
   // not a constructor because may fail, and we don't want to use exceptions
   static auto from_public_id(string public_id)
@@ -18,7 +18,7 @@ struct PublicIdentifier {
 
   int index;
   string kx_public_key;
-  string friend_request_public_key;
+  string invitation_public_key;
 };
 
 struct SyncIdentifier {

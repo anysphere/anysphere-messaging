@@ -34,7 +34,7 @@ Status DaemonRpc::RegisterUser(
   // call register rpc to send the register request
   // TODO: obselete. Change to include friend request keypair in the request
   asphrserver::RegisterInfo request;
-  request.set_friend_request_public_key(friend_request_public_key);
+  request.set_invitation_public_key(friend_request_public_key);
   request.set_beta_key(beta_key);
 
   asphrserver::RegisterResponse reply;
@@ -184,7 +184,6 @@ Status DaemonRpc::GetMyPublicID(
 // ||   Start: Invitation Functions    ||
 // ---------------------------------------
 // ---------------------------------------
-
 
 Status DaemonRpc::AddSyncFriend(
     grpc::ServerContext* context,
@@ -511,7 +510,7 @@ Status DaemonRpc::RemoveFriend(
 
 // ---------------------------------------
 // ---------------------------------------
-// ||   End: Friend Request Functions   ||
+// ||     End: Invitation Functions     ||
 // ---------------------------------------
 // ---------------------------------------
 

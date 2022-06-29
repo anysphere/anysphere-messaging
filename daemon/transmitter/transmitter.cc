@@ -620,13 +620,13 @@ auto Transmitter::transmit_async_invitation() -> void {
   auto encrypted_friend_request = encrypted_friend_request_status_.value();
 
   // Send to server
-  asphrserver::AddFriendAsyncInfo request;
+  asphrserver::AddAsyncInvitationInfo request;
   request.set_index(reg_info.allocation);
   request.set_authentication_token(std::string(reg_info.authentication_token));
-  request.set_request(encrypted_friend_request);
-  asphrserver::AddFriendAsyncResponse reply;
+  request.set_invitation(encrypted_friend_request);
+  asphrserver::AddAsyncInvitationResponse reply;
   grpc::ClientContext context;
-  grpc::Status status = stub->AddFriendAsync(&context, request, &reply);
+  grpc::Status status = stub->AddAsyncInvitation(&context, request, &reply);
   if (status.ok()) {
     ASPHR_LOG_INFO("Async invitation sent to server.");
   } else {
@@ -660,13 +660,13 @@ auto Transmitter::retrieve_async_invitations(int start_index, int end_index)
       "end_index - start_index must be <= ASYNC_FRIEND_REQUEST_BATCH_SIZE");
 
   // STEP 1: ask the server for all the friend database entries
-  asphrserver::GetAsyncFriendRequestsInfo request;
+  asphrserver::GetAsyncInvitationsInfo request;
   request.set_start_index(start_index);
   request.set_end_index(end_index);
-  asphrserver::GetAsyncFriendRequestsResponse reply;
+  asphrserver::GetAsyncInvitationsResponse reply;
 
   grpc::ClientContext context;
-  grpc::Status status = stub->GetAsyncFriendRequests(&context, request, &reply);
+  grpc::Status status = stub->GetAsyncInvitations(&context, request, &reply);
   if (!status.ok()) {
     ASPHR_LOG_ERR("Could not retrieve async friend requests.", error_code,
                   status.error_code(), error_message, status.error_message(),
@@ -674,10 +674,10 @@ auto Transmitter::retrieve_async_invitations(int start_index, int end_index)
     return;
   }
 
-  if (reply.friend_request_public_key_size() != reply.requests_size()) {
+  if (reply.invitation_public_key_size() != reply.invitations_size()) {
     ASPHR_LOG_ERR("Response is malformed!",
-                  "size1:", reply.friend_request_public_key_size(),
-                  "size2:", reply.requests_size());
+                  "size1:", reply.invitation_public_key_size(),
+                  "size2:", reply.invitations_size());
     return;
   }
 
@@ -700,14 +700,14 @@ auto Transmitter::retrieve_async_invitations(int start_index, int end_index)
   std::map<string, db::Friend> friends = {};
 
   ASPHR_LOG_INFO("Retrieved async friend requests from server.",
-                 "requests_size", reply.requests_size());
+                 "invitations_size", reply.invitations_size());
 
-  for (int i = 0; i < reply.requests_size(); i++) {
+  for (int i = 0; i < reply.invitations_size(); i++) {
     // Step 2.1: test if the friend request is meant for us
     // For now, we attach the friend_public_key along with every request.
     // decrypt the friend request
-    string friend_request = reply.requests(i);
-    string friend_public_key = reply.friend_request_public_key(i);
+    string friend_request = reply.invitations(i);
+    string friend_public_key = reply.invitation_public_key(i);
     auto decrypted_friend_request_status =
         crypto::decrypt_async_friend_request_public_key_only(
             my_id, my_friend_request_private_key, friend_public_key,

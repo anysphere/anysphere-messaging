@@ -24,6 +24,7 @@ cc_test(
     ],
     deps = [
         ":crypto_lib",
+        "//daemon/identifier:identifier",
         "@com_google_googletest//:gtest_main",
     ],
 )
