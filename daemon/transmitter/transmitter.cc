@@ -426,12 +426,26 @@ auto Transmitter::send() -> void {
     write_key = rust_u8Vec_to_string(chunk_to_send.write_key);
 
     message.set_sequence_number(chunk_to_send.sequence_number);
-    message.set_msg(std::string(chunk_to_send.content));
-    if (chunk_to_send.num_chunks > 1) {
-      message.set_num_chunks(chunk_to_send.num_chunks);
-      message.set_chunks_start_sequence_number(
-          chunk_to_send.chunks_start_sequence_number);
+
+    if (chunk_to_send.system) {
+      message.set_system(true);
+      switch (chunk_to_send.system_message) {
+        case db::SystemMessage::OutgoingInvitation:
+          message.set_system_message(asphrclient::OUTGOING_INVITATION);
+          break;
+        default:
+          ASPHR_ASSERT(false);
+      }
+      message.set_system_message_data(std::string(chunk_to_send.content));
+    } else {
+      message.set_msg(std::string(chunk_to_send.content));
+      if (chunk_to_send.num_chunks > 1) {
+        message.set_num_chunks(chunk_to_send.num_chunks);
+        message.set_chunks_start_sequence_number(
+            chunk_to_send.chunks_start_sequence_number);
+      }
     }
+
   } catch (const rust::Error& e) {
     ASPHR_LOG_INFO("No chunks to send (probably).", error_msg, e.what());
     just_sent_friend = std::nullopt;

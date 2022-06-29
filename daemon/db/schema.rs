@@ -78,7 +78,7 @@ diesel::table! {
         to_friend -> Integer,
         sequence_number -> Integer,
         chunks_start_sequence_number -> Integer,
-        message_uid -> Integer,
+        message_uid -> Nullable<Integer>,
         content -> Text,
         system -> Bool,
         system_message -> Integer,

@@ -137,7 +137,7 @@ CREATE TABLE outgoing_chunk (
     to_friend integer NOT NULL,
     sequence_number integer NOT NULL,
     chunks_start_sequence_number integer NOT NULL,
-    message_uid integer NOT NULL,
+    message_uid integer, -- null iff system message
     content text NOT NULL,
     system boolean NOT NULL,
     system_message integer NOT NULL, -- corresponds to the enum value in the protobuf

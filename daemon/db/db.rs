@@ -141,6 +141,27 @@ where
   }
 }
 
+pub struct I32ButMinusOneIsNone(i32);
+
+impl From<I32ButMinusOneIsNone> for i32 {
+  fn from(x: I32ButMinusOneIsNone) -> i32 {
+    x.0
+  }
+}
+
+impl<DB> Queryable<diesel::sql_types::Nullable<diesel::sql_types::Integer>, DB>
+  for I32ButMinusOneIsNone
+where
+  DB: diesel::backend::Backend,
+  Option<i32>:
+    diesel::deserialize::FromSql<diesel::sql_types::Nullable<diesel::sql_types::Integer>, DB>,
+{
+  type Row = Option<i32>;
+  fn build(s: Option<i32>) -> diesel::deserialize::Result<Self> {
+    Ok(I32ButMinusOneIsNone(s.unwrap_or(-1)))
+  }
+}
+
 impl<DB> Queryable<diesel::sql_types::Integer, DB> for ffi::InvitationProgress
 where
   DB: diesel::backend::Backend,
@@ -346,7 +367,8 @@ pub mod ffi {
     pub to_friend: i32,
     pub sequence_number: i32,
     pub chunks_start_sequence_number: i32,
-    pub message_uid: i32,
+    #[diesel(deserialize_as = crate::db::I32ButMinusOneIsNone)]
+    pub message_uid: i32, // -1 iff system message
     pub content: String,
     pub write_key: Vec<u8>,
     pub num_chunks: i32,
@@ -1322,6 +1344,35 @@ impl DB {
     q.first(conn)
   }
 
+  fn get_seqnum_for_new_chunk(
+    &self,
+    conn: &mut SqliteConnection,
+    friend_uid: i32,
+  ) -> Result<i32, diesel::result::Error> {
+    use crate::schema::outgoing_chunk;
+    use crate::schema::transmission;
+    conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+      // get the correct sequence number. This is the last sequence number + 1.
+      // this is either the maximum sequence number in the table + 1,
+      // or the sent_acked_seqnum + 1 if there are no outgoing chunks.
+      let maybe_old_seqnum = outgoing_chunk::table
+        .filter(outgoing_chunk::to_friend.eq(friend_uid))
+        .select(outgoing_chunk::sequence_number)
+        .order_by(outgoing_chunk::sequence_number.desc())
+        .limit(1)
+        .load::<i32>(conn_b)?;
+      let old_seqnum = match maybe_old_seqnum.len() {
+        0 => transmission::table
+          .find(friend_uid)
+          .select(transmission::sent_acked_seqnum)
+          .first::<i32>(conn_b)?,
+        _ => maybe_old_seqnum[0],
+      };
+      let new_seqnum = old_seqnum + 1;
+      Ok(new_seqnum)
+    })
+  }
+
   pub fn queue_message_to_send(
     &self,
     to_unique_name: &str,
@@ -1337,7 +1388,6 @@ impl DB {
     use crate::schema::message;
     use crate::schema::outgoing_chunk;
     use crate::schema::sent;
-    use crate::schema::transmission;
 
     conn
       .transaction::<_, diesel::result::Error, _>(|conn_b| {
@@ -1358,23 +1408,7 @@ impl DB {
           ))
           .execute(conn_b)?;
 
-        // get the correct sequence number. This is the last sequence number + 1.
-        // this is either the maximum sequence number in the table + 1,
-        // or the sent_acked_seqnum + 1 if there are no outgoing chunks.
-        let maybe_old_seqnum = outgoing_chunk::table
-          .filter(outgoing_chunk::to_friend.eq(friend_uid))
-          .select(outgoing_chunk::sequence_number)
-          .order_by(outgoing_chunk::sequence_number.desc())
-          .limit(1)
-          .load::<i32>(conn_b)?;
-        let old_seqnum = match maybe_old_seqnum.len() {
-          0 => transmission::table
-            .find(friend_uid)
-            .select(transmission::sent_acked_seqnum)
-            .first::<i32>(conn_b)?,
-          _ => maybe_old_seqnum[0],
-        };
-        let new_seqnum = old_seqnum + 1;
+        let new_seqnum = self.get_seqnum_for_new_chunk(conn_b, friend_uid)?;
 
         for (i, chunk) in chunks.iter().enumerate() {
           diesel::insert_into(outgoing_chunk::table)
@@ -1654,7 +1688,7 @@ impl DB {
   ////////////////////////////////////////////////////////////////////////////
 
   pub fn has_space_for_async_invitations(&self) -> Result<bool, DbError> {
-    // return true iff no async friend requests are in the database
+    // return true iff no async friend requests are in the database, because we only allow 1 outgoing right now
     // TODO: update the limit to allow more outgoing async requests
     if let Ok(f) = self.get_outgoing_async_invitations() {
       if f.len() == 0 {
@@ -1665,6 +1699,12 @@ impl DB {
     } else {
       return Err(DbError::Unknown("failed to get outgoing async friend requests".to_string()));
     }
+  }
+
+  fn get_public_id(&self, conn: &mut SqliteConnection) -> Result<String, diesel::result::Error> {
+    use crate::schema::registration;
+    let q = registration::table.select(registration::public_id);
+    q.first::<String>(conn)
   }
 
   pub fn add_outgoing_sync_invitation(
@@ -1678,42 +1718,83 @@ impl DB {
     write_key: Vec<u8>,
     max_friends: i32,
   ) -> Result<ffi::Friend, DbError> {
-    return Err(DbError::Unimplemented(
-      "add_outgoing_sync_invitation CHECK BELOW IMPL FOR NEW INERFACE".to_string(),
-    ));
-    // let mut conn = self.connect()?;
-    // use crate::schema::friend;
+    // 1. Verify that the user has space for another friend
+    // 2. Verify no other friend with same unique_name
+    // 3. Get public ID and chunk sequence number
+    // 4. Insert friend into database
+    // 5. Insert outgoing invitation into database
+    // 6. Insert outgoing chunk into database
+    // that's it :)
+    let mut conn = self.connect()?;
+    use crate::schema::friend;
+    use crate::schema::outgoing_chunk;
+    use crate::schema::outgoing_sync_invitation;
 
-    // let f = ffi::FriendFragment {
-    //   unique_name: unique_name.to_string(),
-    //   display_name: display_name.to_string(),
-    //   public_id: public_id.to_string(),
-    //   request_progress: ffi::InvitationProgress::Complete,
-    //   deleted: false,
-    // };
-    // let r = conn.transaction(|conn_b| {
-    //   // check if a friend with this name already exists
-    //   let count = friend::table
-    //     .filter(friend::unique_name.eq(unique_name))
-    //     .count()
-    //     .get_result::<i64>(conn_b)?;
-    //   if count > 0 {
-    //     return Err(diesel::result::Error::RollbackTransaction);
-    //   }
-    //   let count = friend::table.count().get_result::<i64>(conn_b)?;
-    //   if count >= max_friends.into() {
-    //     return Err(diesel::result::Error::RollbackTransaction);
-    //   }
+    let friend_fragment = ffi::FriendFragment {
+      unique_name: unique_name.to_string(),
+      display_name: display_name.to_string(),
+      invitation_progress: ffi::InvitationProgress::OutgoingSync,
+      deleted: false,
+    };
+    let r = conn.transaction(|conn_b| {
+      // check if a friend with this name already exists
+      let count = friend::table
+        .filter(friend::unique_name.eq(unique_name))
+        .count()
+        .get_result::<i64>(conn_b)?;
+      if count > 0 {
+        return Err(diesel::result::Error::RollbackTransaction);
+      }
+      let count = friend::table.count().get_result::<i64>(conn_b)?;
+      if count >= max_friends.into() {
+        return Err(diesel::result::Error::RollbackTransaction);
+      }
 
-    //   diesel::insert_into(friend::table).values(&f).get_result::<ffi::Friend>(conn_b)
-    // });
+      let friend = diesel::insert_into(friend::table)
+        .values(&friend_fragment)
+        .returning((
+          friend::uid,
+          friend::unique_name,
+          friend::display_name,
+          friend::invitation_progress,
+          friend::deleted,
+        ))
+        .get_result::<ffi::Friend>(conn_b)?;
 
-    // r.map_err(|e| match e {
-    //   diesel::result::Error::RollbackTransaction => {
-    //     DbError::AlreadyExists("friend already exists, or too many friends".to_string())
-    //   }
-    //   _ => DbError::Unknown(format!("failed to insert friend: {}", e)),
-    // })
+      diesel::insert_into(outgoing_sync_invitation::table)
+        .values((
+          outgoing_sync_invitation::friend_uid.eq(friend.uid),
+          outgoing_sync_invitation::story.eq(story.to_string()),
+          outgoing_sync_invitation::kx_public_key.eq(kx_public_key),
+          outgoing_sync_invitation::sent_at.eq(util::unix_micros_now()),
+        ))
+        .execute(conn_b)?;
+
+      let public_id = self.get_public_id(conn_b)?;
+
+      let new_seqnum = self.get_seqnum_for_new_chunk(conn_b, friend.uid)?;
+
+      diesel::insert_into(outgoing_chunk::table)
+        .values((
+          outgoing_chunk::to_friend.eq(friend.uid),
+          outgoing_chunk::sequence_number.eq(new_seqnum),
+          outgoing_chunk::chunks_start_sequence_number.eq(new_seqnum),
+          outgoing_chunk::message_uid.eq(-1),
+          outgoing_chunk::content.eq(public_id), // the content is public_id
+          outgoing_chunk::system.eq(true),
+          outgoing_chunk::system_message.eq(ffi::SystemMessage::OutgoingInvitation),
+        ))
+        .execute(conn_b)?;
+
+      Ok(friend)
+    });
+
+    r.map_err(|e| match e {
+      diesel::result::Error::RollbackTransaction => {
+        DbError::AlreadyExists("friend already exists, or too many friends".to_string())
+      }
+      _ => DbError::Unknown(format!("failed to insert friend: {}", e)),
+    })
   }
 
   pub fn add_outgoing_async_invitation(
