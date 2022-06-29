@@ -59,7 +59,7 @@ function Main() {
           return;
         }
       }
-      window.messageSeen(message.id);
+      window.messageSeenOLD(message.id);
       const readTab = {
         type: TabType.Read,
         name: `${truncate(message.message, 10)} - ${message.from}`,
@@ -133,47 +133,49 @@ function Main() {
   }, [setModal, closeModal]);
 
   const openAddFriendModal = React.useCallback(
-    (friend: string) => {
-      window
-        .generateFriendKey(friend)
-        .then((friendKeyMaybe: null | { friend: string; key: string }) => {
-          if (friendKeyMaybe) {
-            setModal(
-              <InitFriendModal
-                onClose={closeModal}
-                friend={friendKeyMaybe.friend}
-                friendKey={friendKeyMaybe.key}
-                onPasteKey={(key: string) => {
-                  window.addFriend(friend, key).then((successOrError: any) => {
-                    if (successOrError === true) {
-                      statusState.setStatus({
-                        message: `Added ${friend}!`,
-                        action: () => {},
-                        actionName: null,
-                      });
-                      statusState.setVisible();
-                    } else {
-                      statusState.setStatus({
-                        message: `Friend ${friend} not added: ${successOrError}`,
-                        action: () => {},
-                        actionName: null,
-                      });
-                      statusState.setVisible();
-                    }
-                  });
-                  closeModal();
-                }}
-              />
-            );
-          } else {
-            statusState.setStatus({
-              message: `Could not generate friend key for ${friend}`,
-              action: () => {},
-              actionName: null,
-            });
-            statusState.setVisible();
-          }
-        });
+    (_: string) => {
+      // window
+      //   .generateFriendKey(friend)
+      //   .then((friendKeyMaybe: null | { friend: string; key: string }) => {
+      //     if (friendKeyMaybe) {
+      //       setModal(
+      //         <InitFriendModal
+      //           onClose={closeModal}
+      //           friend={friendKeyMaybe.friend}
+      //           friendKey={friendKeyMaybe.key}
+      //           onPasteKey={(key: string) => {
+      //             window.addFriend(friend, key).then((successOrError: any) => {
+      //               if (successOrError === true) {
+      //                 statusState.setStatus({
+      //                   message: `Added ${friend}!`,
+      //                   action: () => {},
+      //                   actionName: null,
+      //                 });
+      //                 statusState.setVisible();
+      //               } else {
+      //                 statusState.setStatus({
+      //                   message: `Friend ${friend} not added: ${successOrError}`,
+      //                   action: () => {},
+      //                   actionName: null,
+      //                 });
+      //                 statusState.setVisible();
+      //               }
+      //             });
+      //             closeModal();
+      //           }}
+      //         />
+      //       );
+      // } else {
+      statusState.setStatus({
+        message: `This is deprecated. Please use the new friend adder.`,
+        action: () => {},
+        actionName: null,
+      });
+      statusState.setVisible();
+
+      return;
+      // }
+      // });
     },
     [setModal, closeModal, statusState]
   );

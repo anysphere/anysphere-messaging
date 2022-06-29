@@ -77,6 +77,7 @@ function MessageList(props: {
           return new_messages;
         });
       });
+
       return cancel;
     } else if (props.messages === "all") {
       setMessages([]);
@@ -94,19 +95,28 @@ function MessageList(props: {
               return 0;
             }
           });
+
           return new_messages;
         });
       });
+
       return cancel;
     } else if (props.messages === "outbox") {
-      window.getOutboxMessages().then((messages: Message[]) => {
+      window.getOutboxMessagesOLD().then((messages: Message[]) => {
         setMessages(messages);
       });
+
+      return () => {};
     } else if (props.messages === "sent") {
-      window.getSentMessages().then((messages: Message[]) => {
+      window.getSentMessagesOLD().then((messages: Message[]) => {
         setMessages(messages);
       });
+
+      return () => {};
     }
+
+    // Error out
+    throw new Error("Invalid messages type");
   }, [props.messages]);
 
   return (

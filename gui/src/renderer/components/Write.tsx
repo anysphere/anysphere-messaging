@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 //
 
+import * as daemon_pb from "daemon/schema/daemon_pb";
 import * as React from "react";
 import { Friend } from "../../types";
 import { useSearch, useFocus } from "../utils";
@@ -36,15 +37,15 @@ function MultiSelect(props: {
   let selectableOptions: (ListItem<string> | string)[] = filteredOptions.map(
     (friend) => {
       return {
-        id: friend.name,
+        id: friend.uniqueName,
         action: () => {
           console.log("action!");
           props.onSelect({
             ...props.multiSelectState,
-            text: friend.name,
+            text: friend.displayName,
           });
         },
-        data: friend.name,
+        data: friend.displayName,
       };
     }
   );
@@ -70,13 +71,13 @@ function MultiSelect(props: {
           globalAction={() => {}}
           onRender={({ item, active }) =>
             typeof item === "string" ? (
-              <div className="unselectable text-asbrown-300 text-xs">
+              <div className="unselectable text-xs text-asbrown-300">
                 {item}
               </div>
             ) : (
               <div
-                className={`text-sm px-2 py-1 mx-auto border-l-4 ${
-                  active ? "bg-asbeige border-asbrown-100" : "border-white"
+                className={`mx-auto border-l-4 px-2 py-1 text-sm ${
+                  active ? "border-asbrown-100 bg-asbeige" : "border-white"
                 }`}
               >
                 {item.data}
@@ -99,7 +100,7 @@ function MultiSelect(props: {
       <div className="grid pl-2">
         <input
           type="text"
-          className="focus:outline-none w-full placeholder:text-asbrown-100 text-sm"
+          className="w-full text-sm placeholder:text-asbrown-100 focus:outline-none"
           onChange={(e) =>
             props.onEdit({
               ...props.multiSelectState,
@@ -171,16 +172,20 @@ function Write(props: {
   }, [props.data.focus, setContextTestareaFocusRef]);
 
   return (
-    <div className="flex place-content-center w-full mt-8">
-      <div className="place-self-center flex flex-col w-full max-w-3xl bg-white p-2 px-4">
+    <div className="mt-8 flex w-full place-content-center">
+      <div className="flex w-full max-w-3xl flex-col place-self-center bg-white p-2 px-4">
         <div className="py-2">
           <div className="flex flex-row content-center items-start">
-            <div className="place-content-center grid">
-              <div className="text-sm unselectable">To:</div>
+            <div className="grid place-content-center">
+              <div className="unselectable text-sm">To:</div>
             </div>
             <MultiSelect
               className="flex-1"
-              options={friends.filter((friend) => friend.status === "added")}
+              options={friends.filter(
+                (friend) =>
+                  friend.invitationProgress ===
+                  daemon_pb.InvitationProgress.COMPLETE
+              )}
               onEdit={(state: MultiSelectData) =>
                 props.edit({ ...props.data, multiSelectState: state })
               }
@@ -210,7 +215,7 @@ function Write(props: {
               focus: "content",
             });
           }}
-          className="whitespace-pre-wrap resize-none w-full focus:outline-none h-full grow pt-4 text-sm"
+          className="h-full w-full grow resize-none whitespace-pre-wrap pt-4 text-sm focus:outline-none"
           value={content}
           onChange={(e) =>
             props.edit({
@@ -224,7 +229,7 @@ function Write(props: {
         <div className="flex flex-row content-center py-2">
           <div className="flex-1"></div>
           <button
-            className="rounded-lg unselectable bg-asbrown-100 text-asbrown-light px-3 py-1"
+            className="unselectable rounded-lg bg-asbrown-100 px-3 py-1 text-asbrown-light"
             onClick={send}
           >
             Send

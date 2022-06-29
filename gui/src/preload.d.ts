@@ -4,48 +4,7 @@
 //
 
 import * as daemon_pb from "./daemon/schema/daemon_pb";
-import { Message } from "./types";
-
-/**
- * service Daemon {
-    rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {}
-
-    rpc GetMyPublicID(GetMyPublicIDRequest) returns (GetMyPublicIDResponse) {}
-
-    rpc GetFriendList(GetFriendListRequest) returns (GetFriendListResponse) {}
-    rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse) {}
-
-    // Invitations (async + sync) section. Sync \similarTo InPerson.
-    rpc AddSyncFriend(AddSyncFriendRequest) returns (AddSyncFriendResponse) {}
-    rpc AddAsyncFriend(AddAsyncFriendRequest) returns (AddAsyncFriendResponse) {}
-
-    rpc GetOutgoingSyncInvitations(GetOutgoingSyncInvitationsRequest) returns (GetOutgoingSyncInvitationsResponse) {}
-    rpc GetOutgoingAsyncInvitations(GetOutgoingAsyncInvitationsRequest) returns (GetOutgoingAsyncInvitationsResponse) {}
-
-    rpc GetIncomingAsyncInvitations(GetIncomingAsyncInvitationsRequest) returns (GetIncomingAsyncInvitationsResponse) {}
-
-    rpc AcceptAsyncInvitation(AcceptAsyncInvitationRequest) returns (AcceptAsyncInvitationResponse) {}
-    rpc RejectAsyncInvitation(RejectAsyncInvitationRequest) returns (RejectAsyncInvitationResponse) {}
-
-    rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {}
-
-    // Get Messages section
-    rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse) {}
-    rpc GetMessagesStreamed(GetMessagesRequest) returns (stream GetMessagesResponse) {}
-    rpc GetOutboxMessages(GetOutboxMessagesRequest) returns (GetOutboxMessagesResponse) {}
-    rpc GetSentMessages(GetSentMessagesRequest) returns (GetSentMessagesResponse) {}
-
-    rpc MessageSeen(MessageSeenRequest) returns (MessageSeenResponse) {}
-
-    // GetStatus returns the status of the daemon. Things like how long since the last send/receive cycle, etc.
-    rpc GetStatus(GetStatusRequest) returns (GetStatusResponse) {}
-
-    rpc GetLatency(GetLatencyRequest) returns (GetLatencyResponse) {}
-    rpc ChangeLatency(ChangeLatencyRequest) returns (ChangeLatencyResponse) {}
-
-    rpc Kill(KillRequest) returns (KillResponse) {}
-}
- */
+import { Message, Friend } from "./types";
 
 declare global {
   interface Window {
@@ -60,7 +19,7 @@ declare global {
       getMyPublicIDRequest: daemon_pb.GetMyPublicIDRequest
     ): Promise<daemon_pb.GetMyPublicIDResponse>;
 
-    getFriendList(): Promise<daemon_pb.GetFriendListResponse>;
+    getFriendList(): Promise<Friend[]>;
 
     removeFriend(
       removeFriendRequest: daemon_pb.RemoveFriendRequest

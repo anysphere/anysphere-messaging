@@ -8,7 +8,7 @@ import { promisify } from "util";
 import grpc from "@grpc/grpc-js";
 import daemonM from "../daemon/schema/daemon_pb";
 import * as daemon_pb from "../daemon/schema/daemon_pb";
-import { Message } from "../types";
+import { Friend, Message } from "../types";
 import { DaemonClient } from "daemon/schema/daemon_grpc_pb";
 
 import {
@@ -457,36 +457,34 @@ contextBridge.exposeInMainWorld(
 
 contextBridge.exposeInMainWorld(
   "getFriendList",
-  async (): Promise<daemon_pb.GetFriendListResponse.AsObject> => {
+  async (): Promise<Friend[]> => {
     if (FAKE_DATA) {
-      return {
-        friendInfosList: [
-          {
-            uniqueName: "Sualeh",
-            displayName: "Sualeh Asif",
-            publicId: "asdfasdf",
-            invitationProgress: daemon_pb.InvitationProgress.COMPLETE,
-          },
-          {
-            uniqueName: "Shengtong",
-            displayName: "Shengtong",
-            publicId: "asdfasdf",
-            invitationProgress: daemon_pb.InvitationProgress.COMPLETE,
-          },
-          {
-            uniqueName: "Bob",
-            displayName: "Bob",
-            publicId: "asdfasdf",
-            invitationProgress: daemon_pb.InvitationProgress.COMPLETE,
-          },
-          {
-            uniqueName: "SLeeP",
-            displayName: "SLeeP",
-            publicId: "asdfasdf",
-            invitationProgress: daemon_pb.InvitationProgress.OUTGOINGASYNC,
-          },
-        ],
-      };
+      return [
+        {
+          uniqueName: "Sualeh",
+          displayName: "Sualeh Asif",
+          publicId: "asdfasdf",
+          invitationProgress: daemon_pb.InvitationProgress.COMPLETE,
+        },
+        {
+          uniqueName: "Shengtong",
+          displayName: "Shengtong",
+          publicId: "asdfasdf",
+          invitationProgress: daemon_pb.InvitationProgress.COMPLETE,
+        },
+        {
+          uniqueName: "Bob",
+          displayName: "Bob",
+          publicId: "asdfasdf",
+          invitationProgress: daemon_pb.InvitationProgress.COMPLETE,
+        },
+        {
+          uniqueName: "SLeeP",
+          displayName: "SLeeP",
+          publicId: "asdfasdf",
+          invitationProgress: daemon_pb.InvitationProgress.OUTGOINGASYNC,
+        },
+      ];
     }
 
     const request = new daemonM.GetFriendListRequest();
@@ -508,14 +506,10 @@ contextBridge.exposeInMainWorld(
           invitationProgress: m.getInvitationProgress(),
         };
       });
-      return {
-        friendInfosList: l,
-      };
+      return l;
     } catch (e) {
       console.log(`error in getFriendList: ${e}`);
-      return {
-        friendInfosList: [],
-      };
+      return [];
     }
   }
 );

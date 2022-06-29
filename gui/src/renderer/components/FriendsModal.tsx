@@ -7,6 +7,7 @@ import * as React from "react";
 import Modal from "./Modal";
 import { Friend } from "../../types";
 import { SelectableList, ListItem } from "./SelectableList";
+import * as daemon_pb from "daemon/schema/daemon_pb";
 
 function LegacyFriendsModal({
   onClose,
@@ -28,14 +29,18 @@ function LegacyFriendsModal({
       let friends: Friend[] = [];
       for (let i = 0; i < 5; i++) {
         friends.push({
-          name: `friend${i}`,
-          status: "added",
+          uniqueName: `friend${i}`,
+          displayName: `Friend ${i}`,
+          publicId: `friend${i}`,
+          invitationProgress: daemon_pb.InvitationProgress.COMPLETE,
         });
       }
       for (let i = 5; i < 10; i++) {
         friends.push({
-          name: `friend${i}`,
-          status: "initiated",
+          uniqueName: `friend${i}`,
+          displayName: `Friend ${i}`,
+          publicId: `friend${i}`,
+          invitationProgress: daemon_pb.InvitationProgress.COMPLETE,
         });
       }
 
@@ -47,7 +52,13 @@ function LegacyFriendsModal({
     if (friendname === "") {
       console.log("ERR");
     } else {
-      if (friends.find((f) => f.name === friendname && f.status === "added")) {
+      if (
+        friends.find(
+          (f) =>
+            f.uniqueName === friendname &&
+            f.invitationProgress === daemon_pb.InvitationProgress.COMPLETE
+        )
+      ) {
         console.log("Already added friend...");
       } else {
         onAddFriend(friendname);
@@ -70,13 +81,16 @@ function LegacyFriendsModal({
     type: "add" | "friend" | "none";
     name: string;
   }>[] = friends
-    .filter((friend) => friend.status === "added")
+    .filter(
+      (friend) =>
+        friend.invitationProgress === daemon_pb.InvitationProgress.COMPLETE
+    )
     .map((friend, index) => ({
       id: `friend-${index}`,
       action: () => {},
       data: {
         type: "friend",
-        name: friend.name,
+        name: friend.displayName,
       },
     }));
   if (friendsList.length === 0) {
@@ -96,15 +110,18 @@ function LegacyFriendsModal({
     type: "add" | "friend" | "none";
     name: string;
   }>[] = friends
-    .filter((friend) => friend.status === "initiated")
+    .filter(
+      (friend) =>
+        friend.invitationProgress !== daemon_pb.InvitationProgress.COMPLETE
+    )
     .map((friend, index) => ({
       id: `invitation-${index}`,
       action: () => {
-        onAddFriend(friend.name);
+        onAddFriend(friend.uniqueName);
       },
       data: {
         type: "friend",
-        name: friend.name,
+        name: friend.displayName,
       },
     }));
   if (invitations.length === 0) {
