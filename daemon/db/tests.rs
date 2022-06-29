@@ -6,9 +6,9 @@ use rand::Rng;
 fn get_registration_fragment() -> ffi::RegistrationFragment {
   let kx_public_key: Vec<u8> = br#"zIUWz21AsWme9KxgS43TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
   let kx_private_key: Vec<u8> = br#""EUSOOwjVEHRD1XzruR93LcK8YosZ3gWUkrrk8yjrpIQ="#.to_vec();
-  let friend_request_public_key: Vec<u8> =
+  let invitation_public_key: Vec<u8> =
     br#"zIUWz21AsWme9KxgS56TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
-  let friend_request_private_key: Vec<u8> =
+  let invitation_private_key: Vec<u8> =
     br#"zIUWz21AsWme9KxgS78TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
   let allocation: i32 = 34;
   let pir_secret_key: Vec<u8> = br#""hi hi"#.to_vec();
@@ -17,8 +17,8 @@ fn get_registration_fragment() -> ffi::RegistrationFragment {
   let public_id: String = "my_public_id".to_string();
 
   ffi::RegistrationFragment {
-    friend_request_public_key,
-    friend_request_private_key,
+    invitation_public_key,
+    invitation_private_key,
     kx_public_key,
     kx_private_key,
     allocation,
@@ -85,8 +85,8 @@ fn test_register() {
     Ok(registration) => {
       assert_eq!(registration.kx_public_key, config_clone.kx_public_key);
       assert_eq!(registration.kx_private_key, config_clone.kx_private_key);
-      assert_eq!(registration.friend_request_public_key, config_clone.friend_request_public_key);
-      assert_eq!(registration.friend_request_private_key, config_clone.friend_request_private_key);
+      assert_eq!(registration.invitation_public_key, config_clone.invitation_public_key);
+      assert_eq!(registration.invitation_private_key, config_clone.invitation_private_key);
       assert_eq!(registration.allocation, config_clone.allocation);
       assert_eq!(registration.pir_secret_key, config_clone.pir_secret_key);
       assert_eq!(registration.pir_galois_key, config_clone.pir_galois_key);
@@ -258,11 +258,11 @@ fn test_async_add_friend() {
 
   db.add_incoming_async_invitation("fake_public_id_string", "hi! do you want to be my friend?")
     .unwrap();
-  let friend_requests = db.get_incoming_invitations().unwrap();
+  let invitations = db.get_incoming_invitations().unwrap();
   // check that we have a friend request
-  assert_eq!(friend_requests.len(), 1);
-  assert_eq!(friend_requests[0].public_id, "fake_public_id_string");
-  assert_eq!(friend_requests[0].message, "hi! do you want to be my friend?");
+  assert_eq!(invitations.len(), 1);
+  assert_eq!(invitations[0].public_id, "fake_public_id_string");
+  assert_eq!(invitations[0].message, "hi! do you want to be my friend?");
 
   // approve the friend request
   let max_friends = 20;
@@ -279,8 +279,8 @@ fn test_async_add_friend() {
   )
   .unwrap();
   // check that the friend request is gone
-  let friend_requests_new = db.get_incoming_invitations().unwrap();
-  assert_eq!(friend_requests_new.len(), 0);
+  let invitations_new = db.get_incoming_invitations().unwrap();
+  assert_eq!(invitations_new.len(), 0);
   // check that we have a friend
   let friends = db.get_friends().unwrap();
   assert_eq!(friends.len(), 1);

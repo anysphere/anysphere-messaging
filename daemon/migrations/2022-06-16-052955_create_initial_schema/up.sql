@@ -15,8 +15,8 @@ CREATE TABLE config (
 -- 0-1 elements always!
 CREATE TABLE registration (
     uid integer PRIMARY KEY NOT NULL,
-    friend_request_public_key blob NOT NULL,
-    friend_request_private_key blob NOT NULL,
+    invitation_public_key blob NOT NULL,
+    invitation_private_key blob NOT NULL,
     kx_public_key blob NOT NULL,
     kx_private_key blob NOT NULL,
     allocation integer NOT NULL,
@@ -60,7 +60,7 @@ CREATE TABLE outgoing_sync_invitation (
 CREATE TABLE outgoing_async_invitation (
     friend_uid integer PRIMARY KEY NOT NULL,
     public_id text NOT NULL,
-    friend_request_public_key blob NOT NULL,
+    invitation_public_key blob NOT NULL,
     kx_public_key blob NOT NULL,
     message text NOT NULL,
     sent_at timestamp NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE outgoing_async_invitation (
 CREATE TABLE complete_friend (
     friend_uid integer PRIMARY KEY NOT NULL,
     public_id text NOT NULL,
-    friend_request_public_key blob NOT NULL,
+    invitation_public_key blob NOT NULL,
     kx_public_key blob NOT NULL,
     completed_at timestamp NOT NULL,
     FOREIGN KEY(friend_uid) REFERENCES friend(uid)

@@ -4,7 +4,7 @@ diesel::table! {
     complete_friend (friend_uid) {
         friend_uid -> Integer,
         public_id -> Text,
-        friend_request_public_key -> Binary,
+        invitation_public_key -> Binary,
         kx_public_key -> Binary,
         completed_at -> BigInt,
     }
@@ -66,7 +66,7 @@ diesel::table! {
     outgoing_async_invitation (friend_uid) {
         friend_uid -> Integer,
         public_id -> Text,
-        friend_request_public_key -> Binary,
+        invitation_public_key -> Binary,
         kx_public_key -> Binary,
         message -> Text,
         sent_at -> BigInt,
@@ -109,8 +109,8 @@ diesel::table! {
 diesel::table! {
     registration (uid) {
         uid -> Integer,
-        friend_request_public_key -> Binary,
-        friend_request_private_key -> Binary,
+        invitation_public_key -> Binary,
+        invitation_private_key -> Binary,
         kx_public_key -> Binary,
         kx_private_key -> Binary,
         allocation -> Integer,

@@ -48,13 +48,13 @@ class Transmitter {
   // method for testing
   // because during microtests, we do not want to full db scan
   auto reset_async_scanner(int index) {
-    next_async_friend_request_retrieve_index = index;
+    next_async_invitation_retrieve_index = index;
   }
   auto update_async_invitation_retrieve_index() -> pair<int, int> {
-    int start_index = next_async_friend_request_retrieve_index;
-    int end_index = std::min(next_async_friend_request_retrieve_index +
-                                 ASYNC_FRIEND_REQUEST_BATCH_SIZE,
-                             CLIENT_DB_ROWS);
+    int start_index = next_async_invitation_retrieve_index;
+    int end_index = std::min(
+        next_async_invitation_retrieve_index + ASYNC_FRIEND_REQUEST_BATCH_SIZE,
+        CLIENT_DB_ROWS);
     return make_pair(start_index, end_index);
   }
 
@@ -84,7 +84,7 @@ class Transmitter {
   optional<int> just_acked_friend;
 
   // used to crawl the db for the async invitations
-  int next_async_friend_request_retrieve_index;
+  int next_async_invitation_retrieve_index;
 
   // for each index, get the PIR response for that index
   auto batch_retrieve_pir(FastPIRClient& client, vector<pir_index_t> indices)

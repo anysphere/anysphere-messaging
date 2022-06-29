@@ -23,8 +23,8 @@ Status DaemonRpc::RegisterUser(
     return Status(grpc::StatusCode::ALREADY_EXISTS, "already registered");
   }
   const auto name = registerUserRequest->name();
-  const auto [friend_request_public_key, friend_request_private_key] =
-      crypto::generate_friend_request_keypair();
+  const auto [invitation_public_key, invitation_private_key] =
+      crypto::generate_invitation_keypair();
 
   const auto [kx_public_key, kx_secret_key] = crypto::generate_kx_keypair();
   const auto [pir_secret_key, pir_galois_keys] = generate_keys();
@@ -34,7 +34,7 @@ Status DaemonRpc::RegisterUser(
   // call register rpc to send the register request
   // TODO: obselete. Change to include friend request keypair in the request
   asphrserver::RegisterInfo request;
-  request.set_invitation_public_key(friend_request_public_key);
+  request.set_invitation_public_key(invitation_public_key);
   request.set_beta_key(beta_key);
 
   asphrserver::RegisterResponse reply;
@@ -73,26 +73,24 @@ Status DaemonRpc::RegisterUser(
     // server side finished registration
     // update DB now
     // compute the public id here
-    auto public_id_ = crypto::generate_user_id(
-        "", allocation.at(0), kx_public_key, friend_request_public_key);
-    if (!public_id_.ok()) {
-      ASPHR_LOG_ERR("Register failed: public id generation failed.", rpc_call,
-                    "RegisterUser");
-      return Status(grpc::StatusCode::UNKNOWN, "public id generation failed");
-    }
+    // NOTE: this functionality has been moved to the Identifier module
+    //-------------------------------------------------------------------------
+
+    auto public_id =
+        PublicIdentifier(allocation.at(0), kx_public_key, invitation_public_key)
+            .to_public_id();
     try {
       G.db->do_register(db::RegistrationFragment{
-          .friend_request_public_key =
-              string_to_rust_u8Vec(friend_request_public_key),
-          .friend_request_private_key =
-              string_to_rust_u8Vec(friend_request_private_key),
+          .invitation_public_key = string_to_rust_u8Vec(invitation_public_key),
+          .invitation_private_key =
+              string_to_rust_u8Vec(invitation_private_key),
           .kx_public_key = string_to_rust_u8Vec(kx_public_key),
           .kx_private_key = string_to_rust_u8Vec(kx_secret_key),
           .allocation = allocation.at(0),
           .pir_secret_key = string_to_rust_u8Vec(pir_secret_key),
           .pir_galois_key = string_to_rust_u8Vec(pir_galois_keys),
           .authentication_token = authentication_token,
-          .public_id = public_id_.value(),
+          .public_id = public_id,
       });
     } catch (const rust::Error& e) {
       ASPHR_LOG_ERR("Register failed in database.", error, e.what(), rpc_call,
@@ -154,23 +152,19 @@ Status DaemonRpc::GetMyPublicID(
   try {
     // query the db for registration info
     auto registration_info = G.db->get_registration();
-    // extract fields from the registration info
-    auto name = "";  // per agreement, this field is not used for now
-    auto allocation = registration_info.allocation;
-    auto friend_request_public_key =
-        rust_u8Vec_to_string(registration_info.friend_request_public_key);
-    auto kx_public_key = rust_u8Vec_to_string(registration_info.kx_public_key);
-
-    // generate the public ID
-    auto public_id_ = crypto::generate_user_id(name, allocation, kx_public_key,
-                                               friend_request_public_key);
-
-    if (!public_id_.ok()) {
-      ASPHR_LOG_ERR("Failed to generate public ID.", rpc_call, "GetMyPublicID");
-      return Status(grpc::StatusCode::UNKNOWN, "failed to generate public ID");
-    }
     // set the public ID in the response
-    getMyPublicIDResponse->set_public_id(public_id_.value());
+    // public ID is constant, so no need to regenerate it
+    getMyPublicIDResponse->set_public_id(
+        std::string(registration_info.public_id));
+
+    // we also need to generate a story
+    // This will ideally be different each time.
+    // so we call the story generation function each call
+    int index = registration_info.allocation;
+    string kx_public_key =
+        rust_u8Vec_to_string(registration_info.kx_public_key);
+    string story = SyncIdentifier(index, kx_public_key).to_story();
+    getMyPublicIDResponse->set_story(story);
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Database failed.", error, e.what(), rpc_call,
                   "GetMyPublicID");
@@ -269,7 +263,7 @@ grpc::Status DaemonRpc::AddAsyncFriend(
         addAsyncFriendRequest->unique_name(),
         addAsyncFriendRequest->display_name(),
         addAsyncFriendRequest->public_id(),
-        string_to_rust_u8Vec(public_id.friend_request_public_key),
+        string_to_rust_u8Vec(public_id.invitation_public_key),
         string_to_rust_u8Vec(public_id.kx_public_key),
         addAsyncFriendRequest->message(), public_id.index,
         string_to_rust_u8Vec(read_key), string_to_rust_u8Vec(write_key),
@@ -446,7 +440,7 @@ Status DaemonRpc::AcceptAsyncInvitation(
         acceptAsyncInvitationRequest->public_id(),
         acceptAsyncInvitationRequest->unique_name(),
         acceptAsyncInvitationRequest->display_name(),
-        string_to_rust_u8Vec(public_id.friend_request_public_key),
+        string_to_rust_u8Vec(public_id.invitation_public_key),
         string_to_rust_u8Vec(public_id.kx_public_key), public_id.index,
         string_to_rust_u8Vec(read_key), string_to_rust_u8Vec(write_key),
         MAX_FRIENDS);

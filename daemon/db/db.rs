@@ -305,7 +305,7 @@ pub mod ffi {
     pub display_name: String,
     pub invitation_progress: InvitationProgress,
     pub public_id: String,
-    pub friend_request_public_key: Vec<u8>,
+    pub invitation_public_key: Vec<u8>,
     pub kx_public_key: Vec<u8>,
     pub message: String,
     pub sent_at: i64, // unix micros
@@ -314,7 +314,7 @@ pub mod ffi {
   struct JustOutgoingAsyncInvitation {
     friend_uid: i32,
     public_id: String,
-    friend_request_public_key: Vec<u8>,
+    invitation_public_key: Vec<u8>,
     kx_public_key: Vec<u8>,
     message: String,
     sent_at: i64,
@@ -329,8 +329,8 @@ pub mod ffi {
   #[derive(Queryable)]
   struct Registration {
     pub uid: i32,
-    pub friend_request_public_key: Vec<u8>,
-    pub friend_request_private_key: Vec<u8>,
+    pub invitation_public_key: Vec<u8>,
+    pub invitation_private_key: Vec<u8>,
     pub kx_public_key: Vec<u8>,
     pub kx_private_key: Vec<u8>,
     pub allocation: i32,
@@ -342,8 +342,8 @@ pub mod ffi {
   #[derive(Insertable)]
   #[diesel(table_name = crate::schema::registration)]
   struct RegistrationFragment {
-    pub friend_request_public_key: Vec<u8>,
-    pub friend_request_private_key: Vec<u8>,
+    pub invitation_public_key: Vec<u8>,
+    pub invitation_private_key: Vec<u8>,
     pub kx_public_key: Vec<u8>,
     pub kx_private_key: Vec<u8>,
     pub allocation: i32,
@@ -360,8 +360,8 @@ pub mod ffi {
   #[derive(Queryable)]
   struct SmallRegistrationFragment {
     pub uid: i32,
-    pub friend_request_public_key: Vec<u8>,
-    pub friend_request_private_key: Vec<u8>,
+    pub invitation_public_key: Vec<u8>,
+    pub invitation_private_key: Vec<u8>,
     pub kx_public_key: Vec<u8>,
     pub kx_private_key: Vec<u8>,
     pub allocation: i32,
@@ -557,7 +557,7 @@ pub mod ffi {
       unique_name: &str,
       display_name: &str,
       public_id: &str,
-      friend_request_public_key: Vec<u8>,
+      invitation_public_key: Vec<u8>,
       kx_public_key: Vec<u8>,
       message: &str,
       read_index: i32,
@@ -587,7 +587,7 @@ pub mod ffi {
       public_id: &str,
       unique_name: &str,
       display_name: &str,
-      friend_request_public_key: Vec<u8>,
+      invitation_public_key: Vec<u8>,
       kx_public_key: Vec<u8>,
       read_index: i32,
       read_key: Vec<u8>,
@@ -603,7 +603,7 @@ pub mod ffi {
       sequence_number: i32,
       public_id: &str, // we want this public_id to correspond to the one we already have
       public_id_claimed_kx_public_key: Vec<u8>, // we want to verify that this is the same as we have on file! otherwise someone might be trying to deceive us
-      public_id_claimed_friend_request_public_key: Vec<u8>,
+      public_id_claimed_invitation_public_key: Vec<u8>,
     ) -> Result<()>;
 
     //
@@ -1029,8 +1029,8 @@ impl DB {
 
     let q = registration::table.select((
       registration::uid,
-      registration::friend_request_public_key,
-      registration::friend_request_private_key,
+      registration::invitation_public_key,
+      registration::invitation_private_key,
       registration::kx_public_key,
       registration::kx_private_key,
       registration::allocation,
@@ -2190,7 +2190,7 @@ impl DB {
     unique_name: &str,
     display_name: &str,
     public_id: &str,
-    friend_request_public_key: Vec<u8>,
+    invitation_public_key: Vec<u8>,
     kx_public_key: Vec<u8>,
     message: &str,
     read_index: i32,
@@ -2250,7 +2250,7 @@ impl DB {
         .values((
           outgoing_async_invitation::friend_uid.eq(friend.uid),
           outgoing_async_invitation::public_id.eq(public_id.to_string()),
-          outgoing_async_invitation::friend_request_public_key.eq(friend_request_public_key),
+          outgoing_async_invitation::invitation_public_key.eq(invitation_public_key),
           outgoing_async_invitation::kx_public_key.eq(kx_public_key.clone()),
           outgoing_async_invitation::message.eq(message.to_string()),
           outgoing_async_invitation::sent_at.eq(util::unix_micros_now()),
@@ -2295,7 +2295,7 @@ impl DB {
     conn: &mut SqliteConnection,
     friend_uid: i32,
     public_id: String,
-    friend_request_public_key: Vec<u8>,
+    invitation_public_key: Vec<u8>,
   ) -> Result<(), diesel::result::Error> {
     // make the friend >
     // create a complete_friend and remove a sync_outgoing_invitation
@@ -2319,7 +2319,7 @@ impl DB {
         .values((
           complete_friend::friend_uid.eq(friend_uid),
           complete_friend::public_id.eq(public_id),
-          complete_friend::friend_request_public_key.eq(friend_request_public_key),
+          complete_friend::invitation_public_key.eq(invitation_public_key),
           complete_friend::kx_public_key.eq(kx_public_key),
           complete_friend::completed_at.eq(util::unix_micros_now()),
         ))
@@ -2351,7 +2351,7 @@ impl DB {
         .select((
           outgoing_async_invitation::friend_uid,
           outgoing_async_invitation::public_id,
-          outgoing_async_invitation::friend_request_public_key,
+          outgoing_async_invitation::invitation_public_key,
           outgoing_async_invitation::kx_public_key,
           outgoing_async_invitation::message,
           outgoing_async_invitation::sent_at,
@@ -2364,7 +2364,7 @@ impl DB {
         .values((
           complete_friend::friend_uid.eq(friend_uid),
           complete_friend::public_id.eq(async_invitation.public_id),
-          complete_friend::friend_request_public_key.eq(async_invitation.friend_request_public_key),
+          complete_friend::invitation_public_key.eq(async_invitation.invitation_public_key),
           complete_friend::kx_public_key.eq(async_invitation.kx_public_key),
           complete_friend::completed_at.eq(util::unix_micros_now()),
         ))
@@ -2482,7 +2482,7 @@ impl DB {
 
     match r {
       Ok(_) => Ok(()),
-      Err(e) => Err(DbError::Unknown(format!("add_incoming_async_friend_requests: {}", e))),
+      Err(e) => Err(DbError::Unknown(format!("add_incoming_async_invitations: {}", e))),
     }
   }
 
@@ -2526,7 +2526,7 @@ impl DB {
         friend::display_name,
         friend::invitation_progress,
         outgoing_async_invitation::public_id,
-        outgoing_async_invitation::friend_request_public_key,
+        outgoing_async_invitation::invitation_public_key,
         outgoing_async_invitation::kx_public_key,
         outgoing_async_invitation::message,
         outgoing_async_invitation::sent_at,
@@ -2555,7 +2555,7 @@ impl DB {
     public_id: &str,
     unique_name: &str,
     display_name: &str,
-    friend_request_public_key: Vec<u8>,
+    invitation_public_key: Vec<u8>,
     kx_public_key: Vec<u8>,
     read_index: i32,
     read_key: Vec<u8>,
@@ -2608,7 +2608,7 @@ impl DB {
           .values((
             complete_friend::friend_uid.eq(friend.uid),
             complete_friend::public_id.eq(public_id),
-            complete_friend::friend_request_public_key.eq(friend_request_public_key),
+            complete_friend::invitation_public_key.eq(invitation_public_key),
             complete_friend::kx_public_key.eq(kx_public_key),
             complete_friend::completed_at.eq(util::unix_micros_now()),
           ))
@@ -2681,7 +2681,7 @@ impl DB {
     sequence_number: i32,
     public_id: &str,
     public_id_claimed_kx_public_key: Vec<u8>,
-    public_id_claimed_friend_request_public_key: Vec<u8>,
+    public_id_claimed_invitation_public_key: Vec<u8>,
   ) -> Result<(), DbError> {
     let mut conn = self.connect()?;
     self.check_rep(&mut conn);
@@ -2715,7 +2715,7 @@ impl DB {
             conn_b,
             from_friend,
             public_id.to_string(),
-            public_id_claimed_friend_request_public_key,
+            public_id_claimed_invitation_public_key,
           )?;
         }
         ffi::InvitationProgress::OutgoingAsync => {
