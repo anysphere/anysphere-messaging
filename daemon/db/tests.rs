@@ -220,8 +220,8 @@ fn test_async_add_friend() {
   db.do_register(config_data).unwrap();
 
   // check initial state
-  assert!(db.has_space_for_async_friend_requests().unwrap());
-  assert!(db.get_incoming_async_friend_requests().unwrap().is_empty());
+  assert!(db.has_space_for_async_invitations().unwrap());
+  assert!(db.get_incoming_invitations().unwrap().is_empty());
   // add an incoming friend request
   let friend_name = "friend_1";
   let friend_request = ffi::FriendFragment {
@@ -241,35 +241,38 @@ fn test_async_add_friend() {
     friend_request_public_key: br#"xxxx"#.to_vec(),
     friend_request_message: "finally made a friend".to_string(),
   };
-  db.add_incoming_async_friend_requests(friend_request, address).unwrap();
-  let friend_requests = db.get_incoming_async_friend_requests().unwrap();
+  db.add_incoming_async_invitation("fake_public_id_string", "hi! do you want to be my friend?")
+    .unwrap();
+  let friend_requests = db.get_incoming_invitations().unwrap();
   // check that we have a friend request
   assert_eq!(friend_requests.len(), 1);
-  assert_eq!(friend_requests[0].unique_name, friend_name);
-  assert_eq!(friend_requests[0].public_id, "tttt");
-
-  // this uid now identifies the friend
-  let uid = friend_requests[0].uid;
-  let address = db.get_friend_address(uid).unwrap();
-  // check the associated address & status struct
-  // the ack index shouldn't have been set yet
-  assert!(address.ack_index < 0);
-  assert!(address.uid == uid);
+  assert_eq!(friend_requests[0].public_id, "fake_public_id_string");
+  assert_eq!(friend_requests[0].message, "hi! do you want to be my friend?");
 
   // approve the friend request
-  let max_friend = 99;
-  db.approve_async_friend_request(friend_name, max_friend).unwrap();
+  let max_friends = 20;
+  db.accept_incoming_invitation(
+    "fake_public_id_string",
+    friend_name,
+    "Display Name",
+    br#"xPubxxx"#.to_vec(),
+    br#"xKxxxx"#.to_vec(),
+    0,
+    br#"rrrrrrrr"#.to_vec(),
+    br#"wwww"#.to_vec(),
+    max_friends,
+  )
+  .unwrap();
   // check that the friend request is gone
-  let friend_requests_new = db.get_incoming_async_friend_requests().unwrap();
+  let friend_requests_new = db.get_incoming_invitations().unwrap();
   assert_eq!(friend_requests_new.len(), 0);
   // check that we have a friend
   let friends = db.get_friends().unwrap();
   assert_eq!(friends.len(), 1);
-  assert_eq!(friends[0].uid, uid);
-  assert_eq!(friends[0].public_id, "tttt");
-  assert_eq!(friends[0].unique_name, "friend_1");
+  assert_eq!(friends[0].public_id, "fake_public_id_string");
+  assert_eq!(friends[0].unique_name, friend_name);
   // check the friend address
-  let new_address = db.get_friend_address(uid).unwrap();
-  assert_eq!(new_address.uid, uid);
+  let new_address = db.get_friend_address(friends[0].uid).unwrap();
+  assert_eq!(new_address.uid, friends[0].uid);
   assert!(new_address.ack_index >= 0);
 }

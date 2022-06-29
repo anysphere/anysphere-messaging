@@ -1,15 +1,12 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    address (uid) {
-        uid -> Integer,
+    complete_friend (friend_uid) {
+        friend_uid -> Integer,
+        public_id -> Text,
         friend_request_public_key -> Binary,
-        friend_request_message -> Text,
         kx_public_key -> Binary,
-        read_index -> Integer,
-        ack_index -> Integer,
-        read_key -> Binary,
-        write_key -> Binary,
+        completed_at -> BigInt,
     }
 }
 
@@ -35,8 +32,7 @@ diesel::table! {
         uid -> Integer,
         unique_name -> Text,
         display_name -> Text,
-        public_id -> Text,
-        request_progress -> Integer,
+        invitation_progress -> Integer,
         deleted -> Bool,
     }
 }
@@ -52,9 +48,29 @@ diesel::table! {
 }
 
 diesel::table! {
+    incoming_invitation (friend_uid) {
+        friend_uid -> Integer,
+        public_id -> Text,
+        message -> Text,
+        received_at -> BigInt,
+    }
+}
+
+diesel::table! {
     message (uid) {
         uid -> Integer,
         content -> Text,
+    }
+}
+
+diesel::table! {
+    outgoing_async_invitation (friend_uid) {
+        friend_uid -> Integer,
+        public_id -> Text,
+        friend_request_public_key -> Binary,
+        kx_public_key -> Binary,
+        message -> Text,
+        sent_at -> BigInt,
     }
 }
 
@@ -67,6 +83,15 @@ diesel::table! {
         content -> Text,
         control -> Bool,
         control_message -> Integer,
+    }
+}
+
+diesel::table! {
+    outgoing_sync_invitation (friend_uid) {
+        friend_uid -> Integer,
+        story -> Text,
+        kx_public_key -> Binary,
+        sent_at -> BigInt,
     }
 }
 
@@ -109,37 +134,47 @@ diesel::table! {
 }
 
 diesel::table! {
-    status (uid) {
-        uid -> Integer,
+    transmission (friend_uid) {
+        friend_uid -> Integer,
+        read_index -> Integer,
+        read_key -> Binary,
+        write_key -> Binary,
+        ack_index -> Nullable<Integer>,
         sent_acked_seqnum -> Integer,
         received_seqnum -> Integer,
     }
 }
 
-diesel::joinable!(address -> friend (uid));
+diesel::joinable!(complete_friend -> friend (friend_uid));
 diesel::joinable!(config -> registration (registration_uid));
 diesel::joinable!(draft -> friend (to_friend));
 diesel::joinable!(draft -> message (uid));
 diesel::joinable!(incoming_chunk -> friend (from_friend));
 diesel::joinable!(incoming_chunk -> received (message_uid));
+diesel::joinable!(incoming_invitation -> friend (friend_uid));
+diesel::joinable!(outgoing_async_invitation -> friend (friend_uid));
 diesel::joinable!(outgoing_chunk -> friend (to_friend));
 diesel::joinable!(outgoing_chunk -> sent (message_uid));
+diesel::joinable!(outgoing_sync_invitation -> friend (friend_uid));
 diesel::joinable!(received -> friend (from_friend));
 diesel::joinable!(received -> message (uid));
 diesel::joinable!(sent -> friend (to_friend));
 diesel::joinable!(sent -> message (uid));
-diesel::joinable!(status -> friend (uid));
+diesel::joinable!(transmission -> friend (friend_uid));
 
 diesel::allow_tables_to_appear_in_same_query!(
-    address,
+    complete_friend,
     config,
     draft,
     friend,
     incoming_chunk,
+    incoming_invitation,
     message,
+    outgoing_async_invitation,
     outgoing_chunk,
+    outgoing_sync_invitation,
     received,
     registration,
     sent,
-    status,
+    transmission,
 );

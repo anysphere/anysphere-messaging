@@ -502,7 +502,7 @@ auto Transmitter::batch_retrieve_pir(FastPIRClient& client,
 //----------------------------------------------------------------
 //----------------------------------------------------------------
 
-auto Transmitter::transmit_async_friend_request() -> void {
+auto Transmitter::transmit_async_invitation() -> void {
   // retrieve the friend request from DB
   std::vector<db::Friend> async_friend_requests = {};
   std::vector<db::Address> async_friend_requests_address = {};
@@ -584,7 +584,7 @@ auto Transmitter::transmit_async_friend_request() -> void {
 // 3. If the friend is marked as incoming, then we ignore the request.
 // 4. If the friend is marked as outgoing, then we approve this request
 // immediately.
-auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
+auto Transmitter::retrieve_async_invitations(int start_index, int end_index)
     -> void {
   // check input
   if (start_index < 0 || end_index < 0 || start_index > end_index ||
