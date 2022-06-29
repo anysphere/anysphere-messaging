@@ -35,6 +35,13 @@ struct ChunkInterestingNumbers {
   chunks_start_sequence_number: i32,
   message_uid: Option<i32>,
 }
+#[cfg(debug_assertions)]
+#[derive(Queryable, Debug)]
+struct IncomingChunkInterestingNumbers {
+  from_friend: i32,
+  chunks_start_sequence_number: i32,
+  message_uid: i32,
+}
 
 #[derive(Queryable)]
 struct OutgoingChunkPlusPlusMinusNumChunks {
@@ -929,6 +936,42 @@ impl DB {
           } else {
             assert!(
               to_friend_message_uid_map_to_seqnum.get(&(to_friend, message_uid)).unwrap() == &seqnum,
+              "chunk = {:?}",
+              chunk
+            );
+          }
+        }
+        // the same thing should be true for the incoming chunks
+        let chunks = incoming_chunk::table.select((
+          incoming_chunk::from_friend,
+          incoming_chunk::chunks_start_sequence_number,
+          incoming_chunk::message_uid,
+        )).get_results::<IncomingChunkInterestingNumbers>(conn_b).unwrap();
+        let mut from_friend_seqnum_map_to_message_uid = HashMap::new();
+        for chunk in &chunks {
+          let from_friend = chunk.from_friend;
+          let seqnum = chunk.chunks_start_sequence_number;
+          let message_uid = chunk.message_uid;
+          if !from_friend_seqnum_map_to_message_uid.contains_key(&(from_friend, seqnum)) {
+            from_friend_seqnum_map_to_message_uid.insert((from_friend, seqnum), message_uid);
+          } else {
+            assert!(
+              from_friend_seqnum_map_to_message_uid.get(&(from_friend, seqnum)).unwrap() == &message_uid,
+              "chunk = {:?}",
+              chunk
+            );
+          }
+        }
+        let mut from_friend_message_uid_map_to_seqnum = HashMap::new();
+        for chunk in &chunks {
+          let from_friend = chunk.from_friend;
+          let message_uid = chunk.message_uid;
+          let seqnum = chunk.chunks_start_sequence_number;
+          if !from_friend_message_uid_map_to_seqnum.contains_key(&(from_friend, message_uid)) {
+            from_friend_message_uid_map_to_seqnum.insert((from_friend, message_uid), seqnum);
+          } else {
+            assert!(
+              from_friend_message_uid_map_to_seqnum.get(&(from_friend, message_uid)).unwrap() == &seqnum,
               "chunk = {:?}",
               chunk
             );
