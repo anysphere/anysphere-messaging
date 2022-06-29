@@ -282,6 +282,15 @@ pub mod ffi {
     pub sent_at: i64, // unix micros
   }
   #[derive(Queryable)]
+  struct JustOutgoingAsyncInvitation {
+    friend_uid: i32,
+    public_id: String,
+    friend_request_public_key: Vec<u8>,
+    kx_public_key: Vec<u8>,
+    message: String,
+    sent_at: i64,
+  }
+  #[derive(Queryable)]
   struct IncomingInvitation {
     pub public_id: String,
     pub message: String,
@@ -558,6 +567,14 @@ pub mod ffi {
     ) -> Result<()>;
     // simply deletes the incoming invitation
     fn deny_incoming_invitation(&self, public_id: &str) -> Result<()>;
+    // receives an invitation system message, which means we should create a real friend! unless the public_id is incorrect
+    fn receive_invitation_system_message(
+      &self,
+      from_friend: i32,
+      sequence_number: i32,
+      public_id: &str, // we want this public_id to correspond to the one we already have
+      public_id_claimed_kx_public_key: Vec<u8>, // we want to verify that this is the same as we have on file! otherwise someone might be trying to deceive us
+    ) -> Result<()>;
 
     //
     // Messages
@@ -571,14 +588,6 @@ pub mod ffi {
       num_chunks: i32,
     ) -> Result<ReceiveChunkStatus>;
     // receive the system message telling us to add the friend
-
-    fn receive_invitation_system_message(
-      &self,
-      from_friend: i32,
-      sequence_number: i32,
-      public_id: &str, // we want this public_id to correspond to the one we already have
-      public_id_claimed_kx_public_key: Vec<u8>, // we want to verify that this is the same as we have on file! otherwise someone might be trying to deceive us
-    ) -> Result<()>;
 
     // fails if there is no chunk to send
     // prioritizes by the given uid in order from first to last try
@@ -1144,37 +1153,6 @@ impl DB {
 
     match r {
       Ok(b) => Ok(b),
-      Err(e) => Err(DbError::Unknown(format!("receive_chunk: {}", e))),
-    }
-  }
-
-  pub fn receive_invitation_system_message(
-    &self,
-    from_friend: i32,
-    sequence_number: i32,
-    public_id: &str,
-    public_id_claimed_kx_public_key: Vec<u8>,
-  ) -> Result<(), DbError> {
-    let mut conn = self.connect()?;
-    use crate::schema::friend;
-
-    let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
-      let chunk_status = self.update_sequence_number(conn_b, from_friend, sequence_number)?;
-      if chunk_status == ffi::ReceiveChunkStatus::OldChunk {
-        return Ok(chunk_status);
-      }
-      // move the friend to become an actual friend
-      // TODO: the system message should contain their public key, and we should add it and verify it!
-      // TODO: we need to create the right kind of table record here!!! and delete the other table record
-      diesel::update(friend::table.find(from_friend))
-        .set(friend::invitation_progress.eq(ffi::InvitationProgress::Complete))
-        .execute(conn_b)?;
-
-      Ok(ffi::ReceiveChunkStatus::NewChunk)
-    });
-
-    match r {
-      Ok(_) => Ok(()),
       Err(e) => Err(DbError::Unknown(format!("receive_chunk: {}", e))),
     }
   }
@@ -1980,50 +1958,156 @@ impl DB {
     })
   }
 
+  fn complete_outgoing_async_friend(
+    &self,
+    conn: &mut SqliteConnection,
+    friend_uid: i32,
+  ) -> Result<(), diesel::result::Error> {
+    use crate::schema::complete_friend;
+    use crate::schema::friend;
+    use crate::schema::message;
+    use crate::schema::outgoing_async_invitation;
+    use crate::schema::sent;
+    // 1. make the friend complete
+    // 2. create a complete_friend and remove a async_outgoing_invitation
+    // 3. create a message for the original outgoing async message
+    conn.transaction(|conn_b| {
+      diesel::update(friend::table.find(friend_uid))
+        .set(friend::invitation_progress.eq(ffi::InvitationProgress::Complete))
+        .execute(conn_b)?;
+
+      let async_invitation = outgoing_async_invitation::table
+        .find(friend_uid)
+        .select((
+          outgoing_async_invitation::friend_uid,
+          outgoing_async_invitation::public_id,
+          outgoing_async_invitation::friend_request_public_key,
+          outgoing_async_invitation::kx_public_key,
+          outgoing_async_invitation::message,
+          outgoing_async_invitation::sent_at,
+        ))
+        .first::<ffi::JustOutgoingAsyncInvitation>(conn_b)?;
+
+      diesel::delete(outgoing_async_invitation::table.find(friend_uid)).execute(conn_b)?;
+
+      diesel::insert_into(complete_friend::table)
+        .values((
+          complete_friend::friend_uid.eq(friend_uid),
+          complete_friend::public_id.eq(async_invitation.public_id),
+          complete_friend::friend_request_public_key.eq(async_invitation.friend_request_public_key),
+          complete_friend::kx_public_key.eq(async_invitation.kx_public_key),
+          complete_friend::completed_at.eq(util::unix_micros_now()),
+        ))
+        .execute(conn_b)?;
+
+      // finally, create a message
+      let message_uid = diesel::insert_into(message::table)
+        .values((message::content.eq(async_invitation.message),))
+        .returning(message::uid)
+        .get_result::<i32>(conn_b)?;
+
+      diesel::insert_into(sent::table)
+        .values((
+          sent::uid.eq(message_uid),
+          sent::to_friend.eq(friend_uid),
+          sent::num_chunks.eq(1),
+          sent::sent_at.eq(async_invitation.sent_at),
+          sent::delivered.eq(true),
+          sent::delivered_at.eq(util::unix_micros_now()),
+        ))
+        .execute(conn_b)?;
+
+      Ok(())
+    })
+  }
+
   pub fn add_incoming_async_invitation(
     &self,
     public_id: &str,
     message: &str,
   ) -> Result<(), DbError> {
-    return Err(DbError::Unimplemented(
-      "add_incoming_async_invitation CHECK BELOW IMPL FOR NEW INERFACE".to_string(),
-    ));
+    // It is important to define the behavior of this function in the case of
+    // duplicate requests. i.e. when a friend (request) with the same public key
+    // is already in the database. Here's the definition for now.
+    // 2. If the friend is marked as accepted, then we ignore the request.
+    // 3. If the friend is marked as incoming, then we update the message.
+    // 4. If the friend is marked as outgoing async, then we approve this request.
+    // (if async outgoing, we just won't know, so we cannot take any special action)
+    // immediately.
 
-    // let mut conn = self.connect().unwrap();
-    // use crate::schema::address;
-    // use crate::schema::friend;
-    // use crate::schema::status;
+    let mut conn = self.connect()?;
+    use crate::schema::complete_friend;
+    use crate::schema::incoming_invitation;
+    use crate::schema::message;
+    use crate::schema::outgoing_async_invitation;
+    use crate::schema::received;
 
-    // let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
-    //   // IMPORTANT TODO: what if the friend already exists?
-    //   // We can either recycle the old entry, or create a new entry.
-    //   // We choose the latter, which also erases the message history.
-    //   // insert friend and address into database
-    //   let friend = diesel::insert_into(friend::table)
-    //     .values(friend_struct)
-    //     .get_result::<ffi::Friend>(conn_b)?;
-    //   let uid = friend.uid;
-    //   // we add the address and the status to their tables
-    //   let address = ffi::Address {
-    //     uid,
-    //     read_index: address_struct.read_index,
-    //     friend_request_message: address_struct.friend_request_message,
-    //     friend_request_public_key: address_struct.friend_request_public_key,
-    //     kx_public_key: address_struct.kx_public_key,
-    //     ack_index: -1, // we don't allocate the ack index yet
-    //     read_key: address_struct.read_key,
-    //     write_key: address_struct.write_key,
-    //   };
-    //   diesel::insert_into(address::table).values(&address).execute(conn_b)?;
-    //   let status = ffi::Status { uid, sent_acked_seqnum: 0, received_seqnum: 0 };
-    //   diesel::insert_into(status::table).values(&status).execute(conn_b)?;
+    let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+      // check if the invitation already exists. if so, update the message, only.
+      let public_id_count =
+        incoming_invitation::table.find(public_id.to_string()).count().get_result::<i64>(conn_b)?;
+      if public_id_count > 0 {
+        diesel::update(incoming_invitation::table.find(public_id.to_string()))
+          .set((
+            incoming_invitation::message.eq(message.to_string()),
+            incoming_invitation::received_at.eq(util::unix_micros_now()),
+          ))
+          .execute(conn_b)?;
+        return Ok(());
+      }
 
-    //   Ok(())
-    // });
-    // match r {
-    //   Ok(_) => Ok(()),
-    //   Err(e) => Err(DbError::Unknown(format!("add_incoming_async_friend_requests: {}", e))),
-    // }
+      // if this is already an accepted friend, we ignore
+      let completed_friend_count = complete_friend::table
+        .filter(complete_friend::public_id.eq(public_id.to_string()))
+        .count()
+        .get_result::<i64>(conn_b)?;
+      if completed_friend_count > 0 {
+        return Ok(());
+      }
+
+      // if this is an outgoing async friend, we make it a real friend!
+      let outgoing_async_uids = outgoing_async_invitation::table
+        .filter(outgoing_async_invitation::public_id.eq(public_id.to_string()))
+        .select(outgoing_async_invitation::friend_uid)
+        .load::<i32>(conn_b)?;
+      if outgoing_async_uids.len() > 0 {
+        let friend_uid = outgoing_async_uids[0];
+        self.complete_outgoing_async_friend(conn_b, friend_uid)?;
+        // add the incoming message as a real message! in the received table
+        let message_uid = diesel::insert_into(message::table)
+          .values((message::content.eq(message),))
+          .returning(message::uid)
+          .get_result::<i32>(conn_b)?;
+
+        diesel::insert_into(received::table)
+          .values((
+            received::uid.eq(message_uid),
+            received::from_friend.eq(friend_uid),
+            received::num_chunks.eq(1),
+            received::received_at.eq(util::unix_micros_now()),
+            received::delivered.eq(true),
+            received::delivered_at.eq(util::unix_micros_now()),
+            received::seen.eq(false),
+          ))
+          .execute(conn_b)?;
+        return Ok(());
+      }
+
+      // the final case is that we just create a new incoming invitation
+      diesel::insert_into(incoming_invitation::table)
+        .values((
+          incoming_invitation::public_id.eq(public_id.to_string()),
+          incoming_invitation::message.eq(message.to_string()),
+          incoming_invitation::received_at.eq(util::unix_micros_now()),
+        ))
+        .execute(conn_b)?;
+
+      Ok(())
+    });
+    match r {
+      Ok(_) => Ok(()),
+      Err(e) => Err(DbError::Unknown(format!("add_incoming_async_friend_requests: {}", e))),
+    }
   }
 
   pub fn get_outgoing_sync_invitations(&self) -> Result<Vec<ffi::OutgoingSyncInvitation>, DbError> {
@@ -2165,6 +2249,37 @@ impl DB {
     match r {
       Ok(_) => Ok(()),
       Err(e) => Err(DbError::Unknown(format!("deny_incoming_invitation: {}", e))),
+    }
+  }
+
+  pub fn receive_invitation_system_message(
+    &self,
+    from_friend: i32,
+    sequence_number: i32,
+    public_id: &str,
+    public_id_claimed_kx_public_key: Vec<u8>,
+  ) -> Result<(), DbError> {
+    let mut conn = self.connect()?;
+    use crate::schema::friend;
+
+    let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+      let chunk_status = self.update_sequence_number(conn_b, from_friend, sequence_number)?;
+      if chunk_status == ffi::ReceiveChunkStatus::OldChunk {
+        return Ok(chunk_status);
+      }
+      // move the friend to become an actual friend
+      // TODO: the system message should contain their public key, and we should add it and verify it!
+      // TODO: we need to create the right kind of table record here!!! and delete the other table record
+      diesel::update(friend::table.find(from_friend))
+        .set(friend::invitation_progress.eq(ffi::InvitationProgress::Complete))
+        .execute(conn_b)?;
+
+      Ok(ffi::ReceiveChunkStatus::NewChunk)
+    });
+
+    match r {
+      Ok(_) => Ok(()),
+      Err(e) => Err(DbError::Unknown(format!("receive_invitation_system_message: {}", e))),
     }
   }
 
