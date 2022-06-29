@@ -30,5 +30,4 @@ struct SyncIdentifier {
 
   int index;
   string kx_public_key;
-  string friend_request_public_key;
 };

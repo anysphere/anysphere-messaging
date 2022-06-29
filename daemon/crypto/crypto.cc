@@ -546,6 +546,9 @@ auto decrypt_async_friend_request_public_key_only(
   // TODO: insert additional checks here
   // read the allocation
   // create the friend
+  // TODO: specifically, we need to verify that the public_id in the body
+  // corresponds to the public_id that the message was authenticated with
+  // otherwise, someone might impersonate the real receiver
   return std::make_pair(split_plaintext[0], split_plaintext[1]);
 }
 }  // namespace crypto

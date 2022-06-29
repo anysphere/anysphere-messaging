@@ -23,47 +23,76 @@ CREATE TABLE registration (
     pir_secret_key blob NOT NULL,
     pir_galois_key blob NOT NULL,
     authentication_token text NOT NULL,
-    public_id text NOT NULL -- redundant, but as this is used so prevalent, we'll keep it.
+    public_id text NOT NULL -- redundant, but as this is used so prevalently, we'll keep it.
+);
+
+-- invitation does not create a friend, because we do not want to pollute friend space with non-friends
+CREATE TABLE incoming_invitation (
+    public_id text PRIMARY KEY NOT NULL,
+    message text NOT NULL,
+    received_at timestamp NOT NULL
 );
 
 -- never delete a friend! instead, set `deleted` to true, or else we will lose history!
 -- (if you actually do delete, you need to also delete from the message tables, or else 
 -- the foreign key constraints will fail)
+--
+-- a friend should exist in this table iff it should be possible to send and receive from the friend
+-- this is true for all the outgoing invitations and complete friends, but not for incoming invitations.
+-- hence, incoming invitations are their own table without a foreign key to friend, whereas all other
+-- invitations have a foreign key to friend.
 CREATE TABLE friend (
     uid integer PRIMARY KEY NOT NULL,
     unique_name text UNIQUE NOT NULL,
     display_name text NOT NULL,
-    public_id text NOT NULL, -- redundant, but as this is used so prevalent, we'll keep it.
-    request_progress integer NOT NULL, -- enum, values defined in db.rs and constants.hpp
+    invitation_progress integer NOT NULL, -- enum defined in db.rs. outgoingasync, outgoingsync, complete.
     deleted boolean NOT NULL
 );
 
-CREATE TABLE address (
-    uid integer PRIMARY KEY NOT NULL,
-    friend_request_public_key blob NOT NULL,
-    -- this is my message to friend if progress = outgoing,
-    -- and their message to me if progress = incoming
-    friend_request_message text NOT NULL, 
+CREATE TABLE outgoing_sync_invitation (
+    friend_uid integer PRIMARY KEY NOT NULL,
+    story text NOT NULL,
     kx_public_key blob NOT NULL,
+    sent_at timestamp NOT NULL,
+    FOREIGN KEY(friend_uid) REFERENCES friend(uid)
+);
+
+CREATE TABLE outgoing_async_invitation (
+    friend_uid integer PRIMARY KEY NOT NULL,
+    public_id text NOT NULL,
+    friend_request_public_key blob NOT NULL,
+    kx_public_key blob NOT NULL,
+    message text NOT NULL,
+    sent_at timestamp NOT NULL,
+    FOREIGN KEY(friend_uid) REFERENCES friend(uid)
+);
+
+CREATE TABLE complete_friend (
+    friend_uid integer PRIMARY KEY NOT NULL,
+    public_id text NOT NULL,
+    friend_request_public_key blob NOT NULL,
+    kx_public_key blob NOT NULL,
+    completed_at timestamp NOT NULL,
+    FOREIGN KEY(friend_uid) REFERENCES friend(uid)
+);
+
+-- transmission table iff friend is !deleted
+CREATE TABLE transmission (
+    friend_uid integer PRIMARY KEY NOT NULL,
     read_index integer NOT NULL,
+    read_key blob NOT NULL,
+    write_key blob NOT NULL,
   -- ack_index is the index into the acking data for this friend
   -- this NEEDS to be unique for every friend!!
   -- This needs to be between 0 <= ack_index < MAX_FRIENDS
-    ack_index integer NOT NULL,
-    read_key blob NOT NULL,
-    write_key blob NOT NULL,
-    FOREIGN KEY(uid) REFERENCES friend(uid)
-);
-
-CREATE TABLE status (
-    uid integer PRIMARY KEY NOT NULL,
+    ack_index integer NOT NULL, 
   -- sent_acked_seqnum is the latest sequence number that was ACKed by the friend
   -- any message with seqnum > sent_acked_seqnum MUST be retried.
     sent_acked_seqnum integer NOT NULL, 
   -- received_seqnum is the value that should be ACKed. we guarantee that we
   -- have received all sequence numbers up to and including this value.
     received_seqnum integer NOT NULL,
-    FOREIGN KEY(uid) REFERENCES friend(uid)
+    FOREIGN KEY(friend_uid) REFERENCES friend(uid)
 );
 
 -- message includes ALL real messages
@@ -108,10 +137,10 @@ CREATE TABLE outgoing_chunk (
     to_friend integer NOT NULL,
     sequence_number integer NOT NULL,
     chunks_start_sequence_number integer NOT NULL,
-    message_uid integer NOT NULL,
+    message_uid integer, -- null iff system message
     content text NOT NULL,
-    control boolean NOT NULL,
-    control_message integer NOT NULL, -- corresponds to the enum value in the protobuf
+    system boolean NOT NULL,
+    system_message integer NOT NULL, -- corresponds to the enum value in the protobuf
     PRIMARY KEY (to_friend, sequence_number),
     FOREIGN KEY(message_uid) REFERENCES sent(uid),
     FOREIGN KEY(to_friend) REFERENCES friend(uid)

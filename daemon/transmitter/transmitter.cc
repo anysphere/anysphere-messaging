@@ -7,10 +7,10 @@
 
 #include <algorithm>
 
+#include "daemon/identifier/identifier.hpp"
 #include "schema/server.grpc.pb.h"
 
-auto generate_dummy_address(const Global& G, const db::Registration& reg)
-    -> db::Address {
+auto generate_dummy_address(const db::Registration& reg) -> db::Address {
   auto dummy_friend_keypair = crypto::generate_kx_keypair();
 
   // convert reg.kx_public_key, kx_private_key to a string
@@ -25,14 +25,34 @@ auto generate_dummy_address(const Global& G, const db::Registration& reg)
   auto read_key_vec_rust = string_to_rust_u8Vec(dummy_read_write_keys.first);
   auto write_key_vec_rust = string_to_rust_u8Vec(dummy_read_write_keys.second);
 
-  return (db::Address){-1,
-                       reg.friend_request_public_key,
-                       "this is a dummy",
-                       reg.kx_public_key,
-                       0,
-                       0,
-                       read_key_vec_rust,
-                       write_key_vec_rust};
+  return (db::Address){-1, 0, read_key_vec_rust, write_key_vec_rust, 0};
+}
+
+auto generate_dummy_async_invitation() -> db::OutgoingAsyncInvitation {
+  auto dummy_kx_keypair = crypto::generate_kx_keypair();
+  auto kx_public_key = dummy_kx_keypair.first;
+  auto kx_public_key_rust = string_to_rust_u8Vec(kx_public_key);
+
+  auto dummy_friend_request_keypair = crypto::generate_friend_request_keypair();
+  auto friend_request_public_key = dummy_friend_request_keypair.first;
+  auto friend_request_public_key_rust =
+      string_to_rust_u8Vec(friend_request_public_key);
+
+  auto public_id =
+      PublicIdentifier(0, kx_public_key, friend_request_public_key);
+  auto public_id_str = public_id.to_public_id();
+
+  return db::OutgoingAsyncInvitation{
+      .friend_uid = -1,
+      .unique_name = "dummy",
+      .display_name = "Dummy",
+      .invitation_progress = db::InvitationProgress::OutgoingAsync,
+      .public_id = public_id_str,
+      .friend_request_public_key = friend_request_public_key_rust,
+      .kx_public_key = kx_public_key_rust,
+      .message = "Hello dummy",
+      .sent_at = 0,
+  };
 }
 
 Transmitter::Transmitter(Global& G, shared_ptr<asphrserver::Server::Stub> stub)
@@ -54,7 +74,8 @@ auto Transmitter::setup_registration_caching() -> void {
         rust_u8Vec_to_string(reg.pir_galois_key)));
 
     cached_pir_client_secret_key = rust_u8Vec_to_string(reg.pir_secret_key);
-    dummy_address = generate_dummy_address(G, reg);
+    dummy_address = generate_dummy_address(reg);
+    dummy_outgoing_invitation = generate_dummy_async_invitation();
   }
 
   check_rep();
@@ -275,25 +296,51 @@ auto Transmitter::retrieve() -> void {
                          chunks_start_sequence_number,
                          chunk.chunks_start_sequence_number(), num_chunks,
                          chunk.num_chunks(), chunk_content, chunk.msg(),
-                         control, chunk.control(), control_message,
-                         chunk.control_message());
+                         is_system, chunk.system(), system_message,
+                         chunk.system_message(), system_message_data,
+                         chunk.system_message_data());
         }
 
-        if (chunk.control()) {
-          switch (chunk.control_message()) {
-            case asphrclient::Message::OUTGOING_FRIEND_REQUEST:
+        if (chunk.system()) {
+          switch (chunk.system_message()) {
+            case asphrclient::SystemMessage::OUTGOING_INVITATION: {
               ASPHR_LOG_INFO(
-                  "Received outgoing friend request from someone who's already "
-                  "someone we wanted to add.",
+                  "Received outgoing invitation from someone who's already "
+                  "someone we wanted to add. This means we want to make them a "
+                  "complete friend!!",
                   friend_uid, f.uid);
-              G.db->receive_friend_request_control_message(
-                  f.uid, chunk.sequence_number());
+              // we need to get the public_id here, and verify that it is
+              // correct with what we have on file!
+              auto public_id_status =
+                  PublicIdentifier::from_public_id(chunk.system_message_data());
+              if (!public_id_status.ok()) {
+                ASPHR_LOG_ERR(
+                    "Received outgoing invitation from someone who's already "
+                    "someone we wanted to add, but the public id was invalid.",
+                    friend_uid, f.uid);
+              } else {
+                auto public_id = public_id_status.value();
+                try {
+                  G.db->receive_invitation_system_message(
+                      f.uid, chunk.sequence_number(),
+                      chunk.system_message_data(),
+                      string_to_rust_u8Vec(public_id.kx_public_key),
+                      string_to_rust_u8Vec(
+                          public_id.friend_request_public_key));
+                } catch (const rust::Error& e) {
+                  ASPHR_LOG_ERR("Unable to receive invitation system message",
+                                error_message, e.what(), friend_uid, f.uid);
+                }
+              }
               break;
-            default:
-              ASPHR_LOG_ERR("Received unknown control message from friend.",
-                            friend_uid, f.uid, control_message,
-                            chunk.control_message());
+            }
+            default: {
+              ASPHR_LOG_ERR("Received unknown system message from friend.",
+                            friend_uid, f.uid, system_message,
+                            chunk.system_message(), system_message_data,
+                            chunk.system_message_data());
               ASPHR_ASSERT(false);
+            }
           }
         } else {
           // we don't set these fields if we only have one chunk
@@ -346,7 +393,7 @@ auto Transmitter::retrieve() -> void {
   auto [start_index, end_index] = update_async_invitation_retrieve_index();
 
   // call the server to retrieve the async friend requests
-  retrieve_async_friend_request(start_index, end_index);
+  retrieve_async_invitations(start_index, end_index);
 
   check_rep();
 }
@@ -375,12 +422,26 @@ auto Transmitter::send() -> void {
     write_key = rust_u8Vec_to_string(chunk_to_send.write_key);
 
     message.set_sequence_number(chunk_to_send.sequence_number);
-    message.set_msg(std::string(chunk_to_send.content));
-    if (chunk_to_send.num_chunks > 1) {
-      message.set_num_chunks(chunk_to_send.num_chunks);
-      message.set_chunks_start_sequence_number(
-          chunk_to_send.chunks_start_sequence_number);
+
+    if (chunk_to_send.system) {
+      message.set_system(true);
+      switch (chunk_to_send.system_message) {
+        case db::SystemMessage::OutgoingInvitation:
+          message.set_system_message(asphrclient::OUTGOING_INVITATION);
+          break;
+        default:
+          ASPHR_ASSERT(false);
+      }
+      message.set_system_message_data(std::string(chunk_to_send.content));
+    } else {
+      message.set_msg(std::string(chunk_to_send.content));
+      if (chunk_to_send.num_chunks > 1) {
+        message.set_num_chunks(chunk_to_send.num_chunks);
+        message.set_chunks_start_sequence_number(
+            chunk_to_send.chunks_start_sequence_number);
+      }
     }
+
   } catch (const rust::Error& e) {
     ASPHR_LOG_INFO("No chunks to send (probably).", error_msg, e.what());
     just_sent_friend = std::nullopt;
@@ -452,8 +513,8 @@ auto Transmitter::send() -> void {
                   server_status_code, status.error_code(),
                   server_status_message, status.error_message());
   }
+  transmit_async_invitation();
 
-  transmit_async_friend_request();
   check_rep();
 }
 
@@ -497,32 +558,35 @@ auto Transmitter::batch_retrieve_pir(FastPIRClient& client,
 //----------------------------------------------------------------
 //----------------------------------------------------------------
 
-auto Transmitter::transmit_async_friend_request() -> void {
+auto Transmitter::transmit_async_invitation() -> void {
+  ASPHR_ASSERT(dummy_outgoing_invitation.has_value());
+
   // retrieve the friend request from DB
-  std::vector<db::Friend> async_friend_requests = {};
-  std::vector<db::Address> async_friend_requests_address = {};
+  std::vector<db::OutgoingAsyncInvitation> invitations = {};
   try {
-    auto async_friend_requests_rs = G.db->get_outgoing_async_friend_requests();
-    for (auto db_friend : async_friend_requests_rs) {
-      async_friend_requests.push_back(db_friend);
-      async_friend_requests_address.push_back(
-          G.db->get_friend_address(db_friend.uid));
+    auto rust_invitations = G.db->get_outgoing_async_invitations();
+    for (auto& rust_invitation : rust_invitations) {
+      invitations.push_back(rust_invitation);
     }
   } catch (const rust::Error& e) {
-    ASPHR_LOG_INFO("No async friend requests to send (probably).", error_msg,
-                   e.what());
-    return;
+    ASPHR_LOG_ERR("Failed to get outgoing async invitations.", error_msg,
+                  e.what());
+    // TODO: alert the user saying that their invitation may be delayed
   }
   // TODO: allow us to send multiple friend requests at once
   // Right now, we only send one friend request at once
   // We can change this later if we want to.
-  // TODO: send a dummy friend request if we have no friend requests to send
-  if (async_friend_requests.size() == 0) {
-    return;
+
+  if (invitations.size() == 0) {
+    invitations.push_back(dummy_outgoing_invitation.value());
   }
+
+  ASPHR_ASSERT_EQ_MSG(
+      std::ssize(invitations), 1,
+      "We only support one outgoing invitation at once at the moment.");
+
   // send the friend request
-  db::Friend async_friend = async_friend_requests[0];
-  db::Address async_friend_address = async_friend_requests_address[0];
+  db::OutgoingAsyncInvitation invitation = invitations.at(0);
 
   // we need to compute the id for both parties
   // We declare these outside cause I don't want to everything wrapped in
@@ -530,27 +594,31 @@ auto Transmitter::transmit_async_friend_request() -> void {
   string my_id;  // we could probably cache this in DB, but we don't need to
   string my_friend_request_private_key;
   string friend_id;
-  db::Registration reg_info;
+  db::SmallRegistrationFragment reg_info;
   try {
-    reg_info = G.db->get_registration();
+    reg_info = G.db->get_small_registration();
     my_id = std::string(reg_info.public_id);
     my_friend_request_private_key =
         rust_u8Vec_to_string(reg_info.friend_request_private_key);
-    friend_id = std::string(async_friend.public_id);
+    friend_id = std::string(invitation.public_id);
   } catch (const rust::Error& e) {
-    // ASPHR_LOG_ERR("Could not generate user ID.", error_msg, e.what());
+    ASPHR_LOG_ERR("Could not get registration.", error_msg, e.what());
     return;
   }
+
   // encrypt the friend request
   auto encrypted_friend_request_status_ = crypto::encrypt_async_friend_request(
       my_id, my_friend_request_private_key, friend_id,
-      std::string(async_friend_address.friend_request_message));
+      std::string(invitation.message));
+
   if (!encrypted_friend_request_status_.ok()) {
-    ASPHR_LOG_ERR("Error encrypting async friend request: ", "Error Message",
+    ASPHR_LOG_ERR("Error encrypting async friend request: ", error_msg,
                   encrypted_friend_request_status_.status().ToString());
     return;
   }
+
   auto encrypted_friend_request = encrypted_friend_request_status_.value();
+
   // Send to server
   asphrserver::AddFriendAsyncInfo request;
   request.set_index(reg_info.allocation);
@@ -560,13 +628,12 @@ auto Transmitter::transmit_async_friend_request() -> void {
   grpc::ClientContext context;
   grpc::Status status = stub->AddFriendAsync(&context, request, &reply);
   if (status.ok()) {
-    ASPHR_LOG_INFO("Async Friend Request sent to server!");
+    ASPHR_LOG_INFO("Async invitation sent to server.");
   } else {
     ASPHR_LOG_ERR(
         "Communication with server failed when sending friend request",
-        "error_code", status.error_code(), "details", status.error_details());
+        error_code, status.error_code(), details, status.error_details());
   }
-  return;
 }
 
 // retrieve and process async friend request from the server
@@ -579,16 +646,18 @@ auto Transmitter::transmit_async_friend_request() -> void {
 // 3. If the friend is marked as incoming, then we ignore the request.
 // 4. If the friend is marked as outgoing, then we approve this request
 // immediately.
-auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
+auto Transmitter::retrieve_async_invitations(int start_index, int end_index)
     -> void {
   // check input
-  if (start_index < 0 || end_index < 0 || start_index > end_index ||
-      end_index - start_index > ASYNC_FRIEND_REQUEST_BATCH_SIZE) {
-    // TODO: I should ask arvid how to use ASPHR_LOG
-    // ASPHR_LOG_ERR("Invalid input for retrieve_async_friend_request.",
-    //              start_index, end_index);
-    return;
-  }
+  ASPHR_LOG_INFO("Retrieving async invitations.", start_index, start_index,
+                 end_index, end_index);
+  ASPHR_ASSERT_MSG(start_index >= 0, "start_index must be >= 0");
+  ASPHR_ASSERT_MSG(end_index >= 0, "end_index must be >= 0");
+  ASPHR_ASSERT_MSG(start_index <= end_index,
+                   "start_index must be <= end_index");
+  ASPHR_ASSERT_MSG(
+      end_index - start_index <= ASYNC_FRIEND_REQUEST_BATCH_SIZE,
+      "end_index - start_index must be <= ASYNC_FRIEND_REQUEST_BATCH_SIZE");
 
   // STEP 1: ask the server for all the friend database entries
   asphrserver::GetAsyncFriendRequestsInfo request;
@@ -599,26 +668,26 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
   grpc::ClientContext context;
   grpc::Status status = stub->GetAsyncFriendRequests(&context, request, &reply);
   if (!status.ok()) {
-    std::stringstream ss;
-    ss << status.error_code() << ": " << status.error_message()
-       << " details:" << status.error_details() << std::endl;
-
-    // ASPHR_LOG_ERR("Could not retrieve async friend requests.", error_msg,
-    //              ss.str());
+    ASPHR_LOG_ERR("Could not retrieve async friend requests.", error_code,
+                  status.error_code(), error_message, status.error_message(),
+                  error_details, status.error_details());
+    return;
   }
 
   if (reply.friend_request_public_key_size() != reply.requests_size()) {
     ASPHR_LOG_ERR("Response is malformed!",
                   "size1:", reply.friend_request_public_key_size(),
                   "size2:", reply.requests_size());
+    return;
   }
+
   // Step 2: iterate over the returned friend requests
   // we need to obtain our own id here
   string my_id;
   string my_friend_request_private_key;
-  db::Registration reg_info;
+  db::SmallRegistrationFragment reg_info;
   try {
-    reg_info = G.db->get_registration();
+    reg_info = G.db->get_small_registration();
     my_id = std::string(reg_info.public_id);
     my_friend_request_private_key =
         rust_u8Vec_to_string(reg_info.friend_request_private_key);
@@ -627,6 +696,7 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
                   e.what());
     return;
   }
+
   std::map<string, db::Friend> friends = {};
 
   ASPHR_LOG_INFO("Retrieved async friend requests from server.",
@@ -643,116 +713,30 @@ auto Transmitter::retrieve_async_friend_request(int start_index, int end_index)
             my_id, my_friend_request_private_key, friend_public_key,
             friend_request);
     if (!decrypted_friend_request_status.ok()) {
-      // not meant for us!
+      // not meant for us! this is ok. the expected outcome.
       continue;
     }
     // the friend request is meant for us
     // Step 2.2: unpack the friend request
-    auto [friend_id, friend_message] = decrypted_friend_request_status.value();
-    ASPHR_LOG_INFO("Found async friend request!", public_id, friend_id, message,
-                   friend_message);
+    auto [friend_public_id_str, friend_message] =
+        decrypted_friend_request_status.value();
+    ASPHR_LOG_INFO("Found async friend request!", public_id,
+                   friend_public_id_str, message, friend_message);
     // unpack the friend id
-    auto friend_id_unpacked_ = crypto::decode_user_id(friend_id);
-    if (!friend_id_unpacked_.ok()) {
-      // ASPHR_LOG_ERR("Read Malformed friend ID.", "Err",
-      //               friend_id_unpacked_.status());
+    auto friend_public_id_status =
+        PublicIdentifier::from_public_id(friend_public_id_str);
+    if (!friend_public_id_status.ok()) {
+      ASPHR_LOG_ERR("Read malformed friend public ID.", error_message,
+                    friend_public_id_status.status().message());
       continue;
     }
-    auto [friend_name, friend_allocation, friend_kx_public_key,
-          friend_request_public_key] = friend_id_unpacked_.value();
-    // currently the name is not transmitted. Check that
-    if (friend_name != "") {
-      // ASPHR_LOG_ERR("Friend name is not empty.", "Err", friend_name);
-      continue;
-    }
-    // do the key exchange here.
-    auto my_kx_public_key = rust_u8Vec_to_string(reg_info.kx_public_key);
-    auto my_kx_private_key = rust_u8Vec_to_string(reg_info.kx_private_key);
-    // derive read and write keys.
-    auto [read_key, write_key] = crypto::derive_read_write_keys(
-        my_kx_public_key, my_kx_private_key, friend_kx_public_key);
-
-    // Step 2.3: check for duplicate requests
-    // 1. If the friend is marked as deleted, then we ignore the request.
-    // 2. If the friend is marked as accepted, then we ignore the request.
-    // 3. If the friend is marked as incoming, then we ignore the request.
-    // 4. If the friend is marked as outgoing, then we approve this request
-
-    // I'll just scan over the entire friend db
-    // This will be changed later
+    // now we can insert this invitation in the DB!!! very very exciting :)
 
     try {
-      auto all_friends = G.db->get_friends_all_status();
-      for (auto db_friend : all_friends) {
-        // check the id
-        if (db_friend.public_id == friend_id) {
-          // check the status
-          if (db_friend.deleted) {
-            // ignore this request
-            ASPHR_LOG_INFO("Ignoring friend request because friend is deleted.",
-                           "Friend ID", friend_id);
-            continue;
-          } else {
-            switch (db_friend.request_progress) {
-              case db::FriendRequestProgress::Complete:
-                // ignore this request
-                ASPHR_LOG_INFO(
-                    "Ignoring friend request because friend is accepted.",
-                    "Friend ID", friend_id);
-                break;
-              case db::FriendRequestProgress::Incoming:
-                // ignore this request
-                ASPHR_LOG_INFO(
-                    "Ignoring friend request because friend is incoming.",
-                    "Friend ID", friend_id);
-                break;
-              case db::FriendRequestProgress::OutgoingAsync:
-              case db::FriendRequestProgress::OutgoingSync:
-                // approve this request
-                ASPHR_LOG_INFO(
-                    "Approving friend request because friend is outgoing.",
-                    "Friend ID", friend_id);
-                // update the friend status
-                G.db->approve_async_friend_request(db_friend.unique_name,
-                                                   MAX_FRIENDS);
-                break;
-            }
-            continue;
-          }
-        }
-      }
+      G.db->add_incoming_async_invitation(friend_public_id_str, friend_message);
     } catch (const rust::Error& e) {
-      // ASPHR_LOG_ERR("Could not find friend ID.", "Error", e.what());
-      continue;
-    }
-
-    // Step 2.4: if we get here, then we have a new friend request
-    // we need to create a new friend entry in the database
-    // Note: the current design decision is to not transmit the actual name of
-    // the friend
-    // so we just set both unique name and display name to public id
-    db::FriendFragment new_friend = {
-        .unique_name = friend_id,
-        .display_name = friend_id,
-        .public_id = friend_id,
-        .request_progress = db::FriendRequestProgress::Incoming,
-        .deleted = false};
-
-    db::AddAddress new_address = {
-        .unique_name = friend_id,
-        .friend_request_public_key =
-            string_to_rust_u8Vec(friend_request_public_key),
-        .friend_request_message = friend_message,
-        .kx_public_key = string_to_rust_u8Vec(friend_kx_public_key),
-        .read_index = friend_allocation,
-        .read_key = string_to_rust_u8Vec(read_key),
-        .write_key = string_to_rust_u8Vec(write_key),
-    };
-
-    try {
-      G.db->add_incoming_async_friend_requests(new_friend, new_address);
-    } catch (const rust::Error& e) {
-      ASPHR_LOG_ERR("Could not add friend.", Error, e.what());
+      ASPHR_LOG_ERR("Error when adding async invitation.", error_message,
+                    e.what());
       continue;
     }
   }
@@ -772,4 +756,7 @@ auto Transmitter::check_rep() const noexcept -> void {
       "cached_pir_client and cached_pir_client_status are not in sync");
   ASPHR_ASSERT_EQ_MSG(cached_pir_client.has_value(), dummy_address.has_value(),
                       "cached_pir_client and dummy_address are not in sync");
+  ASPHR_ASSERT_EQ_MSG(
+      cached_pir_client.has_value(), dummy_outgoing_invitation.has_value(),
+      "cached_pir_client and dummy_outgoing_invitation are not in sync");
 }
