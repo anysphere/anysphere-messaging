@@ -1899,7 +1899,7 @@ impl DB {
     write_key: Vec<u8>,
     max_friends: i32,
   ) -> Result<ffi::Friend, DbError> {
-    let mut conn = self.connect().unwrap();
+    let mut conn = self.connect()?;
     use crate::schema::friend;
     use crate::schema::outgoing_async_invitation;
     use crate::schema::outgoing_chunk;
@@ -2151,23 +2151,21 @@ impl DB {
     //   })
   }
 
-  pub fn deny_incoming_invitation(&self, unique_name: &str) -> Result<(), DbError> {
-    return Err(DbError::Unimplemented(
-      "deny_incoming_invitation CHECK BELOW IMPL FOR NEW INTERFACE".to_string(),
-    ));
-    // // This function is called when the user rejects a friend request.
-    // let mut conn = self.connect().unwrap();
-    // use crate::schema::friend;
+  pub fn deny_incoming_invitation(&self, public_id: &str) -> Result<(), DbError> {
+    // This function is called when the user rejects a friend request.
+    let mut conn = self.connect()?;
+    use crate::schema::incoming_invitation;
 
-    // // we change the deleted flag to true, meaning that the friend is deleted
-    // if let Ok(_) = diesel::update(friend::table.filter(friend::unique_name.eq(unique_name)))
-    //   .set(friend::deleted.eq(true))
-    //   .execute(&mut conn)
-    // {
-    //   Ok(())
-    // } else {
-    //   Err(DbError::Unknown("deny_async_friend_request FAILED".to_string()))
-    // }
+    // delete public_id from incoming_invitation
+    let r = diesel::delete(
+      incoming_invitation::table.filter(incoming_invitation::public_id.eq(public_id)),
+    )
+    .execute(&mut conn);
+
+    match r {
+      Ok(_) => Ok(()),
+      Err(e) => Err(DbError::Unknown(format!("deny_incoming_invitation: {}", e))),
+    }
   }
 
   // Inspiration code
