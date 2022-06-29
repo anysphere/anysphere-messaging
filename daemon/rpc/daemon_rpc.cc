@@ -169,7 +169,11 @@ Status DaemonRpc::GetMyPublicID(
     ASPHR_LOG_ERR("Database failed.", error, e.what(), rpc_call,
                   "GetMyPublicID");
     return Status(grpc::StatusCode::UNKNOWN, e.what());
-  }
+  }  // catch (const std::exception& e) {
+     // ASPHR_LOG_ERR("Assertion Failed.", error, e.what(), rpc_call,
+     //              "GetMyPublicID");
+     // return Status(grpc::StatusCode::UNKNOWN, e.what());
+  //}
   return Status::OK;
 }
 

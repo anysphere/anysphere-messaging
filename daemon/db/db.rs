@@ -2241,7 +2241,7 @@ impl DB {
     read_key: Vec<u8>,
     write_key: Vec<u8>,
     max_friends: i32,
-  ) -> Result<ffi::Friend, DbError> {
+  ) -> Result<ffi::Friend, anyhow::Error> {
     // 1. Verify that the user has space for another friend
     // 2. Verify no other friend with same unique_name
     // 3. Get public ID and chunk sequence number
@@ -2279,7 +2279,7 @@ impl DB {
           friend::invitation_progress,
           friend::deleted,
         ))
-        .get_result::<ffi::Friend>(conn_b)?;
+        .get_result::<ffi::Friend>(conn_b).context("Fail to insert friend into friend::table")?;
 
       diesel::insert_into(outgoing_sync_invitation::table)
         .values((
@@ -2288,7 +2288,7 @@ impl DB {
           outgoing_sync_invitation::kx_public_key.eq(kx_public_key.clone()),
           outgoing_sync_invitation::sent_at.eq(util::unix_micros_now()),
         ))
-        .execute(conn_b)?;
+        .execute(conn_b).context("Fail to insert into outgoing_sync_invitation::table")?;
 
         self.create_transmission_record(
           conn_b,
@@ -2308,19 +2308,17 @@ impl DB {
           outgoing_chunk::to_friend.eq(friend.uid),
           outgoing_chunk::sequence_number.eq(new_seqnum),
           outgoing_chunk::chunks_start_sequence_number.eq(new_seqnum),
-          outgoing_chunk::message_uid.eq(-1),
+          outgoing_chunk::message_uid.eq::<Option<i32>>(None),
           outgoing_chunk::content.eq(my_public_id), // the content is public_id
           outgoing_chunk::system.eq(true),
           outgoing_chunk::system_message.eq(ffi::SystemMessage::OutgoingInvitation),
         ))
-        .execute(conn_b)?;
+        .execute(conn_b).context("Fail to insert into outgoing_chunk::table")?;
 
       Ok(friend)
     });
 
-    r.map_err(|e| {
-      DbError::Unknown(format!("add_outgoing_sync_invitation, failed to insert friend: {}", e))
-    })
+    r
   }
 
   pub fn add_outgoing_async_invitation(

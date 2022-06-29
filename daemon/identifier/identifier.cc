@@ -167,30 +167,30 @@ auto SyncIdentifier::from_story(string story)
   // reverse indices
   std::reverse(indices.begin(), indices.end());
 
-  // increment all indices by 1 so as to not have any leading zeros
-  for (size_t i = 0; i < indices.size(); i++) {
-    indices.at(i) += 1;
-  }
-
   // change basis to 256 constant base
   std::vector<int> base256_indices = change_base(
       indices,
       [](int i) {
         switch (i % 4) {
           case 0:
-            return wordlist::adjectives_vec.size() + 1;
+            return wordlist::adjectives_vec.size();
           case 1:
-            return wordlist::nouns_vec.size() + 1;
+            return wordlist::nouns_vec.size();
           case 2:
-            return wordlist::verbs_vec.size() + 1;
+            return wordlist::verbs_vec.size();
           case 3:
-            return wordlist::nouns_vec.size() + 1;
+            return wordlist::nouns_vec.size();
           default:
             ASPHR_LOG_ERR("unexpected case", i, i, i_mod_4, i % 4);
             ASPHR_ASSERT_MSG(false, "should never ever happen");
         }
       },
-      [](int i) { return 256; });
+      [](int i) { return 257; });
+
+  for (size_t i = 0; i < base256_indices.size(); i++) {
+    ASPHR_ASSERT(base256_indices.at(i) > 0);
+    base256_indices.at(i) -= 1;
+  }
 
   // convert to bytes
   string raw_bytes = "";
@@ -227,18 +227,22 @@ auto SyncIdentifier::to_story() const -> string {
   for (int i = 0; i < std::ssize(raw_bytes); i++) {
     base256_indices.push_back((uint8_t)raw_bytes.at(i));
   }
+  for (int i = 0; i < std::ssize(raw_bytes); i++) {
+    base256_indices[i] += 1;
+  }
+
   std::vector<int> wordbase_indices = change_base(
-      base256_indices, [](int i) { return 256; },
+      base256_indices, [](int i) { return 257; },
       [](int i) {
         switch (i % 4) {
           case 0:
-            return std::ssize(wordlist::adjectives_vec) + 1;
+            return std::ssize(wordlist::adjectives_vec);
           case 1:
-            return std::ssize(wordlist::nouns_vec) + 1;
+            return std::ssize(wordlist::nouns_vec);
           case 2:
-            return std::ssize(wordlist::verbs_vec) + 1;
+            return std::ssize(wordlist::verbs_vec);
           case 3:
-            return std::ssize(wordlist::nouns_vec) + 1;
+            return std::ssize(wordlist::nouns_vec);
           default:
             ASPHR_LOG_ERR("unexpected case", i, i, i_mod_4, i % 4);
             ASPHR_ASSERT_MSG(false, "should never ever happen");
@@ -251,28 +255,27 @@ auto SyncIdentifier::to_story() const -> string {
   // get words in wordlist
   std::vector<string> words;
   for (int i = 0; i < std::ssize(wordbase_indices); i++) {
-    ASPHR_ASSERT(wordbase_indices.at(i) > 0);
+    ASPHR_ASSERT(wordbase_indices.at(i) >= 0);
     switch (i % 4) {
       case 0:
         ASPHR_ASSERT(static_cast<size_t>(wordbase_indices.at(i)) <=
                      wordlist::adjectives_vec.size());
-        words.push_back(
-            wordlist::adjectives_vec.at(wordbase_indices.at(i) - 1));
+        words.push_back(wordlist::adjectives_vec.at(wordbase_indices.at(i)));
         break;
       case 1:
         ASPHR_ASSERT(static_cast<size_t>(wordbase_indices.at(i)) <=
                      wordlist::nouns_vec.size());
-        words.push_back(wordlist::nouns_vec.at(wordbase_indices.at(i) - 1));
+        words.push_back(wordlist::nouns_vec.at(wordbase_indices.at(i)));
         break;
       case 2:
         ASPHR_ASSERT(static_cast<size_t>(wordbase_indices.at(i)) <=
                      wordlist::verbs_vec.size());
-        words.push_back(wordlist::verbs_vec.at(wordbase_indices.at(i) - 1));
+        words.push_back(wordlist::verbs_vec.at(wordbase_indices.at(i)));
         break;
       case 3:
         ASPHR_ASSERT(static_cast<size_t>(wordbase_indices.at(i)) <=
                      wordlist::nouns_vec.size());
-        words.push_back(wordlist::nouns_vec.at(wordbase_indices.at(i) - 1));
+        words.push_back(wordlist::nouns_vec.at(wordbase_indices.at(i)));
         break;
       default:
         ASPHR_LOG_ERR("unexpected case", i, i, i_mod_4, i % 4);
