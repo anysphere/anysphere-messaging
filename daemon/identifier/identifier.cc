@@ -85,8 +85,6 @@ auto change_base(vector<int> values, std::function<int(int)> from_base,
       carry = new_value / to_base(j);
     }
     while (carry > 0) {
-      cout << carry << endl;
-      cout << to_base(j) << endl;
       result.push_back(carry % to_base(j));
       carry /= to_base(j);
       j++;

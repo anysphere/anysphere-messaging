@@ -214,7 +214,7 @@ Status DaemonRpc::AddSyncFriend(
         string_to_rust_u8Vec(read_key), string_to_rust_u8Vec(write_key),
         MAX_FRIENDS);
   } catch (const rust::Error& e) {
-    ASPHR_LOG_ERR("Failed to outgoing sync invitation.", error, e.what(),
+    ASPHR_LOG_ERR("Failed to add outgoing sync invitation.", error, e.what(),
                   rpc_call, "AddSyncFriend");
     return Status(grpc::StatusCode::UNKNOWN, e.what());
   }

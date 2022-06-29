@@ -2190,11 +2190,11 @@ impl DB {
     read_key: Vec<u8>,
     write_key: Vec<u8>,
     max_friends: i32,
-  ) -> Result<(), diesel::result::Error> {
+  ) -> Result<(), anyhow::Error> {
     use crate::schema::friend;
     use crate::schema::transmission;
 
-    conn.transaction(|conn_b| {
+    conn.transaction::<_, anyhow::Error, _>(|conn_b| {
       let ack_indices = transmission::table
         .inner_join(friend::table)
         .filter(friend::deleted.eq(false))
@@ -2208,7 +2208,10 @@ impl DB {
       }
       use rand::seq::SliceRandom;
       let ack_index_opt = possible_ack_indices.choose(&mut rand::thread_rng());
-      let ack_index = ack_index_opt.ok_or(diesel::result::Error::RollbackTransaction)?;
+      let ack_index = ack_index_opt.ok_or(diesel::result::Error::RollbackTransaction)
+                            .map_err(|e| {
+                            anyhow::Error::new(e).context("failed to choose ack index")
+      })?;
       diesel::insert_into(transmission::table)
         .values((
           transmission::friend_uid.eq(friend_uid),
@@ -2219,8 +2222,8 @@ impl DB {
           transmission::sent_acked_seqnum.eq(0),
           transmission::received_seqnum.eq(0),
         ))
-        .execute(conn_b)?;
-      Ok(())
+        .execute(conn_b).context("Fail to create transmission record")?;
+        Ok(())
     })
   }
 
@@ -2283,6 +2286,15 @@ impl DB {
         ))
         .execute(conn_b)?;
 
+        self.create_transmission_record(
+          conn_b,
+          friend.uid,
+          read_index,
+          read_key,
+          write_key,
+          max_friends,
+        )?;
+
       let my_public_id = self.get_public_id(conn_b)?;
 
       let new_seqnum = self.get_seqnum_for_new_chunk(conn_b, friend.uid)?;
@@ -2298,15 +2310,6 @@ impl DB {
           outgoing_chunk::system_message.eq(ffi::SystemMessage::OutgoingInvitation),
         ))
         .execute(conn_b)?;
-
-      self.create_transmission_record(
-        conn_b,
-        friend.uid,
-        read_index,
-        read_key,
-        write_key,
-        max_friends,
-      )?;
 
       Ok(friend)
     });
@@ -2692,7 +2695,7 @@ impl DB {
     read_key: Vec<u8>,
     write_key: Vec<u8>,
     max_friends: i32,
-  ) -> Result<(), DbError> {
+  ) -> Result<(), anyhow::Error> {
     // // This function is called when the user accepts a friend request.
     let mut conn = self.connect()?;
     self.check_rep(&mut conn);
@@ -2710,12 +2713,13 @@ impl DB {
       deleted: false,
     };
     // we change the progress field to Complete, meaning that the friend is approved
-    conn
-      .transaction::<_, diesel::result::Error, _>(|conn_b| {
+    let r = conn
+      .transaction::<_, anyhow::Error, _>(|conn_b| {
         let can_add =
           self.can_add_friend(conn_b, unique_name, kx_public_key.clone(), max_friends)?;
         if !can_add {
-          return Err(diesel::result::Error::RollbackTransaction);
+          // return an anyhow error
+          anyhow::anyhow!("no free ack index");
         }
         // we create a new friend
         let friend = diesel::insert_into(friend::table)
@@ -2773,17 +2777,11 @@ impl DB {
         )?;
 
         Ok(())
-      })
-      .map_err(|e| match e {
-        diesel::result::Error::RollbackTransaction => {
-          DbError::AlreadyExists("no free ack index".to_string())
-        }
-        _ => DbError::Unknown(format!("failed to insert address: {}", e)),
-      })?;
+      });
 
     self.check_rep(&mut conn);
 
-    Ok(())
+    r
   }
 
   pub fn deny_incoming_invitation(&self, public_id: &str) -> Result<(), DbError> {
