@@ -2,6 +2,8 @@ use diesel::prelude::*;
 
 use std::{error::Error, fmt};
 
+use anyhow::Context;
+
 #[derive(Debug)]
 #[allow(dead_code)]
 pub enum DbError {
@@ -22,6 +24,20 @@ pub enum DbError {
   Unavailable(String),
   DataLoss(String),
   Unauthenticated(String),
+}
+
+#[derive(Queryable)]
+struct OutgoingChunkPlusPlusMinusNumChunks {
+  pub to_friend: i32,
+  pub sequence_number: i32,
+  pub chunks_start_sequence_number: i32,
+  #[diesel(deserialize_as = crate::db::I32ButMinusOneIsNone)]
+  pub message_uid: i32, // -1 iff system message
+  pub content: String,
+  pub write_key: Vec<u8>,
+  pub system: bool,
+  #[diesel(deserialize_as = ffi::SystemMessage)]
+  pub system_message: ffi::SystemMessage,
 }
 
 impl Error for DbError {}
@@ -235,7 +251,7 @@ pub mod ffi {
     OutgoingSync,
     Complete,
   }
-  #[derive(Queryable)]
+  #[derive(Queryable, Debug)]
   struct Friend {
     pub uid: i32,
     pub unique_name: String,
@@ -1254,7 +1270,7 @@ impl DB {
   pub fn chunk_to_send(
     &self,
     uid_priority: Vec<i32>,
-  ) -> Result<ffi::OutgoingChunkPlusPlus, DbError> {
+  ) -> Result<ffi::OutgoingChunkPlusPlus, anyhow::Error> {
     let mut conn = self.connect()?;
 
     use crate::schema::friend;
@@ -1265,7 +1281,7 @@ impl DB {
     // We could do probably this in one query, by joining on the select statement
     // and then joining. Diesel doesn't typecheck this, and maybe it is unsafe, so
     // let's just do a transaction.
-    let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+    conn.transaction::<_, anyhow::Error, _>(|conn_b| {
       let q = outgoing_chunk::table
         .group_by(outgoing_chunk::to_friend)
         .select((outgoing_chunk::to_friend, diesel::dsl::min(outgoing_chunk::sequence_number)));
@@ -1279,7 +1295,7 @@ impl DB {
           acc
         });
       if first_chunk_per_friend.is_empty() {
-        return Err(diesel::result::Error::NotFound);
+        return Err(diesel::result::Error::NotFound).map_err(|e| e.into());
       }
       let chosen_chunk: (i32, i32) = (|| {
         for uid in uid_priority {
@@ -1291,29 +1307,63 @@ impl DB {
         let index = rng % first_chunk_per_friend.len();
         first_chunk_per_friend.remove(index)
       })();
-      let chunk_plusplus = outgoing_chunk::table
+      // special case: control message
+      let is_system_message = outgoing_chunk::table
         .find(chosen_chunk)
-        .inner_join(friend::table.inner_join(transmission::table))
-        .inner_join(sent::table)
-        .select((
-          outgoing_chunk::to_friend,
-          outgoing_chunk::sequence_number,
-          outgoing_chunk::chunks_start_sequence_number,
-          outgoing_chunk::message_uid,
-          outgoing_chunk::content,
-          transmission::write_key,
-          sent::num_chunks,
-          outgoing_chunk::system,
-          outgoing_chunk::system_message,
-        ))
-        .first::<ffi::OutgoingChunkPlusPlus>(conn_b)?;
-      Ok(chunk_plusplus)
-    });
-
-    match r {
-      Ok(chunk_plusplus) => Ok(chunk_plusplus),
-      Err(e) => Err(DbError::NotFound(format!("chunk_to_send: {}", e))),
-    }
+        .select(outgoing_chunk::system)
+        .first::<bool>(conn_b)?;
+      if is_system_message {
+        // the number of chunks for system messages is always 1
+        // unfortunately, system messages do not have an entry in the sent table
+        // so the code for non-system messages do not work.
+        let chunk_plusplus_minusnumchunks = outgoing_chunk::table
+          .find(chosen_chunk)
+          .inner_join(friend::table.inner_join(transmission::table))
+          .select((
+            outgoing_chunk::to_friend,
+            outgoing_chunk::sequence_number,
+            outgoing_chunk::chunks_start_sequence_number,
+            outgoing_chunk::message_uid,
+            outgoing_chunk::content,
+            transmission::write_key,
+            outgoing_chunk::system,
+            outgoing_chunk::system_message,
+          ))
+          .first::<OutgoingChunkPlusPlusMinusNumChunks>(conn_b)
+          .context("chunk_to_send, cannot find chosen chunk in the outgoing_chunk table")?;
+        let chunk_plusplus = ffi::OutgoingChunkPlusPlus {
+          to_friend: chunk_plusplus_minusnumchunks.to_friend,
+          sequence_number: chunk_plusplus_minusnumchunks.sequence_number,
+          chunks_start_sequence_number: chunk_plusplus_minusnumchunks.chunks_start_sequence_number,
+          message_uid: chunk_plusplus_minusnumchunks.message_uid,
+          content: chunk_plusplus_minusnumchunks.content,
+          write_key: chunk_plusplus_minusnumchunks.write_key,
+          num_chunks: 1,
+          system: chunk_plusplus_minusnumchunks.system,
+          system_message: chunk_plusplus_minusnumchunks.system_message,
+        };
+        Ok(chunk_plusplus)
+      } else {
+        let chunk_plusplus = outgoing_chunk::table
+          .find(chosen_chunk)
+          .inner_join(friend::table.inner_join(transmission::table))
+          .inner_join(sent::table)
+          .select((
+            outgoing_chunk::to_friend,
+            outgoing_chunk::sequence_number,
+            outgoing_chunk::chunks_start_sequence_number,
+            outgoing_chunk::message_uid,
+            outgoing_chunk::content,
+            transmission::write_key,
+            sent::num_chunks,
+            outgoing_chunk::system,
+            outgoing_chunk::system_message,
+          ))
+          .first::<ffi::OutgoingChunkPlusPlus>(conn_b)
+          .context("chunk_to_send, cannot find chosen chunk in the outgoing_chunk table")?;
+        Ok(chunk_plusplus)
+      }
+    })
   }
 
   pub fn acks_to_send(&self) -> Result<Vec<ffi::OutgoingAck>, DbError> {
@@ -1408,14 +1458,18 @@ impl DB {
     q.first(conn)
   }
 
+  // input: the uid of a friend.
+  // output: the next sequence number to use for sending a message to that friend.
+  //         this is equal to the previous seqnum + 1,
+  //         or 1 if no previous message exist
   fn get_seqnum_for_new_chunk(
     &self,
     conn: &mut SqliteConnection,
     friend_uid: i32,
-  ) -> Result<i32, diesel::result::Error> {
+  ) -> Result<i32, anyhow::Error> {
     use crate::schema::outgoing_chunk;
     use crate::schema::transmission;
-    conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+    conn.transaction::<_, anyhow::Error, _>(|conn_b| {
       // get the correct sequence number. This is the last sequence number + 1.
       // this is either the maximum sequence number in the table + 1,
       // or the sent_acked_seqnum + 1 if there are no outgoing chunks.
@@ -1424,12 +1478,13 @@ impl DB {
         .select(outgoing_chunk::sequence_number)
         .order_by(outgoing_chunk::sequence_number.desc())
         .limit(1)
-        .load::<i32>(conn_b)?;
+        .load::<i32>(conn_b)
+        .context("get_seqnum_for_new_chunk, failed to find old sequence number from the outgoing chunk table")?;
       let old_seqnum = match maybe_old_seqnum.len() {
         0 => transmission::table
           .find(friend_uid)
           .select(transmission::sent_acked_seqnum)
-          .first::<i32>(conn_b)?,
+          .first::<i32>(conn_b).context("get_seqnum_for_new_chunk, failed to find seqnum from the transmission table")?,
         _ => maybe_old_seqnum[0],
       };
       let new_seqnum = old_seqnum + 1;
@@ -1454,7 +1509,7 @@ impl DB {
     use crate::schema::sent;
 
     conn
-      .transaction::<_, diesel::result::Error, _>(|conn_b| {
+      .transaction::<_, anyhow::Error, _>(|conn_b| {
         let friend_uid = self.get_friend_uid_by_unique_name(conn_b, to_unique_name)?;
 
         let message_uid = diesel::insert_into(message::table)
@@ -1894,10 +1949,13 @@ impl DB {
       invitation_progress: ffi::InvitationProgress::OutgoingSync,
       deleted: false,
     };
-    let r = conn.transaction(|conn_b| {
+    let r = conn.transaction::<_, anyhow::Error, _>(|conn_b| {
       let can_add = self.can_add_friend(conn_b, unique_name, kx_public_key.clone(), max_friends)?;
       if !can_add {
-        return Err(diesel::result::Error::RollbackTransaction);
+        return Err(DbError::InvalidArgument(
+          "add_outgoing_sync_invitation, cannot add friend for whatever reason".to_string(),
+        ))
+        .map_err(|e| e.into());
       }
 
       let friend = diesel::insert_into(friend::table)
@@ -1948,13 +2006,8 @@ impl DB {
       Ok(friend)
     });
 
-    r.map_err(|e| match e {
-      diesel::result::Error::RollbackTransaction => DbError::AlreadyExists(
-        "add_outgoing_sync_invitation, friend already exists, or too many friends".to_string(),
-      ),
-      _ => {
-        DbError::Unknown(format!("add_outgoing_sync_invitation, failed to insert friend: {}", e))
-      }
+    r.map_err(|e| {
+      DbError::Unknown(format!("add_outgoing_sync_invitation, failed to insert friend: {}", e))
     })
   }
 
@@ -1970,7 +2023,7 @@ impl DB {
     read_key: Vec<u8>,
     write_key: Vec<u8>,
     max_friends: i32,
-  ) -> Result<ffi::Friend, DbError> {
+  ) -> Result<ffi::Friend, anyhow::Error> {
     let mut conn = self.connect()?;
     use crate::schema::friend;
     use crate::schema::incoming_invitation;
@@ -1983,19 +2036,19 @@ impl DB {
       invitation_progress: ffi::InvitationProgress::OutgoingSync,
       deleted: false,
     };
-    conn.transaction::<_, DbError, _>(|conn_b| {
+    conn.transaction::<_, anyhow::Error, _>(|conn_b| {
       let has_space = self
         .has_space_for_async_invitations()?;
       if !has_space {
         return Err(DbError::ResourceExhausted(format!(
-          "add_outgoing_async_invitation, too many async invitations (currently max is 1)"
-        )));
+          "add_outgoing_async_invitation, too many async invitations at the same time(currently max is 1)"
+        ))).map_err(|e| e.into());
       }
       let can_add = self.can_add_friend(conn_b, unique_name, kx_public_key.clone(), max_friends)?;
       if !can_add {
         return Err(DbError::ResourceExhausted(format!(
-          "add_outgoing_async_invitation, cannot add friend for whatever reason"
-        )));
+          "add_outgoing_async_invitation, cannot add friend because limit number of friend reached."
+        ))).map_err(|e| e.into());
       }
       // if there is an incoming invitation here, we reject the new outgoing async invitation
       // and tell the user to do just accept the invitation
@@ -2004,7 +2057,7 @@ impl DB {
       if incoming_invitation_count > 0 {
         return Err(DbError::ResourceExhausted(format!(
           "add_outgoing_async_invitation, there is an incoming invitation for this public_id. please accept it"
-        )));
+        ))).map_err(|e| e.into());
       }
       let friend = diesel::insert_into(friend::table)
         .values(&friend_fragment)
@@ -2015,7 +2068,7 @@ impl DB {
           friend::invitation_progress,
           friend::deleted,
         ))
-        .get_result::<ffi::Friend>(conn_b)?;
+        .get_result::<ffi::Friend>(conn_b).context("add_outgoing_async_invitation, failed to insert friend into friend::table")?;
 
       diesel::insert_into(outgoing_async_invitation::table)
         .values((
@@ -2026,23 +2079,7 @@ impl DB {
           outgoing_async_invitation::message.eq(message.to_string()),
           outgoing_async_invitation::sent_at.eq(util::unix_micros_now()),
         ))
-        .execute(conn_b)?;
-
-      let my_public_id = self.get_public_id(conn_b)?;
-
-      let new_seqnum = self.get_seqnum_for_new_chunk(conn_b, friend.uid)?;
-
-      diesel::insert_into(outgoing_chunk::table)
-        .values((
-          outgoing_chunk::to_friend.eq(friend.uid),
-          outgoing_chunk::sequence_number.eq(new_seqnum),
-          outgoing_chunk::chunks_start_sequence_number.eq(new_seqnum),
-          outgoing_chunk::message_uid.eq(-1),
-          outgoing_chunk::content.eq(my_public_id), // the content is public_id
-          outgoing_chunk::system.eq(true),
-          outgoing_chunk::system_message.eq(ffi::SystemMessage::OutgoingInvitation),
-        ))
-        .execute(conn_b)?;
+        .execute(conn_b).context("add_outgoing_async_invitation, failed to insert friend into outgoing_async_invitation::table")?;
 
       self.create_transmission_record(
         conn_b,
@@ -2052,6 +2089,22 @@ impl DB {
         write_key,
         max_friends,
       )?;
+
+      let my_public_id = self.get_public_id(conn_b).context("add_outgoing_async_invitation, failed to get public_id")?;
+
+      let new_seqnum = self.get_seqnum_for_new_chunk(conn_b, friend.uid).context("add_outgoing_async_invitation, failed to get new_seqnum")?;
+
+      diesel::insert_into(outgoing_chunk::table)
+        .values((
+          outgoing_chunk::to_friend.eq(friend.uid),
+          outgoing_chunk::sequence_number.eq(new_seqnum),
+          outgoing_chunk::chunks_start_sequence_number.eq(new_seqnum),
+          outgoing_chunk::message_uid.eq::<Option<i32>>(None), // message UID should be null
+          outgoing_chunk::content.eq(my_public_id), // the content is public_id
+          outgoing_chunk::system.eq(true),
+          outgoing_chunk::system_message.eq(ffi::SystemMessage::OutgoingInvitation),
+        ))
+        .execute(conn_b).context("add_outgoing_async_invitation, failed to insert friend into outgoing_chunk::table")?;
 
       Ok(friend)
     })
@@ -2064,7 +2117,7 @@ impl DB {
     public_id: String,
     friend_request_public_key: Vec<u8>,
   ) -> Result<(), diesel::result::Error> {
-    // make the friend complete
+    // make the friend >
     // create a complete_friend and remove a sync_outgoing_invitation
     use crate::schema::complete_friend;
     use crate::schema::friend;

@@ -47,6 +47,7 @@ rust_static_library(
     compile_data = [":migrations"],
     deps = [
         ":db_bridge",
+        "@crate_index//:anyhow",
         "@crate_index//:diesel",
         "@crate_index//:diesel_migrations",
         "@crate_index//:libsqlite3-sys",

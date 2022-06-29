@@ -14,7 +14,7 @@ fn get_registration_fragment() -> ffi::RegistrationFragment {
   let pir_secret_key: Vec<u8> = br#""hi hi"#.to_vec();
   let pir_galois_key: Vec<u8> = br#""hi hi hi"#.to_vec();
   let authentication_token: String = "X6H3ILWIrDGThjbi4IpYfWGtJ3YWdMIf".to_string();
-  let public_id: String = "wwww".to_string();
+  let public_id: String = "my_public_id".to_string();
 
   ffi::RegistrationFragment {
     friend_request_public_key,
@@ -127,7 +127,8 @@ fn test_receive_msg() {
     )
     .unwrap();
   // will be auto accepted!
-  db.add_incoming_async_invitation("hi_this_is_a_public_id", "hi from freidn 1").unwrap();
+  db.add_incoming_async_invitation("hi_this_is_a_public_id", "invitation: hi from friend 1")
+    .unwrap();
 
   let msg = "hi im a chunk";
   let chunk_status = db
@@ -154,13 +155,15 @@ fn test_receive_msg() {
     })
     .unwrap();
 
-  assert_eq!(msgs.len(), 1);
-  assert_eq!(msgs[0].content, msg);
+  // 1 invitation message + 1 actual message
+  assert_eq!(msgs.len(), 2);
+  assert_eq!(msgs[0].content, "invitation: hi from friend 1");
+  assert_eq!(msgs[1].content, msg);
 
   let mut conn = SqliteConnection::establish(&db.address).unwrap();
   use crate::schema::transmission;
   let status_pair = transmission::table
-    .find(msgs[0].uid)
+    .find(f.uid)
     .select((transmission::sent_acked_seqnum, transmission::received_seqnum))
     .first::<(i32, i32)>(&mut conn)
     .unwrap();
@@ -197,19 +200,42 @@ fn test_send_msg() {
       20,
     )
     .unwrap();
+
+  println!("f: {:?}", f);
+
   // will be auto accepted!
   db.add_incoming_async_invitation("hi_this_is_a_public_id", "hi from freidn 1").unwrap();
 
   let msg = "hi im a single chunk";
   db.queue_message_to_send("friend_1", msg, vec![msg.to_string()]).unwrap();
 
+  unsafe {
+    db.dump();
+  }
+
   let chunk_to_send = db.chunk_to_send(vec![]).unwrap();
 
+  // the chunk to send will be the system message for the outgoing invitation
+  // the content is the public id
   assert!(chunk_to_send.to_friend == f.uid);
   assert!(chunk_to_send.sequence_number == 1);
   assert!(chunk_to_send.chunks_start_sequence_number == 1);
   // assert!(chunk_to_send.message_uid == 0); // we don't necessarily know what message_uid sqlite chooses
-  assert!(chunk_to_send.content == msg);
+  assert!(chunk_to_send.content == "my_public_id");
+  assert!(chunk_to_send.write_key == br#"wwww"#.to_vec());
+  assert!(chunk_to_send.num_chunks == 1);
+
+  db.receive_ack(f.uid, 1).unwrap();
+
+  let chunk_to_send = db.chunk_to_send(vec![]).unwrap();
+
+  // the chunk to send will be the system message for the outgoing invitation
+  // the content is the public id
+  assert!(chunk_to_send.to_friend == f.uid);
+  assert!(chunk_to_send.sequence_number == 2);
+  assert!(chunk_to_send.chunks_start_sequence_number == 2);
+  // assert!(chunk_to_send.message_uid == 0); // we don't necessarily know what message_uid sqlite chooses
+  assert!(chunk_to_send.content == "hi im a single chunk");
   assert!(chunk_to_send.write_key == br#"wwww"#.to_vec());
   assert!(chunk_to_send.num_chunks == 1);
 }
