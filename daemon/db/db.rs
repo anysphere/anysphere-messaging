@@ -816,6 +816,38 @@ impl DB {
           delivered_at_null_and_delivered_true_count
         );
 
+        // draft, sent, received are mutually disjoint
+        let draft_and_sent_count = draft::table
+          .inner_join(sent::table.on(draft::uid.eq(sent::uid)))
+          .count()
+          .get_result::<i64>(conn_b)
+          .unwrap();
+        assert!(
+          draft_and_sent_count == 0,
+          "draft_and_sent_count = {}",
+          draft_and_sent_count
+        );
+        let draft_and_received_count = draft::table
+          .inner_join(received::table.on(draft::uid.eq(received::uid)))
+          .count()
+          .get_result::<i64>(conn_b)
+          .unwrap();
+        assert!(
+          draft_and_received_count == 0,
+          "draft_and_received_count = {}",
+          draft_and_received_count
+        );
+        let sent_and_received_count = sent::table
+          .inner_join(received::table.on(sent::uid.eq(received::uid)))
+          .count()
+          .get_result::<i64>(conn_b)
+          .unwrap();
+        assert!(
+          sent_and_received_count == 0,
+          "sent_and_received_count = {}",
+          sent_and_received_count
+        );
+
         Ok(())
       })
       .unwrap();
