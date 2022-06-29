@@ -769,6 +769,53 @@ impl DB {
           non_null_uid_and_system
         );
 
+        // delivered_at is set iff delivered
+        let delivered_at_not_null_and_delivered_false_count = sent::table
+          .filter(sent::delivered_at.is_not_null())
+          .filter(sent::delivered.eq(false))
+          .count()
+          .get_result::<i64>(conn_b)
+          .unwrap();
+        assert!(
+          delivered_at_not_null_and_delivered_false_count == 0,
+          "delivered_at_not_null_and_delivered_false_count = {}",
+          delivered_at_not_null_and_delivered_false_count
+        );
+        let delivered_at_null_and_delivered_true_count = sent::table
+          .filter(sent::delivered_at.is_null())
+          .filter(sent::delivered.eq(true))
+          .count()
+          .get_result::<i64>(conn_b)
+          .unwrap();
+        assert!(
+          delivered_at_null_and_delivered_true_count == 0,
+          "delivered_at_null_and_delivered_true_count = {}",
+          delivered_at_null_and_delivered_true_count
+        );
+        // same for the received table
+        let delivered_at_not_null_and_delivered_false_count = received::table
+          .filter(received::delivered_at.is_not_null())
+          .filter(received::delivered.eq(false))
+          .count()
+          .get_result::<i64>(conn_b)
+          .unwrap();
+        assert!(
+          delivered_at_not_null_and_delivered_false_count == 0,
+          "delivered_at_not_null_and_delivered_false_count = {}",
+          delivered_at_not_null_and_delivered_false_count
+        );
+        let delivered_at_null_and_delivered_true_count = received::table
+          .filter(received::delivered_at.is_null())
+          .filter(received::delivered.eq(true))
+          .count()
+          .get_result::<i64>(conn_b)
+          .unwrap();
+        assert!(
+          delivered_at_null_and_delivered_true_count == 0,
+          "delivered_at_null_and_delivered_true_count = {}",
+          delivered_at_null_and_delivered_true_count
+        );
+
         Ok(())
       })
       .unwrap();
