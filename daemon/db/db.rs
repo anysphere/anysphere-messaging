@@ -652,7 +652,7 @@ pub fn init(address: &str) -> Result<Box<DB>, DbError> {
   use diesel_migrations::MigrationHarness;
   conn.run_pending_migrations(MIGRATIONS).map_err(|e| DbError::Unavailable(e.to_string()))?;
 
-  db.check_rep(&mut conn)?;
+  db.check_rep(&mut conn);
 
   Ok(Box::new(db))
 }
@@ -677,9 +677,9 @@ impl DB {
   }
 
   #[cfg(debug_assertions)]
-  pub fn check_rep(&self, conn: &mut SqliteConnection) -> Result<(), DbError> {
+  pub fn check_rep(&self, conn: &mut SqliteConnection) {
     use crate::schema::*;
-    // we unwrap everything here because we're in check_rep! we want to fail fast.
+    // we unwrap everything here because we're in check_rep! so we want to fail fast.
     conn
       .transaction::<(), DbError, _>(|conn_b| {
         // invitation_progress should correspond to the correct table existing
@@ -696,45 +696,48 @@ impl DB {
           .unwrap();
 
         for friend in friends {
+          let complete_count = complete_friend::table
+            .filter(complete_friend::friend_uid.eq(friend.uid))
+            .count()
+            .get_result::<i64>(conn_b)
+            .unwrap();
+          let sync_count = outgoing_sync_invitation::table
+            .filter(outgoing_sync_invitation::friend_uid.eq(friend.uid))
+            .count()
+            .get_result::<i64>(conn_b)
+            .unwrap();
+          let async_count = outgoing_async_invitation::table
+            .filter(outgoing_async_invitation::friend_uid.eq(friend.uid))
+            .count()
+            .get_result::<i64>(conn_b)
+            .unwrap();
           match friend.invitation_progress {
             ffi::InvitationProgress::Complete => {
-              let complete_count = complete_friend::table
-                .filter(complete_friend::friend_uid.eq(friend.uid))
-                .count()
-                .get_result::<i64>(conn_b)
-                .unwrap();
-              if complete_count != 1 {
-                panic!(
-                  "complete_friend table has {} entries for friend with uid {}",
-                  complete_count, friend.uid,
-                );
-              }
+              assert!(
+                complete_count == 1 && sync_count == 0 && async_count == 0,
+                "In Complete invitation progress: complete_count = {}, sync_count = {}, async_count = {}",
+                complete_count,
+                sync_count,
+                async_count
+              );
             }
             ffi::InvitationProgress::OutgoingSync => {
-              let sync_count = outgoing_sync_invitation::table
-                .filter(outgoing_sync_invitation::friend_uid.eq(friend.uid))
-                .count()
-                .get_result::<i64>(conn_b)
-                .unwrap();
-              if sync_count != 1 {
-                panic!(
-                  "outgoing_sync_invitation table has {} entries for friend with uid {}",
-                  sync_count, friend.uid,
-                );
-              }
+              assert!(
+                complete_count == 0 && sync_count == 1 && async_count == 0,
+                "In OutgoingSync invitation progress: complete_count = {}, sync_count = {}, async_count = {}",
+                complete_count,
+                sync_count,
+                async_count
+              );
             }
             ffi::InvitationProgress::OutgoingAsync => {
-              let async_count = outgoing_async_invitation::table
-                .filter(outgoing_async_invitation::friend_uid.eq(friend.uid))
-                .count()
-                .get_result::<i64>(conn_b)
-                .unwrap();
-              if async_count != 1 {
-                panic!(
-                  "outgoing_async_invitation table has {} entries for friend with uid {}",
-                  async_count, friend.uid,
-                );
-              }
+              assert!(
+                complete_count == 0 && sync_count == 0 && async_count == 1,
+                "In OutgoingAsync invitation progress: complete_count = {}, sync_count = {}, async_count = {}",
+                complete_count,
+                sync_count,
+                async_count
+              );
             }
             _ => {
               panic!("friend with uid {} has unsupported invitation_progress", friend.uid,)
@@ -742,16 +745,38 @@ impl DB {
           }
         }
 
+        // message_uid is null iff system message
+        let null_uid_and_not_system = outgoing_chunk::table
+          .filter(outgoing_chunk::message_uid.eq::<Option<i32>>(None))
+          .filter(outgoing_chunk::system.eq(false))
+          .count()
+          .get_result::<i64>(conn_b)
+          .unwrap();
+        assert!(
+          null_uid_and_not_system == 0,
+          "null_uid_and_not_system = {}",
+          null_uid_and_not_system
+        );
+        let non_null_uid_and_system = outgoing_chunk::table
+          .filter(outgoing_chunk::message_uid.is_not_null())
+          .filter(outgoing_chunk::system.eq(true))
+          .count()
+          .get_result::<i64>(conn_b)
+          .unwrap();
+        assert!(
+          non_null_uid_and_system == 0,
+          "non_null_uid_and_system = {}",
+          non_null_uid_and_system
+        );
+
         Ok(())
       })
       .unwrap();
-
-    Ok(())
   }
 
   #[cfg(not(debug_assertions))]
-  pub fn check_rep(&self, conn: &mut SqliteConnection) -> Result<(), DbError> {
-    Ok(())
+  pub fn check_rep(&self, conn: &mut SqliteConnection) {
+    ()
   }
 
   /// # Safety
@@ -837,6 +862,8 @@ impl DB {
     let mut conn = self.connect()?;
     use crate::schema::config;
 
+    self.check_rep(&mut conn);
+
     let q = config::table.select(config::has_registered);
     let has_registered = q
       .first(&mut conn)
@@ -846,6 +873,8 @@ impl DB {
 
   pub fn do_register(&self, reg: ffi::RegistrationFragment) -> Result<(), DbError> {
     let mut conn = self.connect()?;
+
+    self.check_rep(&mut conn);
 
     use crate::schema::config;
     use crate::schema::registration;
@@ -881,6 +910,8 @@ impl DB {
     let mut conn = self.connect()?;
     use crate::schema::registration;
 
+    self.check_rep(&mut conn);
+
     let registration = registration::table
       .first(&mut conn)
       .map_err(|e| DbError::Unknown(format!("failed to query registration: {}", e)))?;
@@ -889,6 +920,8 @@ impl DB {
 
   pub fn delete_registration(&self) -> Result<(), DbError> {
     let mut conn = self.connect()?;
+
+    self.check_rep(&mut conn);
 
     use crate::schema::config;
     use crate::schema::registration;
@@ -904,12 +937,16 @@ impl DB {
       })
       .map_err(|e| DbError::Unknown(format!("failed to delete registration: {}", e)))?;
 
+    self.check_rep(&mut conn);
+
     Ok(())
   }
 
   pub fn get_small_registration(&self) -> Result<ffi::SmallRegistrationFragment, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::registration;
+
+    self.check_rep(&mut conn);
 
     let q = registration::table.select((
       registration::uid,
@@ -931,6 +968,8 @@ impl DB {
     let mut conn = self.connect()?;
     use crate::schema::registration;
 
+    self.check_rep(&mut conn);
+
     let q = registration::table.select(registration::pir_secret_key);
     let pir_secret_key = q
       .first(&mut conn)
@@ -941,6 +980,8 @@ impl DB {
   pub fn get_send_info(&self) -> Result<ffi::SendInfo, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::registration;
+
+    self.check_rep(&mut conn);
 
     let q =
       registration::table.select((registration::allocation, registration::authentication_token));
@@ -953,6 +994,8 @@ impl DB {
   pub fn get_friend(&self, unique_name: &str) -> Result<ffi::Friend, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::friend;
+
+    self.check_rep(&mut conn);
 
     if let Ok(f) =
       friend::table.filter(friend::unique_name.eq(unique_name)).first::<ffi::Friend>(&mut conn)
@@ -967,6 +1010,8 @@ impl DB {
     let mut conn = self.connect()?;
     use crate::schema::complete_friend;
     use crate::schema::friend;
+
+    self.check_rep(&mut conn);
 
     // only get complete friends
     if let Ok(v) = friend::table
@@ -994,6 +1039,8 @@ impl DB {
     let mut conn = self.connect()?;
     use crate::schema::friend;
 
+    self.check_rep(&mut conn);
+
     if let Ok(v) = friend::table
       .filter(friend::deleted.eq(false))
       .select((
@@ -1015,6 +1062,8 @@ impl DB {
     let mut conn = self.connect()?;
     use crate::schema::friend;
 
+    self.check_rep(&mut conn);
+
     diesel::update(friend::table.filter(friend::unique_name.eq(unique_name)))
       .set(friend::deleted.eq(false))
       .returning(friend::uid)
@@ -1024,6 +1073,8 @@ impl DB {
         _ => DbError::Unknown(format!("failed to delete friend: {}", e)),
       })?;
 
+    self.check_rep(&mut conn);
+
     Ok(())
   }
 
@@ -1031,7 +1082,11 @@ impl DB {
     let mut conn = self.connect()?;
     use crate::schema::config;
 
+    self.check_rep(&mut conn);
+
     let r = diesel::update(config::table).set(config::latency.eq(latency)).execute(&mut conn);
+
+    self.check_rep(&mut conn);
 
     match r {
       Ok(_) => Ok(()),
@@ -1043,6 +1098,8 @@ impl DB {
     let mut conn = self.connect()?;
     use crate::schema::config;
 
+    self.check_rep(&mut conn);
+
     let q = config::table.select(config::latency);
     let latency = q
       .first(&mut conn)
@@ -1053,6 +1110,8 @@ impl DB {
   pub fn set_server_address(&self, server_address: &str) -> Result<(), DbError> {
     let mut conn = self.connect()?;
     use crate::schema::config;
+
+    self.check_rep(&mut conn);
 
     let r = diesel::update(config::table)
       .set(config::server_address.eq(server_address))
@@ -1068,6 +1127,8 @@ impl DB {
     let mut conn = self.connect()?;
     use crate::schema::config;
 
+    self.check_rep(&mut conn);
+
     match config::table.select(config::server_address).first(&mut conn) {
       Ok(server_address) => Ok(server_address),
       Err(e) => Err(DbError::Unknown(format!("get_server_address: {}", e))),
@@ -1079,6 +1140,8 @@ impl DB {
     use crate::schema::outgoing_chunk;
     use crate::schema::sent;
     use crate::schema::transmission;
+
+    self.check_rep(&mut conn);
 
     let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
       let old_acked_seqnum =
@@ -1114,6 +1177,9 @@ impl DB {
       }
       Ok(old_acked_seqnum)
     });
+
+    self.check_rep(&mut conn);
+
     match r {
       Ok(old_ack) => match ack {
         ack if ack > old_ack => Ok(true),
@@ -1169,6 +1235,8 @@ impl DB {
     use crate::schema::incoming_chunk;
     use crate::schema::message;
     use crate::schema::received;
+
+    self.check_rep(&mut conn);
 
     let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
       let chunk_status =
@@ -1261,6 +1329,8 @@ impl DB {
       Ok(ffi::ReceiveChunkStatus::NewChunk)
     });
 
+    self.check_rep(&mut conn);
+
     match r {
       Ok(b) => Ok(b),
       Err(e) => Err(DbError::Unknown(format!("receive_chunk: {}", e))),
@@ -1273,6 +1343,8 @@ impl DB {
   ) -> Result<ffi::OutgoingChunkPlusPlus, anyhow::Error> {
     let mut conn = self.connect()?;
 
+    self.check_rep(&mut conn);
+
     use crate::schema::friend;
     use crate::schema::outgoing_chunk;
     use crate::schema::sent;
@@ -1281,7 +1353,7 @@ impl DB {
     // We could do probably this in one query, by joining on the select statement
     // and then joining. Diesel doesn't typecheck this, and maybe it is unsafe, so
     // let's just do a transaction.
-    conn.transaction::<_, anyhow::Error, _>(|conn_b| {
+    let r = conn.transaction::<_, anyhow::Error, _>(|conn_b| {
       let q = outgoing_chunk::table
         .group_by(outgoing_chunk::to_friend)
         .select((outgoing_chunk::to_friend, diesel::dsl::min(outgoing_chunk::sequence_number)));
@@ -1363,11 +1435,18 @@ impl DB {
           .context("chunk_to_send, cannot find chosen chunk in the outgoing_chunk table")?;
         Ok(chunk_plusplus)
       }
-    })
+    });
+
+    self.check_rep(&mut conn);
+
+    r
   }
 
   pub fn acks_to_send(&self) -> Result<Vec<ffi::OutgoingAck>, DbError> {
     let mut conn = self.connect()?;
+
+    self.check_rep(&mut conn);
+
     use crate::schema::friend;
     use crate::schema::transmission;
     let wide_friends =
@@ -1387,6 +1466,7 @@ impl DB {
 
   pub fn get_friend_address(&self, uid: i32) -> Result<ffi::Address, DbError> {
     let mut conn = self.connect()?;
+    self.check_rep(&mut conn);
 
     use crate::schema::transmission;
 
@@ -1411,6 +1491,7 @@ impl DB {
     uids: Vec<i32>,
   ) -> Result<ffi::Address, DbError> {
     let mut conn = self.connect()?;
+    self.check_rep(&mut conn);
     use crate::schema::friend;
     use crate::schema::transmission;
 
@@ -1508,6 +1589,8 @@ impl DB {
     use crate::schema::outgoing_chunk;
     use crate::schema::sent;
 
+    self.check_rep(&mut conn);
+
     conn
       .transaction::<_, anyhow::Error, _>(|conn_b| {
         let friend_uid = self.get_friend_uid_by_unique_name(conn_b, to_unique_name)?;
@@ -1549,6 +1632,8 @@ impl DB {
         DbError::Unknown(format!("queue_message_to_send: {} (maybe friend doesn't exist?)", e))
       })?;
 
+    self.check_rep(&mut conn);
+
     Ok(())
   }
 
@@ -1560,6 +1645,7 @@ impl DB {
     use crate::schema::friend;
     use crate::schema::message;
     use crate::schema::received;
+    self.check_rep(&mut conn);
 
     let q = received::table.inner_join(message::table).inner_join(friend::table).into_boxed();
 
@@ -1639,6 +1725,8 @@ impl DB {
     let mut conn = self.connect()?;
     use crate::schema::received;
 
+    self.check_rep(&mut conn);
+
     let q = received::table
       .filter(received::delivered.eq(true))
       .order_by(received::delivered_at.desc())
@@ -1663,6 +1751,8 @@ impl DB {
     query: ffi::MessageQuery,
   ) -> Result<Vec<ffi::SentPlusPlus>, DbError> {
     let mut conn = self.connect()?;
+    self.check_rep(&mut conn);
+
     use crate::schema::friend;
     use crate::schema::message;
     use crate::schema::sent;
@@ -1746,6 +1836,8 @@ impl DB {
     query: ffi::MessageQuery,
   ) -> Result<Vec<ffi::DraftPlusPlus>, DbError> {
     let mut conn = self.connect()?;
+    self.check_rep(&mut conn);
+
     use crate::schema::draft;
     use crate::schema::friend;
     use crate::schema::message;
@@ -1783,12 +1875,15 @@ impl DB {
 
   pub fn mark_message_as_seen(&self, uid: i32) -> Result<(), DbError> {
     let mut conn = self.connect()?;
+    self.check_rep(&mut conn);
     use crate::schema::received;
 
     let r = diesel::update(received::table.find(uid))
       .set(received::seen.eq(true))
       .returning(received::uid)
       .get_result::<i32>(&mut conn);
+
+    self.check_rep(&mut conn);
 
     match r {
       Ok(_) => Ok(()),
@@ -2025,6 +2120,8 @@ impl DB {
     max_friends: i32,
   ) -> Result<ffi::Friend, anyhow::Error> {
     let mut conn = self.connect()?;
+    self.check_rep(&mut conn);
+
     use crate::schema::friend;
     use crate::schema::incoming_invitation;
     use crate::schema::outgoing_async_invitation;
@@ -2033,10 +2130,10 @@ impl DB {
     let friend_fragment = ffi::FriendFragment {
       unique_name: unique_name.to_string(),
       display_name: display_name.to_string(),
-      invitation_progress: ffi::InvitationProgress::OutgoingSync,
+      invitation_progress: ffi::InvitationProgress::OutgoingAsync,
       deleted: false,
     };
-    conn.transaction::<_, anyhow::Error, _>(|conn_b| {
+    let r = conn.transaction::<_, anyhow::Error, _>(|conn_b| {
       let has_space = self
         .has_space_for_async_invitations()?;
       if !has_space {
@@ -2107,7 +2204,11 @@ impl DB {
         .execute(conn_b).context("add_outgoing_async_invitation, failed to insert friend into outgoing_chunk::table")?;
 
       Ok(friend)
-    })
+    });
+
+    self.check_rep(&mut conn);
+
+    r
   }
 
   fn complete_outgoing_sync_friend(
@@ -2226,6 +2327,9 @@ impl DB {
     // immediately.
 
     let mut conn = self.connect()?;
+
+    self.check_rep(&mut conn);
+
     use crate::schema::complete_friend;
     use crate::schema::incoming_invitation;
     use crate::schema::message;
@@ -2294,6 +2398,9 @@ impl DB {
 
       Ok(())
     });
+
+    self.check_rep(&mut conn);
+
     match r {
       Ok(_) => Ok(()),
       Err(e) => Err(DbError::Unknown(format!("add_incoming_async_friend_requests: {}", e))),
@@ -2302,6 +2409,7 @@ impl DB {
 
   pub fn get_outgoing_sync_invitations(&self) -> Result<Vec<ffi::OutgoingSyncInvitation>, DbError> {
     let mut conn = self.connect()?;
+    self.check_rep(&mut conn);
     use crate::schema::friend;
     use crate::schema::outgoing_sync_invitation;
 
@@ -2325,6 +2433,7 @@ impl DB {
     &self,
   ) -> Result<Vec<ffi::OutgoingAsyncInvitation>, DbError> {
     let mut conn = self.connect()?;
+    self.check_rep(&mut conn);
     use crate::schema::friend;
     use crate::schema::outgoing_async_invitation;
 
@@ -2349,6 +2458,7 @@ impl DB {
 
   pub fn get_incoming_invitations(&self) -> Result<Vec<ffi::IncomingInvitation>, DbError> {
     let mut conn = self.connect()?; // if error then crash function
+    self.check_rep(&mut conn);
     use crate::schema::incoming_invitation;
 
     incoming_invitation::table
@@ -2375,6 +2485,7 @@ impl DB {
   ) -> Result<(), DbError> {
     // // This function is called when the user accepts a friend request.
     let mut conn = self.connect()?;
+    self.check_rep(&mut conn);
 
     use crate::schema::complete_friend;
     use crate::schema::friend;
@@ -2458,12 +2569,17 @@ impl DB {
           DbError::AlreadyExists("no free ack index".to_string())
         }
         _ => DbError::Unknown(format!("failed to insert address: {}", e)),
-      })
+      })?;
+
+    self.check_rep(&mut conn);
+
+    Ok(())
   }
 
   pub fn deny_incoming_invitation(&self, public_id: &str) -> Result<(), DbError> {
     // This function is called when the user rejects a friend request.
     let mut conn = self.connect()?;
+    self.check_rep(&mut conn);
     use crate::schema::incoming_invitation;
 
     // delete public_id from incoming_invitation
@@ -2471,6 +2587,8 @@ impl DB {
       incoming_invitation::table.filter(incoming_invitation::public_id.eq(public_id)),
     )
     .execute(&mut conn);
+
+    self.check_rep(&mut conn);
 
     match r {
       Ok(_) => Ok(()),
@@ -2487,6 +2605,7 @@ impl DB {
     public_id_claimed_friend_request_public_key: Vec<u8>,
   ) -> Result<(), DbError> {
     let mut conn = self.connect()?;
+    self.check_rep(&mut conn);
     use crate::schema::friend;
     use crate::schema::outgoing_async_invitation;
     use crate::schema::outgoing_sync_invitation;
@@ -2540,6 +2659,7 @@ impl DB {
 
       Ok(())
     });
+    self.check_rep(&mut conn);
 
     match r {
       Ok(_) => Ok(()),
