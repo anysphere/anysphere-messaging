@@ -129,8 +129,8 @@ Status DaemonRpc::GetFriendList(
       new_friend->set_unique_name(std::string(s.unique_name));
       new_friend->set_display_name(std::string(s.display_name));
       new_friend->set_public_id(std::string(s.public_id));
-      new_friend->set_request_progress(
-          asphrdaemon::FriendRequestProgress::Complete);
+      new_friend->set_invitation_progress(
+          asphrdaemon::InvitationProgress::Complete);
     }
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Database failed.", error, e.what(), rpc_call,
@@ -241,9 +241,8 @@ auto DaemonRpc::convertStructDBtoRPC(const db::Friend& db_friend,
   // WARNING: this is SkEtCHy!!
   // TODO(sualeh): can we cast this with a proper function on either of the
   // structs.
-  friend_info.set_request_progress(
-      static_cast<asphrdaemon::FriendRequestProgress>(
-          db_friend.request_progress));
+  friend_info.set_invitation_progress(
+      static_cast<asphrdaemon::InvitationProgress>(db_friend.request_progress));
   return std::pair(friend_info, std::string(db_address.friend_request_message));
 }
 
