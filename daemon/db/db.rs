@@ -485,7 +485,7 @@ pub mod ffi {
     // 1. If the friend is marked as deleted, then we ignore the request.
     // 2. If the friend is marked as accepted, then we ignore the request.
     // 3. If the friend is marked as incoming, then we update the message.
-    // 4. If the friend is marked as outgoing, then we approve this request
+    // 4. If the friend is marked as outgoing, then we approve this request.
     // immediately.
     fn add_incoming_async_invitation(&self, public_id: &str, message: &str) -> Result<()>;
     // get invitations
