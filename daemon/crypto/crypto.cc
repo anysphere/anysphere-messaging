@@ -273,19 +273,6 @@ auto decrypt_ack(const string& ciphertext, const string& read_key)
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
 
-auto split(const string& s, char del) -> vector<string> {
-  int start = 0;
-  int end = s.find(del);
-  vector<string> result = {};
-  while (end != -1) {
-    result.push_back(s.substr(start, end - start));
-    start = end + 1;
-    end = s.find(del, start);
-  }
-  result.push_back(s.substr(start, end - start));
-  return result;
-}
-
 // encrypt an asynchronous friend request
 // The async friend request from A->B is Enc(ID_B, ID_A || msg) =
 // = Enc(f_sk_A, f_pk_B, ID_A || msg)
@@ -305,35 +292,42 @@ auto encrypt_async_invitation(const string& self_id,
     return asphr::InvalidArgumentError(
         "self_private_key is not the correct size");
   }
-  // formmat the message we want to send
-  // assert message and self_id does not contain '|'
-  assert(message.find('|') == string::npos);
-  assert(self_id.find('|') == string::npos);
-  string message_to_send = self_id + "|" + message;
-
-  if (message_to_send.size() > GUARANTEED_SINGLE_MESSAGE_SIZE) {
-    return asphr::InvalidArgumentError("friend request message too long!!");
+  // ensure that the message is not too long
+  if (message.size() > INVITATION_MESSAGE_MAX_PLAINTEXT_SIZE) {
+    return asphr::InvalidArgumentError(
+        "message is too long, must be less than " +
+        std::to_string(INVITATION_MESSAGE_MAX_PLAINTEXT_SIZE));
+  }
+  asphrclient::AsyncInvitation async_invitation;
+  async_invitation.set_my_public_id(self_id);
+  async_invitation.set_message(message);
+  std::string async_invitation_str;
+  if (!async_invitation.SerializeToString(&async_invitation_str)) {
+    return absl::UnknownError("failed to serialize async invitation");
   }
 
   // We now encrypt the message, using a clone of the code above
-  string plaintext = message_to_send;
+  string plaintext = async_invitation_str;
   size_t unpadded_plaintext_size = plaintext.size();
-  // I couldn't find any documentation on what the max length is for this
-  // so i'll leave it for now
 
   // Here we need to pad the plaintext to the max length
   // to prevent length attack
   // since the public key crypto protocol asserts that
   // "ciphertextlength = plaintextlength + const"
+  if (unpadded_plaintext_size > ASYNC_INVITATION_SIZE) {
+    return asphr::InvalidArgumentError(
+        "message is too long, must be less than " +
+        std::to_string(ASYNC_INVITATION_SIZE));
+  }
 
-  size_t plaintext_size = ASYNC_FRIEND_REQUEST_SIZE;
-  plaintext.resize(plaintext_size);
+  plaintext.resize(ASYNC_INVITATION_SIZE);
 
   // use libsodium to pad the plaintext
+  size_t plaintext_size;
   if (sodium_pad(&plaintext_size,
                  reinterpret_cast<unsigned char*>(plaintext.data()),
-                 unpadded_plaintext_size, ASYNC_FRIEND_REQUEST_SIZE,
-                 plaintext.size()) != 0) {
+                 unpadded_plaintext_size, ASYNC_INVITATION_SIZE,
+                 ASYNC_INVITATION_SIZE) != 0) {
     return absl::UnknownError("failed to pad message");
   }
 
@@ -364,10 +358,7 @@ auto encrypt_async_invitation(const string& self_id,
   assert(ciphertext.size() == ciphertext_size + crypto_box_NONCEBYTES);
   assert(ciphertext_size == plaintext_size + crypto_box_MACBYTES);
   assert(plaintext.size() == plaintext_size);
-  assert(plaintext_size == ASYNC_FRIEND_REQUEST_SIZE);
-
-  // the ciphertext consists of non-utf-8 characters
-  // cout << "Friend Request Ciphertext: " << ciphertext << endl;
+  assert(plaintext_size == ASYNC_INVITATION_SIZE);
 
   return ciphertext;
 }
@@ -391,7 +382,7 @@ auto decrypt_async_invitation(const string& self_invitation_private_key,
   auto padded_plaintext_len = ciphertext_len - crypto_box_MACBYTES;
 
   // make sure the plaintext is of the correct length
-  if (padded_plaintext_len != ASYNC_FRIEND_REQUEST_SIZE) {
+  if (padded_plaintext_len != ASYNC_INVITATION_SIZE) {
     return asphr::InvalidArgumentError("ciphertext is not the correct size");
   }
 
@@ -425,23 +416,22 @@ auto decrypt_async_invitation(const string& self_invitation_private_key,
   plaintext.resize(padded_plaintext_len);
   if (sodium_unpad(&unpadded_plaintext_len,
                    reinterpret_cast<unsigned char*>(plaintext.data()),
-                   padded_plaintext_len, ASYNC_FRIEND_REQUEST_SIZE) != 0) {
+                   padded_plaintext_len, ASYNC_INVITATION_SIZE) != 0) {
     return absl::UnknownError("failed to unpad message");
   }
 
   plaintext.resize(unpadded_plaintext_len);
 
-  // split the plaintext by '|'
-  std::vector<string> split_plaintext = split(plaintext, '|');
-  if (split_plaintext.size() != 2) {
-    return absl::UnknownError("failed to split plaintext");
+  // deconstruct protobuf
+  asphrclient::AsyncInvitation async_invitation;
+  if (!async_invitation.ParseFromString(plaintext)) {
+    return absl::UnknownError("failed to deserialize async invitation");
   }
-  // TODO: insert additional checks here
-  // read the allocation
-  // create the friend
+
   // TODO: specifically, we need to verify that the public_id in the body
   // corresponds to the public_id that the message was authenticated with
   // otherwise, someone might impersonate the real receiver
-  return std::make_pair(split_plaintext[0], split_plaintext[1]);
+  return make_pair(async_invitation.public_id(),
+                   async_invitation.invitation_id());
 }
 }  // namespace crypto

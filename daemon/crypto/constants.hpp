@@ -35,7 +35,12 @@ constexpr int MAX_FRIENDS = MESSAGE_SIZE / ENCRYPTED_ACKING_BYTES;
 constexpr int MAX_ASYNC_FRIEND_REQUESTS = 500;
 constexpr int ASYNC_FRIEND_REQUEST_BATCH_SIZE = 1000;
 // TODO: figure out a reasonable limit here...
-constexpr int INVITATION_MESSAGE_MAX_PLAINTEXT_SIZE = 500;
+constexpr size_t ASYNC_INVITATION_SIZE = MESSAGE_SIZE;  // arbitrary
+constexpr int INVITATION_MESSAGE_MAX_PLAINTEXT_SIZE = ASYNC_INVITATION_SIZE;
+static_assert(
+    INVITATION_MESSAGE_MAX_PLAINTEXT_SIZE < ASYNC_INVITATION_SIZE,
+    "INVITATION_MESSAGE_MAX_PLAINTEXT_SIZE must be < "
+    "ASYNC_INVITATION_SIZE (because we also have the public ID in there");
 
 // NOTE: whenever these default values are changed, please make a database
 // migration in the shape of UPDATE config SET value = 'new_value' WHERE value =

@@ -11,6 +11,7 @@
 #include <string>
 
 #include "constants.hpp"
+#include "schema/asyncinvitation.proto"
 #include "schema/message.pb.h"
 
 /* Crypto implements an IND-CCA2 secure scheme.
@@ -74,6 +75,9 @@ auto encrypt_async_invitation(const string& self_id,
                               const string& message) -> asphr::StatusOr<string>;
 
 // this method is needed for transmission retrieval
+// WARNING: WHEN CALLING THIS, VERIFY THAT THE RETURNED PUBLIC_ID CORRESPONDS TO
+// THE FRIEND_INVITATION_PUBLIC_KEY OTHERWISE, SOMEONE CAN IMPERSONATE A GIVEN
+// PUBLIC ID.
 auto decrypt_async_invitation(const string& self_invitation_private_key,
                               const string& friend_invitation_public_key,
                               const string& ciphertext)

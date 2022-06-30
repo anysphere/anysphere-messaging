@@ -718,7 +718,16 @@ auto Transmitter::retrieve_async_invitations(int start_index, int end_index)
                     friend_public_id_status.status().message());
       continue;
     }
-    // now we can insert this invitation in the DB!!! very very exciting :)
+    auto friend_public_id = friend_public_id_status.value();
+    // verify that the friend_request_public_key is the same as the one we
+    // authenticated the thing with
+    // TODO: write the security checks needed here clearly in the whitepaper.
+    if (friend_public_id.invitation_public_key != friend_public_key) {
+      // TODO: maybe we can warn the user that an imposter is about.
+      ASPHR_LOG_ERR("Friend public ID does not match friend public key.",
+                    error_message, friend_public_id_status.status().message());
+      continue;
+    }
 
     try {
       G.db->add_incoming_async_invitation(friend_public_id_str, friend_message);
