@@ -100,7 +100,7 @@ function LegacyFriendsModal({
         action: () => {},
         data: {
           type: "none",
-          name: "(No friends.)",
+          name: "(No contacts.)",
         },
       },
     ];

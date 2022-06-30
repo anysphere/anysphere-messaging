@@ -31,7 +31,7 @@ function MultiSelect(props: {
   const filteredOptions = useSearch(
     props.options,
     props.multiSelectState.text,
-    ["name"]
+    ["uniqueName", "displayName"]
   );
 
   let selectableOptions: (ListItem<string> | string)[] = filteredOptions.map(
@@ -52,7 +52,7 @@ function MultiSelect(props: {
 
   if (selectableOptions.length === 0) {
     selectableOptions.push(
-      `No friends matching ${props.multiSelectState.text}`
+      `No contacts matching ${props.multiSelectState.text}`
     );
   }
 
@@ -100,7 +100,7 @@ function MultiSelect(props: {
       <div className="grid pl-2">
         <input
           type="text"
-          className="w-full text-sm placeholder:text-asbrown-100 focus:outline-none"
+          className="w-full border-0 p-0 text-sm placeholder:text-asbrown-100 focus:outline-none focus:ring-0"
           onChange={(e) =>
             props.onEdit({
               ...props.multiSelectState,
@@ -108,7 +108,7 @@ function MultiSelect(props: {
             })
           }
           ref={inputRef}
-          placeholder="Search for a friend..."
+          placeholder="Search for a contact..."
           value={props.multiSelectState.text}
           autoFocus={props.focused}
         ></input>
@@ -215,7 +215,7 @@ function Write(props: {
               focus: "content",
             });
           }}
-          className="h-full w-full grow resize-none whitespace-pre-wrap pt-4 text-sm focus:outline-none"
+          className="h-full w-full grow resize-none whitespace-pre-wrap border-0 p-0 pt-4 text-sm focus:outline-none focus:ring-0"
           value={content}
           onChange={(e) =>
             props.edit({

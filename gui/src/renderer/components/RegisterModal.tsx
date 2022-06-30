@@ -28,18 +28,18 @@ export function RegisterModal({
     case RegisterScreen.Welcome:
       component = (
         <Modal onClose={onClose}>
-          <div className="grid items-center w-full h-full">
-            <div className="grid justify-items-center gap-8 unselectable">
+          <div className="grid h-full w-full items-center">
+            <div className="unselectable grid justify-items-center gap-8">
               <img className="h-12" src={anyspherelogo} alt="Anysphere logo." />
-              <h1 className="font-['Lora'] text-center text-3xl text-asbrown-dark">
+              <h1 className="text-center font-['Lora'] text-3xl text-asbrown-dark">
                 Welcome to{" "}
-                <span className="animate-slideunderline decoration-2 underline underline-offset-4">
+                <span className="animate-slideunderline underline decoration-2 underline-offset-4">
                   complete privacy
                 </span>
                 .
               </h1>
               <button
-                className="animate-revealsimple mt-4 mx-auto text-asbrown-light opacity-80"
+                className="mx-auto mt-4 animate-revealsimple text-asbrown-light opacity-80"
                 onClick={() => setScreen(RegisterScreen.Form)}
               >
                 Get started ›
@@ -70,17 +70,17 @@ function RegisterModalForm({
   const [accesskey, setAccesskey] = React.useState<string>("");
   return (
     <Modal onClose={onClose}>
-      <div className="grid items-center h-full">
+      <div className="grid h-full items-center p-4">
         <div className="grid gap-2 px-1">
           <div className="text-center font-bold">Register</div>
-          <div className="text-sm text-center unselectable py-1">
+          <div className="unselectable py-1 text-center text-sm">
             Anysphere is in alpha! For support, please see{" "}
             <a className="hover:underline" href="https://discord.gg/FxCBpJRbT9">
               our Discord
             </a>
             .
           </div>
-          <div className="text-xs text-asbrown-dark pt-1 unselectable">
+          <div className="unselectable pt-1 text-xs text-asbrown-dark">
             <b>
               Please remember that this is an alpha product. While we think that
               our current implementation meets our privacy guarantees, we may
@@ -102,7 +102,7 @@ function RegisterModalForm({
               focus:ring-0 border-b-2 flex-grow border-asbrown-100"
           />
         </div> */}
-          <div className="flex flex-row my-2 gap-1 justify-center">
+          <div className="my-2 flex flex-row justify-center gap-1">
             <label className="unselectable">Access key: </label>
             <input
               type="text"
@@ -110,21 +110,21 @@ function RegisterModalForm({
               onChange={(e) => {
                 setAccesskey(e.target.value);
               }}
-              className="bg-red-100/[0] mx-2 px-1 font-mono focus:outline-none
-              focus:ring-0 border-b-2 flex-grow border-asbrown-100 placeholder:text-asbrown-200"
+              className="mx-2 flex-grow border-b-2 border-asbrown-100 bg-red-100/[0]
+              px-1 font-mono placeholder:text-asbrown-200 focus:outline-none focus:ring-0"
               autoFocus
               placeholder="alpha testing access key"
             />
           </div>
           <div className="grid">
             <button
-              className="place-self-center my-2 rounded-lg unselectable bg-asbrown-100 text-asbrown-light px-3 py-1"
+              className="unselectable my-2 place-self-center rounded-lg bg-asbrown-100 px-3 py-1 text-asbrown-light"
               onClick={() => onRegister(username, accesskey)}
             >
               Register
             </button>
           </div>
-          <div className="text-xs text-asbrown-dark pt-1 text-center unselectable">
+          <div className="unselectable pt-1 text-center text-xs text-asbrown-dark">
             By clicking Register, you agree to our{" "}
             <a
               className="hover:underline"

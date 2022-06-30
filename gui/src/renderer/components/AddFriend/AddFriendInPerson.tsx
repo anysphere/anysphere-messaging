@@ -23,8 +23,10 @@ function ProgressBar({ progress }: { progress: number }): JSX.Element {
 
 export function StoryForm({
   numberOfLines,
+  completeAll,
 }: {
   numberOfLines: number;
+  completeAll: () => void;
 }): JSX.Element {
   let storyFromInput: String[] = [];
   for (let i = 0; i < numberOfLines; i++) {
@@ -80,6 +82,7 @@ export default function AddFriendInPerson({
 }): JSX.Element {
   const [progress, setProgress] = React.useState<number>(0);
   const [showtedious, setShowtedious] = React.useState<boolean>(false);
+  const [showverify, setShowverify] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     setTimeout(() => {
@@ -154,19 +157,37 @@ export default function AddFriendInPerson({
               <h3 className="pb-8 text-center text-xs text-asbrown-light">
                 Their story.
               </h3>
-              <StoryForm numberOfLines={storylist.length} />
+              <StoryForm
+                numberOfLines={storylist.length}
+                completeAll={() => setShowverify(true)}
+              />
             </div>
           </div>
         </div>
         <p
           className={classNames(
             "self-center px-20 pt-5 text-center text-xs transition",
-            showtedious ? "text-asbrown-200" : "text-transparent"
+            showtedious ? "text-asbrown-200" : "text-transparent",
+            showverify ? "hidden" : ""
           )}
         >
           Tedious? We know, complete privacy is work. But trust us, it is worth
           it.
         </p>
+        <div className="grid items-center justify-center text-center">
+          <button
+            className={classNames(
+              "unselectable rounded-lg bg-asbrown-100 px-3 py-1 text-asbrown-light",
+              showverify ? "" : "hidden"
+            )}
+            onClick={() => {
+              console.log("next step");
+              setShowverify(false);
+            }}
+          >
+            Verify
+          </button>
+        </div>
       </div>
     </div>
   );

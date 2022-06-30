@@ -23,5 +23,9 @@ export function CmdKPortal(props: Props) {
     return null;
   }
 
-  return <Modal onClose={props.onClose}>{props.children}</Modal>;
+  return (
+    <Modal onClose={props.onClose}>
+      <div className="p-2">{props.children}</div>
+    </Modal>
+  );
 }
