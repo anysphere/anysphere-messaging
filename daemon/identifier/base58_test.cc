@@ -109,5 +109,8 @@ TEST(Base58Test, BitcoinEncode) {
     }
     auto b = base58::Encode(raw_bytes_string);
     EXPECT_EQ(p.second, b);
+    auto decoded = base58::Decode(p.second);
+    EXPECT_TRUE(decoded.ok());
+    EXPECT_EQ(raw_bytes_string, decoded.value());
   }
 }
