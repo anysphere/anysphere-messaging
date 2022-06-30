@@ -1,6 +1,6 @@
 version: 0.1
 cli:
-  version: 0.13.2-beta
+  version: 0.14.1-beta
 repo:
   repo:
     host: github.com
@@ -8,12 +8,6 @@ repo:
     name: client
   trunk_branch: origin/main
 lint:
-  linters:
-    - name: clang-tidy
-      environment:
-        - name: DEVELOPER_DIR
-          value: "${env.DEVELOPER_DIR}"
-          optional: true
   enabled:
     - actionlint@1.6.4
     - buildifier@4.0.1
@@ -24,3 +18,8 @@ lint:
     - shellcheck@0.7.2
     - shfmt@3.4.0
     - rustfmt@1.58.1
+  ignore:
+    - linters: [ALL]
+      paths:
+        # proto files
+        - gui/src/daemon/schema/**

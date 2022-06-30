@@ -10,7 +10,8 @@
 #include <stdexcept>
 #include <string>
 
-#include "daemon/constants.hpp"
+#include "constants.hpp"
+#include "schema/asyncinvitation.pb.h"
 #include "schema/message.pb.h"
 
 /* Crypto implements an IND-CCA2 secure scheme.
@@ -27,12 +28,13 @@ inline auto init() -> void {
     throw std::runtime_error("sodium_init failed");
   }
 }
-// Generates a new keypair in the format <public_key, private_key>.
-auto generate_keypair() -> std::pair<string, string>;
 
-auto generate_friend_key(const string& my_public_key, int index) -> string;
-auto decode_friend_key(const string& friend_key)
-    -> asphr::StatusOr<std::pair<int, string>>;
+auto generic_hash(string_view data) -> std::string;
+
+// Generates a new keypair in the format <public_key, private_key>.
+auto generate_kx_keypair() -> std::pair<string, string>;
+
+auto generate_invitation_keypair() -> std::pair<string, string>;
 
 auto derive_read_write_keys(string my_public_key, string my_private_key,
                             string friend_public_key)
@@ -64,4 +66,20 @@ auto encrypt_ack(uint32_t ack_id, const string& write_key)
 auto decrypt_ack(const string& ciphertext, const string& read_key)
     -> asphr::StatusOr<uint32_t>;
 
+// encrypt an asynchronous friend request
+// The async friend request from A->B is Enc(ID_B, ID_A || msg) = Enc(f_pk_B,
+// ID_A || msg)
+auto encrypt_async_invitation(const string& self_id,
+                              const string& self_invitation_private_key,
+                              const string& friend_invitation_public_key,
+                              const string& message) -> asphr::StatusOr<string>;
+
+// this method is needed for transmission retrieval
+// WARNING: WHEN CALLING THIS, VERIFY THAT THE RETURNED PUBLIC_ID CORRESPONDS TO
+// THE FRIEND_INVITATION_PUBLIC_KEY OTHERWISE, SOMEONE CAN IMPERSONATE A GIVEN
+// PUBLIC ID.
+auto decrypt_async_invitation(const string& self_invitation_private_key,
+                              const string& friend_invitation_public_key,
+                              const string& ciphertext)
+    -> asphr::StatusOr<pair<string, string>>;
 };  // namespace crypto

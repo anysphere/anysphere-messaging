@@ -6,7 +6,7 @@ Set up VSCode rust-analyzer (very recommended!):
 bazelisk run @rules_rust//tools/rust_analyzer:gen_rust_project
 ```
 
-# Database changes
+## Database changes
 
 We want to create a migration!
 
@@ -24,4 +24,12 @@ and
 
 ```
 ./diesel-cli.sh migration redo
+```
+
+## Debugging
+
+For debugging the Rust code, run
+
+```
+bazelisk test //... --test_env=RUST_BACKTRACE=1
 ```
