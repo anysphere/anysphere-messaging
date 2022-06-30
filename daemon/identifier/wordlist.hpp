@@ -512,43 +512,32 @@ sour)EOM";
 const vector<string> adjectives_vec = absl::StrSplit(adjectives, '\n');
 
 constexpr auto nouns = R"EOM(seed
-lignite
 eagerness
 notice
-little
-official
 link
 pastor
 planet
 scene
-lead
 polynomial
 pocket
 perception
 patent
 clay
-six
 specimen
 course
 music
 significance
-ten
 narrative
 wealth
 nation
 drum
 explosion
-chicago
 reporter
 farming
-lots
-reproach
 author
-india
 crest
 colleague
 locality
-rein
 bell
 boy
 volley
@@ -557,10 +546,7 @@ chaos
 facility
 lagoon
 specialist
-redcoat
-well
 chart
-germany
 wound
 collage
 pension
@@ -568,14 +554,11 @@ security
 plight
 coast
 citizen
-serpent
 receptionist
-min
 holder
 glycerine
 cowboy
 hunting
-sludge
 signal
 algae
 assurance
@@ -588,17 +571,11 @@ nightclub
 approval
 badness
 contractor
-skirmisher
-transfer
 stupidity
 meal
 grip
 village
 observer
-staining
-murder
-lung
-california
 canteen
 preparation
 indian
@@ -611,10 +588,8 @@ labor
 flag
 appointment
 greek
-missouri
 accident
 round
-iodide
 controversy
 loss
 winter
@@ -623,7 +598,6 @@ daughter
 host
 illness
 prisoner
-din
 partnership
 storm
 situation
@@ -632,21 +606,17 @@ conversion
 diameter
 artillery
 particle
-release
 actuality
 sensitivity
 fig
-hit
 flash
 wax
 order
 space
 foe
-steeple
 drawer
 psychologist
 protest
-april
 message
 consciousness
 discrepancy
@@ -655,14 +625,12 @@ heritage
 level
 appendix
 hall
-much
 data
 grave
 reactionary
 strategy
 phosphate
 instrument
-frontage
 worth
 honeybee
 fighting
@@ -672,13 +640,10 @@ presence
 player
 tea
 curse
-k
 lamp
-gunfire
 root
 soldier
 pride
-devil
 canon
 mine
 clarity
@@ -701,11 +666,9 @@ toe
 administration
 enzyme
 identity
-morphophonemics
 voice
 industry
 protein
-single
 item
 benefit
 ability
@@ -716,32 +679,22 @@ supervision
 oxygen
 distance
 flight
-liter
 miracle
 disease
 mustache
-no
 stride
-gag
 dwelling
 turmoil
-marshal
-october
 audience
 selling
-england
 unknown
 gaze
-pansy
 oxidation
-work
 pair
 shell
 composite
 comrade
-affairs
 fragment
-fibrosis
 exasperation
 instance
 class
@@ -755,7 +708,6 @@ shelter
 spectator
 misery
 article
-g
 iliad
 distinction
 victory
@@ -799,7 +751,6 @@ male
 statue
 behavior
 governor
-sweden
 function
 active
 france
@@ -1043,7 +994,6 @@ assignment
 clothing
 barn
 violation
-rifle
 pot
 epidemic
 incentive
@@ -1227,7 +1177,6 @@ hunch
 member
 judge
 portion
-slave
 college
 state
 gadget
@@ -1450,7 +1399,6 @@ taxpayer
 report
 value
 grade
-kiss
 drugstore
 alveolus
 decision
@@ -1548,7 +1496,6 @@ foreigner
 suit
 metropolis
 mile
-republican
 slipper
 courage
 president
@@ -1601,7 +1548,6 @@ mars
 interruption
 quality
 satire
-christianity
 intersection
 horror
 donor
@@ -1632,7 +1578,6 @@ rubber
 filling
 boat
 conjugate
-pa
 philadelphia
 corridor
 maintenance
@@ -1756,7 +1701,6 @@ manifold
 branch
 buffer
 existence
-negro
 prevision
 field
 complexity
@@ -1834,7 +1778,6 @@ gate
 phone
 scot
 investigation
-sex
 registrant
 rat
 literature
@@ -1852,7 +1795,6 @@ assistance
 destiny
 farmer
 pyrex
-catholicism
 momentum
 percentage
 personality
@@ -1874,7 +1816,6 @@ first
 outreach
 money
 sentence
-weapon
 photograph
 watch
 micelle
@@ -2078,8 +2019,6 @@ chin
 establishment
 adjustment
 indicator
-trigger
-demonstration
 responsibility
 maturity
 desperation
@@ -2099,7 +2038,6 @@ friday
 drug
 horizon
 potter
-m
 manchester
 bath
 nigger
@@ -2139,7 +2077,6 @@ procurement
 approach
 leadership
 tub
-bw
 tuesday
 seat
 services
@@ -2160,7 +2097,6 @@ quirt
 object
 stream
 mouth
-use
 overpayment
 proprietor
 selection
@@ -2190,7 +2126,6 @@ clue
 song
 reasoning
 living
-demythologization
 resistance
 rate
 progress
@@ -2246,7 +2181,6 @@ indignation
 card
 victim
 merchant
-rabbi
 straw
 flower
 sketch
@@ -2257,7 +2191,6 @@ golf
 rose
 odor
 parameter
-discrimination
 greatcoat
 additive
 sound
@@ -2323,7 +2256,6 @@ magician
 rushing
 rack
 buckskin
-ma
 thrill
 saturday
 thicket
@@ -2349,7 +2281,6 @@ plane
 ceiling
 brick
 barge
-laos
 years
 crowd
 combination
@@ -2383,7 +2314,6 @@ praise
 background
 bond
 haze
-atlanta
 week
 vision
 micron
@@ -2467,9 +2397,7 @@ dish
 lawn
 terror
 strain
-fly
 teacher
-divan
 stare
 search
 panic
@@ -2481,7 +2409,6 @@ justice
 surplus
 specificity
 warehouse
-l
 elution
 navy
 credit
@@ -2497,7 +2424,6 @@ hands
 entrepreneur
 idea
 secretary
-texas
 sigh
 policy
 anaconda
@@ -2619,7 +2545,6 @@ rush
 formation
 move
 game
-f
 whole
 march
 viewpoint
@@ -2645,7 +2570,6 @@ champion
 gram
 doorway
 september
-hr
 flow
 plant
 fringe
@@ -2662,7 +2586,6 @@ adult
 parallel
 dedication
 champagne
-slavery
 detergent
 defeat
 tuberculosis
@@ -2701,10 +2624,8 @@ fever
 vector
 canvas
 response
-gm
 syllable
 cleaning
-then
 detail
 objection
 fellowship
@@ -2912,7 +2833,6 @@ chapter
 car
 zinc
 reduction
-nazi
 drinking
 synthesis
 quantity
@@ -2929,7 +2849,6 @@ court
 water
 america
 public
-gun
 experiment
 lyric
 venus
@@ -2979,8 +2898,6 @@ saline
 sandwich
 father
 journey
-pronoun
-lb
 dominion
 crash
 precision
@@ -3056,7 +2973,6 @@ cafe
 doctor
 taste
 yankee
-supremacy
 arc
 duty
 strike
@@ -3286,7 +3202,6 @@ relief
 veteran
 purchase
 estate
-tsh
 study
 commission
 street
