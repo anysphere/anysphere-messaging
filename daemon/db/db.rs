@@ -1122,11 +1122,11 @@ impl DB {
   }
 
 
-  /// It checks if the database has been registered
+  /// Returns whether the user has registered.
   /// 
   /// Returns:
   /// 
-  /// A boolean value.
+  /// Whether the user has registered.
   pub fn has_registered(&self) -> Result<bool, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::config;
