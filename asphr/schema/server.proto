@@ -13,11 +13,18 @@ service Server {
   // Sending and receiving protobufs
   rpc SendMessage(SendMessageInfo) returns (SendMessageResponse) {}
   rpc ReceiveMessage(ReceiveMessageInfo) returns (ReceiveMessageResponse) {}
+
+  // Making Friends protobufs
+  rpc AddAsyncInvitation(AddAsyncInvitationInfo)
+      returns (AddAsyncInvitationResponse) {}
+
+  rpc GetAsyncInvitations(GetAsyncInvitationsInfo)
+      returns (GetAsyncInvitationsResponse) {}
 }
 
 // The RegisterInfo message is sent to the server to register a new user.
-message RegisterInfo { 
-  bytes public_key = 1;
+message RegisterInfo {
+  bytes invitation_public_key = 1;
   string beta_key = 2;
 }
 
@@ -35,14 +42,29 @@ message SendMessageInfo {
   bytes acks = 4;
 }
 
-message SendMessageResponse { 
-}
+message SendMessageResponse {}
 
-message ReceiveMessageInfo { 
-  bytes pir_query = 1;
-}
+message ReceiveMessageInfo { bytes pir_query = 1; }
 
-message ReceiveMessageResponse { 
-  bytes pir_answer = 1; 
+message ReceiveMessageResponse {
+  bytes pir_answer = 1;
   bytes pir_answer_acks = 2;
+}
+
+message AddAsyncInvitationInfo {
+  int32 index = 1;
+  bytes invitation = 2;
+  string authentication_token = 3;
+}
+
+message AddAsyncInvitationResponse {}
+
+message GetAsyncInvitationsInfo {
+  int32 start_index = 1;
+  int32 end_index = 2;
+}
+
+message GetAsyncInvitationsResponse {
+  repeated bytes invitations = 1;
+  repeated bytes invitation_public_key = 2;
 }

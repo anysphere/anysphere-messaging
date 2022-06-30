@@ -5,8 +5,8 @@
 
 """Load asphr repos (part 5)."""
 
-load("@rules_rust//crate_universe:defs.bzl", "crate", "crates_repository", "render_config")
 load("@cxx.rs//tools/bazel:vendor.bzl", rust_cxx_vendor = "vendor")
+load("@rules_rust//crate_universe:defs.bzl", "crate", "crates_repository", "render_config")
 load(":asphr_load.bzl", "RUST_VERSION")
 
 def load_asphr_repos5(asphr_path):
@@ -16,6 +16,9 @@ def load_asphr_repos5(asphr_path):
         name = "crate_index",
         lockfile = asphr_path + "//:Cargo.Bazel.lock",
         packages = {
+            "anyhow": crate.spec(
+                version = "1.0",
+            ),
             "diesel": crate.spec(
                 version = "2.0.0-rc.0",
                 features = ["sqlite", "returning_clauses_for_sqlite_3_35"],
@@ -24,12 +27,12 @@ def load_asphr_repos5(asphr_path):
                 version = "2.0.0-rc.0",
                 features = ["sqlite"],
             ),
-            "rand": crate.spec(
-                version = "0.8.5",
-            ),
             "libsqlite3-sys": crate.spec(
                 version = "0.24.2",
                 features = ["bundled"],
+            ),
+            "rand": crate.spec(
+                version = "0.8.5",
             ),
         },
         # Setting the default package name to `""` forces the use of the macros defined in this repository
@@ -39,7 +42,7 @@ def load_asphr_repos5(asphr_path):
             default_package_name = "",
         ),
     )
-    
+
     rust_cxx_vendor(
         name = "third-party",
         cargo_version = RUST_VERSION,

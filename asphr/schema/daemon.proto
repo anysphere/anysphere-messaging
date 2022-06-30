@@ -14,159 +14,230 @@ import "google/protobuf/timestamp.proto";
 package asphrdaemon;
 
 service Daemon {
-    rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {}
+  rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {}
 
-    rpc GetFriendList(GetFriendListRequest) returns (GetFriendListResponse) {}
+  rpc GetMyPublicID(GetMyPublicIDRequest) returns (GetMyPublicIDResponse) {}
 
-    rpc GenerateFriendKey(GenerateFriendKeyRequest) returns (GenerateFriendKeyResponse) {}
+  rpc GetFriendList(GetFriendListRequest) returns (GetFriendListResponse) {}
+  rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse) {}
 
-    rpc AddFriend(AddFriendRequest) returns (AddFriendResponse) {}
+  // Invitations (async + sync) section. Sync \similarTo InPerson.
+  rpc AddSyncFriend(AddSyncFriendRequest) returns (AddSyncFriendResponse) {}
+  rpc AddAsyncFriend(AddAsyncFriendRequest) returns (AddAsyncFriendResponse) {}
 
-    rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse) {}
+  rpc GetOutgoingSyncInvitations(GetOutgoingSyncInvitationsRequest)
+      returns (GetOutgoingSyncInvitationsResponse) {}
+  rpc GetOutgoingAsyncInvitations(GetOutgoingAsyncInvitationsRequest)
+      returns (GetOutgoingAsyncInvitationsResponse) {}
 
-    rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {}
+  rpc GetIncomingAsyncInvitations(GetIncomingAsyncInvitationsRequest)
+      returns (GetIncomingAsyncInvitationsResponse) {}
 
-    rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse) {}
+  rpc AcceptAsyncInvitation(AcceptAsyncInvitationRequest)
+      returns (AcceptAsyncInvitationResponse) {}
+  rpc RejectAsyncInvitation(RejectAsyncInvitationRequest)
+      returns (RejectAsyncInvitationResponse) {}
 
-    rpc GetMessagesStreamed(GetMessagesRequest) returns (stream GetMessagesResponse) {}
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {}
 
-    rpc GetOutboxMessages(GetOutboxMessagesRequest) returns (GetOutboxMessagesResponse) {}
+  // Get Messages section
+  rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse) {}
+  rpc GetMessagesStreamed(GetMessagesRequest)
+      returns (stream GetMessagesResponse) {}
+  rpc GetOutboxMessages(GetOutboxMessagesRequest)
+      returns (GetOutboxMessagesResponse) {}
+  rpc GetSentMessages(GetSentMessagesRequest)
+      returns (GetSentMessagesResponse) {}
 
-    rpc GetSentMessages(GetSentMessagesRequest) returns (GetSentMessagesResponse) {}
+  rpc MessageSeen(MessageSeenRequest) returns (MessageSeenResponse) {}
 
-    rpc MessageSeen(MessageSeenRequest) returns (MessageSeenResponse) {}
+  // GetStatus returns the status of the daemon. Things like how long since the
+  // last send/receive cycle, etc.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse) {}
 
-    // GetStatus returns the status of the daemon. Things like how long since the last send/receive cycle, etc.
-    rpc GetStatus(GetStatusRequest) returns (GetStatusResponse) {}
+  rpc GetLatency(GetLatencyRequest) returns (GetLatencyResponse) {}
+  rpc ChangeLatency(ChangeLatencyRequest) returns (ChangeLatencyResponse) {}
 
-    rpc GetLatency(GetLatencyRequest) returns (GetLatencyResponse) {}
-    rpc ChangeLatency(ChangeLatencyRequest) returns (ChangeLatencyResponse) {}
-
-    rpc Kill(KillRequest) returns (KillResponse) {}
+  rpc Kill(KillRequest) returns (KillResponse) {}
 }
 
 message RegisterUserRequest {
-    string name = 1;
-    string beta_key = 2;
+  string name = 1;
+  string beta_key = 2;
 }
 
 message RegisterUserResponse {}
 
 message GetFriendListRequest {}
 
+enum InvitationProgress {
+  OutgoingAsync = 0;
+  OutgoingSync = 1;
+  Complete = 2;
+}
+
 message FriendInfo {
+  string unique_name = 1;
+  string display_name = 2;
+  string public_id = 3;
+  InvitationProgress invitation_progress = 4;
+}
+
+message GetFriendListResponse { repeated FriendInfo friend_infos = 1; }
+
+message GetMyPublicIDRequest {}
+
+message GetMyPublicIDResponse {
+  string public_id = 1;
+  string story =
+      2; // en encoding of the public identifier in a nice story format
+}
+
+message AddSyncFriendRequest {
+  string unique_name = 1;
+  string display_name = 2;
+  string story = 3; // this is the story representing the public identifier
+}
+
+message AddSyncFriendResponse {}
+
+message AddAsyncFriendRequest {
+  string unique_name = 1;
+  string display_name = 2;
+  string public_id = 3;
+  string message = 4;
+}
+
+message AddAsyncFriendResponse {}
+
+message GetOutgoingSyncInvitationsRequest {}
+
+message GetOutgoingSyncInvitationsResponse {
+  message OutgoingSyncInvitationInfo {
     string unique_name = 1;
     string display_name = 2;
-    bool enabled = 3;
+    string story = 3;
+    google.protobuf.Timestamp sent_at = 4;
+  }
+  repeated OutgoingSyncInvitationInfo invitations = 1;
 }
 
-message GetFriendListResponse {
-    repeated FriendInfo friend_infos = 1;
-}
+message GetOutgoingAsyncInvitationsRequest {}
 
-message GenerateFriendKeyRequest {
+message GetOutgoingAsyncInvitationsResponse {
+  message OutgoingAsyncInvitationInfo {
     string unique_name = 1;
     string display_name = 2;
+    string public_id = 3;
+    string message = 4;
+    google.protobuf.Timestamp sent_at = 5;
+  }
+  repeated OutgoingAsyncInvitationInfo invitations = 1;
 }
 
-message GenerateFriendKeyResponse {
-    string key = 1;
+message GetIncomingAsyncInvitationsRequest {
+  // TODO(sualeh): make it optionally take a public_id
+  // optional string public_id = 1;
 }
 
-message AddFriendRequest {
-    string unique_name = 1;
-    string key = 2;
+message GetIncomingAsyncInvitationsResponse {
+  message IncomingAsyncInvitationInfo {
+    string public_id = 1;
+    string message = 2;
+    google.protobuf.Timestamp received_at = 3;
+  }
+  repeated IncomingAsyncInvitationInfo invitations = 1;
 }
 
-message AddFriendResponse {}
-
-message RemoveFriendRequest {
-    string unique_name = 1;
+// accepts an async friend requestj
+message AcceptAsyncInvitationRequest {
+  string public_id = 1;
+  string unique_name = 2;
+  string display_name = 3;
 }
+
+message AcceptAsyncInvitationResponse {}
+
+// rejects an async friend requestj
+message RejectAsyncInvitationRequest { string public_id = 1; }
+
+message RejectAsyncInvitationResponse {}
+
+message RemoveFriendRequest { string unique_name = 1; }
 
 message RemoveFriendResponse {}
 
 message SendMessageRequest {
-    string unique_name = 1;
-    string message = 2;
+  string unique_name = 1;
+  string message = 2;
 }
 
 message SendMessageResponse {}
 
 message BaseMessage {
-    // this ID is NOT the same as the ID in message.proto
-    // in particular, this ID is guaranteed to be unique among ALL messages (on a given device), whereas the ID in message.proto
-    // is only unique for each <sender, recipient> pair.
-    // the format of this ID is something like (to|from):sender:sequence_number
-    int32 id = 1;
-    string message = 2;
-    string unique_name = 3;
-    string display_name = 4;
+  // this ID is NOT the same as the ID in message.proto
+  // in particular, this ID is guaranteed to be unique among ALL messages (on a
+  // given device), whereas the ID in message.proto is only unique for each
+  // <sender, recipient> pair. the format of this ID is something like
+  // (to|from):sender:sequence_number
+  int32 id = 1;
+  string message = 2;
+  string unique_name = 3;
+  string display_name = 4;
 }
 
 message IncomingMessage {
-    BaseMessage m = 1;
-    google.protobuf.Timestamp delivered_at = 2;
-    bool seen = 3;
-    bool delivered = 4;
+  BaseMessage m = 1;
+  google.protobuf.Timestamp delivered_at = 2;
+  bool seen = 3;
+  bool delivered = 4;
 }
 
 message OutgoingMessage {
-    BaseMessage m = 1;
-    google.protobuf.Timestamp sent_at = 2;
-    bool delivered = 3;
-    google.protobuf.Timestamp delivered_at = 4;
+  BaseMessage m = 1;
+  google.protobuf.Timestamp sent_at = 2;
+  bool delivered = 3;
+  google.protobuf.Timestamp delivered_at = 4;
 }
 
 message GetMessagesRequest {
-    enum Filter {
-        ALL = 0;
-        NEW = 1;
-    }
-    Filter filter = 1;
+  enum Filter {
+    ALL = 0;
+    NEW = 1;
+  }
+  Filter filter = 1;
 }
 
-message GetMessagesResponse {
-    repeated IncomingMessage messages = 1;
-}
+message GetMessagesResponse { repeated IncomingMessage messages = 1; }
 
 message GetOutboxMessagesRequest {}
 
-message GetOutboxMessagesResponse {
-    repeated OutgoingMessage messages = 1;
-}
+message GetOutboxMessagesResponse { repeated OutgoingMessage messages = 1; }
 
 message GetSentMessagesRequest {}
 
-message GetSentMessagesResponse {
-    repeated OutgoingMessage messages = 1;
-}
+message GetSentMessagesResponse { repeated OutgoingMessage messages = 1; }
 
-message MessageSeenRequest {
-    int32 id = 1;
-}
+message MessageSeenRequest { int32 id = 1; }
 
 message MessageSeenResponse {}
 
 message GetStatusRequest {}
 
 message GetStatusResponse {
-    bool registered = 1;
-    string release_hash = 2;
-    int32 latency_seconds = 3;
-    string server_address = 4;
+  bool registered = 1;
+  string release_hash = 2;
+  int32 latency_seconds = 3;
+  string server_address = 4;
 }
 
 message GetLatencyRequest {}
-message GetLatencyResponse {
-    int32 latency_seconds = 1;
-}
+message GetLatencyResponse { int32 latency_seconds = 1; }
 
-message ChangeLatencyRequest {
-    int32 latency_seconds = 1;
-}
+message ChangeLatencyRequest { int32 latency_seconds = 1; }
 
 message ChangeLatencyResponse {}
 
 message KillRequest {}
+
 message KillResponse {}

@@ -1,0 +1,29 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
+/*
+asyncinvitation.proto contains the protobuf for the public identifier.
+this schema should be kept backwards-compatible at all costs.
+*/
+
+syntax = "proto3";
+
+package asphrclient;
+
+//
+// AsyncInvitation is the invitation sent in the asynchronous version of adding contacts.
+//
+// When sent to the server, it will be serialized to bytes, capped to ASYNC_INVITATION_SIZE,
+// and encrypted with the recipient's public key and authenticated with the sender's private key.
+//
+// When decrypting this, we want to check that the sender's public key corresponds to the public ID.
+// This is crucial to protect against social engineering impersonation attacks.
+//
+message AsyncInvitation {
+  // The public ID of the sender.
+  string my_public_id = 1;
+  // The message attached with the invitation.
+  string message = 2;
+}

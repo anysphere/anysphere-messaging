@@ -1,0 +1,54 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
+/*
+identifier.proto contains the protobuf for the public identifier.
+this schema should be kept backwards-compatible at all costs.
+*/
+
+syntax = "proto3";
+
+package asphrclient;
+
+// We want the identifier to contain as little information as possible, but
+// still enough such that it can be used both for the one-way asynchronous
+// friend adding method (which requires a public-key crypto public key) as well
+// as the two-way friend adding method (which requires a key-exchange public
+// key). We also include the index allocation.
+//
+// The string-based public ID takes the following format:
+//
+//      [public-id] = # base58(bytes(PublicID) || checksum(bytes(PublicID)))
+//
+// In public, it is always displayed in link format:
+//
+//      [public-id-link] = anysphere.id/[public-id]
+//
+// The identifier starts with a # because when put in a link, we don't want to
+// send it to the server, and # signifies the start of a URI fragment which is
+// never sent to the server (see https://wormhole.app/security for inspiration).
+//
+// Implementation: client/daemon/identifier
+//
+message PublicID {
+  // index is the database index of the person.
+  // if, in the future, a person has access to several indices, this is the
+  // index that is used in the friend-adding process. two people who can already
+  // communicate may tell each other about other indices. this is just for
+  // bootstrapping.
+  uint32 index = 1;
+  // the public-key crypto public key, used for handling friend requests.
+  bytes invitation_public_key = 2;
+  // the key-exchange public key, used for adding a friend in the two-way
+  // situation.
+  bytes kx_public_key = 3;
+  // whether the friend request should be sent instantly or not
+  // this should only be true if this person guarantees to not send friend
+  // requests at the same time as the other person. it should also only be true
+  // if this person monitors the friend requests often, which few accounts will
+  // do (and there will probably be an associated cost with doing so) bool
+  // instant_invitations = 4; // TODO: when we implement the instant friend
+  // request, add this in
+}

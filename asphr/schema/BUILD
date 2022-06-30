@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: GPL-3.0-only
 #
 
-load("@rules_proto//proto:defs.bzl", "proto_library")
-load("@rules_cc//cc:defs.bzl", "cc_proto_library")
 load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
+load("@rules_cc//cc:defs.bzl", "cc_proto_library")
+load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@rules_proto_grpc//js:defs.bzl", "js_grpc_node_library")
 
 package(
@@ -39,6 +39,26 @@ proto_library(
 cc_proto_library(
     name = "message_proto_cc",
     deps = [":message_proto"],
+)
+
+proto_library(
+    name = "asyncinvitation_proto",
+    srcs = ["asyncinvitation.proto"],
+)
+
+cc_proto_library(
+    name = "asyncinvitation_proto_cc",
+    deps = [":asyncinvitation_proto"],
+)
+
+proto_library(
+    name = "identifier_proto",
+    srcs = ["identifier.proto"],
+)
+
+cc_proto_library(
+    name = "identifier_proto_cc",
+    deps = [":identifier_proto"],
 )
 
 proto_library(
