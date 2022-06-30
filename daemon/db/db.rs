@@ -2189,7 +2189,7 @@ impl DB {
 
         /// Inserting a message into the database and then inserting a sent message into the `sent` table.
         let message_uid = diesel::insert_into(message::table)
- `    `    .values((message::content.eq(message),))
+         .values((message::content.eq(message),))
           .returning(message::uid)
           .get_result::<i32>(conn_b)?;
 
