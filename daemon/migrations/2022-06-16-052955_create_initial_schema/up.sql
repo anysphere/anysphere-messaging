@@ -16,7 +16,7 @@ CREATE TABLE config (
     FOREIGN KEY(registration_uid) REFERENCES registration(uid)
 );
 
--- IMPORTANT: friend request key always allocated before kx key.
+-- invitation public key field should always be put before the kx_public_key field, to avoid confusion
 -- 0-1 elements always!
 CREATE TABLE registration (
     uid integer PRIMARY KEY NOT NULL,
