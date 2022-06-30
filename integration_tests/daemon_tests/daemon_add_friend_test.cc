@@ -3,106 +3,147 @@
 namespace asphr::testing {
 namespace {
 
-TEST_F(DaemonRpcTest, AddFriend) {
+TEST_F(DaemonRpcTest, AddFriendSync) {
   ResetStub();
+  auto friends = register_people(2);
+  auto& friend1 = friends.at(0);
+  auto& friend2 = friends.at(1);
 
-  generate_two_friends();
-};
+  string user1_story;
+  string user2_story;
+  {
+    // get user 1's id via rpc call
+    GetMyPublicIDRequest request;
+    GetMyPublicIDResponse response;
+    friend1.rpc->GetMyPublicID(nullptr, &request, &response);
+    user1_story = response.story();
+  }
+  {
+    // get user 2's id via rpc call
+    GetMyPublicIDRequest request;
+    GetMyPublicIDResponse response;
+    friend2.rpc->GetMyPublicID(nullptr, &request, &response);
+    user2_story = response.story();
+  }
+  {
+    AddSyncFriendRequest request;
+    request.set_unique_name(friend2.unique_name);
+    request.set_display_name(friend2.display_name);
+    request.set_story(user2_story);
+    AddSyncFriendResponse response;
+    friend1.rpc->AddSyncFriend(nullptr, &request, &response);
+  }
+
+  // check that we have an outgoing friend request
+  {
+    GetOutgoingSyncInvitationsRequest request;
+    GetOutgoingSyncInvitationsResponse response;
+    friend1.rpc->GetOutgoingSyncInvitations(nullptr, &request, &response);
+    EXPECT_EQ(response.invitations_size(), 1);
+    EXPECT_EQ(response.invitations(0).unique_name(), friend2.unique_name);
+    EXPECT_EQ(response.invitations(0).display_name(), friend2.display_name);
+    EXPECT_EQ(response.invitations(0).story(), user2_story);
+  }
+  // friend2 should have no friend request
+  {
+    GetOutgoingSyncInvitationsRequest request;
+    GetOutgoingSyncInvitationsResponse response;
+    friend2.rpc->GetOutgoingSyncInvitations(nullptr, &request, &response);
+    EXPECT_EQ(response.invitations_size(), 0);
+  }
+
+  // now make the sync friend request in the other direction
+  {
+    AddSyncFriendRequest request;
+    request.set_unique_name(friend1.unique_name);
+    request.set_display_name(friend1.display_name);
+    request.set_story(user1_story);
+    AddSyncFriendResponse response;
+    friend2.rpc->AddSyncFriend(nullptr, &request, &response);
+  }
+  {
+    GetOutgoingSyncInvitationsRequest request;
+    GetOutgoingSyncInvitationsResponse response;
+    friend2.rpc->GetOutgoingSyncInvitations(nullptr, &request, &response);
+    EXPECT_EQ(response.invitations_size(), 1);
+    EXPECT_EQ(response.invitations(0).unique_name(), friend1.unique_name);
+    EXPECT_EQ(response.invitations(0).display_name(), friend1.display_name);
+    EXPECT_EQ(response.invitations(0).story(), user1_story);
+  }
+
+  {
+    friend1.t->retrieve();
+    friend1.t->send();
+  }
+  // nothing should've happened
+  {
+    GetFriendListRequest request;
+    GetFriendListResponse response;
+    friend1.rpc->GetFriendList(nullptr, &request, &response);
+    EXPECT_EQ(response.friend_infos_size(), 0);
+  }
+  {
+    GetFriendListRequest request;
+    GetFriendListResponse response;
+    friend2.rpc->GetFriendList(nullptr, &request, &response);
+    EXPECT_EQ(response.friend_infos_size(), 0);
+  }
+  {
+    friend2.t->retrieve();
+    friend2.t->send();
+  }
+  // now 2 should be friends with 1
+  {
+    GetFriendListRequest request;
+    GetFriendListResponse response;
+    friend1.rpc->GetFriendList(nullptr, &request, &response);
+    EXPECT_EQ(response.friend_infos_size(), 0);
+  }
+  {
+    GetFriendListRequest request;
+    GetFriendListResponse response;
+    friend2.rpc->GetFriendList(nullptr, &request, &response);
+    EXPECT_EQ(response.friend_infos_size(), 1);
+    EXPECT_EQ(response.friend_infos(0).unique_name(), friend1.unique_name);
+    EXPECT_EQ(response.friend_infos(0).display_name(), friend1.display_name);
+    EXPECT_EQ(response.friend_infos(0).public_id(), get_public_id(friend1));
+    EXPECT_EQ(response.friend_infos(0).invitation_progress(),
+              asphrdaemon::InvitationProgress::Complete);
+  }
+  {
+    friend1.t->retrieve();
+    friend1.t->send();
+  }
+  // now 1 should be friends with 2
+  {
+    GetFriendListRequest request;
+    GetFriendListResponse response;
+    friend1.rpc->GetFriendList(nullptr, &request, &response);
+    EXPECT_EQ(response.friend_infos_size(), 1);
+    EXPECT_EQ(response.friend_infos(0).unique_name(), friend2.unique_name);
+    EXPECT_EQ(response.friend_infos(0).display_name(), friend2.display_name);
+    EXPECT_EQ(response.friend_infos(0).public_id(), get_public_id(friend2));
+    EXPECT_EQ(response.friend_infos(0).invitation_progress(),
+              asphrdaemon::InvitationProgress::Complete);
+  }
+}
 
 TEST_F(DaemonRpcTest, AddFriendAndCheckFriendList) {
   ResetStub();
-
-  // we cannot use generate_two_friends() here, because we want to
-  // check the friend list in the middle
-
-  auto [G1, rpc1, t1] = gen_person();
-  auto [G2, rpc2, t2] = gen_person();
-
-  {
-    RegisterUserRequest request;
-    request.set_name("user1local");
-    request.set_beta_key("asphr_magic");
-    RegisterUserResponse response;
-    rpc1->RegisterUser(nullptr, &request, &response);
-  }
-  {
-    RegisterUserRequest request;
-    request.set_name("user2local");
-    request.set_beta_key("asphr_magic");
-    RegisterUserResponse response;
-    rpc2->RegisterUser(nullptr, &request, &response);
-  }
+  // this test is already implemented in the two peron constructor
+  auto [user1, user2] = generate_two_friends();
 
   {
     GetFriendListRequest request;
     GetFriendListResponse response;
-    auto status = rpc1->GetFriendList(nullptr, &request, &response);
-    EXPECT_TRUE(status.ok());
-    EXPECT_EQ(response.friend_infos_size(), 0);
-  }
-
-  string user1_key;
-  string user2_key;
-
-  {
-    GenerateFriendKeyRequest request;
-    request.set_unique_name("user2");
-    GenerateFriendKeyResponse response;
-    auto status = rpc1->GenerateFriendKey(nullptr, &request, &response);
-    EXPECT_TRUE(status.ok());
-    EXPECT_GT(response.key().size(), 0);
-    user1_key = response.key();
-  }
-
-  {
-    GenerateFriendKeyRequest request;
-    request.set_unique_name("user1");
-    GenerateFriendKeyResponse response;
-    auto status = rpc2->GenerateFriendKey(nullptr, &request, &response);
-    EXPECT_TRUE(status.ok());
-    EXPECT_GT(response.key().size(), 0);
-    user2_key = response.key();
-  }
-
-  {
-    GetFriendListRequest request;
-    GetFriendListResponse response;
-    auto status = rpc1->GetFriendList(nullptr, &request, &response);
-    EXPECT_TRUE(status.ok());
+    user1.rpc->GetFriendList(nullptr, &request, &response);
     EXPECT_EQ(response.friend_infos_size(), 1);
-    EXPECT_EQ(response.friend_infos(0).unique_name(), "user2");
-    EXPECT_EQ(response.friend_infos(0).enabled(), false);
   }
-
-  cout << "user1_key: " << user1_key << endl;
-  cout << "user2_key: " << user2_key << endl;
-
-  {
-    AddFriendRequest request;
-    request.set_unique_name("user2");
-    request.set_key(user2_key);
-    AddFriendResponse response;
-    auto status = rpc1->AddFriend(nullptr, &request, &response);
-    EXPECT_TRUE(status.ok());
-  }
-
-  {
-    AddFriendRequest request;
-    request.set_unique_name("user1");
-    request.set_key(user1_key);
-    AddFriendResponse response;
-    auto status = rpc2->AddFriend(nullptr, &request, &response);
-    EXPECT_TRUE(status.ok());
-  }
-
   {
     GetFriendListRequest request;
     GetFriendListResponse response;
-    auto status = rpc1->GetFriendList(nullptr, &request, &response);
-    EXPECT_TRUE(status.ok());
+    user2.rpc->GetFriendList(nullptr, &request, &response);
     EXPECT_EQ(response.friend_infos_size(), 1);
-    EXPECT_EQ(response.friend_infos(0).unique_name(), "user2");
-    EXPECT_EQ(response.friend_infos(0).enabled(), true);
   }
 };
 

@@ -29,11 +29,11 @@ build --repo_env=RULES_RUST_TOOLCHAIN_INCLUDE_RUSTC_SRCS=true
 try-import %workspace%/.user.bazelrc
 
 # setting up remote caching
-#build --bes_results_url=https://app.buildbuddy.io/invocation/
-#build --bes_backend=grpcs://remote.buildbuddy.io
-#build --remote_cache=grpcs://remote.buildbuddy.io
-#build --remote_upload_local_results
-#build --remote_timeout=3600
+# build --bes_results_url=https://app.buildbuddy.io/invocation/
+# build --bes_backend=grpcs://remote.buildbuddy.io
+# build --remote_cache=grpcs://remote.buildbuddy.io
+# build --remote_upload_local_results
+# build --remote_timeout=3600
 # build --experimental_remote_cache_compression
 # build --experimental_remote_cache_async
 # build --remote_download_toplevel
@@ -68,7 +68,7 @@ build:asan --strip=never
 build:asan --copt -fsanitize=address
 build:asan --copt -DADDRESS_SANITIZER
 build:asan --copt -g
-build:asan --copt -O3
+build:asan --copt -O1
 build:asan --copt -fno-omit-frame-pointer
 # we ignore ODR violations because we have two versions of zlib, one from protobuf and one from seal. not good. but issok.
 build:asan --action_env=ASAN_OPTIONS=detect_odr_violation=0
@@ -80,7 +80,7 @@ build:msan --strip=never
 build:msan --copt -fsanitize=memory
 build:msan --copt -DMEMORY_SANITIZER
 build:msan --copt -g
-build:msan --copt -O3
+build:msan --copt -O1
 build:msan --copt -fno-omit-frame-pointer
 build:msan --linkopt -fsanitize=memory
 
@@ -90,10 +90,10 @@ build:ubsan --strip=never
 build:ubsan --copt -fsanitize=undefined
 build:ubsan --copt -DUNDEFINED_BEHAVIOR_SANITIZER
 build:ubsan --copt -g
-build:ubsan --copt -O3
+build:ubsan --copt -O1
 build:ubsan --copt -fno-omit-frame-pointer
 build:ubsan --linkopt -fsanitize=undefined
-build:ubsan --linkopt -lubsan
+# build:ubsan --linkopt -lubsan
 
 # All sanitizers!
 # CC=clang bazel build --config san
@@ -101,7 +101,7 @@ build:san --strip=never
 build:san --copt -fsanitize=address,undefined
 build:san --copt -DADDRESS_SANITIZER
 build:san --copt -g
-build:san --copt -O3
+build:san --copt -O1
 build:san --copt -fno-omit-frame-pointer
 # we ignore ODR violations because we have two versions of zlib, one from protobuf and one from seal. not good. but issok.
 build:san --action_env=ASAN_OPTIONS=detect_odr_violation=0

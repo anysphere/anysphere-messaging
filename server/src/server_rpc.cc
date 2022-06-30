@@ -1,6 +1,7 @@
 #include "server_rpc.hpp"
 
 #include "beta_key_auth.hpp"
+#include "server_constants.hpp"
 
 using grpc::ServerContext;
 using grpc::Status;
@@ -27,12 +28,17 @@ Status ServerRpc<PIR, AccountManager>::Register(
     (void)acks_allocation;
     assert(allocation == acks_allocation);
     auto [auth_token, allocation_vec] = account_manager.generate_account(
-        registerInfo->public_key(), allocation);
+        registerInfo->invitation_public_key(), allocation);
+    // todo: register to the friend async request database and "PKI"
+    // this might needs to be changed if there are multiple allocations
+    async_invitation_database.register_user(
+        allocation, registerInfo->invitation_public_key());
     for (auto& alloc : allocation_vec) {
       registerResponse->add_allocation(alloc);
     }
-    registerResponse->set_public_key(registerInfo->public_key());
+    registerResponse->set_public_key(registerInfo->invitation_public_key());
     registerResponse->set_authentication_token(auth_token);
+
   } catch (const AccountManagerException& e) {
     ASPHR_LOG_ERR("Could not access account maanger.", error, e.what(),
                   rpc_call, "Register");
@@ -175,6 +181,89 @@ Status ServerRpc<PIR, AccountManager>::ReceiveMessage(
   }
 
   receiveMessageResponse->set_pir_answer_acks(std::move(answer_acks_string));
+
+  return Status::OK;
+}
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// |||                             friend_request                           |||
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+template <typename PIR, typename AccountManager>
+Status ServerRpc<PIR, AccountManager>::AddAsyncInvitation(
+    ServerContext* context,
+    const AddAsyncInvitationInfo* addAsyncInvitationInfo,
+    AddAsyncInvitationResponse* addAsyncInvitationResponse) {
+  ASPHR_LOG_INFO("AddFriendAsync() called");
+  auto index = addAsyncInvitationInfo->index();
+  pir_index_t pir_index = index;
+  try {
+    if (!account_manager.valid_index_access(
+            addAsyncInvitationInfo->authentication_token(), pir_index)) {
+      ASPHR_LOG_ERR("incorrect authentication token");
+      return Status(grpc::StatusCode::UNAUTHENTICATED,
+                    "incorrect authentication token");
+    }
+  } catch (const AccountManagerException& e) {
+    ASPHR_LOG_ERR("AccountManagerException: ", exception, e.what());
+    return Status(grpc::StatusCode::UNAVAILABLE, e.what());
+  }
+
+  auto invitation =
+      addAsyncInvitationInfo->invitation();  // this is now a byte array
+
+  if (std::ssize(invitation) > MAX_INVITATION_LENGTH) {
+    ASPHR_LOG_ERR("invitation too long");
+    return Status(grpc::StatusCode::INVALID_ARGUMENT, "invitation too long");
+  }
+
+  async_invitation_database.set_invitation(index, std::string(invitation));
+
+  return Status::OK;
+}
+
+template <typename PIR, typename AccountManager>
+Status ServerRpc<PIR, AccountManager>::GetAsyncInvitations(
+    ServerContext* context,
+    const GetAsyncInvitationsInfo* getAsyncInvitationsInfo,
+    GetAsyncInvitationsResponse* getAsyncInvitationsResponse) {
+  ASPHR_LOG_INFO("Server rpc: GetAsyncInvitations() called");
+  // cast to an int to make sure computation doesn't overflow/underflow
+  auto start_index = static_cast<int>(getAsyncInvitationsInfo->start_index());
+  auto end_index = static_cast<int>(getAsyncInvitationsInfo->end_index());
+
+  if (start_index < 0) {
+    ASPHR_LOG_ERR("start_index is negative");
+    return Status(grpc::StatusCode::INVALID_ARGUMENT,
+                  "start_index is negative");
+  }
+
+  if (end_index - start_index > MAX_ASYNC_INVITATION_BATCH_SIZE) {
+    ASPHR_LOG_ERR("end_index - start_index too large")
+    return Status(grpc::StatusCode::INVALID_ARGUMENT,
+                  "Attempt to download too many requests");
+  }
+
+  if (start_index > end_index) {
+    ASPHR_LOG_ERR("start_index > end_index");
+    return Status(grpc::StatusCode::INVALID_ARGUMENT,
+                  "start_index > end_index");
+  }
+
+  for (auto index = start_index; index < end_index; index++) {
+    string request = async_invitation_database.get_invitation(index);
+    string invitation_public_key =
+        async_invitation_database.get_friend_public_key(index);
+    // Do we need to return fake friend requests for unregistered
+    // entries? No we do not, cause the server can potentially do anything in
+    // our model. We are only exposing which slots are registered by not
+    // returning fake request, which for now can be easily achieved
+    // by registering a new account.
+    getAsyncInvitationsResponse->add_invitations(request);
+    getAsyncInvitationsResponse->add_invitation_public_key(
+        invitation_public_key);
+  }
 
   return Status::OK;
 }

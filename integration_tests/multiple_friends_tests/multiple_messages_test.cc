@@ -62,7 +62,7 @@ TEST_F(MultipleFriendsTest, SendMultipleMessages) {
     GetMessagesResponse response;
     auto status = friend2.rpc->GetMessages(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
-    EXPECT_EQ(response.messages_size(), 1);
+    EXPECT_EQ(response.messages_size(), 2);  // +1 for invitation message.
     EXPECT_EQ(response.messages(0).m().unique_name(), friend1.unique_name);
     EXPECT_EQ(response.messages(0).m().message(), "hello from 1 to 2");
   }
@@ -88,7 +88,7 @@ TEST_F(MultipleFriendsTest, SendMultipleMessages) {
     GetMessagesResponse response;
     auto status = friend2.rpc->GetMessages(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
-    EXPECT_EQ(response.messages_size(), 2);
+    EXPECT_EQ(response.messages_size(), 3);  // +1 for invitation message.
     EXPECT_EQ(response.messages(0).m().unique_name(), friend1.unique_name);
     EXPECT_EQ(response.messages(0).m().message(),
               "hello from 1 to 2, again!!!! :0");

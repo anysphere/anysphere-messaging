@@ -120,28 +120,40 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceiveHalfFriend) {
       rpc2->RegisterUser(nullptr, &request, &response);
     }
 
+    string user1_id;
+    string user2_id;
     {
-      GenerateFriendKeyRequest request;
-      request.set_unique_name("user2");
-      GenerateFriendKeyResponse response;
-      auto status = rpc1->GenerateFriendKey(nullptr, &request, &response);
-      EXPECT_TRUE(status.ok());
-      EXPECT_GT(response.key().size(), 0);
+      // get user 1's id via rpc call
+      GetMyPublicIDRequest request;
+      GetMyPublicIDResponse response;
+      rpc1->GetMyPublicID(nullptr, &request, &response);
+      user1_id = response.public_id();
     }
-
     {
-      GenerateFriendKeyRequest request;
-      request.set_unique_name("user1");
-      GenerateFriendKeyResponse response;
-      auto status = rpc2->GenerateFriendKey(nullptr, &request, &response);
+      // get user 2's id via rpc call
+      GetMyPublicIDRequest request;
+      GetMyPublicIDResponse response;
+      rpc2->GetMyPublicID(nullptr, &request, &response);
+      user2_id = response.public_id();
+    }
+    // send one but not the other
+    {
+      AddAsyncFriendRequest request;
+      request.set_unique_name("user2");
+      request.set_display_name("user2 display name");
+      request.set_public_id(user2_id);
+      request.set_message("hello from user 1 to user 2");
+      AddAsyncFriendResponse response;
+      auto status = rpc1->AddAsyncFriend(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
-      EXPECT_GT(response.key().size(), 0);
     }
   }
 
   {
     // re-create config from the file!
     auto [G, rpc, t] = gen_person(db_file);
+
+    // we don't expect anything here. no friends have been made
 
     t->retrieve();
     t->send();

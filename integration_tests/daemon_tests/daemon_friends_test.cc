@@ -24,7 +24,7 @@ TEST_F(DaemonRpcTest, GetFriendList) {
   }
 };
 
-TEST_F(DaemonRpcTest, GenerateFriendKey) {
+TEST_F(DaemonRpcTest, GetMyPublicID) {
   ResetStub();
   auto [G, rpc, t] = gen_person();
 
@@ -37,12 +37,11 @@ TEST_F(DaemonRpcTest, GenerateFriendKey) {
   }
 
   {
-    GenerateFriendKeyRequest request;
-    request.set_unique_name("friend_name");
-    GenerateFriendKeyResponse response;
-    auto status = rpc->GenerateFriendKey(nullptr, &request, &response);
+    GetMyPublicIDRequest request;
+    GetMyPublicIDResponse response;
+    auto status = rpc->GetMyPublicID(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
-    EXPECT_GT(response.key().size(), 0);
+    EXPECT_GT(response.public_id().size(), 0);
   }
 };
 

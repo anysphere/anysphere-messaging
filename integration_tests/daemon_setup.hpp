@@ -12,15 +12,9 @@
 #include "server/src/server_rpc.hpp"
 #include "test_helpers.hpp"
 
-/**
- * TODO: have a multiple rounds test.
- *
- *
- *
- **/
-
 struct FriendTestingInfo {
   string unique_name;
+  string display_name;
   unique_ptr<Global> G;
   unique_ptr<DaemonRpc> rpc;
   unique_ptr<Transmitter> t;
@@ -36,6 +30,12 @@ class DaemonRpcTest : public ::testing::Test {
 
  protected:
   DaemonRpcTest() : service_(gen_server_rpc()) {}
+
+  //----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
+  //||                           Registration Helpers                         ||
+  //----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
 
   auto generateTempFile() -> string {
     auto config_file_address = string("TMPTMPTMP_config");
@@ -100,13 +100,136 @@ class DaemonRpcTest : public ::testing::Test {
     return generate_friends_from_list_of_pairs(db_files, pairs);
   }
 
-  auto generate_friends_from_list_of_pairs(vector<string> db_files,
-                                           vector<pair<int, int>> pairs)
-      -> vector<FriendTestingInfo> {
+  auto connect_friends_both_async(const FriendTestingInfo& friend1,
+                                  const FriendTestingInfo& friend2) {
+    // we use the one-sided async invitation procedure to connect the friends
+    string friend1_id;
+    string friend2_id;
+    int friend1_allocation;
+    {
+      // get user 1's id via rpc call
+      GetMyPublicIDRequest request;
+      GetMyPublicIDResponse response;
+      friend1.rpc->GetMyPublicID(nullptr, &request, &response);
+      friend1_id = response.public_id();
+    }
+    {
+      // get user 1's registration information
+      auto friend1_registration = friend1.G->db->get_registration();
+      friend1_allocation = friend1_registration.allocation;
+    }
+    {
+      // get user 2's id via rpc call
+      GetMyPublicIDRequest request;
+      GetMyPublicIDResponse response;
+      friend2.rpc->GetMyPublicID(nullptr, &request, &response);
+      friend2_id = response.public_id();
+    }
+
+    ASPHR_LOG_INFO("Registration", friend1_id, friend1_id);
+    ASPHR_LOG_INFO("Registration", friend2_id, friend2_id);
+    // User 1 send user 2 a request
+    {
+      AddAsyncFriendRequest request;
+      request.set_unique_name(friend2.unique_name);
+      request.set_display_name(friend2.unique_name);
+      request.set_public_id(friend2_id);
+      request.set_message("INVITATION-MESSAGE");
+      AddAsyncFriendResponse response;
+      auto status = friend1.rpc->AddAsyncFriend(nullptr, &request, &response);
+      EXPECT_TRUE(status.ok());
+      // crash fast if cannot establish friend request
+      if (!status.ok()) {
+        FAIL() << "Failed to establish friend request";
+      }
+    }
+
+    friend1.t->send();
+    friend2.t->retrieve_async_invitations(friend1_allocation,
+                                          friend1_allocation + 1);
+    // user 2 should have obtained the friend request from user1
+    // user 2 now approve the friend request.
+    {
+      AcceptAsyncInvitationRequest request;
+      request.set_unique_name(friend1.unique_name);
+      request.set_display_name(friend1.unique_name);
+      request.set_public_id(friend1_id);
+      AcceptAsyncInvitationResponse response;
+      auto status =
+          friend2.rpc->AcceptAsyncInvitation(nullptr, &request, &response);
+      EXPECT_TRUE(status.ok());
+      // crash fast if cannot approve friend request
+      if (!status.ok()) {
+        FAIL() << "Failed to approve friend request";
+      }
+    }
+    ASPHR_LOG_INFO("Friend 2 has accepted the request from friend 1!");
+    // check that user 2 has user 1 as a friend
+    {
+      GetFriendListRequest request;
+      GetFriendListResponse response;
+      friend2.rpc->GetFriendList(nullptr, &request, &response);
+      int friend_index = -1;
+      for (int i = 0; i < response.friend_infos_size(); i++) {
+        if (response.friend_infos(i).unique_name() == friend1.unique_name) {
+          EXPECT_EQ(friend_index, -1);
+          friend_index = i;
+        }
+      }
+      EXPECT_EQ(response.friend_infos(friend_index).unique_name(),
+                friend1.unique_name);
+      EXPECT_EQ(response.friend_infos(friend_index).display_name(),
+                friend1.unique_name);
+      EXPECT_EQ(response.friend_infos(friend_index).public_id(), friend1_id);
+      EXPECT_EQ(response.friend_infos(friend_index).invitation_progress(),
+                asphrdaemon::InvitationProgress::Complete);
+    }
+    // retrieive system control message
+    friend2.t->retrieve();
+    // ACK the system control message
+    friend2.t->send();
+    // user 1 retrive ACK of system control message
+    // and promotes user 2 to a friend
+    friend1.t->retrieve();
+    // user 1 should have user 2 as a friend
+    {
+      GetFriendListRequest request;
+      GetFriendListResponse response;
+      friend1.rpc->GetFriendList(nullptr, &request, &response);
+      ASPHR_LOG_INFO("Friend 1 has " +
+                     std::to_string(response.friend_infos_size()) + " friends");
+      int friend_index = -1;
+      for (int i = 0; i < response.friend_infos_size(); i++) {
+        if (response.friend_infos(i).unique_name() == friend2.unique_name) {
+          EXPECT_EQ(friend_index, -1);
+          friend_index = i;
+        }
+      }
+      EXPECT_EQ(response.friend_infos(friend_index).unique_name(),
+                friend2.unique_name);
+      EXPECT_EQ(response.friend_infos(friend_index).display_name(),
+                friend2.unique_name);
+      EXPECT_EQ(response.friend_infos(friend_index).public_id(), friend2_id);
+    }
+    // reset transmitter
+    friend1.t->reset_async_scanner(0);
+    friend2.t->reset_async_scanner(0);
+  }
+
+  auto register_people(int n) -> vector<FriendTestingInfo> {
+    vector<string> db_files;
+    for (auto i = 0; i < n; i++) {
+      db_files.push_back(generateTempFile());
+    }
+    return register_people(db_files);
+  }
+
+  auto register_people(vector<string> db_files) -> vector<FriendTestingInfo> {
     vector<FriendTestingInfo> friends;
     for (size_t i = 0; i < db_files.size(); i++) {
       auto [G, rpc, t] = gen_person(db_files.at(i));
       auto name = absl::StrCat("user", i + 1);
+      auto display_name = absl::StrCat("User ", i + 1);
       {
         RegisterUserRequest request;
         request.set_name(name);
@@ -114,53 +237,53 @@ class DaemonRpcTest : public ::testing::Test {
         RegisterUserResponse response;
         rpc->RegisterUser(nullptr, &request, &response);
       }
-      friends.push_back({name, std::move(G), std::move(rpc), std::move(t)});
+      friends.push_back(
+          {name, display_name, std::move(G), std::move(rpc), std::move(t)});
+    }
+    return friends;
+  }
+  // call this method to generate N strangers
+  auto register_N_people(int N) -> vector<FriendTestingInfo> {
+    vector<string> db_files;
+    for (auto i = 0; i < N; i++) {
+      db_files.push_back(generateTempFile());
+    }
+    return register_people(db_files);
+  }
+
+  // Due to the simultaneous read capacity constraint, this method might break
+  // down for more than three users.
+  auto generate_friends_from_list_of_pairs(vector<string> db_files,
+                                           vector<pair<int, int>> pairs)
+      -> vector<FriendTestingInfo> {
+    std::map<string, int> friend_count = {};
+    auto friends = register_people(db_files);
+    for (const auto& f : friends) {
+      friend_count[f.unique_name] = 0;
     }
     for (const auto& p : pairs) {
       auto& friend1 = friends.at(p.first);
+      friend_count[friend1.unique_name]++;
       auto& friend2 = friends.at(p.second);
-      string user1_key;
-      string user2_key;
-      {
-        GenerateFriendKeyRequest request;
-        request.set_unique_name(friend2.unique_name);
-        GenerateFriendKeyResponse response;
-        auto status =
-            friend1.rpc->GenerateFriendKey(nullptr, &request, &response);
-        EXPECT_TRUE(status.ok());
-        EXPECT_GT(response.key().size(), 0);
-        user1_key = response.key();
-      }
+      friend_count[friend2.unique_name]++;
+      connect_friends_both_async(friend1, friend2);
+    }
 
-      {
-        GenerateFriendKeyRequest request;
-        request.set_unique_name(friend1.unique_name);
-        GenerateFriendKeyResponse response;
-        auto status =
-            friend2.rpc->GenerateFriendKey(nullptr, &request, &response);
-        EXPECT_TRUE(status.ok());
-        EXPECT_GT(response.key().size(), 0);
-        user2_key = response.key();
-      }
-
-      {
-        AddFriendRequest request;
-        request.set_unique_name(friend2.unique_name);
-        request.set_key(user2_key);
-        AddFriendResponse response;
-        auto status = friend1.rpc->AddFriend(nullptr, &request, &response);
-        EXPECT_TRUE(status.ok());
-      }
-
-      {
-        AddFriendRequest request;
-        request.set_unique_name(friend1.unique_name);
-        request.set_key(user1_key);
-        AddFriendResponse response;
-        auto status = friend2.rpc->AddFriend(nullptr, &request, &response);
-        EXPECT_TRUE(status.ok());
+    for (const auto& f : friends) {
+      if (friend_count.at(f.unique_name) > 2) {
+        ASPHR_LOG_INFO(
+            "WARNING: You have created a user with more than 2 friends");
+        ASPHR_LOG_INFO(
+            "WARNING: when a user has more than 2 friends, reading message "
+            "becomes non-deterministic for that user");
+        ASPHR_LOG_INFO("WARNING: please adjust test accordingly");
       }
     }
+    cout
+        << "End of Setup: Users successfully connected to each other.\n"
+        << "=================================================================\n"
+        << "=================================================================\n"
+        << endl;
     return friends;
   }
 
@@ -178,6 +301,11 @@ class DaemonRpcTest : public ::testing::Test {
     return {std::move(v.at(0)), std::move(v.at(1))};
   }
 
+  //----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
+  //||                          Setup/Teardown Server                         ||
+  //----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
   void SetUp() override {
     // get a random port number
     // https://github.com/yegor256/random-tcp-port might be useful sometime in
@@ -186,7 +314,8 @@ class DaemonRpcTest : public ::testing::Test {
     server_address_ << "localhost:" << port;
     // Setup server
     grpc::ServerBuilder builder;
-    cout << "server address: " << server_address_.str() << endl;
+    ASPHR_LOG_INFO("Server initializing",
+                   "server address: ", server_address_.str());
     builder.AddListeningPort(server_address_.str(),
                              grpc::InsecureServerCredentials());
     builder.RegisterService(&service_);
@@ -198,9 +327,9 @@ class DaemonRpcTest : public ::testing::Test {
 
     for (const auto& f : config_file_addresses_) {
       if (remove(f.c_str()) != 0) {
-        cerr << "Error deleting file";
+        ASPHR_LOG_ERR("Error deleting file");
       } else {
-        cout << "File successfully deleted\n";
+        ASPHR_LOG_INFO("File successfully deleted\n");
       }
     }
     for (const auto& f : temp_dirs_) {
@@ -210,6 +339,20 @@ class DaemonRpcTest : public ::testing::Test {
         cout << "File successfully deleted\n";
       }
     }
+  }
+
+  //----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
+  //||                            Utility Functions                           ||
+  //----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
+  auto get_public_id(const FriendTestingInfo& friend_info) -> std::string {
+    GetMyPublicIDRequest request;
+    GetMyPublicIDResponse response;
+
+    auto status = friend_info.rpc->GetMyPublicID(nullptr, &request, &response);
+    EXPECT_TRUE(status.ok());
+    return response.public_id();
   }
 
   void ResetStub() {

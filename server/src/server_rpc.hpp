@@ -9,6 +9,7 @@
 
 #include "account_manager.hpp"
 #include "asphr/asphr.hpp"
+#include "async_invitation_database.hpp"
 #include "schema/server.grpc.pb.h"
 
 template <typename PIR, typename AccountManager>
@@ -34,18 +35,30 @@ class ServerRpc final : public asphrserver::Server::Service {
       const asphrserver::ReceiveMessageInfo* receiveMessageInfo,
       asphrserver::ReceiveMessageResponse* receiveMessageResponse) override;
 
+  grpc::Status AddAsyncInvitation(
+      grpc::ServerContext* context,
+      const asphrserver::AddAsyncInvitationInfo* addAsyncInvitationInfo,
+      asphrserver::AddAsyncInvitationResponse* addFriendAsyncResponse) override;
+
+  grpc::Status GetAsyncInvitations(
+      grpc::ServerContext* context,
+      const asphrserver::GetAsyncInvitationsInfo* getAsyncInvitationsInfo,
+      asphrserver::GetAsyncInvitationsResponse* getAsyncInvitationsResponse)
+      override;
+
   // trunk-ignore(clang-tidy/bugprone-easily-swappable-parameters)
-  ServerRpc(PIR&& pir_arg, PIR&& pir_acks_arg, AccountManager&& account_manager_arg)
+  ServerRpc(PIR&& pir_arg, PIR&& pir_acks_arg,
+            AccountManager&& account_manager_arg)
       : pir(std::move(pir_arg)),
         pir_acks(std::move(pir_acks_arg)),
         account_manager(std::move(account_manager_arg)) {
-            auto pir_indices = account_manager.get_all_pir_indices();
-            if (pir_indices.size() > 0) {
-                auto max_pir = *std::max_element(pir_indices.begin(), pir_indices.end());
-                pir.allocate_to_max(max_pir);
-                pir_acks.allocate_to_max(max_pir);
-            }
-        }
+    auto pir_indices = account_manager.get_all_pir_indices();
+    if (pir_indices.size() > 0) {
+      auto max_pir = *std::max_element(pir_indices.begin(), pir_indices.end());
+      pir.allocate_to_max(max_pir);
+      pir_acks.allocate_to_max(max_pir);
+    }
+  }
 
   auto get_seal_slot_count() const { return pir.get_seal_slot_count(); }
 
@@ -57,6 +70,7 @@ class ServerRpc final : public asphrserver::Server::Service {
   // requirements are slightly different!
   PIR pir_acks;  // stores ACKs for every user
   AccountManager account_manager;
+  AsyncInvitationDatabase async_invitation_database;
 };
 
 #include "server_rpc.cc"

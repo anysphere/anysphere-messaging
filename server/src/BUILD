@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 # load("@io_bazel_rules_docker//cc:image.bzl", "cc_image")
 # load(
 #     "@io_bazel_rules_docker//container:container.bzl",
@@ -10,19 +10,24 @@ package(
 
 cc_library(
     name = "as_server_lib",
+    srcs = [
+        "async_invitation_database.cc",
+    ],
     hdrs = [
         "account_manager.hpp",
+        "async_invitation_database.hpp",
         "beta_key_auth.hpp",
+        "server_constants.hpp",
         "server_rpc.cc",
         "server_rpc.hpp",
     ],
     defines = select({
-        "//conditions:default": ["USE_POSTGRES_DB"],
         ":in_memory_db": ["USE_MEMORY_DB"],
+        "//conditions:default": ["USE_POSTGRES_DB"],
     }),
     linkopts = select({
-        "//conditions:default": ["-lpq"],
         ":in_memory_db": [],
+        "//conditions:default": ["-lpq"],
     }),
     linkstatic = True,
     deps = [
@@ -32,8 +37,8 @@ cc_library(
         "@asphr//schema:server_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
     ] + select({
-        "//conditions:default": ["@libpqxx"],
         ":in_memory_db": [],
+        "//conditions:default": ["@libpqxx"],
     }),
 )
 
@@ -51,8 +56,8 @@ cc_test(
     name = "test",
     srcs = glob(["**/*_test.cc"]),
     defines = select({
-        "//conditions:default": [],
         ":postgres_tests": ["ENABLE_POSTGRES_TESTS"],
+        "//conditions:default": [],
     }),
     deps = [
         ":as_server_lib",

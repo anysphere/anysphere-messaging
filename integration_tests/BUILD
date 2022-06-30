@@ -7,7 +7,7 @@ cc_library(
         "daemon_setup.hpp",
         "test_helpers.hpp",
     ],
-    linkstatic=True,
+    linkstatic = True,
     deps = [
         "//server/pir/fast_pir:server_fast_pir_lib",
         "//server/src:as_server_lib",
@@ -19,3 +19,5 @@ cc_library(
 all_tests_in_folder(folder = "daemon_tests")
 
 all_tests_in_folder(folder = "multiple_friends_tests")
+
+all_tests_in_folder(folder = "invitation_tests")

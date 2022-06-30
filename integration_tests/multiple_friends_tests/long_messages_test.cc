@@ -58,7 +58,7 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
       auto status =
           friends.at(i).rpc->GetMessages(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
-      EXPECT_EQ(response.messages_size(), 0);
+      EXPECT_EQ(response.messages_size(), 1);
     }
 
     // second round, one!
@@ -76,8 +76,8 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
       auto status =
           friends.at(i).rpc->GetMessages(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
-      if (response.messages_size() > 0) {
-        EXPECT_EQ(response.messages_size(), 1);
+      if (response.messages_size() > 1) {
+        EXPECT_EQ(response.messages_size(), 2);
         EXPECT_EQ(response.messages(0).m().unique_name(),
                   friends.at(0).unique_name);
         EXPECT_EQ(response.messages(0).m().message(), long_message);

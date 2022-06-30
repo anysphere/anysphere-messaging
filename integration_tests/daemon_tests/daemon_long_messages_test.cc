@@ -63,7 +63,7 @@ TEST_F(DaemonRpcTest, SendLongMessage) {
     GetMessagesResponse response;
     auto status = friend2.rpc->GetMessages(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
-    EXPECT_EQ(response.messages_size(), 0);
+    EXPECT_EQ(response.messages_size(), 1);  // +1 for invitation message.
   }
 
   {
@@ -95,7 +95,7 @@ TEST_F(DaemonRpcTest, SendLongMessage) {
     GetMessagesResponse response;
     auto status = friend2.rpc->GetMessages(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
-    EXPECT_EQ(response.messages_size(), 1);
+    EXPECT_EQ(response.messages_size(), 2);  // +1 for invitation message.
     EXPECT_EQ(response.messages(0).m().unique_name(), "user1");
     EXPECT_EQ(response.messages(0).m().message(), m1);
   }
@@ -166,7 +166,7 @@ TEST_F(DaemonRpcTest, SendLongMessagePersistence) {
       GetMessagesResponse response;
       auto status = friend2.rpc->GetMessages(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
-      EXPECT_EQ(response.messages_size(), 0);
+      EXPECT_EQ(response.messages_size(), 1);  // +1 for invitation message.
     }
   }
 
@@ -203,7 +203,7 @@ TEST_F(DaemonRpcTest, SendLongMessagePersistence) {
       GetMessagesResponse response;
       auto status = rpc2->GetMessages(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
-      EXPECT_EQ(response.messages_size(), 1);
+      EXPECT_EQ(response.messages_size(), 2);  // +1 for invitation message.
       EXPECT_EQ(response.messages(0).m().unique_name(), "user1");
       EXPECT_EQ(response.messages(0).m().message(), m1);
     }
