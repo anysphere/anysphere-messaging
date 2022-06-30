@@ -1692,7 +1692,7 @@ impl DB {
 
   /// Handling recieving a chunk.
   ///
-  /// Behaviour:t
+  /// Behaviour:
   /// 
   /// It receives a chunk, checks if it is the first chunk of a message, if it is, it creates a new
   /// message and inserts the chunk. If it is not, it inserts the chunk. It then checks if we have
@@ -2575,7 +2575,7 @@ impl DB {
     }
   }
 
-  /// It gets the public id from the registration table
+  /// Get the public id of the user.
   /// 
   /// Arguments:
   /// 
@@ -2590,6 +2590,10 @@ impl DB {
     q.first::<String>(conn)
   }
 
+  // Validate whether we can add an outgoing invitation or accept an incoming invitation
+  // given the desired unique_name, kx_public_key, and maximum friend limit.
+  //
+  // It returns false if either unique_name or kx_public_key conflicts 
   fn can_add_friend(
     &self,
     conn: &mut SqliteConnection,
