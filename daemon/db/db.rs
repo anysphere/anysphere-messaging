@@ -1563,7 +1563,7 @@ impl DB {
         // Special case: there is an ACK to an outgoing request system message.
         /// Checking if the chunk is a system message and if it is, it is checking if the system message
         /// is acked.
-        let acked_index i32 = old_acked_seqnum;
+        let acked_index: i32 = old_acked_seqnum;
         while (acked_index < ack) {
           acked_index += 1;
           let chunk_acked: (bool, ffi::SystemMessage) = outgoing_chunk::table
