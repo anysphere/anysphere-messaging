@@ -24,3 +24,8 @@ lint:
     - shellcheck@0.7.2
     - shfmt@3.4.0
     - rustfmt@1.58.1
+  ignore:
+    - linters: [ALL]
+      paths:
+        # proto files
+        - gui/src/daemon/schema/**
