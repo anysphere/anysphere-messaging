@@ -1511,13 +1511,25 @@ impl DB {
   }
 
   /// It updates the database to reflect the fact that a friend has acknowledged a message
-  /// 
+  /// send by us.
+  ///
+  /// Behaviour:
+  /// * old_acked_seqnum is the last acked chunk time
+  /// * if ack > old_acked_seqnum, we remove all outgoing_chunks up to and including chunk ack.
+  /// * since these have been read by the friend.
+  /// * we also update old_acked_seqnum to ack.
+  /// * Special case:
+  /// *   If any of the chunk (old_acked_seqnum, ack] is a system control message
+  /// *   corresponding to "OutgoingAsyncRequest", we promote the friend to a complete the friend.
+  ///
   /// Arguments:
   /// 
   /// * `uid`: the uid of the friend
-  /// * `ack`: the sequence number of the last chunk that the other party has received.
+  /// * `ack`: the ack index read by the PIR from the friend's slot server.
+  ///          A friend send an ACK(a) if it has seen all message up to and including chunk a.
+  ///
   /// 
-  /// Returns:
+  /// Returns: 
   /// 
   /// a boolean value, true if the ack > old_ack, and the update was successful, false if it was not.
   /// return error if the update failed.
@@ -1540,54 +1552,35 @@ impl DB {
           .set(transmission::sent_acked_seqnum.eq(ack))
           .execute(conn_b)?;
 
-        // Special case: this is an ACK to an outgoing request system message.
+        // Special case: there is an ACK to an outgoing request system message.
         /// Checking if the chunk is a system message and if it is, it is checking if the system message
         /// is acked.
-        let chunk_acked: (bool, ffi::SystemMessage) = outgoing_chunk::table
-          .filter(outgoing_chunk::to_friend.eq(uid))
-          .filter(outgoing_chunk::sequence_number.eq(ack))
-          .select((outgoing_chunk::system, outgoing_chunk::system_message))
-          .first::<(bool, ffi::SystemMessage)>(conn_b)?;
+        let acked_index i32 = old_acked_seqnum;
+        while (acked_index < ack) {
+          acked_index += 1;
+          let chunk_acked: (bool, ffi::SystemMessage) = outgoing_chunk::table
+            .filter(outgoing_chunk::to_friend.eq(uid))
+            .filter(outgoing_chunk::sequence_number.eq(acked_index))
+            .select((outgoing_chunk::system, outgoing_chunk::system_message))
+            .first::<(bool, ffi::SystemMessage)>(conn_b)?;
 
-        if (chunk_acked.0, chunk_acked.1) == (true, ffi::SystemMessage::OutgoingInvitation) {
-          // This is a system control message for an outgoing invitation.
-          // In this case, we become complete friends with the other party.
-          // ======================
-          // To deduplicate, we first check that the uid is in the outgoing async table
-          let invite = outgoing_async_invitation::table
-            .filter(outgoing_async_invitation::friend_uid.eq(uid))
-            .load::<ffi::JustOutgoingAsyncInvitation>(conn_b)?;
-          // if invite.len() == 0, then we need to do nothing
-          // since the invite has already been approved before
-          if invite.len() == 1 {
-            let invite = invite.first().unwrap();
-            // we update the friend progress to be complete
-            diesel::update(friend::table.filter(friend::uid.eq(uid)))
-              .set(friend::invitation_progress.eq(ffi::InvitationProgress::Complete))
-              .execute(conn_b)?;
-            // we push the friend into complete_friend table
-            // to achieve that, we need to obtain several keys.
-            // fortunately, these keys are already in the invitation table.
-
-            /// Inserting a new row into the complete_friend table.
-            diesel::insert_into(complete_friend::table)
-              .values((
-                complete_friend::friend_uid.eq(uid),
-                complete_friend::public_id.eq(invite.public_id.clone()),
-                complete_friend::invitation_public_key.eq(invite.invitation_public_key.clone()),
-                complete_friend::kx_public_key.eq(invite.kx_public_key.clone()),
-                complete_friend::completed_at.eq(util::unix_micros_now()),
-              ))
-              .execute(conn_b)?;
-            // remove the invite from the table
-            diesel::delete(
-              outgoing_async_invitation::table
-                .filter(outgoing_async_invitation::friend_uid.eq(uid)),
-            )
-            .execute(conn_b)?;
+          if (chunk_acked.0, chunk_acked.1) == (true, ffi::SystemMessage::OutgoingInvitation) {
+            // This is a system control message for an outgoing invitation.
+            // In this case, we become complete friends with the other party.
+            // ======================
+            // To deduplicate, we first check that the uid is in the outgoing async table
+            let invite = outgoing_async_invitation::table
+              .filter(outgoing_async_invitation::friend_uid.eq(uid))
+              .load::<ffi::JustOutgoingAsyncInvitation>(conn_b)?;
+            // if invite.len() == 0, then we need to do nothing
+            // since the invite has already been approved before
+            if invite.len() == 1 {
+              let invite = invite.first().unwrap();
+              self.complete_outgoing_async_friend(conn_b, uid);
+            }
           }
-          // ======================
         }
+        // ======================
 
         // delete all outgoing chunks with seqnum <= ack
         diesel::delete(
@@ -1635,8 +1628,12 @@ impl DB {
     }
   }
 
-  /// If the sequence number is exactly one more than the last sequence number, then we update the
-  /// database
+  /// Update the sequence number of a friend after receiving an incoming message
+  ///
+  /// Behaviour:
+  ///
+  /// If the new sequence number is exactly one more than the last sequence number, then we update
+  /// the database to reflect that change. Otherwise, we do nothing.
   /// 
   /// Arguments:
   /// 
@@ -1686,6 +1683,8 @@ impl DB {
   }
 
   /// Handling recieving a chunk.
+  ///
+  /// Behaviour:t
   /// 
   /// It receives a chunk, checks if it is the first chunk of a message, if it is, it creates a new
   /// message and inserts the chunk. If it is not, it inserts the chunk. It then checks if we have
