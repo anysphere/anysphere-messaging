@@ -390,6 +390,8 @@ auto Transmitter::retrieve() -> void {
   auto [start_index, end_index] = update_async_invitation_retrieve_index();
 
   // call the server to retrieve the async friend requests
+  // this will also reset the index to 0 if end_index is at the end of the DB
+  // ROWS
   retrieve_async_invitations(start_index, end_index);
 
   check_rep();
