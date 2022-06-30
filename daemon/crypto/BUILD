@@ -16,6 +16,7 @@ cc_library(
     visibility = ["//daemon:__subpackages__"],
     deps = [
         "@asphr//asphr:asphr_lib",
+        "@asphr//schema:asyncinvitation_proto_cc",
         "@asphr//schema:daemon_cc_grpc",
         "@asphr//schema:message_proto_cc",
         "@asphr//schema:server_cc_grpc",

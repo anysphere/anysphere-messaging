@@ -431,7 +431,6 @@ auto decrypt_async_invitation(const string& self_invitation_private_key,
   // TODO: specifically, we need to verify that the public_id in the body
   // corresponds to the public_id that the message was authenticated with
   // otherwise, someone might impersonate the real receiver
-  return make_pair(async_invitation.public_id(),
-                   async_invitation.invitation_id());
+  return make_pair(async_invitation.my_public_id(), async_invitation.message());
 }
 }  // namespace crypto

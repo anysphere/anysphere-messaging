@@ -11,7 +11,7 @@
 #include <string>
 
 #include "constants.hpp"
-#include "schema/asyncinvitation.proto"
+#include "schema/asyncinvitation.pb.h"
 #include "schema/message.pb.h"
 
 /* Crypto implements an IND-CCA2 secure scheme.
