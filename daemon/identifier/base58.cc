@@ -18,6 +18,8 @@ namespace base58 {
 /** All alphanumeric characters except for "0", "I", "O", and "l" */
 constexpr string_view pszBase58 =
     "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+// mapping from ascii index of base58 characters to their base58 value
+// verified by the static_assert below
 constexpr int8_t mapBase58[256] = {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -34,6 +36,25 @@ constexpr int8_t mapBase58[256] = {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     -1, -1, -1, -1, -1, -1, -1, -1, -1,
 };
+constexpr std::array<int, 256> generate_base58_map() {
+  std::array<int, 256> base58_map;
+  for (int i = 0; i < std::ssize(base58_map); ++i) {
+    auto f = std::find(pszBase58.begin(), pszBase58.end(), (char)i);
+    base58_map[i] = (f == pszBase58.end()) ? -1 : (int)(f - pszBase58.begin());
+  }
+  return base58_map;
+}
+constexpr std::array<int, 256> base58_map = generate_base58_map();
+constexpr bool arrays_are_equal(const int8_t* a, const int* b, size_t size) {
+  for (size_t i = 0; i < size; ++i) {
+    if (a[i] != b[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+static_assert(arrays_are_equal(mapBase58, base58_map.data(), 256),
+              "mapBase58 and base58_map are not equal");
 static_assert(std::size(mapBase58) == 256,
               "mapBase58.size() should be 256");  // guarantee not out of range
 static_assert(pszBase58.size() == 58, "pszBase58.size() should be 58");
