@@ -1,6 +1,8 @@
 HeaderFilterRegex: \./.+
 Checks:
   '*,
+  -cppcoreguidelines-init-variables,
+  -google-readability-todo,
   -cert-err58-cpp,
   -cppcoreguidelines-avoid-non-const-global-variables,
   -cppcoreguidelines-owning-memory,
