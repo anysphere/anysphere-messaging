@@ -1264,6 +1264,15 @@ impl DB {
     Ok(registration)
   }
 
+  /// Get the PIR secret key from the database.
+  /// 
+  /// The first thing we do is connect to the database. Then we use the `registration` table. We select
+  /// the `pir_secret_key` column. We get the first row. We return the `pir_secret_key` column from that
+  /// row
+  /// 
+  /// Returns:
+  /// 
+  /// A vector of bytes
   pub fn get_pir_secret_key(&self) -> Result<Vec<u8>, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::registration;
@@ -1277,6 +1286,11 @@ impl DB {
     Ok(pir_secret_key)
   }
 
+  /// It gets the send info from the database
+  /// 
+  /// Returns:
+  /// 
+  /// A tuple of the allocation and authentication_token
   pub fn get_send_info(&self) -> Result<ffi::SendInfo, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::registration;
@@ -1291,6 +1305,14 @@ impl DB {
     Ok(send_info)
   }
 
+  /// Get a friend from the database by their unique name.
+  /// 
+  /// Arguments:
+  /// * `unique_name`: &str
+  /// 
+  /// Returns:
+  /// 
+  /// A Result<ffi::Friend, DbError>
   pub fn get_friend(&self, unique_name: &str) -> Result<ffi::Friend, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::friend;
@@ -1306,6 +1328,13 @@ impl DB {
     }
   }
 
+  /// Get all the friends that are complete.
+  /// If there are no friends, or there is a db error, it returns an error.
+  /// 
+  /// 
+  /// Returns:
+  /// 
+  /// A vector of complete friends.
   pub fn get_friends(&self) -> Result<Vec<ffi::CompleteFriend>, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::complete_friend;
@@ -1313,7 +1342,7 @@ impl DB {
 
     self.check_rep(&mut conn);
 
-    // only get complete friends
+    // Loading all the complete friends from the database.
     if let Ok(v) = friend::table
       .filter(friend::invitation_progress.eq(ffi::InvitationProgress::Complete))
       .filter(friend::deleted.eq(false))
@@ -1335,6 +1364,12 @@ impl DB {
     }
   }
 
+  /// `get_friends_including_outgoing` returns a list of all friends, including outgoing invitations. 
+  /// Ensures friends are not deleted
+  /// 
+  /// Returns:
+  /// 
+  /// A vector of friends.
   pub fn get_friends_including_outgoing(&self) -> Result<Vec<ffi::Friend>, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::friend;
@@ -1358,12 +1393,23 @@ impl DB {
     }
   }
 
+  /// It deletes a friend from the database.
+  /// 
+  /// Arguments:
+  /// 
+  /// * `unique_name`: The unique name of the friend to delete.
+  /// 
+  /// Returns:
+  /// 
+  /// True if the friend was deleted, false if it was not.
+  /// As a Result<(), DbError>
   pub fn delete_friend(&self, unique_name: &str) -> Result<(), DbError> {
     let mut conn = self.connect()?;
     use crate::schema::friend;
 
     self.check_rep(&mut conn);
 
+    /// Updating the friend table and setting the deleted column to false.
     diesel::update(friend::table.filter(friend::unique_name.eq(unique_name)))
       .set(friend::deleted.eq(false))
       .returning(friend::uid)
@@ -1378,6 +1424,15 @@ impl DB {
     Ok(())
   }
 
+  /// It updates the latency value in the config table
+  /// 
+  /// Arguments:
+  /// * `latency`: The number of seconds to wait before sending a message to the server.
+  /// 
+  /// Returns:
+  /// 
+  /// A Result<(), DbError>
+  /// The result is Ok if the update was successful, and Err if it was not.
   pub fn set_latency(&self, latency: i32) -> Result<(), DbError> {
     let mut conn = self.connect()?;
     use crate::schema::config;
@@ -1394,6 +1449,11 @@ impl DB {
     }
   }
 
+  /// It gets the latency from the database
+  /// 
+  /// Returns:
+  /// 
+  /// A Result<i32, DbError>
   pub fn get_latency(&self) -> Result<i32, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::config;
@@ -1407,6 +1467,16 @@ impl DB {
     Ok(latency)
   }
 
+  /// It updates the server_address column in the config table with the value of the server_address
+  /// parameter
+  /// 
+  /// Arguments:
+  /// 
+  /// * `server_address`: The address of the server that the client will connect to.
+  /// 
+  /// Returns:
+  /// 
+  /// A Result<(), DbError>
   pub fn set_server_address(&self, server_address: &str) -> Result<(), DbError> {
     let mut conn = self.connect()?;
     use crate::schema::config;
