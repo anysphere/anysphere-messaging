@@ -2701,7 +2701,7 @@ impl DB {
     // 3. Get public ID and chunk sequence number
     // 4. Insert friend into database
     // 5. Insert outgoing invitation into database
-    // 6. Insert outgoing chunk into database
+    // 6. Insert outgoing chunk(system message) into database
     // 7. Insert transmission information into database
     // that's it :)
     let mut conn = self.connect()?;
