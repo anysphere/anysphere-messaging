@@ -460,13 +460,14 @@ pub mod ffi {
   /// * `limit`: The maximum number of messages to return. Use -1 to get all messages.
   /// * `filter`: New, All
   /// * `delivery_status`: Delivered, Undelivered, All
-  /// * `sort_by`: SentAt, ReceivedAt, DeliveredAt, None. 
+  /// * `sort_by`: SentAt, ReceivedAt, DeliveredAt, None. descending, always. newest first
+  /// * `after`: unix micros. return all messages with a sort_by strictly greater than this. use 0 to disable.
   struct MessageQuery {
-    pub limit: i32, // use -1 to get all
+    pub limit: i32, 
     pub filter: MessageFilter,
     pub delivery_status: DeliveryStatus,
-    pub sort_by: SortBy, // descending, always. newest first
-    pub after: i64, // unix micros. return all messages with a sort_by strictly greater than this. use 0 to disable.
+    pub sort_by: SortBy, 
+    pub after: i64, 
   }
 
   #[derive(Queryable)]
