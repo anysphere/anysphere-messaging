@@ -619,9 +619,11 @@ pub mod ffi {
     // 1. If the friend is marked as deleted, then we ignore the request.
     // 2. If the friend is marked as accepted, then we ignore the request.
     // 3. If the friend is marked as incoming, then we update the message.
-    // 4. If the friend is marked as outgoing async, then we approve this request.
-    // (if async outgoing, we just won't know, so we cannot take any special action)
+    // 4. If the friend is marked as outgoing async, then we approve this request
     // immediately.
+    // 5. If the friend is marked as outgoing sync, we ignore the request
+    // because the security of sync is supposed to be higher than the async.
+    // there's also trust issue with the kx-key provided.
     fn add_incoming_async_invitation(&self, public_id: &str, message: &str) -> Result<()>;
     // get invitations
     fn get_outgoing_sync_invitations(&self) -> Result<Vec<OutgoingSyncInvitation>>;
