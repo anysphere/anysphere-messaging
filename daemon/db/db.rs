@@ -810,8 +810,8 @@ impl DB {
           null_uid_and_not_system
         );
         
-        /// Counting the number of rows in the outgoing_chunk table where the message_uid is not null
-        /// and the system is true.
+        // Counting the number of rows in the outgoing_chunk table where the message_uid is not null
+        // and the system is true.
         let non_null_uid_and_system = outgoing_chunk::table
           .filter(outgoing_chunk::message_uid.is_not_null())
           .filter(outgoing_chunk::system.eq(true))
@@ -837,8 +837,8 @@ impl DB {
           delivered_at_not_null_and_delivered_false_count
         );
         
-        /// Checking that there are no rows in the sent table where the delivered_at column is null and
-        /// the delivered column is true.
+        // Checking that there are no rows in the sent table where the delivered_at column is null and
+        // the delivered column is true.
         let delivered_at_null_and_delivered_true_count = sent::table
           .filter(sent::delivered_at.is_null())
           .filter(sent::delivered.eq(true))
@@ -864,8 +864,8 @@ impl DB {
           delivered_at_not_null_and_delivered_false_count
         );
 
-        /// Checking that there are no rows in the received table where the delivered_at column is null
-        /// and the delivered column is true.
+        // Checking that there are no rows in the received table where the delivered_at column is null
+        // and the delivered column is true.
         let delivered_at_null_and_delivered_true_count = received::table
           .filter(received::delivered_at.is_null())
           .filter(received::delivered.eq(true))
@@ -966,7 +966,7 @@ impl DB {
           }
         }
 
-        /// Checking that the same message_uid is not sent to the same friend twice.
+        // Checking that the same message_uid is not sent to the same friend twice.
         let mut to_friend_message_uid_map_to_seqnum = HashMap::new();
         for chunk in &chunks {
           let to_friend = chunk.to_friend;
@@ -1009,7 +1009,7 @@ impl DB {
           }
         }
 
-        /// Checking that the chunks are in order.
+        // Checking that the chunks are in order.
         let mut from_friend_message_uid_map_to_seqnum = HashMap::new();
         for chunk in &chunks {
           let from_friend = chunk.from_friend;
@@ -1156,7 +1156,7 @@ impl DB {
     use crate::schema::config;
     use crate::schema::registration;
 
-    /// Creating a new registration record in the database.
+    // Creating a new registration record in the database.
     let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
       let count = registration::table.count().get_result::<i64>(conn_b)?;
       if count > 0 {
@@ -1235,20 +1235,6 @@ impl DB {
 
   /// It gets the registration data from the database.
   /// If there is no registration, it returns an error.
-  /// 
-  /// Returns:
-  /// 
-  /// A struct containing the following fields:
-  /// struct SmallRegistrationFragment {
-  ///   pub uid: i32,
-  ///   pub invitation_public_key: Vec<u8>,
-  ///   pub invitation_private_key: Vec<u8>,
-  ///   pub kx_public_key: Vec<u8>,
-  ///   pub kx_private_key: Vec<u8>,
-  ///   pub allocation: i32,
-  ///   pub authentication_token: String,
-  ///   pub public_id: String,
-  /// }
   pub fn get_small_registration(&self) -> Result<ffi::SmallRegistrationFragment, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::registration;
@@ -1417,7 +1403,7 @@ impl DB {
 
     self.check_rep(&mut conn);
 
-    /// Updating the friend table and setting the deleted column to false.
+    // Updating the friend table and setting the deleted column to false.
     diesel::update(friend::table.filter(friend::unique_name.eq(unique_name)))
       .set(friend::deleted.eq(false))
       .returning(friend::uid)
@@ -1543,8 +1529,6 @@ impl DB {
   /// return error if the update failed.
   pub fn receive_ack(&self, uid: i32, ack: i32) -> Result<bool, DbError> {
     let mut conn = self.connect()?;
-    use crate::schema::complete_friend;
-    use crate::schema::friend;
     use crate::schema::outgoing_async_invitation;
     use crate::schema::outgoing_chunk;
     use crate::schema::sent;
@@ -1561,10 +1545,10 @@ impl DB {
           .execute(conn_b)?;
 
         // Special case: there is an ACK to an outgoing request system message.
-        /// Checking if the chunk is a system message and if it is, it is checking if the system message
-        /// is acked.
-        let acked_index: i32 = old_acked_seqnum;
-        while (acked_index < ack) {
+        // Checking if the chunk is a system message and if it is, it is checking if the system message
+        // is acked.
+        let mut acked_index: i32 = old_acked_seqnum;
+        while acked_index < ack {
           acked_index += 1;
           let chunk_acked: (bool, ffi::SystemMessage) = outgoing_chunk::table
             .filter(outgoing_chunk::to_friend.eq(uid))
@@ -1583,8 +1567,7 @@ impl DB {
             // if invite.len() == 0, then we need to do nothing
             // since the invite has already been approved before
             if invite.len() == 1 {
-              let invite = invite.first().unwrap();
-              self.complete_outgoing_async_friend(conn_b, uid);
+              self.complete_outgoing_async_friend(conn_b, uid)?;
             }
           }
         }
@@ -1601,7 +1584,7 @@ impl DB {
         // when? when there are messages in received that aren't
         // delivered but also do not have incoming chunks
         //
-        /// Loading the uid of all the messages that have been sent to a friend but not delivered.
+        // Loading the uid of all the messages that have been sent to a friend but not delivered.
         let newly_delivered = sent::table
           .filter(sent::to_friend.eq(uid))
           .filter(sent::delivered.eq(false))
@@ -1719,7 +1702,7 @@ impl DB {
     self.check_rep(&mut conn);
 
     let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
-      /// Updating the sequence number of the chunk.
+      // Updating the sequence number of the chunk.
       let chunk_status =
         self.update_sequence_number(conn_b, chunk.from_friend, chunk.sequence_number)?;
       if chunk_status == ffi::ReceiveChunkStatus::OldChunk {
@@ -1732,8 +1715,8 @@ impl DB {
           incoming_chunk::chunks_start_sequence_number.eq(chunk.chunks_start_sequence_number),
         ));
       
-      /// Checking if the chunk is the first chunk of a message. If it is, it creates a new message and
-      /// inserts the chunk. If it is not, it inserts the chunk.
+      // Checking if the chunk is the first chunk of a message. If it is, it creates a new message and
+      // inserts the chunk. If it is not, it inserts the chunk.
       let message_uid;
       match q.first::<ffi::IncomingChunk>(conn_b) {
         Ok(ref_chunk) => {
@@ -1755,7 +1738,7 @@ impl DB {
             .get_result::<ffi::Message>(conn_b)?;
 
           
-          /// Creating a new message and adding it to the database.
+          // Creating a new message and adding it to the database.
           message_uid = new_msg.uid;
           let new_received = Received {
             uid: message_uid,
@@ -1769,7 +1752,7 @@ impl DB {
 
           diesel::insert_into(received::table).values(&new_received).execute(conn_b)?;
 
-          /// Inserting a chunk into the incoming_chunk database.
+          // Inserting a chunk into the incoming_chunk database.
           let insertable_chunk = ffi::IncomingChunk {
             from_friend: chunk.from_friend,
             sequence_number: chunk.sequence_number,
@@ -1781,8 +1764,8 @@ impl DB {
         }
       };
 
-      /// Checking if we have received all the chunks for a message. 
-      /// If so, it assembles the message and writes it to the database.
+      // Checking if we have received all the chunks for a message. 
+      // If so, it assembles the message and writes it to the database.
       let q =
         incoming_chunk::table.filter(incoming_chunk::from_friend.eq(chunk.from_friend).and(
           incoming_chunk::chunks_start_sequence_number.eq(chunk.chunks_start_sequence_number),
@@ -1799,8 +1782,8 @@ impl DB {
           acc
         });
 
-        /// Updating the message table with the message content and updating the received table with the
-        /// delivered status and delivered_at time.
+        // Updating the message table with the message content and updating the received table with the
+        // delivered status and delivered_at time.
         diesel::update(message::table.find(message_uid))
           .set((message::content.eq(msg),))
           .execute(conn_b)?;
@@ -1857,13 +1840,13 @@ impl DB {
     // and then joining. Diesel doesn't typecheck this, and maybe it is unsafe, so
     // let's just do a transaction.
     let r = conn.transaction::<_, anyhow::Error, _>(|conn_b| {
-      /// Grouping the outgoing_chunk table by the to_friend column and then selecting the to_friend
-      /// column and the minimum sequence_number column.
+      // Grouping the outgoing_chunk table by the to_friend column and then selecting the to_friend
+      // column and the minimum sequence_number column.
       let q = outgoing_chunk::table
         .group_by(outgoing_chunk::to_friend)
         .select((outgoing_chunk::to_friend, diesel::dsl::min(outgoing_chunk::sequence_number)));
 
-      /// Getting the first chunk per friend.
+      // Getting the first chunk per friend.
       let first_chunk_per_friend: Vec<(i32, Option<i32>)> = q.load::<(i32, Option<i32>)>(conn_b)?;
       let mut first_chunk_per_friend: Vec<(i32, i32)> =
         first_chunk_per_friend.iter().fold(vec![], |mut acc, &x| {
@@ -1874,12 +1857,12 @@ impl DB {
           acc
         });
       
-      /// Ensure that it is not empty
+      // Ensure that it is not empty
       if first_chunk_per_friend.is_empty() {
         return Err(diesel::result::Error::NotFound).map_err(|e| e.into());
       }
 
-      /// Choosing a random chunk from the list of chunks that are available to be sent.
+      // Choosing a random chunk from the list of chunks that are available to be sent.
       let chosen_chunk: (i32, i32) = (|| {
         for uid in uid_priority {
           if let Some(index) = first_chunk_per_friend.iter().position(|c| c.0 == uid) {
@@ -1903,8 +1886,8 @@ impl DB {
         // unfortunately, system messages do not have an entry in the sent table
         // so the code for non-system messages do not work.
 
-        /// Finding the chosen chunk in the outgoing_chunk table and then joining it with the friend
-        /// table and the transmission table.
+        // Finding the chosen chunk in the outgoing_chunk table and then joining it with the friend
+        // table and the transmission table.
         let chunk_plusplus_minusnumchunks = outgoing_chunk::table
           .find(chosen_chunk)
           .inner_join(friend::table.inner_join(transmission::table))
@@ -1935,8 +1918,8 @@ impl DB {
         Ok(chunk_plusplus)
       } else {
 
-        /// Finding the chosen chunk in the outgoing_chunk table and then joining it with the friend
-        /// table and the transmission table. It then joins the sent table and selects the chunk.
+        // Finding the chosen chunk in the outgoing_chunk table and then joining it with the friend
+        // table and the transmission table. It then joins the sent table and selects the chunk.
         let chunk_plusplus = outgoing_chunk::table
           .find(chosen_chunk)
           .inner_join(friend::table.inner_join(transmission::table))
@@ -1975,8 +1958,8 @@ impl DB {
 
     use crate::schema::friend;
     use crate::schema::transmission;
-    /// Creating a query that will return the uid, received_seqnum, write_key, and ack_index for all friends
-    /// that are not deleted. It does this by joining the friend table with the transmission table.
+    // Creating a query that will return the uid, received_seqnum, write_key, and ack_index for all friends
+    // that are not deleted. It does this by joining the friend table with the transmission table.
     let wide_friends =
       friend::table.filter(friend::deleted.eq(false)).inner_join(transmission::table);
     let q = wide_friends.select((
@@ -1986,7 +1969,7 @@ impl DB {
       transmission::ack_index,
     ));
 
-    /// Loading the results of the query into a vector of OutgoingAck structs.
+    // Loading the results of the query into a vector of OutgoingAck structs.
     let r = q.load::<ffi::OutgoingAck>(&mut conn);
     match r {
       Ok(acks) => Ok(acks),
@@ -2057,10 +2040,10 @@ impl DB {
     ));
     let addresses = q.load::<ffi::Address>(&mut conn);
 
-    /// Getting a random friend address from the database, excluding the ones in the uids list.
+    // Getting a random friend address from the database, excluding the ones in the uids list.
     match addresses {
       Ok(addresses) => {
-        /// Filtering out the addresses that are in the excluded list.
+        // Filtering out the addresses that are in the excluded list.
         let rng: usize = rand::random();
         let mut filtered_addresses =
           addresses.into_iter().filter(|address| !uids.contains(&address.uid)).collect::<Vec<_>>();
@@ -2134,8 +2117,8 @@ impl DB {
         .load::<i32>(conn_b)
         .context("get_seqnum_for_new_chunk, failed to find old sequence number from the outgoing chunk table")?;
       
-      /// Checking if the length of the vector is 0, if it is, then it is doing a database query to get
-      /// the value. If it is not 0, then it is using vec[0]
+      // Checking if the length of the vector is 0, if it is, then it is doing a database query to get
+      // the value. If it is not 0, then it is using vec[0]
       let old_seqnum = match maybe_old_seqnum.len() {
         0 => transmission::table
           .find(friend_uid)
@@ -2184,7 +2167,7 @@ impl DB {
       .transaction::<_, anyhow::Error, _>(|conn_b| {
         let friend_uid = self.get_friend_uid_by_unique_name(conn_b, to_unique_name)?;
 
-        /// Inserting a message into the database and then inserting a sent message into the `sent` table.
+        // Inserting a message into the database and then inserting a sent message into the `sent` table.
         let message_uid = diesel::insert_into(message::table)
          .values((message::content.eq(message),))
           .returning(message::uid)
@@ -2202,7 +2185,7 @@ impl DB {
 
         let new_seqnum = self.get_seqnum_for_new_chunk(conn_b, friend_uid)?;
 
-        /// Inserting the chunks into the database.
+        // Inserting the chunks into the database.
         for (i, chunk) in chunks.iter().enumerate() {
           diesel::insert_into(outgoing_chunk::table)
             .values((
@@ -2249,16 +2232,16 @@ impl DB {
     use crate::schema::received;
     self.check_rep(&mut conn);
     
-    /// Joining message, friend and received tables.
+    // Joining message, friend and received tables.
     let q = received::table.inner_join(message::table).inner_join(friend::table).into_boxed();
 
-    /// Limit the query to get the first x messages.
+    // Limit the query to get the first x messages.
     let q = match query.limit {
       -1 => q,
       x => q.limit(x as i64),
     };
 
-    /// Filter New, vs. All
+    // Filter New, vs. All
     let q = match query.filter {
       ffi::MessageFilter::New => q.filter(received::seen.eq(false)),
       ffi::MessageFilter::All => q,
@@ -2267,7 +2250,7 @@ impl DB {
       }
     };
     
-    /// Order the query by the given order.
+    // Order the query by the given order.
     let q = match query.delivery_status {
       ffi::DeliveryStatus::Delivered => q.filter(received::delivered.eq(true)),
       ffi::DeliveryStatus::Undelivered => q.filter(received::delivered.eq(false)),
@@ -2279,7 +2262,7 @@ impl DB {
       }
     };
 
-    /// Order the query by the given order.
+    // Order the query by the given order.
     let q = match query.sort_by {
       ffi::SortBy::None => q,
       ffi::SortBy::ReceivedAt => q.order_by(received::received_at.desc()),
@@ -2294,7 +2277,7 @@ impl DB {
       }
     };
 
-    /// Filtering the query based on the sort_by field.
+    // Filtering the query based on the sort_by field.
     let q = match query.after {
       0 => q,
       x => match query.sort_by {
@@ -2340,7 +2323,7 @@ impl DB {
 
     self.check_rep(&mut conn);
 
-    /// Selecting the last delivered message.
+    // Selecting the last delivered message.
     let q = received::table
       .filter(received::delivered.eq(true))
       .order_by(received::delivered_at.desc())
@@ -2394,7 +2377,7 @@ impl DB {
       }
     };
 
-    /// Filter on Delivery Status
+    // Filter on Delivery Status
     let q = match query.delivery_status {
       ffi::DeliveryStatus::Delivered => q.filter(sent::delivered.eq(true)),
       ffi::DeliveryStatus::Undelivered => q.filter(sent::delivered.eq(false)),
@@ -2406,7 +2389,7 @@ impl DB {
       }
     };
 
-    /// Sorting the query based on the sort_by field.
+    // Sorting the query based on the sort_by field.
     let q = match query.sort_by {
       ffi::SortBy::None => q,
       ffi::SortBy::SentAt => q.order_by(sent::sent_at.desc()),
@@ -2423,7 +2406,7 @@ impl DB {
       }
     };
 
-    /// Checking if the query has an after value. If it does, it is filtering the query by the after value.
+    // Checking if the query has an after value. If it does, it is filtering the query by the after value.
     let q = match query.after {
       0 => q,
       x => match query.sort_by {
@@ -2481,7 +2464,7 @@ impl DB {
 
     let q = draft::table.inner_join(message::table).inner_join(friend::table).into_boxed();
 
-    /// Filtering and sorting on the necessary query paramaters.
+    // Filtering and sorting on the necessary query paramaters.
     let q = match query.limit {
       -1 => q,
       x => q.limit(x as i64),
@@ -2527,8 +2510,8 @@ impl DB {
     self.check_rep(&mut conn);
     use crate::schema::received;
     
-    /// Updating the seen column of the received table to true 
-    /// where the uid is equal to the uid passed in
+    // Updating the seen column of the received table to true 
+    // where the uid is equal to the uid passed in
     let r = diesel::update(received::table.find(uid))
       .set(received::seen.eq(true))
       .returning(received::uid)
