@@ -61,7 +61,7 @@ auto Encode(string_view input) -> string {
       carry /= 58;
     }
 
-    assert(carry == 0);
+    ASPHR_ASSERT_EQ(carry, 0);
     length = i;
     input = input.substr(1);
   }
@@ -100,7 +100,7 @@ auto Decode(string_view str) -> asphr::StatusOr<string> {
       *it = carry % 256;
       carry /= 256;
     }
-    assert(carry == 0);
+    ASPHR_ASSERT_EQ(carry, 0);
     length = i;
     str = str.substr(1);
   }
