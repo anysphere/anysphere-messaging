@@ -10,6 +10,12 @@
 npm run start
 ```
 
+With fake data, to not have to run the daemon:
+
+```bash
+ASPHR_FAKE_DATA=true npm run start
+```
+
 ## Storybook
 
 To start the storybook of our components:
