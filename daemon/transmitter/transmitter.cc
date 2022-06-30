@@ -689,8 +689,6 @@ auto Transmitter::retrieve_async_invitations(int start_index, int end_index)
     return;
   }
 
-  std::map<string, db::Friend> friends = {};
-
   ASPHR_LOG_INFO("Retrieved async friend requests from server.",
                  "invitations_size", reply.invitations_size());
 
