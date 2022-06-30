@@ -8,6 +8,30 @@ use diesel::prelude::*;
 use crate::db::*;
 use rand::Rng;
 
+/**
+ * Test the database.
+ * 
+ * Partition tested:
+ * - 2 friends
+ * - async addition of friends
+ * 
+ * - test_recieive_msg(): basic functionality of the following APIs:
+ *  - add_outgoing_async_invitation
+ *  - add_incoming_async_invitation
+ *  - get_received_messages
+ *    - 1 message sent
+ *  - get_sent_messages
+ *   - 1 message sent
+ *  - acks_to_send()
+ *  
+ *  - test_send_msg(): basic functionality of the following APIs:
+ *    - add_outgoing_async_invitation
+ *    - add_incoming_async_invitation
+ *    - queue_message_to_send
+ *    - chunk_to_send()
+ *    - do_register()
+ */
+
 fn get_registration_fragment() -> ffi::RegistrationFragment {
   let kx_public_key: Vec<u8> = br#"zIUWz21AsWme9KxgS43TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
   let kx_private_key: Vec<u8> = br#""EUSOOwjVEHRD1XzruR93LcK8YosZ3gWUkrrk8yjrpIQ="#.to_vec();
