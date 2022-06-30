@@ -273,43 +273,6 @@ auto decrypt_ack(const string& ciphertext, const string& read_key)
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
 
-// NEW: generate / decode user ID.
-// user ID is a string stored on the server that encompases username,
-// allocation, kx_public_key, and invitation_public_key
-// we use Base64 encoding as before
-// TODO: what is included here is an IMPORTANT DECISION pending discussion.
-// ASSUMPTION: username should not contain '@'
-auto generate_user_id(const string& username, int allocation,
-                      const string& kx_public_key,
-                      const string& invitation_public_key)
-    -> asphr::StatusOr<string> {
-  string kx_public_key_b64;
-  string invitation_public_key_b64;
-  // encode them using libsodium b64
-  kx_public_key_b64.resize(sodium_base64_ENCODED_LEN(
-      kx_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
-
-  sodium_bin2base64(
-      kx_public_key_b64.data(), kx_public_key_b64.size(),
-      reinterpret_cast<const unsigned char*>(kx_public_key.data()),
-      kx_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING);
-  // repeat for public key
-  invitation_public_key_b64.resize(sodium_base64_ENCODED_LEN(
-      invitation_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
-  sodium_bin2base64(
-      invitation_public_key_b64.data(), invitation_public_key_b64.size(),
-      reinterpret_cast<const unsigned char*>(invitation_public_key.data()),
-      invitation_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING);
-  // assert that username is well formed
-  if (username.find('@') != string::npos) {
-    return asphr::InvalidArgumentError("username cannot contain '@'");
-  }
-  // construct user ID
-  // return final string, separated by @
-  return username + "@" + std::to_string(allocation) + "@" + kx_public_key_b64 +
-         "@" + invitation_public_key_b64;
-}
-
 auto split(const string& s, char del) -> vector<string> {
   int start = 0;
   int end = s.find(del);
@@ -321,44 +284,6 @@ auto split(const string& s, char del) -> vector<string> {
   }
   result.push_back(s.substr(start, end - start));
   return result;
-}
-
-auto decode_user_id(const string& user_id)
-    -> asphr::StatusOr<std::tuple<string, int, string, string>> {
-  // split user_id by @
-  auto user_id_split = split(user_id, '@');
-  if (user_id_split.size() != 4) {
-    return asphr::InvalidArgumentError("user_id is not well formed");
-  }
-  // decode the public keys
-  string kx_public_key_b64 = user_id_split[2];
-  string invitation_public_key_b64 = user_id_split[3];
-  string kx_public_key;
-  string invitation_public_key;
-  size_t kx_public_key_len;
-  size_t invitation_public_key_len;
-  const char* b64_end;
-  kx_public_key.resize(kx_public_key_b64.size());
-  invitation_public_key.resize(invitation_public_key_b64.size());
-  if (sodium_base642bin(reinterpret_cast<unsigned char*>(kx_public_key.data()),
-                        kx_public_key.size(), kx_public_key_b64.data(),
-                        kx_public_key_b64.size(), "", &kx_public_key_len,
-                        &b64_end,
-                        sodium_base64_VARIANT_URLSAFE_NO_PADDING) != 0) {
-    return absl::UnknownError("failed to decode kx_public_key");
-  }
-  if (sodium_base642bin(
-          reinterpret_cast<unsigned char*>(invitation_public_key.data()),
-          invitation_public_key.size(), invitation_public_key_b64.data(),
-          invitation_public_key_b64.size(), "", &invitation_public_key_len,
-          &b64_end, sodium_base64_VARIANT_URLSAFE_NO_PADDING) != 0) {
-    return absl::UnknownError("failed to decode kx_public_key");
-  }
-  kx_public_key.resize(kx_public_key_len);
-  invitation_public_key.resize(invitation_public_key_len);
-  // return the decoded values
-  return std::make_tuple(user_id_split[0], std::stoi(user_id_split[1]),
-                         kx_public_key, invitation_public_key);
 }
 
 // encrypt an asynchronous friend request

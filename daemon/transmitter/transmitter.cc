@@ -590,14 +590,15 @@ auto Transmitter::transmit_async_invitation() -> void {
   // try-catch
   string my_id;  // we could probably cache this in DB, but we don't need to
   string my_invitation_private_key;
-  string friend_id;
+  string friend_invitation_public_key;
   db::SmallRegistrationFragment reg_info;
   try {
     reg_info = G.db->get_small_registration();
     my_id = std::string(reg_info.public_id);
     my_invitation_private_key =
         rust_u8Vec_to_string(reg_info.invitation_private_key);
-    friend_id = std::string(invitation.public_id);
+    friend_invitation_public_key =
+        rust_u8Vec_to_string(invitation.invitation_public_key);
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Could not get registration.", error_msg, e.what());
     return;
@@ -605,7 +606,7 @@ auto Transmitter::transmit_async_invitation() -> void {
 
   // encrypt the friend request
   auto encrypted_invitation_status_ = crypto::encrypt_async_invitation(
-      my_id, my_invitation_private_key, friend_id,
+      my_id, my_invitation_private_key, friend_invitation_public_key,
       std::string(invitation.message));
 
   if (!encrypted_invitation_status_.ok()) {
@@ -635,14 +636,6 @@ auto Transmitter::transmit_async_invitation() -> void {
 
 // retrieve and process async friend request from the server
 // and push them to the database
-// It is important to define the behavior of this function in the case of
-// duplicate requests. i.e. when a friend (request) with the same public key
-// is already in the database. Here's the definition for now.
-// 1. If the friend is marked as deleted, then we ignore the request.
-// 2. If the friend is marked as accepted, then we ignore the request.
-// 3. If the friend is marked as incoming, then we ignore the request.
-// 4. If the friend is marked as outgoing, then we approve this request
-// immediately.
 auto Transmitter::retrieve_async_invitations(int start_index, int end_index)
     -> void {
   // check input

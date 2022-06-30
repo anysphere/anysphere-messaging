@@ -1354,6 +1354,9 @@ impl DB {
     use crate::schema::outgoing_chunk;
     use crate::schema::sent;
     use crate::schema::transmission;
+    use crate::schema::friend;
+    use crate::schema::complete_friend;
+    use crate::schema::outgoing_async_invitation;
 
     self.check_rep(&mut conn);
 
@@ -1364,6 +1367,51 @@ impl DB {
         diesel::update(transmission::table.find(uid))
           .set(transmission::sent_acked_seqnum.eq(ack))
           .execute(conn_b)?;
+        // Special case: this is an ACK to an outgoing request system message.
+        let chunk_acked : (bool, ffi::SystemMessage) = outgoing_chunk::table
+          .filter(outgoing_chunk::to_friend.eq(uid))
+          .filter(outgoing_chunk::sequence_number.eq(ack))
+          .select((outgoing_chunk::system,
+                  outgoing_chunk::system_message))
+          .first::<(bool, ffi::SystemMessage)>(conn_b)?;
+        if (chunk_acked.0, chunk_acked.1) == (true, ffi::SystemMessage::OutgoingInvitation) {
+          // This is a system control message for an outgoing invitation.
+          // In this case, we become complete friends with the other party.
+          // ======================
+          // To deduplicate, we first check that the uid is in the outgoing async table
+          let invite = outgoing_async_invitation::table
+          .filter(outgoing_async_invitation::friend_uid.eq(uid))
+          .load::<ffi::JustOutgoingAsyncInvitation>(conn_b)?;
+          // if invite.len() == 0, then we need to do nothing
+          // since the invite has already been approved before
+          if invite.len() == 1 {
+            let invite = invite.first().unwrap();
+            // we update the friend progress to be complete
+            diesel::update(friend::table.filter(friend::uid.eq(uid)))
+              .set(friend::invitation_progress.eq(ffi::InvitationProgress::Complete))
+              .execute(conn_b)?;
+            // we push the friend into complete_friend table
+            // to achieve that, we need to obtain several keys.
+            // fortunately, these keys are already in the invitation table.
+
+            diesel::insert_into(complete_friend::table)
+              .values((
+                complete_friend::friend_uid.eq(uid),
+                complete_friend::public_id.eq(invite.public_id.clone()),
+                complete_friend::invitation_public_key.eq(invite.invitation_public_key.clone()),
+                complete_friend::kx_public_key.eq(invite.kx_public_key.clone()),
+                complete_friend::completed_at.eq(util::unix_micros_now()),
+              ))
+              .execute(conn_b)?;
+            // remove the invite from the table
+            diesel::delete(
+              outgoing_async_invitation::table.filter(
+              outgoing_async_invitation::friend_uid.eq(uid))
+            ).execute(conn_b)?;
+          }
+          // ======================
+        }
+
         // delete all outgoing chunks with seqnum <= ack
         diesel::delete(
           outgoing_chunk::table
@@ -1381,6 +1429,7 @@ impl DB {
           .filter(outgoing_chunk::sequence_number.nullable().is_null())
           .select(sent::uid)
           .load::<i32>(conn_b)?;
+
 
         // we use ii to make sure that times are guaranteed to be unique
         for (ii, uid) in (0_i64..).zip(newly_delivered.into_iter()) {
@@ -2308,7 +2357,7 @@ impl DB {
           outgoing_chunk::to_friend.eq(friend.uid),
           outgoing_chunk::sequence_number.eq(new_seqnum),
           outgoing_chunk::chunks_start_sequence_number.eq(new_seqnum),
-          outgoing_chunk::message_uid.eq::<Option<i32>>(None),
+          outgoing_chunk::message_uid.eq::<Option<i32>>(None), //waived
           outgoing_chunk::content.eq(my_public_id), // the content is public_id
           outgoing_chunk::system.eq(true),
           outgoing_chunk::system_message.eq(ffi::SystemMessage::OutgoingInvitation),
