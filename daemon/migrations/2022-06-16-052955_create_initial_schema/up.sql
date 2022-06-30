@@ -1,3 +1,8 @@
+--
+-- Copyright 2022 Anysphere, Inc.
+-- SPDX-License-Identifier: GPL-3.0-only
+--
+
 -- exactly 1 element always!
 -- DUPLICATION: MAKE SURE TO HAVE THE CONSTANTS BE THE SAME AS constants.hpp
 -- When you update the constants.hpp, you need to run a migration here.

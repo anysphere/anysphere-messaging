@@ -2,6 +2,7 @@
 // Copyright 2022 Anysphere, Inc.
 // SPDX-License-Identifier: GPL-3.0-only
 //
+
 #pragma once
 
 // From https://github.com/bitcoin/bitcoin/blob/master/src/base58.h
