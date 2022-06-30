@@ -336,7 +336,7 @@ auto Transmitter::retrieve() -> void {
                             friend_uid, f.uid, system_message,
                             chunk.system_message(), system_message_data,
                             chunk.system_message_data());
-              ASPHR_ASSERT(false);
+              break;
             }
           }
         } else {
