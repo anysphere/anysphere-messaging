@@ -115,7 +115,7 @@ export default function AddFriendInPerson({
             DEBUG_COLORS ? "bg-yellow-700" : ""
           )}
         >
-          Share stories with your friend.
+          Share stories with each other.
         </h3>
         <h6 className="text-center text-xs text-asbrown-light">
           These correspond to your public key, and allow you and your friend to
