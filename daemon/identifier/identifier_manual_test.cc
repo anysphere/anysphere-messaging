@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
 
   cout << pi.index << endl;
   cout << pi.kx_public_key.size() << endl;
-  cout << pi.friend_request_public_key.size() << endl;
+  cout << pi.invitation_public_key.size() << endl;
 
   cout << "public id: " << pi.to_public_id() << endl;
 

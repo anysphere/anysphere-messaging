@@ -115,20 +115,21 @@ fn test_receive_msg() {
   db.do_register(config_data).unwrap();
 
   // add friend by issuing an outgoing invitation and then accepting an incoming invitation
-  let f = db
-    .add_outgoing_async_invitation(
-      "friend_1",
-      "Friend 1",
-      "hi_this_is_a_public_id",
-      br#"fffff"#.to_vec(),
-      br#"kxkxkx"#.to_vec(),
-      "message hi hi",
-      0,
-      br#"rrrrr"#.to_vec(),
-      br#"wwww"#.to_vec(),
-      20,
-    )
-    .unwrap();
+
+  let params = ffi::AddOutgoingAsyncInvitationParams {
+    unique_name: "friend_1".to_string(),
+    display_name: "Friend 1".to_string(),
+    public_id: "hi_this_is_a_public_id".to_string(),
+    invitation_public_key: br#"fffff"#.to_vec(),
+    kx_public_key: br#"kxkxkx"#.to_vec(),
+    message: "message hi hi".to_string(),
+    read_index: 0,
+    read_key: br#"rrrrr"#.to_vec(),
+    write_key: br#"wwww"#.to_vec(),
+    max_friends: 20,
+  };
+
+  let f = db.add_outgoing_async_invitation(params).unwrap();
   // will be auto accepted!
   db.add_incoming_async_invitation("hi_this_is_a_public_id", "invitation: hi from friend 1")
     .unwrap();
@@ -189,20 +190,22 @@ fn test_send_msg() {
   let config_data = get_registration_fragment();
   db.do_register(config_data).unwrap();
 
-  let f = db
-    .add_outgoing_async_invitation(
-      "friend_1",
-      "Friend 1",
-      "hi_this_is_a_public_id",
-      br#"fffff"#.to_vec(),
-      br#"kxkxkx"#.to_vec(),
-      "message hi hi",
-      0,
-      br#"rrrrr"#.to_vec(),
-      br#"wwww"#.to_vec(),
-      20,
-    )
-    .unwrap();
+  let params = ffi::AddOutgoingAsyncInvitationParams {
+    unique_name: "friend_1".to_string(),
+    display_name: "Friend 1".to_string(),
+    public_id: "hi_this_is_a_public_id".to_string(),
+    invitation_public_key: br#"fffff"#.to_vec(),
+    kx_public_key: br#"kxkxkx"#.to_vec(),
+    message: "message hi hi".to_string(),
+    read_index: 0,
+    read_key: br#"rrrrr"#.to_vec(),
+    write_key: br#"wwww"#.to_vec(),
+    max_friends: 20,
+  };
+
+  let f = db.add_outgoing_async_invitation(params).unwrap();
+
+  // copy the above call
 
   println!("f: {:?}", f);
 
@@ -265,18 +268,23 @@ fn test_async_add_friend() {
 
   // approve the friend request
   let max_friends = 20;
-  db.accept_incoming_invitation(
-    "fake_public_id_string",
-    friend_name,
-    "Display Name",
-    br#"xPubxxx"#.to_vec(),
-    br#"xKxxxx"#.to_vec(),
-    0,
-    br#"rrrrrrrr"#.to_vec(),
-    br#"wwww"#.to_vec(),
+
+  // `ffi::AcceptIncomingInvitationParams { public_id: val, unique_name: val, display_name: val, invitation_public_key: val, kx_public_key: val, read_index: val, read_key: val, write_key: val, max_friends: val }`
+
+  let params = ffi::AcceptIncomingInvitationParams {
+    public_id: "fake_public_id_string".to_string(),
+    unique_name: friend_name.to_string(),
+    display_name: "Display Name".to_string(),
+    invitation_public_key: br#"xPubxxx"#.to_vec(),
+    kx_public_key: br#"xKxxxx"#.to_vec(),
+    read_index: 0,
+    read_key: br#"rrrrrrrr"#.to_vec(),
+    write_key: br#"wwww"#.to_vec(),
     max_friends,
-  )
-  .unwrap();
+  };
+
+  db.accept_incoming_invitation(params).unwrap();
+
   // check that the friend request is gone
   let invitations_new = db.get_incoming_invitations().unwrap();
   assert_eq!(invitations_new.len(), 0);
