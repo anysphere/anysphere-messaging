@@ -1959,6 +1959,11 @@ impl DB {
     }
   }
 
+  /// Returns the acks that we need to send to the server.
+  /// 
+  /// Returns:
+  /// 
+  /// A vector of OutgoingAck structs.
   pub fn acks_to_send(&self) -> Result<Vec<ffi::OutgoingAck>, DbError> {
     let mut conn = self.connect()?;
 
@@ -1966,6 +1971,8 @@ impl DB {
 
     use crate::schema::friend;
     use crate::schema::transmission;
+    /// Creating a query that will return the uid, received_seqnum, write_key, and ack_index for all friends
+    /// that are not deleted. It does this by joining the friend table with the transmission table.
     let wide_friends =
       friend::table.filter(friend::deleted.eq(false)).inner_join(transmission::table);
     let q = wide_friends.select((
@@ -1974,6 +1981,8 @@ impl DB {
       transmission::write_key,
       transmission::ack_index,
     ));
+
+    /// Loading the results of the query into a vector of OutgoingAck structs.
     let r = q.load::<ffi::OutgoingAck>(&mut conn);
     match r {
       Ok(acks) => Ok(acks),
@@ -1981,6 +1990,15 @@ impl DB {
     }
   }
 
+  /// It gets the address of a friend from the database.
+  /// 
+  /// Arguments:
+  /// 
+  /// * `uid`: The user id of the friend.
+  /// 
+  /// Returns:
+  /// 
+  /// A tuple of the friend_uid, read_index, read_key, write_key, and ack_index.
   pub fn get_friend_address(&self, uid: i32) -> Result<ffi::Address, DbError> {
     let mut conn = self.connect()?;
     self.check_rep(&mut conn);
@@ -2003,6 +2021,15 @@ impl DB {
     }
   }
 
+  /// Get a random friend that is not deleted and not in the excluded list
+  /// 
+  /// Arguments:
+  /// 
+  /// * `uids`: A list of friend uids to exclude from the random selection.
+  /// 
+  /// Returns:
+  /// 
+  /// A random friend address that is not deleted and is not in the excluded list.
   pub fn get_random_enabled_friend_address_excluding(
     &self,
     uids: Vec<i32>,
@@ -2026,8 +2053,10 @@ impl DB {
     ));
     let addresses = q.load::<ffi::Address>(&mut conn);
 
+    /// Getting a random friend address from the database, excluding the ones in the uids list.
     match addresses {
       Ok(addresses) => {
+        /// Filtering out the addresses that are in the excluded list.
         let rng: usize = rand::random();
         let mut filtered_addresses =
           addresses.into_iter().filter(|address| !uids.contains(&address.uid)).collect::<Vec<_>>();
