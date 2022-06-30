@@ -150,7 +150,7 @@ Status DaemonRpc::GetMyPublicID(
 
   try {
     // query the db for registration info
-    auto registration_info = G.db->get_registration();
+    auto registration_info = G.db->get_small_registration();
     // set the public ID in the response
     // public ID is constant, so no need to regenerate it
     getMyPublicIDResponse->set_public_id(
