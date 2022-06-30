@@ -1493,6 +1493,11 @@ impl DB {
     }
   }
 
+  /// It gets the server address from the database
+  /// 
+  /// Returns:
+  /// 
+  /// A Result<String, DbError>
   pub fn get_server_address(&self) -> Result<String, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::config;
@@ -1505,6 +1510,17 @@ impl DB {
     }
   }
 
+  /// It updates the database to reflect the fact that a friend has acknowledged a message
+  /// 
+  /// Arguments:
+  /// 
+  /// * `uid`: the uid of the friend
+  /// * `ack`: the sequence number of the last chunk that the other party has received.
+  /// 
+  /// Returns:
+  /// 
+  /// a boolean value, true if the ack > old_ack, and the update was successful, false if it was not.
+  /// return error if the update failed.
   pub fn receive_ack(&self, uid: i32, ack: i32) -> Result<bool, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::complete_friend;
@@ -1523,12 +1539,16 @@ impl DB {
         diesel::update(transmission::table.find(uid))
           .set(transmission::sent_acked_seqnum.eq(ack))
           .execute(conn_b)?;
+
         // Special case: this is an ACK to an outgoing request system message.
+        /// Checking if the chunk is a system message and if it is, it is checking if the system message
+        /// is acked.
         let chunk_acked: (bool, ffi::SystemMessage) = outgoing_chunk::table
           .filter(outgoing_chunk::to_friend.eq(uid))
           .filter(outgoing_chunk::sequence_number.eq(ack))
           .select((outgoing_chunk::system, outgoing_chunk::system_message))
           .first::<(bool, ffi::SystemMessage)>(conn_b)?;
+
         if (chunk_acked.0, chunk_acked.1) == (true, ffi::SystemMessage::OutgoingInvitation) {
           // This is a system control message for an outgoing invitation.
           // In this case, we become complete friends with the other party.
@@ -1549,6 +1569,7 @@ impl DB {
             // to achieve that, we need to obtain several keys.
             // fortunately, these keys are already in the invitation table.
 
+            /// Inserting a new row into the complete_friend table.
             diesel::insert_into(complete_friend::table)
               .values((
                 complete_friend::friend_uid.eq(uid),
@@ -1578,6 +1599,8 @@ impl DB {
         // potentially transition messages to delivered status!
         // when? when there are messages in received that aren't
         // delivered but also do not have incoming chunks
+        //
+        /// Loading the uid of all the messages that have been sent to a friend but not delivered.
         let newly_delivered = sent::table
           .filter(sent::to_friend.eq(uid))
           .filter(sent::delivered.eq(false))
@@ -1612,6 +1635,24 @@ impl DB {
     }
   }
 
+  /// If the sequence number is exactly one more than the last sequence number, then we update the
+  /// database
+  /// 
+  /// Arguments:
+  /// 
+  /// * `conn`: &mut SqliteConnection
+  /// * `from_friend`: the friend number of the friend who sent the chunk
+  /// * `sequence_number`: the sequence number of the chunk
+  /// 
+  /// Returns:
+  /// 
+  /// A Result<ffi::ReceiveChunkStatus, diesel::result::Error>
+  /// 
+  /// enum ReceiveChunkStatus {
+  ///   NewChunk,
+  ///   NewChunkAndNewMessage,
+  ///   OldChunk,
+  /// }
   pub fn update_sequence_number(
     &self,
     conn: &mut SqliteConnection,
@@ -1644,6 +1685,20 @@ impl DB {
     })
   }
 
+  /// Handling recieving a chunk.
+  /// 
+  /// It receives a chunk, checks if it is the first chunk of a message, if it is, it creates a new
+  /// message and inserts the chunk. If it is not, it inserts the chunk. It then checks if we have
+  /// received all the chunks for a message. If so, it assembles the message and writes it to the database
+  /// 
+  /// Arguments:
+  /// 
+  /// * `chunk`: ffi::IncomingChunkFragment,
+  /// * `num_chunks`: The number of chunks that the message is broken into.
+  /// 
+  /// Returns:
+  /// 
+  /// a Result<ffi::ReceiveChunkStatus, DbError>
   pub fn receive_chunk(
     &self,
     chunk: ffi::IncomingChunkFragment,
@@ -1657,6 +1712,7 @@ impl DB {
     self.check_rep(&mut conn);
 
     let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+      /// Updating the sequence number of the chunk.
       let chunk_status =
         self.update_sequence_number(conn_b, chunk.from_friend, chunk.sequence_number)?;
       if chunk_status == ffi::ReceiveChunkStatus::OldChunk {
@@ -1668,6 +1724,9 @@ impl DB {
         incoming_chunk::table.filter(incoming_chunk::from_friend.eq(chunk.from_friend).and(
           incoming_chunk::chunks_start_sequence_number.eq(chunk.chunks_start_sequence_number),
         ));
+      
+      /// Checking if the chunk is the first chunk of a message. If it is, it creates a new message and
+      /// inserts the chunk. If it is not, it inserts the chunk.
       let message_uid;
       match q.first::<ffi::IncomingChunk>(conn_b) {
         Ok(ref_chunk) => {
@@ -1688,6 +1747,8 @@ impl DB {
             .values(message::content.eq(""))
             .get_result::<ffi::Message>(conn_b)?;
 
+          
+          /// Creating a new message and adding it to the database.
           message_uid = new_msg.uid;
           let new_received = Received {
             uid: message_uid,
@@ -1698,8 +1759,10 @@ impl DB {
             delivered_at: None,
             seen: false,
           };
+
           diesel::insert_into(received::table).values(&new_received).execute(conn_b)?;
 
+          /// Inserting a chunk into the incoming_chunk database.
           let insertable_chunk = ffi::IncomingChunk {
             from_friend: chunk.from_friend,
             sequence_number: chunk.sequence_number,
@@ -1711,7 +1774,8 @@ impl DB {
         }
       };
 
-      // check if we have received all chunks!
+      /// Checking if we have received all the chunks for a message. 
+      /// If so, it assembles the message and writes it to the database.
       let q =
         incoming_chunk::table.filter(incoming_chunk::from_friend.eq(chunk.from_friend).and(
           incoming_chunk::chunks_start_sequence_number.eq(chunk.chunks_start_sequence_number),
@@ -1727,6 +1791,9 @@ impl DB {
           acc.push_str(&chunk.content);
           acc
         });
+
+        /// Updating the message table with the message content and updating the received table with the
+        /// delivered status and delivered_at time.
         diesel::update(message::table.find(message_uid))
           .set((message::content.eq(msg),))
           .execute(conn_b)?;
