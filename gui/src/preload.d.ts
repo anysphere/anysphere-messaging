@@ -15,9 +15,7 @@ declare global {
       registerUserRequest: daemon_pb.RegisterUserRequest
     ): Promise<boolean>;
 
-    getMyPublicID(
-      getMyPublicIDRequest: daemon_pb.GetMyPublicIDRequest
-    ): Promise<daemon_pb.GetMyPublicIDResponse>;
+    getMyPublicID(): Promise<daemon_pb.GetMyPublicIDResponse.AsObject>;
 
     getFriendList(): Promise<Friend[]>;
 

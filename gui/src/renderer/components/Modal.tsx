@@ -8,6 +8,7 @@ import { classNames } from "../utils";
 
 export enum ModalType {
   Standard = "standard",
+  Medium = "medium",
   Large = "large",
 }
 
@@ -39,9 +40,16 @@ export function Modal({
         <div className="grid h-screen w-screen">
           <div
             className={classNames(
-              type == ModalType.Large
-                ? "h-[90%] w-[90%]"
-                : "h-[20rem] w-[36rem]",
+              (() => {
+                switch (type) {
+                  case ModalType.Standard:
+                    return "h-[20rem] w-[36rem]";
+                  case ModalType.Medium:
+                    return "h-[min(40rem,90%)] w-[min(60rem,90%)]";
+                  case ModalType.Large:
+                    return "h-[90%] w-[90%]";
+                }
+              })(),
               "place-self-center overflow-scroll rounded-md border-4 border-asbrown-100 bg-white"
             )}
             onClick={(event) => {

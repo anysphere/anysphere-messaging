@@ -786,7 +786,8 @@ contextBridge.exposeInMainWorld(
     if (FAKE_DATA) {
       return {
         publicId: "asdfasdf",
-        story: "my story is that we are going to win.",
+        story:
+          "Haphazard ambassador hides gradient. Cool mark resolves ambush. Eerie kiss revises distinction. Fashionable film fosters age. New customer views proprietor. Boiled plant kicks truck. Spectacular commission complies triumph. Faint.",
       };
     }
 
