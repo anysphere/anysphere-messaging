@@ -68,7 +68,7 @@ cc_test(
 )
 
 cc_binary(
-    name = "identifier_manual_test",
+    name = "manual_test",
     srcs = ["identifier_manual_test.cc"],
     deps = [
         ":identifier",
