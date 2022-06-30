@@ -1822,6 +1822,17 @@ impl DB {
     }
   }
 
+  /// Chose a chunk at random from the database, given the priorities and returns it.
+  /// 
+  /// Arguments:
+  /// 
+  /// * `uid_priority`: a list of friend uids. The chunk that is chosen will be from one of these
+  /// friends.
+  /// 
+  /// Returns:
+  /// 
+  /// A tuple of the to_friend, sequence_number, chunks_start_sequence_number, message_uid, content,
+  /// write_key, num_chunks, system, and system_message.
   pub fn chunk_to_send(
     &self,
     uid_priority: Vec<i32>,
@@ -1839,9 +1850,13 @@ impl DB {
     // and then joining. Diesel doesn't typecheck this, and maybe it is unsafe, so
     // let's just do a transaction.
     let r = conn.transaction::<_, anyhow::Error, _>(|conn_b| {
+      /// Grouping the outgoing_chunk table by the to_friend column and then selecting the to_friend
+      /// column and the minimum sequence_number column.
       let q = outgoing_chunk::table
         .group_by(outgoing_chunk::to_friend)
         .select((outgoing_chunk::to_friend, diesel::dsl::min(outgoing_chunk::sequence_number)));
+
+      /// Getting the first chunk per friend.
       let first_chunk_per_friend: Vec<(i32, Option<i32>)> = q.load::<(i32, Option<i32>)>(conn_b)?;
       let mut first_chunk_per_friend: Vec<(i32, i32)> =
         first_chunk_per_friend.iter().fold(vec![], |mut acc, &x| {
@@ -1851,28 +1866,38 @@ impl DB {
           };
           acc
         });
+      
+      /// Ensure that it is not empty
       if first_chunk_per_friend.is_empty() {
         return Err(diesel::result::Error::NotFound).map_err(|e| e.into());
       }
+
+      /// Choosing a random chunk from the list of chunks that are available to be sent.
       let chosen_chunk: (i32, i32) = (|| {
         for uid in uid_priority {
           if let Some(index) = first_chunk_per_friend.iter().position(|c| c.0 == uid) {
             return first_chunk_per_friend.remove(index);
           }
         }
+
         let rng: usize = rand::random();
         let index = rng % first_chunk_per_friend.len();
         first_chunk_per_friend.remove(index)
       })();
+
       // special case: control message
       let is_system_message = outgoing_chunk::table
         .find(chosen_chunk)
         .select(outgoing_chunk::system)
         .first::<bool>(conn_b)?;
+      
       if is_system_message {
         // the number of chunks for system messages is always 1
         // unfortunately, system messages do not have an entry in the sent table
         // so the code for non-system messages do not work.
+
+        /// Finding the chosen chunk in the outgoing_chunk table and then joining it with the friend
+        /// table and the transmission table.
         let chunk_plusplus_minusnumchunks = outgoing_chunk::table
           .find(chosen_chunk)
           .inner_join(friend::table.inner_join(transmission::table))
@@ -1888,6 +1913,7 @@ impl DB {
           ))
           .first::<OutgoingChunkPlusPlusMinusNumChunks>(conn_b)
           .context("chunk_to_send, cannot find chosen chunk in the outgoing_chunk table")?;
+
         let chunk_plusplus = ffi::OutgoingChunkPlusPlus {
           to_friend: chunk_plusplus_minusnumchunks.to_friend,
           sequence_number: chunk_plusplus_minusnumchunks.sequence_number,
@@ -1901,6 +1927,9 @@ impl DB {
         };
         Ok(chunk_plusplus)
       } else {
+
+        /// Finding the chosen chunk in the outgoing_chunk table and then joining it with the friend
+        /// table and the transmission table. It then joins the sent table and selects the chunk.
         let chunk_plusplus = outgoing_chunk::table
           .find(chosen_chunk)
           .inner_join(friend::table.inner_join(transmission::table))
@@ -1924,7 +1953,10 @@ impl DB {
 
     self.check_rep(&mut conn);
 
-    r
+    match r {
+      Ok(b) => Ok(b),
+      Err(e) => Err(DbError::Unknown(format!("chunk_to_send: {}", e))),
+    }
   }
 
   pub fn acks_to_send(&self) -> Result<Vec<ffi::OutgoingAck>, DbError> {
