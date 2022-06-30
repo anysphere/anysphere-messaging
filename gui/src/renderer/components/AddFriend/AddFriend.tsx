@@ -4,54 +4,67 @@ import { StatusProps } from "../Status";
 import { classNames } from "../../utils";
 
 const yourStory = [
-  "Quia rem est sed impedit magnam",
-  "Dolorem vero ratione voluptates",
-  "Qui sed ab doloribus voluptatem dolore",
-  "Laborum commodi molestiae id et fugiat",
-  "Nam ut ipsa nesciunt culpa modi dolor",
-  "Quia rem est sed impedit magnam",
-  "Dolorem vero ratione voluptates",
-  "Quia rem est sed impedit magnam",
-  "Dolorem vero ratione voluptates",
-  "Qui sed ab doloribus voluptatem dolore",
+  "Haphazard ambassador hides gradient",
+  "Cool mark resolves ambush",
+  "Eerie kiss revises distinction",
+  "Fashionable film fosters age",
+  "New customer views proprietor",
+  "Boiled plant kicks truck",
+  "Spectacular commission complies triumph.",
 ];
 
 export function StoryForm() {
-  const numberOfLines = 8;
+  const numberOfLines = 7;
+  let storyFromInput: String[] = [];
+  for (let i = 0; i < numberOfLines; i++) {
+    storyFromInput.push("");
+  }
 
-  function SimpleStoryLine(
-    props: {
-      lineNumber: number;
-    }
-  ): JSX.Element {
+  function SimpleStoryLine(props: { lineNumber: number }): JSX.Element {
     return (
-      <div className={classNames(
+      <div
+        className={classNames(
           props.lineNumber === 1 ? "" : "rounded-t-none",
           props.lineNumber === numberOfLines ? "" : "rounded-b-none",
-          "relative border border-gray-300 rounded-md px-3 py-2 focus-within:z-10 focus-within:ring-1 focus-within:ring-asgreen-dark focus-within:border-asgreen-dark focus-within:rounded-md")}>
-        <label htmlFor={`Story ${props.lineNumber}`} className="block text-xs font-medium text-gray-900">
+          "relative rounded-md px-3 py-2 focus-within:z-10 focus-within:rounded-md focus-within:border focus-within:border-asgreen-dark focus-within:ring-1 focus-within:ring-asgreen-dark"
+        )}
+      >
+        <label
+          htmlFor={`Story ${props.lineNumber}`}
+          className="block text-xs font-medium text-gray-900"
+        >
           Sentence {props.lineNumber}
         </label>
+        {/* we will read from the input into the story */}
         <input
           type="text"
           name={`Story ${props.lineNumber}`}
           id={`Story ${props.lineNumber}`}
-          className="block w-full border-0 p-0 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+          className="block w-full border-0 bg-transparent p-0 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
           placeholder="Jane Smith"
         />
       </div>
     );
   }
 
+  // attach event listeners to the inputs
+  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const target = event.target;
+    const value = target.value;
+    const name = target.name;
+    const lineNumber = Number(name.split(" ")[1]);
+    storyFromInput[lineNumber - 1] = value;
+  }
+
   return (
-    <div className="isolate -space-y-px rounded-md shadow-sm">
-      {
-        [...Array(numberOfLines)].map((_, i) => (
+    <div className="mr-16 mt-4 mb-8">
+      <div className="isolate -space-y-px rounded-md ">
+        {[...Array(numberOfLines)].map((_, i) => (
           <SimpleStoryLine key={i} lineNumber={i + 1} />
-        ))
-      }
+        ))}
+      </div>
     </div>
-  )
+  );
 }
 
 function FocusedBlock(): JSX.Element {
@@ -71,10 +84,7 @@ function FocusedBlock(): JSX.Element {
         </div>
         <div className="rounded-t-lg bg-asbrown-100 px-6 pt-12 pb-10">
           <div>
-            <h3
-              className="text-center text-3xl font-semibold text-gray-900 sm:-mx-6"
-              id="tier-growth"
-            >
+            <h3 className="text-center text-3xl font-semibold text-gray-900 sm:-mx-6">
               In Person
             </h3>
           </div>
@@ -86,13 +96,8 @@ function FocusedBlock(): JSX.Element {
               <div className="text-md p-2 text-gray-700">
                 Enter the story of your friend
               </div>
-              <ul role="list" className="space-y-3 p-2">
-                {yourStory.map((feature) => (
-                  <li key={feature} className="flex items-start">
-                    <p className="text-sm text-gray-500">{feature}</p>
-                  </li>
-                ))}
-              </ul>
+
+              <StoryForm />
             </div>
             {/* dividier vertical between the two columns */}
             <div className="mx-auto w-fit rounded-md border border-asbrown-300" />
