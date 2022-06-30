@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+
 cc_library(
     name = "base58",
     srcs = ["base58.cc"],

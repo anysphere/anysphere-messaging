@@ -6,10 +6,8 @@ use rand::Rng;
 fn get_registration_fragment() -> ffi::RegistrationFragment {
   let kx_public_key: Vec<u8> = br#"zIUWz21AsWme9KxgS43TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
   let kx_private_key: Vec<u8> = br#""EUSOOwjVEHRD1XzruR93LcK8YosZ3gWUkrrk8yjrpIQ="#.to_vec();
-  let invitation_public_key: Vec<u8> =
-    br#"zIUWz21AsWme9KxgS56TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
-  let invitation_private_key: Vec<u8> =
-    br#"zIUWz21AsWme9KxgS78TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
+  let invitation_public_key: Vec<u8> = br#"zIUWz21AsWme9KxgS56TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
+  let invitation_private_key: Vec<u8> = br#"zIUWz21AsWme9KxgS78TbrlaKYlLJqVMj/j1TKTIjx0="#.to_vec();
   let allocation: i32 = 34;
   let pir_secret_key: Vec<u8> = br#""hi hi"#.to_vec();
   let pir_galois_key: Vec<u8> = br#""hi hi hi"#.to_vec();

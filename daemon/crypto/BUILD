@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
 cc_library(
     name = "crypto_lib",
     srcs = ["crypto.cc"],
@@ -24,7 +26,7 @@ cc_test(
     ],
     deps = [
         ":crypto_lib",
-        "//daemon/identifier:identifier",
+        "//daemon/identifier",
         "@com_google_googletest//:gtest_main",
     ],
 )
