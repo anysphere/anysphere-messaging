@@ -801,6 +801,9 @@ impl DB {
           "null_uid_and_not_system = {}",
           null_uid_and_not_system
         );
+        
+        /// Counting the number of rows in the outgoing_chunk table where the message_uid is not null
+        /// and the system is true.
         let non_null_uid_and_system = outgoing_chunk::table
           .filter(outgoing_chunk::message_uid.is_not_null())
           .filter(outgoing_chunk::system.eq(true))
@@ -825,6 +828,9 @@ impl DB {
           "delivered_at_not_null_and_delivered_false_count = {}",
           delivered_at_not_null_and_delivered_false_count
         );
+        
+        /// Checking that there are no rows in the sent table where the delivered_at column is null and
+        /// the delivered column is true.
         let delivered_at_null_and_delivered_true_count = sent::table
           .filter(sent::delivered_at.is_null())
           .filter(sent::delivered.eq(true))
@@ -836,6 +842,7 @@ impl DB {
           "delivered_at_null_and_delivered_true_count = {}",
           delivered_at_null_and_delivered_true_count
         );
+
         // same for the received table
         let delivered_at_not_null_and_delivered_false_count = received::table
           .filter(received::delivered_at.is_not_null())
@@ -848,6 +855,9 @@ impl DB {
           "delivered_at_not_null_and_delivered_false_count = {}",
           delivered_at_not_null_and_delivered_false_count
         );
+
+        /// Checking that there are no rows in the received table where the delivered_at column is null
+        /// and the delivered column is true.
         let delivered_at_null_and_delivered_true_count = received::table
           .filter(received::delivered_at.is_null())
           .filter(received::delivered.eq(true))
@@ -871,6 +881,7 @@ impl DB {
           "draft_and_sent_count = {}",
           draft_and_sent_count
         );
+
         let draft_and_received_count = draft::table
           .inner_join(received::table.on(draft::uid.eq(received::uid)))
           .count()
@@ -881,6 +892,7 @@ impl DB {
           "draft_and_received_count = {}",
           draft_and_received_count
         );
+
         let sent_and_received_count = sent::table
           .inner_join(received::table.on(sent::uid.eq(received::uid)))
           .count()
@@ -946,6 +958,7 @@ impl DB {
           }
         }
 
+        /// Checking that the same message_uid is not sent to the same friend twice.
         let mut to_friend_message_uid_map_to_seqnum = HashMap::new();
         for chunk in &chunks {
           let to_friend = chunk.to_friend;
@@ -965,6 +978,7 @@ impl DB {
             );
           }
         }
+
         // the same thing should be true for the incoming chunks
         let chunks = incoming_chunk::table.select((
           incoming_chunk::from_friend,
@@ -986,6 +1000,8 @@ impl DB {
             );
           }
         }
+
+        /// Checking that the chunks are in order.
         let mut from_friend_message_uid_map_to_seqnum = HashMap::new();
         for chunk in &chunks {
           let from_friend = chunk.from_friend;
@@ -1096,6 +1112,12 @@ impl DB {
     Ok(())
   }
 
+
+  /// It checks if the database has been registered
+  /// 
+  /// Returns:
+  /// 
+  /// A boolean value.
   pub fn has_registered(&self) -> Result<bool, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::config;
@@ -1109,6 +1131,15 @@ impl DB {
     Ok(has_registered)
   }
 
+  /// It checks if there's already a registration in the database, and if not, it inserts one
+  /// 
+  /// Arguments:
+  /// 
+  /// * `reg`: ffi::RegistrationFragment
+  /// 
+  /// Returns:
+  /// 
+  /// A Result<(), DbError>
   pub fn do_register(&self, reg: ffi::RegistrationFragment) -> Result<(), DbError> {
     let mut conn = self.connect()?;
 
@@ -1117,6 +1148,7 @@ impl DB {
     use crate::schema::config;
     use crate::schema::registration;
 
+    /// Creating a new registration record in the database.
     let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
       let count = registration::table.count().get_result::<i64>(conn_b)?;
       if count > 0 {
@@ -1127,6 +1159,7 @@ impl DB {
         .values(&reg)
         .returning(registration::uid)
         .get_result::<i32>(conn_b)?;
+      
       // update the config table
       diesel::update(config::table)
         .set((config::has_registered.eq(true), config::registration_uid.eq(reg_uid)))
@@ -1144,6 +1177,12 @@ impl DB {
     }
   }
 
+  /// It gets the registration from the database. 
+  /// If there is no registration, it returns an error.
+  /// 
+  /// Returns:
+  /// 
+  /// A Result<ffi::Registration, DbError>
   pub fn get_registration(&self) -> Result<ffi::Registration, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::registration;
@@ -1156,6 +1195,12 @@ impl DB {
     Ok(registration)
   }
 
+  /// It deletes the registration from the database.
+  /// If there is no registration or it fails to delete it, it returns an error.
+  /// 
+  /// Returns:
+  /// 
+  /// A Result<(), DbError>
   pub fn delete_registration(&self) -> Result<(), DbError> {
     let mut conn = self.connect()?;
 
@@ -1180,6 +1225,22 @@ impl DB {
     Ok(())
   }
 
+  /// It gets the registration data from the database.
+  /// If there is no registration, it returns an error.
+  /// 
+  /// Returns:
+  /// 
+  /// A struct containing the following fields:
+  /// struct SmallRegistrationFragment {
+  ///   pub uid: i32,
+  ///   pub invitation_public_key: Vec<u8>,
+  ///   pub invitation_private_key: Vec<u8>,
+  ///   pub kx_public_key: Vec<u8>,
+  ///   pub kx_private_key: Vec<u8>,
+  ///   pub allocation: i32,
+  ///   pub authentication_token: String,
+  ///   pub public_id: String,
+  /// }
   pub fn get_small_registration(&self) -> Result<ffi::SmallRegistrationFragment, DbError> {
     let mut conn = self.connect()?;
     use crate::schema::registration;
@@ -1196,6 +1257,7 @@ impl DB {
       registration::authentication_token,
       registration::public_id,
     ));
+
     let registration = q
       .first::<ffi::SmallRegistrationFragment>(&mut conn)
       .map_err(|e| DbError::Unknown(format!("failed to query registration: {}", e)))?;
