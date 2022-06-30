@@ -1960,10 +1960,7 @@ impl DB {
 
     self.check_rep(&mut conn);
 
-    match r {
-      Ok(b) => Ok(b),
-      Err(e) => Err(DbError::Unknown(format!("chunk_to_send: {}", e))),
-    }
+    r
   }
 
   /// Returns the acks that we need to send to the server.
