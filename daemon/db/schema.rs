@@ -23,6 +23,12 @@ diesel::table! {
 diesel::table! {
     draft (uid) {
         uid -> Integer,
+    }
+}
+
+diesel::table! {
+    draft_friend (draft_uid, to_friend) {
+        draft_uid -> Integer,
         to_friend -> Integer,
     }
 }
@@ -102,6 +108,7 @@ diesel::table! {
         received_at -> BigInt,
         delivered -> Bool,
         delivered_at -> Nullable<BigInt>,
+        other_recipients_comma_sep -> Text,
         seen -> Bool,
     }
 }
@@ -124,9 +131,15 @@ diesel::table! {
 diesel::table! {
     sent (uid) {
         uid -> Integer,
-        to_friend -> Integer,
         num_chunks -> Integer,
         sent_at -> BigInt,
+    }
+}
+
+diesel::table! {
+    sent_friend (sent_uid, to_friend) {
+        sent_uid -> Integer,
+        to_friend -> Integer,
         delivered -> Bool,
         delivered_at -> Nullable<BigInt>,
     }
@@ -146,8 +159,9 @@ diesel::table! {
 
 diesel::joinable!(complete_friend -> friend (friend_uid));
 diesel::joinable!(config -> registration (registration_uid));
-diesel::joinable!(draft -> friend (to_friend));
 diesel::joinable!(draft -> message (uid));
+diesel::joinable!(draft_friend -> draft (draft_uid));
+diesel::joinable!(draft_friend -> friend (to_friend));
 diesel::joinable!(incoming_chunk -> friend (from_friend));
 diesel::joinable!(incoming_chunk -> received (message_uid));
 diesel::joinable!(outgoing_async_invitation -> friend (friend_uid));
@@ -156,14 +170,16 @@ diesel::joinable!(outgoing_chunk -> sent (message_uid));
 diesel::joinable!(outgoing_sync_invitation -> friend (friend_uid));
 diesel::joinable!(received -> friend (from_friend));
 diesel::joinable!(received -> message (uid));
-diesel::joinable!(sent -> friend (to_friend));
 diesel::joinable!(sent -> message (uid));
+diesel::joinable!(sent_friend -> friend (to_friend));
+diesel::joinable!(sent_friend -> sent (sent_uid));
 diesel::joinable!(transmission -> friend (friend_uid));
 
 diesel::allow_tables_to_appear_in_same_query!(
     complete_friend,
     config,
     draft,
+    draft_friend,
     friend,
     incoming_chunk,
     incoming_invitation,
@@ -174,5 +190,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     received,
     registration,
     sent,
+    sent_friend,
     transmission,
 );

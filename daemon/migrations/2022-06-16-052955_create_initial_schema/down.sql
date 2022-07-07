@@ -17,6 +17,9 @@ DROP TABLE draft;
 
 DROP TABLE sent;
 
+DROP TABLE sent_friend;
+DROP TABLE draft_friend;
+
 DROP TABLE received;
 DROP TABLE outgoing_chunk;
 DROP TABLE incoming_chunk;
