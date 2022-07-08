@@ -36,7 +36,7 @@ export function StoryForm({
   return (
     <div className="grid grid-cols-1 gap-4">
       {theirstory.map((line, i) => (
-        <div className="flex flex-row gap-4">
+        <div className="flex flex-row gap-4" key={i}>
           <p className="text-sm text-asbrown-300">{i + 1}.</p>
           <input
             type="text"
