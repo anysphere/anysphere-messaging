@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 //
 
+/** @type {import('tailwindcss').Config} */
 module.exports = {
   purge: ["./src/**/*.{js,jsx,ts,tsx}"],
   plugins: [require("@tailwindcss/forms")],
