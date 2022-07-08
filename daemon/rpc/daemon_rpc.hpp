@@ -6,8 +6,8 @@
 #pragma once
 
 #include "daemon/crypto/crypto.hpp"
-#include "daemon/identifier/identifier.hpp"
 #include "daemon/global.hpp"
+#include "daemon/identifier/identifier.hpp"
 #include "pir/fast_pir/fast_pir_client.hpp"
 #include "schema/daemon.grpc.pb.h"
 #include "schema/server.grpc.pb.h"

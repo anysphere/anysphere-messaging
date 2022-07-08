@@ -32,7 +32,6 @@ Status DaemonRpc::RegisterUser(
   auto beta_key = registerUserRequest->beta_key();
 
   // call register rpc to send the register request
-  // TODO: obselete. Change to include friend request keypair in the request
   asphrserver::RegisterInfo request;
   request.set_invitation_public_key(invitation_public_key);
   request.set_beta_key(beta_key);
@@ -151,7 +150,7 @@ Status DaemonRpc::GetMyPublicID(
 
   try {
     // query the db for registration info
-    auto registration_info = G.db->get_registration();
+    auto registration_info = G.db->get_small_registration();
     // set the public ID in the response
     // public ID is constant, so no need to regenerate it
     getMyPublicIDResponse->set_public_id(
@@ -169,7 +168,11 @@ Status DaemonRpc::GetMyPublicID(
     ASPHR_LOG_ERR("Database failed.", error, e.what(), rpc_call,
                   "GetMyPublicID");
     return Status(grpc::StatusCode::UNKNOWN, e.what());
-  }
+  }  // catch (const std::exception& e) {
+     // ASPHR_LOG_ERR("Assertion Failed.", error, e.what(), rpc_call,
+     //              "GetMyPublicID");
+     // return Status(grpc::StatusCode::UNKNOWN, e.what());
+  //}
   return Status::OK;
 }
 
@@ -207,14 +210,19 @@ Status DaemonRpc::AddSyncFriend(
 
   // try to add them to the database
   try {
-    G.db->add_outgoing_sync_invitation(
+    auto outgoing_sync_invitation_params = db::AddOutgoingSyncInvitationParams{
         addSyncFriendRequest->unique_name(),
-        addSyncFriendRequest->display_name(), addSyncFriendRequest->story(),
-        string_to_rust_u8Vec(sync_id.kx_public_key), sync_id.index,
-        string_to_rust_u8Vec(read_key), string_to_rust_u8Vec(write_key),
-        MAX_FRIENDS);
+        addSyncFriendRequest->display_name(),
+        addSyncFriendRequest->story(),
+        string_to_rust_u8Vec(sync_id.kx_public_key),
+        sync_id.index,
+        string_to_rust_u8Vec(read_key),
+        string_to_rust_u8Vec(write_key),
+        MAX_FRIENDS};
+
+    G.db->add_outgoing_sync_invitation(outgoing_sync_invitation_params);
   } catch (const rust::Error& e) {
-    ASPHR_LOG_ERR("Failed to outgoing sync invitation.", error, e.what(),
+    ASPHR_LOG_ERR("Failed to add outgoing sync invitation.", error, e.what(),
                   rpc_call, "AddSyncFriend");
     return Status(grpc::StatusCode::UNKNOWN, e.what());
   }
@@ -259,15 +267,19 @@ grpc::Status DaemonRpc::AddAsyncFriend(
 
   // we can now push the request into the database
   try {
-    G.db->add_outgoing_async_invitation(
-        addAsyncFriendRequest->unique_name(),
-        addAsyncFriendRequest->display_name(),
-        addAsyncFriendRequest->public_id(),
-        string_to_rust_u8Vec(public_id.invitation_public_key),
-        string_to_rust_u8Vec(public_id.kx_public_key),
-        addAsyncFriendRequest->message(), public_id.index,
-        string_to_rust_u8Vec(read_key), string_to_rust_u8Vec(write_key),
-        MAX_FRIENDS);
+    auto outgoing_async_invitation_params =
+        db::AddOutgoingAsyncInvitationParams{
+            addAsyncFriendRequest->unique_name(),
+            addAsyncFriendRequest->display_name(),
+            addAsyncFriendRequest->public_id(),
+            string_to_rust_u8Vec(public_id.invitation_public_key),
+            string_to_rust_u8Vec(public_id.kx_public_key),
+            addAsyncFriendRequest->message(),
+            public_id.index,
+            string_to_rust_u8Vec(read_key),
+            string_to_rust_u8Vec(write_key),
+            MAX_FRIENDS};
+    G.db->add_outgoing_async_invitation(outgoing_async_invitation_params);
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Failed to add outgoing async invitation.", error, e.what(),
                   rpc_call, "AddAsyncFriend");
@@ -436,14 +448,18 @@ Status DaemonRpc::AcceptAsyncInvitation(
         rust_u8Vec_to_string(reg.kx_public_key),
         rust_u8Vec_to_string(reg.kx_private_key), public_id.kx_public_key);
 
-    G.db->accept_incoming_invitation(
+    auto accept_incoming_invitation_params = db::AcceptIncomingInvitationParams{
         acceptAsyncInvitationRequest->public_id(),
         acceptAsyncInvitationRequest->unique_name(),
         acceptAsyncInvitationRequest->display_name(),
         string_to_rust_u8Vec(public_id.invitation_public_key),
-        string_to_rust_u8Vec(public_id.kx_public_key), public_id.index,
-        string_to_rust_u8Vec(read_key), string_to_rust_u8Vec(write_key),
-        MAX_FRIENDS);
+        string_to_rust_u8Vec(public_id.kx_public_key),
+        public_id.index,
+        string_to_rust_u8Vec(read_key),
+        string_to_rust_u8Vec(write_key),
+        MAX_FRIENDS};
+
+    G.db->accept_incoming_invitation(accept_incoming_invitation_params);
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Failed to accept async friend request.", error, e.what(),
                   rpc_call, "AcceptAsyncInvitation");

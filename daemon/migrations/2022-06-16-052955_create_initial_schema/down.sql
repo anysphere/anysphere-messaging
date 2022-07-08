@@ -1,3 +1,8 @@
+--
+-- Copyright 2022 Anysphere, Inc.
+-- SPDX-License-Identifier: GPL-3.0-only
+--
+
 DROP TABLE config;
 DROP TABLE registration;
 DROP TABLE incoming_invitation;

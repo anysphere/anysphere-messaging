@@ -1,3 +1,10 @@
+#
+# Copyright 2022 Anysphere, Inc.
+# SPDX-License-Identifier: GPL-3.0-only
+#
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
 cc_library(
     name = "crypto_lib",
     srcs = ["crypto.cc"],
@@ -9,6 +16,7 @@ cc_library(
     visibility = ["//daemon:__subpackages__"],
     deps = [
         "@asphr//asphr:asphr_lib",
+        "@asphr//schema:asyncinvitation_proto_cc",
         "@asphr//schema:daemon_cc_grpc",
         "@asphr//schema:message_proto_cc",
         "@asphr//schema:server_cc_grpc",
@@ -24,7 +32,7 @@ cc_test(
     ],
     deps = [
         ":crypto_lib",
-        "//daemon/identifier:identifier",
+        "//daemon/identifier",
         "@com_google_googletest//:gtest_main",
     ],
 )

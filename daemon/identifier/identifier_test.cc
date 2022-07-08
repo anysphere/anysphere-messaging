@@ -31,7 +31,7 @@ TEST(IdentifierTest, ChecksumProto) {
   asphrclient::PublicID proto_struct;
   proto_struct.set_index(68);
   proto_struct.set_kx_public_key("kx_public_key"s);
-  proto_struct.set_friend_request_public_key("friend_request_public_key"s);
+  proto_struct.set_invitation_public_key("friend_request_public_key"s);
   auto bytes = proto_struct.SerializeAsString();
 
   auto cs = append_checksum(bytes);
@@ -58,7 +58,7 @@ TEST(IdentifierTest, Public) {
 
   ASSERT_EQ(68, ps.at(0).index);
   ASSERT_EQ("kx_public_key", ps.at(0).kx_public_key);
-  ASSERT_EQ("friend_request_public_key", ps.at(0).friend_request_public_key);
+  ASSERT_EQ("friend_request_public_key", ps.at(0).invitation_public_key);
 
   for (auto p : ps) {
     auto public_id = p.to_public_id();
@@ -77,7 +77,7 @@ TEST(IdentifierTest, Public) {
 
     ASSERT_EQ(p.index, p2.index);
     ASSERT_EQ(p.kx_public_key, p2.kx_public_key);
-    ASSERT_EQ(p.friend_request_public_key, p2.friend_request_public_key);
+    ASSERT_EQ(p.invitation_public_key, p2.invitation_public_key);
 
     // these tests should pass with probability 99.99%. if they fail, it might
     // be that we are in the 0.01%

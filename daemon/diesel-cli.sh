@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+#
+# Copyright 2022 Anysphere, Inc.
+# SPDX-License-Identifier: GPL-3.0-only
+#
+
 if [[ $(diesel --version || true) != *"diesel 2.0.0-rc.0"* ]]; then
 	echo "Installing Diesel CLI..."
 	cargo install diesel_cli --version 2.0.0-rc.0 --no-default-features --features sqlite

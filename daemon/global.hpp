@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 #pragma once
 
 #include "crypto/constants.hpp"
@@ -20,9 +25,9 @@ class Global {
   Global(Global&& other) noexcept = delete;
   Global& operator=(const Global& other) = delete;
   Global& operator=(Global&& other) noexcept = delete;
- 
+
   // The transmitter check_rep() calls alive() to check that the
-  // Global is consistent and working.  
+  // Global is consistent and working.
   auto alive() const noexcept -> bool { return true; }
 
   // The transmitter calls this to signal that it is alive.

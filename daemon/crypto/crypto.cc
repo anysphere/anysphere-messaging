@@ -273,94 +273,6 @@ auto decrypt_ack(const string& ciphertext, const string& read_key)
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
 
-// NEW: generate / decode user ID.
-// user ID is a string stored on the server that encompases username,
-// allocation, kx_public_key, and invitation_public_key
-// we use Base64 encoding as before
-// TODO: what is included here is an IMPORTANT DECISION pending discussion.
-// ASSUMPTION: username should not contain '@'
-auto generate_user_id(const string& username, int allocation,
-                      const string& kx_public_key,
-                      const string& invitation_public_key)
-    -> asphr::StatusOr<string> {
-  string kx_public_key_b64;
-  string invitation_public_key_b64;
-  // encode them using libsodium b64
-  kx_public_key_b64.resize(sodium_base64_ENCODED_LEN(
-      kx_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
-
-  sodium_bin2base64(
-      kx_public_key_b64.data(), kx_public_key_b64.size(),
-      reinterpret_cast<const unsigned char*>(kx_public_key.data()),
-      kx_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING);
-  // repeat for public key
-  invitation_public_key_b64.resize(sodium_base64_ENCODED_LEN(
-      invitation_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING));
-  sodium_bin2base64(
-      invitation_public_key_b64.data(), invitation_public_key_b64.size(),
-      reinterpret_cast<const unsigned char*>(invitation_public_key.data()),
-      invitation_public_key.size(), sodium_base64_VARIANT_URLSAFE_NO_PADDING);
-  // assert that username is well formed
-  if (username.find('@') != string::npos) {
-    return asphr::InvalidArgumentError("username cannot contain '@'");
-  }
-  // construct user ID
-  // return final string, separated by @
-  return username + "@" + std::to_string(allocation) + "@" + kx_public_key_b64 +
-         "@" + invitation_public_key_b64;
-}
-
-auto split(const string& s, char del) -> vector<string> {
-  int start = 0;
-  int end = s.find(del);
-  vector<string> result = {};
-  while (end != -1) {
-    result.push_back(s.substr(start, end - start));
-    start = end + 1;
-    end = s.find(del, start);
-  }
-  result.push_back(s.substr(start, end - start));
-  return result;
-}
-
-auto decode_user_id(const string& user_id)
-    -> asphr::StatusOr<std::tuple<string, int, string, string>> {
-  // split user_id by @
-  auto user_id_split = split(user_id, '@');
-  if (user_id_split.size() != 4) {
-    return asphr::InvalidArgumentError("user_id is not well formed");
-  }
-  // decode the public keys
-  string kx_public_key_b64 = user_id_split[2];
-  string invitation_public_key_b64 = user_id_split[3];
-  string kx_public_key;
-  string invitation_public_key;
-  size_t kx_public_key_len;
-  size_t invitation_public_key_len;
-  const char* b64_end;
-  kx_public_key.resize(kx_public_key_b64.size());
-  invitation_public_key.resize(invitation_public_key_b64.size());
-  if (sodium_base642bin(reinterpret_cast<unsigned char*>(kx_public_key.data()),
-                        kx_public_key.size(), kx_public_key_b64.data(),
-                        kx_public_key_b64.size(), "", &kx_public_key_len,
-                        &b64_end,
-                        sodium_base64_VARIANT_URLSAFE_NO_PADDING) != 0) {
-    return absl::UnknownError("failed to decode kx_public_key");
-  }
-  if (sodium_base642bin(
-          reinterpret_cast<unsigned char*>(invitation_public_key.data()),
-          invitation_public_key.size(), invitation_public_key_b64.data(),
-          invitation_public_key_b64.size(), "", &invitation_public_key_len,
-          &b64_end, sodium_base64_VARIANT_URLSAFE_NO_PADDING) != 0) {
-    return absl::UnknownError("failed to decode kx_public_key");
-  }
-  kx_public_key.resize(kx_public_key_len);
-  invitation_public_key.resize(invitation_public_key_len);
-  // return the decoded values
-  return std::make_tuple(user_id_split[0], std::stoi(user_id_split[1]),
-                         kx_public_key, invitation_public_key);
-}
-
 // encrypt an asynchronous friend request
 // The async friend request from A->B is Enc(ID_B, ID_A || msg) =
 // = Enc(f_sk_A, f_pk_B, ID_A || msg)
@@ -380,35 +292,42 @@ auto encrypt_async_invitation(const string& self_id,
     return asphr::InvalidArgumentError(
         "self_private_key is not the correct size");
   }
-  // formmat the message we want to send
-  // assert message and self_id does not contain '|'
-  assert(message.find('|') == string::npos);
-  assert(self_id.find('|') == string::npos);
-  string message_to_send = self_id + "|" + message;
-
-  if (message_to_send.size() > GUARANTEED_SINGLE_MESSAGE_SIZE) {
-    return asphr::InvalidArgumentError("friend request message too long!!");
+  // ensure that the message is not too long
+  if (message.size() > INVITATION_MESSAGE_MAX_PLAINTEXT_SIZE) {
+    return asphr::InvalidArgumentError(
+        "message is too long, must be less than " +
+        std::to_string(INVITATION_MESSAGE_MAX_PLAINTEXT_SIZE));
+  }
+  asphrclient::AsyncInvitation async_invitation;
+  async_invitation.set_my_public_id(self_id);
+  async_invitation.set_message(message);
+  std::string async_invitation_str;
+  if (!async_invitation.SerializeToString(&async_invitation_str)) {
+    return absl::UnknownError("failed to serialize async invitation");
   }
 
   // We now encrypt the message, using a clone of the code above
-  string plaintext = message_to_send;
+  string plaintext = async_invitation_str;
   size_t unpadded_plaintext_size = plaintext.size();
-  // I couldn't find any documentation on what the max length is for this
-  // so i'll leave it for now
 
   // Here we need to pad the plaintext to the max length
   // to prevent length attack
   // since the public key crypto protocol asserts that
   // "ciphertextlength = plaintextlength + const"
+  if (unpadded_plaintext_size > ASYNC_INVITATION_SIZE) {
+    return asphr::InvalidArgumentError(
+        "message is too long, must be less than " +
+        std::to_string(ASYNC_INVITATION_SIZE));
+  }
 
-  size_t plaintext_size = ASYNC_FRIEND_REQUEST_SIZE;
-  plaintext.resize(plaintext_size);
+  plaintext.resize(ASYNC_INVITATION_SIZE);
 
   // use libsodium to pad the plaintext
+  size_t plaintext_size;
   if (sodium_pad(&plaintext_size,
                  reinterpret_cast<unsigned char*>(plaintext.data()),
-                 unpadded_plaintext_size, ASYNC_FRIEND_REQUEST_SIZE,
-                 plaintext.size()) != 0) {
+                 unpadded_plaintext_size, ASYNC_INVITATION_SIZE,
+                 ASYNC_INVITATION_SIZE) != 0) {
     return absl::UnknownError("failed to pad message");
   }
 
@@ -439,10 +358,7 @@ auto encrypt_async_invitation(const string& self_id,
   assert(ciphertext.size() == ciphertext_size + crypto_box_NONCEBYTES);
   assert(ciphertext_size == plaintext_size + crypto_box_MACBYTES);
   assert(plaintext.size() == plaintext_size);
-  assert(plaintext_size == ASYNC_FRIEND_REQUEST_SIZE);
-
-  // the ciphertext consists of non-utf-8 characters
-  // cout << "Friend Request Ciphertext: " << ciphertext << endl;
+  assert(plaintext_size == ASYNC_INVITATION_SIZE);
 
   return ciphertext;
 }
@@ -466,7 +382,7 @@ auto decrypt_async_invitation(const string& self_invitation_private_key,
   auto padded_plaintext_len = ciphertext_len - crypto_box_MACBYTES;
 
   // make sure the plaintext is of the correct length
-  if (padded_plaintext_len != ASYNC_FRIEND_REQUEST_SIZE) {
+  if (padded_plaintext_len != ASYNC_INVITATION_SIZE) {
     return asphr::InvalidArgumentError("ciphertext is not the correct size");
   }
 
@@ -500,23 +416,21 @@ auto decrypt_async_invitation(const string& self_invitation_private_key,
   plaintext.resize(padded_plaintext_len);
   if (sodium_unpad(&unpadded_plaintext_len,
                    reinterpret_cast<unsigned char*>(plaintext.data()),
-                   padded_plaintext_len, ASYNC_FRIEND_REQUEST_SIZE) != 0) {
+                   padded_plaintext_len, ASYNC_INVITATION_SIZE) != 0) {
     return absl::UnknownError("failed to unpad message");
   }
 
   plaintext.resize(unpadded_plaintext_len);
 
-  // split the plaintext by '|'
-  std::vector<string> split_plaintext = split(plaintext, '|');
-  if (split_plaintext.size() != 2) {
-    return absl::UnknownError("failed to split plaintext");
+  // deconstruct protobuf
+  asphrclient::AsyncInvitation async_invitation;
+  if (!async_invitation.ParseFromString(plaintext)) {
+    return absl::UnknownError("failed to deserialize async invitation");
   }
-  // TODO: insert additional checks here
-  // read the allocation
-  // create the friend
+
   // TODO: specifically, we need to verify that the public_id in the body
   // corresponds to the public_id that the message was authenticated with
   // otherwise, someone might impersonate the real receiver
-  return std::make_pair(split_plaintext[0], split_plaintext[1]);
+  return make_pair(async_invitation.my_public_id(), async_invitation.message());
 }
 }  // namespace crypto

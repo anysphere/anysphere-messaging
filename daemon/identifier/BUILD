@@ -1,3 +1,10 @@
+#
+# Copyright 2022 Anysphere, Inc.
+# SPDX-License-Identifier: GPL-3.0-only
+#
+
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+
 cc_library(
     name = "base58",
     srcs = ["base58.cc"],
@@ -61,7 +68,7 @@ cc_test(
 )
 
 cc_binary(
-    name = "identifier_manual_test",
+    name = "manual_test",
     srcs = ["identifier_manual_test.cc"],
     deps = [
         ":identifier",
