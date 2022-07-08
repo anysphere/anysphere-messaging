@@ -13,6 +13,7 @@ module.exports = {
 
     "plugin:react/recommended",
     "plugin:react/jsx-runtime",
+    "plugin:react-hooks/recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
     // descriptions of rules at https://github.com/typescript-eslint/typescript-eslint/tree/master/packages/eslint-plugin#supported-rules
@@ -41,6 +42,8 @@ module.exports = {
   ],
   // and configure them a bit for 6.031
   rules: {
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "error",
     "no-tabs": "error",
     "max-lines": ["warn", 2000],
     "max-params": ["warn", 7],

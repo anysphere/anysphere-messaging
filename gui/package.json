@@ -88,6 +88,7 @@
     "@headlessui/react": "^1.5.0",
     "@storybook/addon-postcss": "^2.0.0",
     "electron-updater": "^4.6.5",
+    "eslint-plugin-react-hooks": "^4.6.0",
     "fast-equals": "^2.0.4",
     "google-protobuf": "^3.19.3",
     "match-sorter": "^6.3.1",
