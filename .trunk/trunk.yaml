@@ -14,6 +14,10 @@ lint:
         - name: DEVELOPER_DIR
           value: "${env.DEVELOPER_DIR}"
           optional: true
+  ignore:
+    - linters: [ALL]
+      paths:
+        - gui/src/daemon/schema/** # generated
   enabled:
     - actionlint@1.6.4
     - buildifier@4.0.1
@@ -24,3 +28,4 @@ lint:
     - shellcheck@0.7.2
     - shfmt@3.4.0
     - rustfmt@1.58.1
+    - eslint@8.19.0

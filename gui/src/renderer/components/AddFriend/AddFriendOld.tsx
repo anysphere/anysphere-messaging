@@ -15,7 +15,7 @@ const yourStory = [
 
 export function StoryForm() {
   const numberOfLines = 7;
-  let storyFromInput: String[] = [];
+  const storyFromInput: string[] = [];
   for (let i = 0; i < numberOfLines; i++) {
     storyFromInput.push("");
   }

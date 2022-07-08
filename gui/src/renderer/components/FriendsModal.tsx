@@ -26,7 +26,7 @@ function LegacyFriendsModal({
         setFriends(friends);
       });
     } else {
-      let friends: Friend[] = [];
+      const friends: Friend[] = [];
       for (let i = 0; i < 5; i++) {
         friends.push({
           uniqueName: `friend${i}`,

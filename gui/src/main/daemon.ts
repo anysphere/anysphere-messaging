@@ -47,7 +47,7 @@ export function getDaemonClient(): daemonS.DaemonClient {
 export function convertProtobufIncomingMessageToTypedMessage(
   m: daemon_pb.IncomingMessage
 ): Message | null {
-  let msg = m.toObject();
+  const msg = m.toObject();
   console.log("seconds", msg.deliveredAt?.seconds);
   let d: Date;
   if (msg.deliveredAt) {
@@ -73,7 +73,7 @@ export function convertProtobufIncomingMessageToTypedMessage(
 export function convertProtobufOutgoingMessageToTypedMessage(
   m: daemon_pb.OutgoingMessage
 ): Message | null {
-  let msg = m.toObject();
+  const msg = m.toObject();
   console.log("seconds", msg.sentAt?.seconds);
 
   let d: Date;
