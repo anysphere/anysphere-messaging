@@ -7,28 +7,6 @@ var grpc = require('@grpc/grpc-js');
 var schema_daemon_pb = require('../schema/daemon_pb.js');
 var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/timestamp_pb.js');
 
-function serialize_asphrdaemon_AcceptAsyncInvitationRequest(arg) {
-  if (!(arg instanceof schema_daemon_pb.AcceptAsyncInvitationRequest)) {
-    throw new Error('Expected argument of type asphrdaemon.AcceptAsyncInvitationRequest');
-  }
-  return Buffer.from(arg.serializeBinary());
-}
-
-function deserialize_asphrdaemon_AcceptAsyncInvitationRequest(buffer_arg) {
-  return schema_daemon_pb.AcceptAsyncInvitationRequest.deserializeBinary(new Uint8Array(buffer_arg));
-}
-
-function serialize_asphrdaemon_AcceptAsyncInvitationResponse(arg) {
-  if (!(arg instanceof schema_daemon_pb.AcceptAsyncInvitationResponse)) {
-    throw new Error('Expected argument of type asphrdaemon.AcceptAsyncInvitationResponse');
-  }
-  return Buffer.from(arg.serializeBinary());
-}
-
-function deserialize_asphrdaemon_AcceptAsyncInvitationResponse(buffer_arg) {
-  return schema_daemon_pb.AcceptAsyncInvitationResponse.deserializeBinary(new Uint8Array(buffer_arg));
-}
-
 function serialize_asphrdaemon_AddAsyncFriendRequest(arg) {
   if (!(arg instanceof schema_daemon_pb.AddAsyncFriendRequest)) {
     throw new Error('Expected argument of type asphrdaemon.AddAsyncFriendRequest');
@@ -95,6 +73,28 @@ function deserialize_asphrdaemon_ChangeLatencyResponse(buffer_arg) {
   return schema_daemon_pb.ChangeLatencyResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_asphrdaemon_DecideAsyncFriendRequestRequest(arg) {
+  if (!(arg instanceof schema_daemon_pb.DecideAsyncFriendRequestRequest)) {
+    throw new Error('Expected argument of type asphrdaemon.DecideAsyncFriendRequestRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_DecideAsyncFriendRequestRequest(buffer_arg) {
+  return schema_daemon_pb.DecideAsyncFriendRequestRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_asphrdaemon_DecideAsyncFriendRequestResponse(arg) {
+  if (!(arg instanceof schema_daemon_pb.DecideAsyncFriendRequestResponse)) {
+    throw new Error('Expected argument of type asphrdaemon.DecideAsyncFriendRequestResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_DecideAsyncFriendRequestResponse(buffer_arg) {
+  return schema_daemon_pb.DecideAsyncFriendRequestResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_asphrdaemon_GetFriendListRequest(arg) {
   if (!(arg instanceof schema_daemon_pb.GetFriendListRequest)) {
     throw new Error('Expected argument of type asphrdaemon.GetFriendListRequest');
@@ -117,26 +117,26 @@ function deserialize_asphrdaemon_GetFriendListResponse(buffer_arg) {
   return schema_daemon_pb.GetFriendListResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
-function serialize_asphrdaemon_GetIncomingAsyncInvitationsRequest(arg) {
-  if (!(arg instanceof schema_daemon_pb.GetIncomingAsyncInvitationsRequest)) {
-    throw new Error('Expected argument of type asphrdaemon.GetIncomingAsyncInvitationsRequest');
+function serialize_asphrdaemon_GetIncomingAsyncFriendRequestsRequest(arg) {
+  if (!(arg instanceof schema_daemon_pb.GetIncomingAsyncFriendRequestsRequest)) {
+    throw new Error('Expected argument of type asphrdaemon.GetIncomingAsyncFriendRequestsRequest');
   }
   return Buffer.from(arg.serializeBinary());
 }
 
-function deserialize_asphrdaemon_GetIncomingAsyncInvitationsRequest(buffer_arg) {
-  return schema_daemon_pb.GetIncomingAsyncInvitationsRequest.deserializeBinary(new Uint8Array(buffer_arg));
+function deserialize_asphrdaemon_GetIncomingAsyncFriendRequestsRequest(buffer_arg) {
+  return schema_daemon_pb.GetIncomingAsyncFriendRequestsRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
-function serialize_asphrdaemon_GetIncomingAsyncInvitationsResponse(arg) {
-  if (!(arg instanceof schema_daemon_pb.GetIncomingAsyncInvitationsResponse)) {
-    throw new Error('Expected argument of type asphrdaemon.GetIncomingAsyncInvitationsResponse');
+function serialize_asphrdaemon_GetIncomingAsyncFriendRequestsResponse(arg) {
+  if (!(arg instanceof schema_daemon_pb.GetIncomingAsyncFriendRequestsResponse)) {
+    throw new Error('Expected argument of type asphrdaemon.GetIncomingAsyncFriendRequestsResponse');
   }
   return Buffer.from(arg.serializeBinary());
 }
 
-function deserialize_asphrdaemon_GetIncomingAsyncInvitationsResponse(buffer_arg) {
-  return schema_daemon_pb.GetIncomingAsyncInvitationsResponse.deserializeBinary(new Uint8Array(buffer_arg));
+function deserialize_asphrdaemon_GetIncomingAsyncFriendRequestsResponse(buffer_arg) {
+  return schema_daemon_pb.GetIncomingAsyncFriendRequestsResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_asphrdaemon_GetLatencyRequest(arg) {
@@ -227,48 +227,26 @@ function deserialize_asphrdaemon_GetOutboxMessagesResponse(buffer_arg) {
   return schema_daemon_pb.GetOutboxMessagesResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
-function serialize_asphrdaemon_GetOutgoingAsyncInvitationsRequest(arg) {
-  if (!(arg instanceof schema_daemon_pb.GetOutgoingAsyncInvitationsRequest)) {
-    throw new Error('Expected argument of type asphrdaemon.GetOutgoingAsyncInvitationsRequest');
+function serialize_asphrdaemon_GetOutgoingFriendRequestsRequest(arg) {
+  if (!(arg instanceof schema_daemon_pb.GetOutgoingFriendRequestsRequest)) {
+    throw new Error('Expected argument of type asphrdaemon.GetOutgoingFriendRequestsRequest');
   }
   return Buffer.from(arg.serializeBinary());
 }
 
-function deserialize_asphrdaemon_GetOutgoingAsyncInvitationsRequest(buffer_arg) {
-  return schema_daemon_pb.GetOutgoingAsyncInvitationsRequest.deserializeBinary(new Uint8Array(buffer_arg));
+function deserialize_asphrdaemon_GetOutgoingFriendRequestsRequest(buffer_arg) {
+  return schema_daemon_pb.GetOutgoingFriendRequestsRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
-function serialize_asphrdaemon_GetOutgoingAsyncInvitationsResponse(arg) {
-  if (!(arg instanceof schema_daemon_pb.GetOutgoingAsyncInvitationsResponse)) {
-    throw new Error('Expected argument of type asphrdaemon.GetOutgoingAsyncInvitationsResponse');
+function serialize_asphrdaemon_GetOutgoingFriendRequestsResponse(arg) {
+  if (!(arg instanceof schema_daemon_pb.GetOutgoingFriendRequestsResponse)) {
+    throw new Error('Expected argument of type asphrdaemon.GetOutgoingFriendRequestsResponse');
   }
   return Buffer.from(arg.serializeBinary());
 }
 
-function deserialize_asphrdaemon_GetOutgoingAsyncInvitationsResponse(buffer_arg) {
-  return schema_daemon_pb.GetOutgoingAsyncInvitationsResponse.deserializeBinary(new Uint8Array(buffer_arg));
-}
-
-function serialize_asphrdaemon_GetOutgoingSyncInvitationsRequest(arg) {
-  if (!(arg instanceof schema_daemon_pb.GetOutgoingSyncInvitationsRequest)) {
-    throw new Error('Expected argument of type asphrdaemon.GetOutgoingSyncInvitationsRequest');
-  }
-  return Buffer.from(arg.serializeBinary());
-}
-
-function deserialize_asphrdaemon_GetOutgoingSyncInvitationsRequest(buffer_arg) {
-  return schema_daemon_pb.GetOutgoingSyncInvitationsRequest.deserializeBinary(new Uint8Array(buffer_arg));
-}
-
-function serialize_asphrdaemon_GetOutgoingSyncInvitationsResponse(arg) {
-  if (!(arg instanceof schema_daemon_pb.GetOutgoingSyncInvitationsResponse)) {
-    throw new Error('Expected argument of type asphrdaemon.GetOutgoingSyncInvitationsResponse');
-  }
-  return Buffer.from(arg.serializeBinary());
-}
-
-function deserialize_asphrdaemon_GetOutgoingSyncInvitationsResponse(buffer_arg) {
-  return schema_daemon_pb.GetOutgoingSyncInvitationsResponse.deserializeBinary(new Uint8Array(buffer_arg));
+function deserialize_asphrdaemon_GetOutgoingFriendRequestsResponse(buffer_arg) {
+  return schema_daemon_pb.GetOutgoingFriendRequestsResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_asphrdaemon_GetSentMessagesRequest(arg) {
@@ -381,28 +359,6 @@ function deserialize_asphrdaemon_RegisterUserResponse(buffer_arg) {
   return schema_daemon_pb.RegisterUserResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
-function serialize_asphrdaemon_RejectAsyncInvitationRequest(arg) {
-  if (!(arg instanceof schema_daemon_pb.RejectAsyncInvitationRequest)) {
-    throw new Error('Expected argument of type asphrdaemon.RejectAsyncInvitationRequest');
-  }
-  return Buffer.from(arg.serializeBinary());
-}
-
-function deserialize_asphrdaemon_RejectAsyncInvitationRequest(buffer_arg) {
-  return schema_daemon_pb.RejectAsyncInvitationRequest.deserializeBinary(new Uint8Array(buffer_arg));
-}
-
-function serialize_asphrdaemon_RejectAsyncInvitationResponse(arg) {
-  if (!(arg instanceof schema_daemon_pb.RejectAsyncInvitationResponse)) {
-    throw new Error('Expected argument of type asphrdaemon.RejectAsyncInvitationResponse');
-  }
-  return Buffer.from(arg.serializeBinary());
-}
-
-function deserialize_asphrdaemon_RejectAsyncInvitationResponse(buffer_arg) {
-  return schema_daemon_pb.RejectAsyncInvitationResponse.deserializeBinary(new Uint8Array(buffer_arg));
-}
-
 function serialize_asphrdaemon_RemoveFriendRequest(arg) {
   if (!(arg instanceof schema_daemon_pb.RemoveFriendRequest)) {
     throw new Error('Expected argument of type asphrdaemon.RemoveFriendRequest');
@@ -460,17 +416,6 @@ var DaemonService = exports.DaemonService = {
     responseSerialize: serialize_asphrdaemon_RegisterUserResponse,
     responseDeserialize: deserialize_asphrdaemon_RegisterUserResponse,
   },
-  getMyPublicID: {
-    path: '/asphrdaemon.Daemon/GetMyPublicID',
-    requestStream: false,
-    responseStream: false,
-    requestType: schema_daemon_pb.GetMyPublicIDRequest,
-    responseType: schema_daemon_pb.GetMyPublicIDResponse,
-    requestSerialize: serialize_asphrdaemon_GetMyPublicIDRequest,
-    requestDeserialize: deserialize_asphrdaemon_GetMyPublicIDRequest,
-    responseSerialize: serialize_asphrdaemon_GetMyPublicIDResponse,
-    responseDeserialize: deserialize_asphrdaemon_GetMyPublicIDResponse,
-  },
   getFriendList: {
     path: '/asphrdaemon.Daemon/GetFriendList',
     requestStream: false,
@@ -482,16 +427,16 @@ var DaemonService = exports.DaemonService = {
     responseSerialize: serialize_asphrdaemon_GetFriendListResponse,
     responseDeserialize: deserialize_asphrdaemon_GetFriendListResponse,
   },
-  removeFriend: {
-    path: '/asphrdaemon.Daemon/RemoveFriend',
+  getMyPublicID: {
+    path: '/asphrdaemon.Daemon/GetMyPublicID',
     requestStream: false,
     responseStream: false,
-    requestType: schema_daemon_pb.RemoveFriendRequest,
-    responseType: schema_daemon_pb.RemoveFriendResponse,
-    requestSerialize: serialize_asphrdaemon_RemoveFriendRequest,
-    requestDeserialize: deserialize_asphrdaemon_RemoveFriendRequest,
-    responseSerialize: serialize_asphrdaemon_RemoveFriendResponse,
-    responseDeserialize: deserialize_asphrdaemon_RemoveFriendResponse,
+    requestType: schema_daemon_pb.GetMyPublicIDRequest,
+    responseType: schema_daemon_pb.GetMyPublicIDResponse,
+    requestSerialize: serialize_asphrdaemon_GetMyPublicIDRequest,
+    requestDeserialize: deserialize_asphrdaemon_GetMyPublicIDRequest,
+    responseSerialize: serialize_asphrdaemon_GetMyPublicIDResponse,
+    responseDeserialize: deserialize_asphrdaemon_GetMyPublicIDResponse,
   },
   addSyncFriend: {
     path: '/asphrdaemon.Daemon/AddSyncFriend',
@@ -515,60 +460,49 @@ var DaemonService = exports.DaemonService = {
     responseSerialize: serialize_asphrdaemon_AddAsyncFriendResponse,
     responseDeserialize: deserialize_asphrdaemon_AddAsyncFriendResponse,
   },
-  getOutgoingSyncInvitations: {
-    path: '/asphrdaemon.Daemon/GetOutgoingSyncInvitations',
+  getOutgoingFriendRequests: {
+    path: '/asphrdaemon.Daemon/GetOutgoingFriendRequests',
     requestStream: false,
     responseStream: false,
-    requestType: schema_daemon_pb.GetOutgoingSyncInvitationsRequest,
-    responseType: schema_daemon_pb.GetOutgoingSyncInvitationsResponse,
-    requestSerialize: serialize_asphrdaemon_GetOutgoingSyncInvitationsRequest,
-    requestDeserialize: deserialize_asphrdaemon_GetOutgoingSyncInvitationsRequest,
-    responseSerialize: serialize_asphrdaemon_GetOutgoingSyncInvitationsResponse,
-    responseDeserialize: deserialize_asphrdaemon_GetOutgoingSyncInvitationsResponse,
+    requestType: schema_daemon_pb.GetOutgoingFriendRequestsRequest,
+    responseType: schema_daemon_pb.GetOutgoingFriendRequestsResponse,
+    requestSerialize: serialize_asphrdaemon_GetOutgoingFriendRequestsRequest,
+    requestDeserialize: deserialize_asphrdaemon_GetOutgoingFriendRequestsRequest,
+    responseSerialize: serialize_asphrdaemon_GetOutgoingFriendRequestsResponse,
+    responseDeserialize: deserialize_asphrdaemon_GetOutgoingFriendRequestsResponse,
   },
-  getOutgoingAsyncInvitations: {
-    path: '/asphrdaemon.Daemon/GetOutgoingAsyncInvitations',
+  getIncomingAsyncFriendRequests: {
+    path: '/asphrdaemon.Daemon/GetIncomingAsyncFriendRequests',
     requestStream: false,
     responseStream: false,
-    requestType: schema_daemon_pb.GetOutgoingAsyncInvitationsRequest,
-    responseType: schema_daemon_pb.GetOutgoingAsyncInvitationsResponse,
-    requestSerialize: serialize_asphrdaemon_GetOutgoingAsyncInvitationsRequest,
-    requestDeserialize: deserialize_asphrdaemon_GetOutgoingAsyncInvitationsRequest,
-    responseSerialize: serialize_asphrdaemon_GetOutgoingAsyncInvitationsResponse,
-    responseDeserialize: deserialize_asphrdaemon_GetOutgoingAsyncInvitationsResponse,
+    requestType: schema_daemon_pb.GetIncomingAsyncFriendRequestsRequest,
+    responseType: schema_daemon_pb.GetIncomingAsyncFriendRequestsResponse,
+    requestSerialize: serialize_asphrdaemon_GetIncomingAsyncFriendRequestsRequest,
+    requestDeserialize: deserialize_asphrdaemon_GetIncomingAsyncFriendRequestsRequest,
+    responseSerialize: serialize_asphrdaemon_GetIncomingAsyncFriendRequestsResponse,
+    responseDeserialize: deserialize_asphrdaemon_GetIncomingAsyncFriendRequestsResponse,
   },
-  getIncomingAsyncInvitations: {
-    path: '/asphrdaemon.Daemon/GetIncomingAsyncInvitations',
+  decideAsyncFriendRequest: {
+    path: '/asphrdaemon.Daemon/DecideAsyncFriendRequest',
     requestStream: false,
     responseStream: false,
-    requestType: schema_daemon_pb.GetIncomingAsyncInvitationsRequest,
-    responseType: schema_daemon_pb.GetIncomingAsyncInvitationsResponse,
-    requestSerialize: serialize_asphrdaemon_GetIncomingAsyncInvitationsRequest,
-    requestDeserialize: deserialize_asphrdaemon_GetIncomingAsyncInvitationsRequest,
-    responseSerialize: serialize_asphrdaemon_GetIncomingAsyncInvitationsResponse,
-    responseDeserialize: deserialize_asphrdaemon_GetIncomingAsyncInvitationsResponse,
+    requestType: schema_daemon_pb.DecideAsyncFriendRequestRequest,
+    responseType: schema_daemon_pb.DecideAsyncFriendRequestResponse,
+    requestSerialize: serialize_asphrdaemon_DecideAsyncFriendRequestRequest,
+    requestDeserialize: deserialize_asphrdaemon_DecideAsyncFriendRequestRequest,
+    responseSerialize: serialize_asphrdaemon_DecideAsyncFriendRequestResponse,
+    responseDeserialize: deserialize_asphrdaemon_DecideAsyncFriendRequestResponse,
   },
-  acceptAsyncInvitation: {
-    path: '/asphrdaemon.Daemon/AcceptAsyncInvitation',
+  removeFriend: {
+    path: '/asphrdaemon.Daemon/RemoveFriend',
     requestStream: false,
     responseStream: false,
-    requestType: schema_daemon_pb.AcceptAsyncInvitationRequest,
-    responseType: schema_daemon_pb.AcceptAsyncInvitationResponse,
-    requestSerialize: serialize_asphrdaemon_AcceptAsyncInvitationRequest,
-    requestDeserialize: deserialize_asphrdaemon_AcceptAsyncInvitationRequest,
-    responseSerialize: serialize_asphrdaemon_AcceptAsyncInvitationResponse,
-    responseDeserialize: deserialize_asphrdaemon_AcceptAsyncInvitationResponse,
-  },
-  rejectAsyncInvitation: {
-    path: '/asphrdaemon.Daemon/RejectAsyncInvitation',
-    requestStream: false,
-    responseStream: false,
-    requestType: schema_daemon_pb.RejectAsyncInvitationRequest,
-    responseType: schema_daemon_pb.RejectAsyncInvitationResponse,
-    requestSerialize: serialize_asphrdaemon_RejectAsyncInvitationRequest,
-    requestDeserialize: deserialize_asphrdaemon_RejectAsyncInvitationRequest,
-    responseSerialize: serialize_asphrdaemon_RejectAsyncInvitationResponse,
-    responseDeserialize: deserialize_asphrdaemon_RejectAsyncInvitationResponse,
+    requestType: schema_daemon_pb.RemoveFriendRequest,
+    responseType: schema_daemon_pb.RemoveFriendResponse,
+    requestSerialize: serialize_asphrdaemon_RemoveFriendRequest,
+    requestDeserialize: deserialize_asphrdaemon_RemoveFriendRequest,
+    responseSerialize: serialize_asphrdaemon_RemoveFriendResponse,
+    responseDeserialize: deserialize_asphrdaemon_RemoveFriendResponse,
   },
   sendMessage: {
     path: '/asphrdaemon.Daemon/SendMessage',
