@@ -144,8 +144,10 @@ function StoryAnimation({ seed }: { seed: string }): JSX.Element {
           x: randint(rng, -10, 10),
           y: randint(rng, -10, 10),
         },
-        size: randint(rng, 30, 40),
-        color: ["#194F39", "#E2A924", "#252116"][randint(rng, 0, 2)]!,
+        size: i < 2 ? randint(rng, 150, 200) : randint(rng, 10, 20),
+        color: ["#194F39", "#E2A924", "#252116"][
+          i < 2 ? (i < 1 ? 0 : 1) : randint(rng, 0, 2)
+        ]!,
       });
     }
     const circles: {
@@ -166,7 +168,7 @@ function StoryAnimation({ seed }: { seed: string }): JSX.Element {
           x: circle.velocity.x + randint(rng, -1, 1),
           y: circle.velocity.y + randint(rng, -1, 1),
         };
-        const newSize = Math.max(circle.size + randint(rng, -10, 10), 20);
+        const newSize = Math.max(circle.size + randint(rng, -2, 2), 20);
         return {
           ...circle,
           // position: newPosition,
@@ -211,7 +213,7 @@ function StoryAnimation({ seed }: { seed: string }): JSX.Element {
       ></div> */}
       {keyframes[keyframe].map((circle, i) => (
         <motion.div
-          className="blur-xs absolute top-1/2 left-1/2 rounded-full filter"
+          className="blur-xs -z-1 absolute top-1/2 left-1/2 rounded-full filter"
           animate={{
             x: circle.position.x - circle.size / 2,
             y: circle.position.y - circle.size / 2,
