@@ -211,7 +211,7 @@ function StoryAnimation({ seed }: { seed: string }): JSX.Element {
       ></div> */}
       {keyframes[keyframe].map((circle, i) => (
         <motion.div
-          className="blur-xs absolute top-1/2 left-1/2 rounded-full blur-lg filter"
+          className="blur-xs absolute top-1/2 left-1/2 rounded-full filter"
           animate={{
             x: circle.position.x - circle.size / 2,
             y: circle.position.y - circle.size / 2,
