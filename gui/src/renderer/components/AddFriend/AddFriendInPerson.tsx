@@ -2,24 +2,34 @@ import Modal from "../Modal";
 import { ModalType } from "../Modal";
 import { StatusProps } from "../Status";
 import { classNames } from "../../utils";
-import * as React from "react";
+import { useEffect, useState, useMemo } from "react";
 import seedrandom from "seedrandom";
+import { motion } from "framer-motion";
+import { circularShallowEqual } from "fast-equals";
 
 const DEBUG_COLORS = false;
 // const DEBUG_COLORS = true;
 
 function ProgressBar({ progress }: { progress: number }): JSX.Element {
   return (
-    <div className="mx-auto text-xs text-asbrown-100">
-      <div className="grid grid-cols-3 gap-16 text-center">
-        <div className={classNames(progress == 0 ? "text-asbrown-light" : "")}>
-          1. Share stories.
-        </div>
-        <div className={classNames(progress == 1 ? "text-asbrown-light" : "")}>
-          2. Verify.
-        </div>
-        <div className={classNames(progress == 2 ? "text-asbrown-light" : "")}>
-          3. Finish.
+    <div className="absolute top-4 w-full text-xs text-asbrown-100">
+      <div className="mx-auto w-fit">
+        <div className="grid grid-cols-3 gap-16 text-center">
+          <div
+            className={classNames(progress == 0 ? "text-asbrown-light" : "")}
+          >
+            1. Share stories.
+          </div>
+          <div
+            className={classNames(progress == 1 ? "text-asbrown-light" : "")}
+          >
+            2. Verify.
+          </div>
+          <div
+            className={classNames(progress == 2 ? "text-asbrown-light" : "")}
+          >
+            3. Finish.
+          </div>
         </div>
       </div>
     </div>
@@ -82,23 +92,109 @@ async function sha256string(s: string) {
   return hashHex;
 }
 
-function StoryAnimation({ seed }: { seed: string }): JSX.Element {
-  const [shaseed, setShaseed] = React.useState("");
+function randint(rng: any, min: number, max: number) {
+  return Math.floor(rng() * (max - min + 1)) + min;
+}
 
-  React.useEffect(() => {
+function StoryAnimation({ seed }: { seed: string }): JSX.Element {
+  const KEYFRAMES = 100;
+  const DURATION = 2000;
+  const [shaseed, setShaseed] = useState("");
+  const [keyframe, setKeyframe] = useState(0);
+
+  useEffect(() => {
     sha256string(seed).then((hash) => {
       setShaseed(hash);
     });
-  });
+  }, [seed]);
 
-  const rng = seedrandom(shaseed);
+  useEffect(() => {
+    // INITIAL KEYFRAME: set keyframe to be current time % KEYFRAMES in seconds
+    setKeyframe(Math.floor(Date.now() / 1000) % KEYFRAMES);
+  }, []);
+  useEffect(() => {
+    // set keyframe to be current time % KEYFRAMES in seconds
+    setTimeout(() => {
+      setKeyframe(Math.floor(Date.now() / DURATION) % KEYFRAMES);
+    }, DURATION + DURATION / 2 - (Date.now() % DURATION));
+  }, [keyframe]);
+
+  const rng = useMemo(() => seedrandom(shaseed), [shaseed]);
+
+  // create circles (position, size, color)
+
+  const n = useMemo(() => {
+    return randint(rng, 15, 20);
+  }, [rng]);
+
+  const keyframes = useMemo(() => {
+    const initialCircles: {
+      position: { x: number; y: number };
+      velocity: { x: number; y: number };
+      size: number;
+      color: string;
+    }[] = [];
+    for (let i = 0; i < n; i++) {
+      initialCircles.push({
+        position: {
+          x: randint(rng, -500, 500),
+          y: randint(rng, -200, 200),
+        },
+        velocity: {
+          x: randint(rng, -10, 10),
+          y: randint(rng, -10, 10),
+        },
+        size: randint(rng, 30, 40),
+        color: ["#194F39", "#E2A924", "#252116"][randint(rng, 0, 2)]!,
+      });
+    }
+    const circles: {
+      position: { x: number; y: number };
+      velocity: { x: number; y: number };
+      size: number;
+      color: string;
+    }[][] = [];
+    circles.push(initialCircles);
+    // the animation repeats every KEYFRAMES seconds, with 1 frame per second
+    for (let i = 0; i < KEYFRAMES; i++) {
+      const nextCircles = circles[i]!.map((circle) => {
+        const newPosition = {
+          x: circle.position.x + circle.velocity.x,
+          y: circle.position.y + circle.velocity.y,
+        };
+        const newVelocity = {
+          x: circle.velocity.x + randint(rng, -1, 1),
+          y: circle.velocity.y + randint(rng, -1, 1),
+        };
+        const newSize = Math.max(circle.size + randint(rng, -10, 10), 20);
+        return {
+          ...circle,
+          // position: newPosition,
+          position: {
+            x: randint(rng, -500, 500),
+            y: randint(rng, -200, 200),
+          },
+          velocity: newVelocity,
+          size: newSize,
+          color: ["#194F39", "#E2A924", "#252116"][randint(rng, 0, 2)]!,
+        };
+      });
+      circles.push(nextCircles);
+    }
+    return circles;
+  }, [rng, n]);
+
+  console.log("n", n);
+  console.log("circles", keyframes[0]);
 
   return (
-    <div className="grid grid-cols-1 gap-4">
-      {rng()}
-      {rng()}
-      {rng()}
-      <div
+    <div
+      className={classNames(
+        "h-full w-full",
+        DEBUG_COLORS ? "bg-green-100" : ""
+      )}
+    >
+      {/* <div
         className={`animation-delay-2000 absolute top-[20px] left-[135px] h-[115px] w-[115px] animate-blob rounded-full bg-gradient-to-t 
                       from-asbrown-dark to-asbrown-dark/70 opacity-80 mix-blend-multiply shadow-lg shadow-stone-800 blur-lg filter
                       md:top-[10px] md:left-[-10px] md:h-[230px] md:w-[230px] `}
@@ -112,7 +208,25 @@ function StoryAnimation({ seed }: { seed: string }): JSX.Element {
         className="animation-delay-4000 absolute -bottom-4 left-10 h-[190px] w-[190px] animate-blob rounded-full bg-gradient-to-t from-asgreen-dark
                       to-asgreen-dark/70 opacity-90 mix-blend-multiply shadow-lg shadow-stone-800 blur-lg filter 
                       md:-bottom-3 md:left-0 md:h-[440px] md:w-[440px]"
-      ></div>
+      ></div> */}
+      {keyframes[keyframe].map((circle, i) => (
+        <motion.div
+          className="blur-xs absolute top-1/2 left-1/2 rounded-full blur-lg filter"
+          animate={{
+            x: circle.position.x - circle.size / 2,
+            y: circle.position.y - circle.size / 2,
+            width: circle.size,
+            height: circle.size,
+            backgroundColor: circle.color,
+          }}
+          transition={{
+            duration: DURATION / 1000,
+            ease: [0.6, 0.8, 0.1, 0.6],
+          }}
+          initial={false}
+          key={i}
+        />
+      ))}
     </div>
   );
 }
@@ -126,18 +240,18 @@ export default function AddFriendInPerson({
   setStatus: (status: StatusProps) => void;
   story: string;
 }): JSX.Element {
-  const [progress, setProgress] = React.useState<number>(0);
-  const [showtedious, setShowtedious] = React.useState<boolean>(false);
-  const [showverify, setShowverify] = React.useState<boolean>(false);
-  const [theirstorylist, setTheirstory] = React.useState<string[]>([]);
+  const [progress, setProgress] = useState<number>(0);
+  const [showtedious, setShowtedious] = useState<boolean>(false);
+  const [showverify, setShowverify] = useState<boolean>(false);
+  const [theirstorylist, setTheirstory] = useState<string[]>([]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setTimeout(() => {
       setShowtedious(true);
     }, 60000);
   }, [progress]);
 
-  const storylist = React.useMemo(() => {
+  const storylist = useMemo(() => {
     const l = story.split(". ").map((line) => {
       if (line[line.length - 1] == ".") {
         return line;
@@ -149,7 +263,7 @@ export default function AddFriendInPerson({
     return l;
   }, [story]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (theirstorylist.length == 0) {
       return;
     }
@@ -170,60 +284,67 @@ export default function AddFriendInPerson({
     <>
       <h3
         className={classNames(
-          "text-center font-['Lora'] text-xl",
+          "absolute left-0 right-0 top-14 text-center font-['Lora'] text-xl",
           DEBUG_COLORS ? "bg-yellow-700" : ""
         )}
       >
         Share stories with each other.
       </h3>
-      <h6 className="text-center text-xs text-asbrown-light">
+      <h6 className="absolute top-24 left-0 right-0 text-center text-xs text-asbrown-light">
         These correspond to your public key, and allow you and your friend to
         communicate privately.
       </h6>
       <div
         className={classNames(
-          "grid grid-cols-2 divide-x divide-asbrown-100 self-center",
+          "absolute bottom-20 top-36 left-0 right-0 grid",
           DEBUG_COLORS ? "bg-purple-100" : ""
         )}
       >
         <div
           className={classNames(
-            "grid items-center px-8 ",
-            DEBUG_COLORS ? "bg-green-100" : ""
+            "grid grid-cols-2 divide-x divide-asbrown-100 self-center",
+            DEBUG_COLORS ? "bg-purple-100" : ""
           )}
         >
-          <div className="pb-4">
-            <h3 className="pb-8 text-center text-xs text-asbrown-light">
-              Your story.
-            </h3>
-            <div className="grid gap-4">
-              {storylist.map((feature, index) => (
-                <div className="flex flex-row gap-4" key={index}>
-                  <p className="text-sm text-asbrown-300">{index + 1}.</p>
-                  <p className="mb-[2px] text-sm">{feature}</p>
-                </div>
-              ))}
+          <div
+            className={classNames(
+              "grid items-center px-8 ",
+              DEBUG_COLORS ? "bg-green-100" : ""
+            )}
+          >
+            <div className="pb-4">
+              <h3 className="pb-8 text-center text-xs text-asbrown-light">
+                Your story.
+              </h3>
+              <div className="grid gap-4">
+                {storylist.map((feature, index) => (
+                  <div className="flex flex-row gap-4" key={index}>
+                    <p className="text-sm text-asbrown-300">{index + 1}.</p>
+                    <p className="mb-[2px] text-sm">{feature}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div
+            className={classNames(
+              "grid items-center px-8 ",
+              DEBUG_COLORS ? "bg-red-100" : ""
+            )}
+          >
+            <div className="pb-4">
+              <h3 className="pb-8 text-center text-xs text-asbrown-light">
+                Their story.
+              </h3>
+              <StoryForm
+                theirstory={theirstorylist}
+                setTheirStory={(story) => setTheirstory(story)}
+              />
             </div>
           </div>
         </div>
-        <div
-          className={classNames(
-            "grid items-center px-8 ",
-            DEBUG_COLORS ? "bg-red-100" : ""
-          )}
-        >
-          <div className="pb-4">
-            <h3 className="pb-8 text-center text-xs text-asbrown-light">
-              Their story.
-            </h3>
-            <StoryForm
-              theirstory={theirstorylist}
-              setTheirStory={(story) => setTheirstory(story)}
-            />
-          </div>
-        </div>
       </div>
-      <div className="grid items-center justify-center text-center">
+      <div className="absolute left-0 right-0 bottom-8 grid items-center justify-center text-center">
         <button
           className={classNames(
             "unselectable rounded-lg bg-asbrown-100 px-3 py-1 text-asbrown-light",
@@ -241,7 +362,7 @@ export default function AddFriendInPerson({
       </div>
       <p
         className={classNames(
-          "self-center px-20 text-center text-xs transition",
+          "absolute left-0 right-0 bottom-2 self-center px-20 text-center text-xs transition",
           showtedious ? "text-asbrown-200" : "text-transparent"
         )}
       >
@@ -255,16 +376,16 @@ export default function AddFriendInPerson({
     <>
       <h3
         className={classNames(
-          "text-center font-['Lora'] text-xl",
+          "absolute left-0 right-0 top-14  text-center font-['Lora'] text-xl",
           DEBUG_COLORS ? "bg-yellow-700" : ""
         )}
       >
         Are the animations identical?
       </h3>
-      <div>
+      <div className="absolute left-0 right-0 top-0 bottom-0">
         <StoryAnimation seed={story + theirstorylist.join("")} />
       </div>
-      <div className="grid items-center justify-center text-center">
+      <div className="absolute left-0 right-0 bottom-8 grid items-center justify-center text-center">
         <button
           className={classNames(
             "unselectable rounded-lg bg-asbrown-100 px-3 py-1 text-asbrown-light"
@@ -272,6 +393,8 @@ export default function AddFriendInPerson({
         >
           Yes, they are identical.
         </button>
+      </div>
+      <div className="absolute left-0 right-0 bottom-2 grid items-center justify-center text-center">
         <button
           className="unselectable text-xs text-asbrown-200"
           onClick={() => setProgress(0)}
@@ -291,7 +414,7 @@ export default function AddFriendInPerson({
     <div className="grid h-full w-full items-center">
       <div
         className={classNames(
-          "unselectable grid h-full pt-8 pb-4",
+          "unselectable relative h-full",
           DEBUG_COLORS ? "bg-yellow-100" : ""
         )}
       >
