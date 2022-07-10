@@ -45,9 +45,7 @@ module.exports = {
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "error",
     "no-tabs": "error",
-    "max-lines": ["warn", 2000],
     "max-params": ["warn", 7],
-    "max-lines-per-function": ["warn", 150],
     "max-depth": ["warn", 4],
     semi: "error", // require semicolons ending statements
     "@typescript-eslint/naming-convention": [
