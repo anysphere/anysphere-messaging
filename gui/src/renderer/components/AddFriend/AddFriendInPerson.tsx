@@ -97,7 +97,7 @@ function randint(rng: any, min: number, max: number) {
 }
 
 function StoryAnimation({ seed }: { seed: string }): JSX.Element {
-  const KEYFRAMES = 100;
+  const KEYFRAMES = 60; // even if for some reason the time is timezone-dependent, mod 60 should still agree anywhere in the world
   const DURATION = 2000;
   const [shaseed, setShaseed] = useState("");
   const [keyframe, setKeyframe] = useState(0);
@@ -110,13 +110,13 @@ function StoryAnimation({ seed }: { seed: string }): JSX.Element {
 
   useEffect(() => {
     // INITIAL KEYFRAME: set keyframe to be current time % KEYFRAMES in seconds
-    setKeyframe(Math.floor(Date.now() / 1000) % KEYFRAMES);
+    setKeyframe(Math.floor(Date.now() / DURATION) % KEYFRAMES);
   }, []);
   useEffect(() => {
     // set keyframe to be current time % KEYFRAMES in seconds
     setTimeout(() => {
       setKeyframe(Math.floor(Date.now() / DURATION) % KEYFRAMES);
-    }, DURATION + DURATION / 2 - (Date.now() % DURATION));
+    }, DURATION + 10 - (Date.now() % DURATION));
   }, [keyframe]);
 
   const rng = useMemo(() => seedrandom(shaseed), [shaseed]);
