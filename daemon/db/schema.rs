@@ -49,7 +49,7 @@ diesel::table! {
         sequence_number -> Integer,
         chunks_start_sequence_number -> Integer,
         message_uid -> Integer,
-        content -> Text,
+        content -> Binary,
     }
 }
 
@@ -85,9 +85,10 @@ diesel::table! {
         sequence_number -> Integer,
         chunks_start_sequence_number -> Integer,
         message_uid -> Nullable<Integer>,
-        content -> Text,
+        content -> Binary,
         system -> Bool,
         system_message -> Integer,
+        system_message_data -> Text,
     }
 }
 
@@ -176,20 +177,20 @@ diesel::joinable!(sent_friend -> sent (sent_uid));
 diesel::joinable!(transmission -> friend (friend_uid));
 
 diesel::allow_tables_to_appear_in_same_query!(
-    complete_friend,
-    config,
-    draft,
-    draft_friend,
-    friend,
-    incoming_chunk,
-    incoming_invitation,
-    message,
-    outgoing_async_invitation,
-    outgoing_chunk,
-    outgoing_sync_invitation,
-    received,
-    registration,
-    sent,
-    sent_friend,
-    transmission,
+  complete_friend,
+  config,
+  draft,
+  draft_friend,
+  friend,
+  incoming_chunk,
+  incoming_invitation,
+  message,
+  outgoing_async_invitation,
+  outgoing_chunk,
+  outgoing_sync_invitation,
+  received,
+  registration,
+  sent,
+  sent_friend,
+  transmission,
 );

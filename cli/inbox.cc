@@ -34,7 +34,7 @@ void Inbox::update(unique_ptr<asphrdaemon::Daemon::Stub>& stub,
       absl::Time time = absl::FromUnixSeconds(time_proto.seconds());
 
       new_messages.emplace_back(
-          time, Message{message.m().message(), me, message.m().unique_name()});
+          time, Message{message.message(), me, message.from_unique_name()});
     }
   }
 

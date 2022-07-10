@@ -528,9 +528,17 @@ Status DaemonRpc::SendMessage(
     ServerContext* context,
     const asphrdaemon::SendMessageRequest* sendMessageRequest,
     asphrdaemon::SendMessageResponse* sendMessageResponse) {
+  /**
+    message SendMessageRequest {
+      repeated string unique_name = 1;
+      string message = 2;
+    }
+   */
+
+  const auto names = sendMessageRequest->unique_name();
+  const vector<string> unique_names(names.begin(), names.end());
   ASPHR_LOG_INFO("SendMessage() called.", rpc_call, "SendMessage",
-                 friend_unique_name, sendMessageRequest->unique_name(),
-                 message_length, sendMessageRequest->message().size(), message,
+                 friend_unique_name, absl::StrJoin(unique_names, ", "), message,
                  sendMessageRequest->message());
 
   if (!G.db->has_registered()) {
@@ -551,9 +559,13 @@ Status DaemonRpc::SendMessage(
         message.substr(i, GUARANTEED_SINGLE_MESSAGE_SIZE));
   }
 
+  rust::Vec<rust::String> unique_names_vec;
+  for (const auto& unique_name : unique_names) {
+    unique_names_vec.push_back(rust::String(unique_name));
+  }
+
   try {
-    G.db->queue_message_to_send(sendMessageRequest->unique_name(), message,
-                                chunked_message);
+    G.db->queue_message_to_send(unique_names_vec, message, chunked_message);
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Failed to send message.", error, e.what(), rpc_call,
                   "SendMessage");
@@ -596,17 +608,32 @@ Status DaemonRpc::GetMessages(
     for (auto& m : messages) {
       auto message_info = getMessagesResponse->add_messages();
 
-      auto baseMessage = message_info->mutable_m();
-      baseMessage->set_id(m.uid);
-      baseMessage->set_message(std::string(m.content));
-      baseMessage->set_unique_name(std::string(m.from_unique_name));
-      baseMessage->set_display_name(std::string(m.from_display_name));
+      // auto baseMessage = message_info->mutable_m();
+      // baseMessage->set_id(m.uid);
+      // baseMessage->set_message(std::string(m.content));
+      // baseMessage->set_unique_name(std::string(m.from_unique_name));
+      // baseMessage->set_display_name(std::string(m.from_display_name));
+      message_info->set_uid(m.uid);
+      message_info->set_message(std::string(m.content));
+
+      message_info->set_from_unique_name(std::string(m.from_unique_name));
+      message_info->set_from_display_name(std::string(m.from_display_name));
+
       message_info->set_seen(m.seen);
       message_info->set_delivered(m.delivered);
+
+      auto other_recipiends = m.other_recipients;
+      for (auto& f : other_recipiends) {
+        auto maybe_friend = message_info->add_other_recipients();
+        maybe_friend->set_public_id(std::string(f.public_id));
+        maybe_friend->set_unique_name(std::string(f.unique_name));
+        maybe_friend->set_display_name(std::string(f.display_name));
+      }
 
       auto delivered_at = absl::FromUnixMicros(m.delivered_at);
       auto timestamp_str = absl::FormatTime(delivered_at);
       auto timestamp = message_info->mutable_delivered_at();
+
       auto success = TimeUtil::FromString(timestamp_str, timestamp);
       if (!success) {
         ASPHR_LOG_ERR("Failed to parse timestamp.", error, timestamp_str,
@@ -660,13 +687,27 @@ Status DaemonRpc::GetMessagesStreamed(
     for (auto& m : messages) {
       auto message_info = response.add_messages();
 
-      auto baseMessage = message_info->mutable_m();
-      baseMessage->set_id(m.uid);
-      baseMessage->set_message(std::string(m.content));
-      baseMessage->set_unique_name(std::string(m.from_unique_name));
-      baseMessage->set_display_name(std::string(m.from_display_name));
+      // auto baseMessage = message_info->mutable_m();
+      // baseMessage->set_id(m.uid);
+      // baseMessage->set_message(std::string(m.content));
+      // baseMessage->set_unique_name(std::string(m.from_unique_name));
+      // baseMessage->set_display_name(std::string(m.from_display_name));
+      message_info->set_uid(m.uid);
+      message_info->set_message(std::string(m.content));
+
+      message_info->set_from_unique_name(std::string(m.from_unique_name));
+      message_info->set_from_display_name(std::string(m.from_display_name));
+
       message_info->set_seen(m.seen);
       message_info->set_delivered(m.delivered);
+
+      auto other_recipiends = m.other_recipients;
+      for (auto& f : other_recipiends) {
+        auto maybe_friend = message_info->add_other_recipients();
+        maybe_friend->set_public_id(std::string(f.public_id));
+        maybe_friend->set_unique_name(std::string(f.unique_name));
+        maybe_friend->set_display_name(std::string(f.display_name));
+      }
 
       auto delivered_at = absl::FromUnixMicros(m.delivered_at);
       if (delivered_at > last_delivered_at) {
@@ -721,13 +762,27 @@ Status DaemonRpc::GetMessagesStreamed(
       for (auto& m : messages) {
         auto message_info = response.add_messages();
 
-        auto baseMessage = message_info->mutable_m();
-        baseMessage->set_id(m.uid);
-        baseMessage->set_message(std::string(m.content));
-        baseMessage->set_unique_name(std::string(m.from_unique_name));
-        baseMessage->set_display_name(std::string(m.from_display_name));
+        // auto baseMessage = message_info->mutable_m();
+        // baseMessage->set_id(m.uid);
+        // baseMessage->set_message(std::string(m.content));
+        // baseMessage->set_unique_name(std::string(m.from_unique_name));
+        // baseMessage->set_display_name(std::string(m.from_display_name));
+        message_info->set_uid(m.uid);
+        message_info->set_message(std::string(m.content));
+
+        message_info->set_from_unique_name(std::string(m.from_unique_name));
+        message_info->set_from_display_name(std::string(m.from_display_name));
+
         message_info->set_seen(m.seen);
         message_info->set_delivered(m.delivered);
+
+        auto other_recipiends = m.other_recipients;
+        for (auto& f : other_recipiends) {
+          auto maybe_friend = message_info->add_other_recipients();
+          maybe_friend->set_public_id(std::string(f.public_id));
+          maybe_friend->set_unique_name(std::string(f.unique_name));
+          maybe_friend->set_display_name(std::string(f.display_name));
+        }
 
         auto delivered_at = absl::FromUnixMicros(m.delivered_at);
         if (delivered_at > last_delivered_at) {
@@ -779,24 +834,36 @@ Status DaemonRpc::GetOutboxMessages(
     for (auto& m : messages) {
       auto message_info = getOutboxMessagesResponse->add_messages();
 
-      auto baseMessage = message_info->mutable_m();
-      baseMessage->set_id(m.uid);
-      baseMessage->set_message(std::string(m.content));
-      baseMessage->set_unique_name(std::string(m.to_unique_name));
-      baseMessage->set_display_name(std::string(m.to_display_name));
-      message_info->set_delivered(m.delivered);
+      // auto baseMessage = message_info->mutable_m();
+      // baseMessage->set_id(m.uid);
+      // baseMessage->set_message(std::string(m.content));
+      // baseMessage->set_unique_name(std::string(m.to_unique_name));
+      // baseMessage->set_display_name(std::string(m.to_display_name));
+      // message_info->set_delivered(m.delivered);
 
-      {
-        auto delivered_at = absl::FromUnixMicros(m.delivered_at);
-        auto timestamp_str = absl::FormatTime(delivered_at);
-        auto timestamp = message_info->mutable_delivered_at();
-        auto success = TimeUtil::FromString(timestamp_str, timestamp);
-        if (!success) {
-          ASPHR_LOG_ERR("Failed to parse timestamp.", error, timestamp_str,
-                        rpc_call, "GetSentMessages");
-          return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+      message_info->set_uid(m.uid);
+      message_info->set_message(std::string(m.content));
+
+      auto to_friends = m.to_friends;
+      for (auto& f : to_friends) {
+        auto outgoing_friend = message_info->add_to_friends();
+        outgoing_friend->set_unique_name(std::string(f.unique_name));
+        outgoing_friend->set_display_name(std::string(f.display_name));
+        outgoing_friend->set_delivered(f.delivered);
+
+        {
+          auto delivered_at = absl::FromUnixMicros(f.delivered_at);
+          auto timestamp_str = absl::FormatTime(delivered_at);
+          auto timestamp = outgoing_friend->mutable_delivered_at();
+          auto success = TimeUtil::FromString(timestamp_str, timestamp);
+          if (!success) {
+            ASPHR_LOG_ERR("Failed to parse timestamp.", error, timestamp_str,
+                          rpc_call, "GetSentMessages");
+            return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+          }
         }
       }
+
       {
         auto sent_at = absl::FromUnixMicros(m.sent_at);
         auto timestamp_str = absl::FormatTime(sent_at);
@@ -841,24 +908,36 @@ Status DaemonRpc::GetSentMessages(
     for (auto& m : messages) {
       auto message_info = getSentMessagesResponse->add_messages();
 
-      auto baseMessage = message_info->mutable_m();
-      baseMessage->set_id(m.uid);
-      baseMessage->set_message(std::string(m.content));
-      baseMessage->set_unique_name(std::string(m.to_unique_name));
-      baseMessage->set_display_name(std::string(m.to_display_name));
-      message_info->set_delivered(m.delivered);
+      // auto baseMessage = message_info->mutable_m();
+      // baseMessage->set_id(m.uid);
+      // baseMessage->set_message(std::string(m.content));
+      // baseMessage->set_unique_name(std::string(m.to_unique_name));
+      // baseMessage->set_display_name(std::string(m.to_display_name));
+      // message_info->set_delivered(m.delivered);
 
-      {
-        auto delivered_at = absl::FromUnixMicros(m.delivered_at);
-        auto timestamp_str = absl::FormatTime(delivered_at);
-        auto timestamp = message_info->mutable_delivered_at();
-        auto success = TimeUtil::FromString(timestamp_str, timestamp);
-        if (!success) {
-          ASPHR_LOG_ERR("Failed to parse timestamp.", error, timestamp_str,
-                        rpc_call, "GetSentMessages");
-          return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+      message_info->set_uid(m.uid);
+      message_info->set_message(std::string(m.content));
+
+      auto to_friends = m.to_friends;
+      for (auto& f : to_friends) {
+        auto outgoing_friend = message_info->add_to_friends();
+        outgoing_friend->set_unique_name(std::string(f.unique_name));
+        outgoing_friend->set_display_name(std::string(f.display_name));
+        outgoing_friend->set_delivered(f.delivered);
+
+        {
+          auto delivered_at = absl::FromUnixMicros(f.delivered_at);
+          auto timestamp_str = absl::FormatTime(delivered_at);
+          auto timestamp = outgoing_friend->mutable_delivered_at();
+          auto success = TimeUtil::FromString(timestamp_str, timestamp);
+          if (!success) {
+            ASPHR_LOG_ERR("Failed to parse timestamp.", error, timestamp_str,
+                          rpc_call, "GetSentMessages");
+            return Status(grpc::StatusCode::UNKNOWN, "invalid timestamp");
+          }
         }
       }
+
       {
         auto sent_at = absl::FromUnixMicros(m.sent_at);
         auto timestamp_str = absl::FormatTime(sent_at);

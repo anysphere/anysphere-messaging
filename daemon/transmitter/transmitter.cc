@@ -228,7 +228,8 @@ auto Transmitter::retrieve() -> void {
     read_indices.push_back(r.read_index);
   }
 
-  auto pir_replies = batch_retrieve_pir(client, read_indices);
+  vector<absl::StatusOr<asphrserver::ReceiveMessageResponse>> pir_replies =
+      batch_retrieve_pir(client, read_indices);
 
   assert(pir_replies.size() == RECEIVE_FRIENDS_PER_ROUND);
 

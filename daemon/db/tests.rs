@@ -10,11 +10,11 @@ use rand::Rng;
 
 /**
  * Test the database.
- * 
+ *
  * Partition tested:
  * - 2 friends
  * - async addition of friends
- * 
+ *
  * - test_recieive_msg(): basic functionality of the following APIs:
  *  - add_outgoing_async_invitation
  *  - add_incoming_async_invitation
@@ -237,7 +237,7 @@ fn test_send_msg() {
   db.add_incoming_async_invitation("hi_this_is_a_public_id", "hi from freidn 1").unwrap();
 
   let msg = "hi im a single chunk";
-  db.queue_message_to_send("friend_1", msg, vec![msg.to_string()]).unwrap();
+  db.queue_message_to_send(vec!["friend_1".to_string()], msg, vec![msg.to_string()]).unwrap();
 
   let chunk_to_send = db.chunk_to_send(vec![]).unwrap();
 
