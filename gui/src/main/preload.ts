@@ -17,6 +17,7 @@ import {
   convertProtobufOutgoingMessageToTypedMessage,
 } from "./daemon";
 import { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
+import { throwDeprecation } from "process";
 
 const daemonClient = getDaemonClient();
 
@@ -785,7 +786,8 @@ contextBridge.exposeInMainWorld(
   async (): Promise<daemon_pb.GetMyPublicIDResponse.AsObject> => {
     if (FAKE_DATA) {
       return {
-        publicId: "asdfasdf",
+        publicId:
+          "3X2riNETQqUuFTqVrWqkGF8EsepzoarMYrNASmRJAzKwr9XB4Z7amnFNrgGm9wuq3wXAvvhPpu47eHWv29ikv5fbbzeeyfRvcgYqT",
         story:
           "Haphazard ambassador hides gradient. Cool mark resolves ambush. Eerie kiss revises distinction. Fashionable film fosters age. New customer views proprietor. Boiled plant kicks truck. Spectacular commission complies triumph. Faint.",
       };
@@ -804,11 +806,9 @@ contextBridge.exposeInMainWorld(
 
       return response.toObject();
     } catch (e) {
+      // TODO: maybe this error is unrecoverable? maybe we want to try to restart the daemon?
       console.log(`error in getMyPublicID: ${e}`);
-      return {
-        publicId: "",
-        story: "",
-      };
+      throw e;
     }
   }
 );

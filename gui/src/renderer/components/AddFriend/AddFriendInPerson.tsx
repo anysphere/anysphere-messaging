@@ -1,11 +1,8 @@
-import Modal from "../Modal";
-import { ModalType } from "../Modal";
 import { StatusProps } from "../Status";
 import { classNames } from "../../utils";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import seedrandom from "seedrandom";
 import { motion } from "framer-motion";
-import { circularShallowEqual } from "fast-equals";
 
 const DEBUG_COLORS = false;
 // const DEBUG_COLORS = true;

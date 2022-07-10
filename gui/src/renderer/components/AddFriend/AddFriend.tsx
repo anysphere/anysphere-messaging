@@ -24,6 +24,7 @@ export default function AddFriend({
     AddFriendScreen.Choice
   );
   const [story, setStory] = React.useState<string>("");
+  const [publicID, setPublicID] = React.useState<string>("");
 
   let component;
   switch (screen) {
@@ -33,12 +34,35 @@ export default function AddFriend({
           onClose={onClose}
           setStatus={setStatus}
           chooseInperson={() => {
-            window.getMyPublicID().then((publicID) => {
-              setStory(publicID.story);
-              setScreen(AddFriendScreen.InPerson);
-            });
+            window
+              .getMyPublicID()
+              .then((publicID) => {
+                setStory(publicID.story);
+                setScreen(AddFriendScreen.InPerson);
+              })
+              .catch((err) => {
+                setStatus({
+                  message: `Internal error: ${err}`,
+                  action: () => {},
+                  actionName: null,
+                });
+              });
           }}
-          chooseRemote={() => setScreen(AddFriendScreen.Remote)}
+          chooseRemote={() => {
+            window
+              .getMyPublicID()
+              .then((publicID) => {
+                setPublicID(publicID.publicId);
+                setScreen(AddFriendScreen.Remote);
+              })
+              .catch((err) => {
+                setStatus({
+                  message: `Internal error: ${err}`,
+                  action: () => {},
+                  actionName: null,
+                });
+              });
+          }}
         />
       );
       break;
@@ -52,7 +76,13 @@ export default function AddFriend({
       );
       break;
     case AddFriendScreen.Remote:
-      component = <AddFriendRemote onClose={onClose} setStatus={setStatus} />;
+      component = (
+        <AddFriendRemote
+          onClose={onClose}
+          setStatus={setStatus}
+          publicId={publicID}
+        />
+      );
       break;
   }
 
