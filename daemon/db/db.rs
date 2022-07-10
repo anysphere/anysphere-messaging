@@ -416,7 +416,7 @@ pub mod ffi {
     pub system: bool,
     #[diesel(deserialize_as = SystemMessage)]
     pub system_message: SystemMessage,
-    pub system_message_data: String
+    pub system_message_data: String,
   }
 
   #[derive(Queryable)]
@@ -1791,7 +1791,7 @@ impl DB {
         // now assemble the message, write it, and be happy!
         let all_chunks =
           q.order_by(incoming_chunk::sequence_number).load::<ffi::IncomingChunk>(conn_b)?;
-          
+
         let msg = all_chunks.iter().fold(String::new(), |mut acc, chunk| {
           acc.push_str(&chunk.content);
           acc
@@ -2276,7 +2276,7 @@ impl DB {
           .execute(conn_b)?;
 
         let new_seqnum = self.get_seqnum_for_new_chunk(conn_b, friend_uid)?;
-        
+
         // TODO(sualeh, refactor): we need to chunk inside rust now.
         // // Inserting the chunks into the database.
         // for (i, chunk) in chunks.iter().enumerate() {

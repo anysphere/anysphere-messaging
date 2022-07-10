@@ -137,16 +137,25 @@ cc_library(
     ],
 )
 
+rust_cxx_bridge(
+    name = "chunk_bridge",
+    src = "chunk_handler/chunk_handler.rs",
+    deps = [],
+)
+
 cc_library(
     name = "cpp_include",
     hdrs = [
         "main.hpp",
         "util.hpp",
+        "chunk_handler/chunk_handler.hpp"
     ],
     linkstatic = True,
     deps = [
         "@asphr//asphr:asphr_lib",
+        "@asphr//schema:message_proto_cc",
         "@cxx.rs//:core",
+        ":chunk_bridge",
     ],
 )
 
