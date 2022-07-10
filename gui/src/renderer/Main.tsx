@@ -130,9 +130,15 @@ function Main() {
 
   const openFriendModal = React.useCallback(() => {
     setModal(
-      <AddFriend onClose={closeModal} setStatus={statusState.setStatus} />
+      <AddFriend
+        onClose={closeModal}
+        setStatus={(x) => {
+          statusState.setStatus(x);
+          statusState.setVisible();
+        }}
+      />
     );
-  }, [setModal, closeModal]);
+  }, [setModal, closeModal, statusState]);
 
   let selectedComponent;
   console.log(selectedTab);

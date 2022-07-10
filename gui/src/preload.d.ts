@@ -24,11 +24,11 @@ declare global {
     ): Promise<boolean>;
 
     addSyncFriend(
-      addSyncFriendRequest: daemon_pb.AddSyncFriendRequest
+      addSyncFriendRequest: daemon_pb.AddSyncFriendRequest.AsObject
     ): Promise<boolean>;
 
     addAsyncFriend(
-      addAsyncFriendRequest: daemon_pb.AddAsyncFriendRequest
+      addAsyncFriendRequest: daemon_pb.AddAsyncFriendRequest.AsObject
     ): Promise<boolean>;
 
     getOutgoingSyncInvitations(): Promise<daemon_pb.GetOutgoingSyncInvitationsResponse>;

@@ -2,7 +2,7 @@ import Modal from "../Modal";
 import { ModalType } from "../Modal";
 import { StatusProps } from "../Status";
 import { classNames } from "../../utils";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import seedrandom from "seedrandom";
 import { motion } from "framer-motion";
 import { circularShallowEqual } from "fast-equals";
@@ -34,6 +34,12 @@ function ProgressBar({ progress }: { progress: number }): JSX.Element {
       </div>
     </div>
   );
+}
+
+function generateUniqueNameFromDisplayName(displayName: string): string {
+  // make lowercase, replace space by dash
+  const name = displayName.toLowerCase().replace(/ /g, "-");
+  return name;
 }
 
 export function StoryForm({
@@ -94,6 +100,124 @@ async function sha256string(s: string) {
 
 function randint(rng: any, min: number, max: number) {
   return Math.floor(rng() * (max - min + 1)) + min;
+}
+
+function StoryAnimationSmall({ seed }: { seed: string }): JSX.Element {
+  const KEYFRAMES = 5; // even if for some reason the time is timezone-dependent, mod 60 should still agree anywhere in the world
+  const DURATION = 3000;
+  const [shaseed, setShaseed] = useState("");
+  const [keyframe, setKeyframe] = useState(0);
+  const [initialkeyframe, setInitialKeyframe] = useState(0);
+  const [roundtrips, setRoundtrips] = useState(0);
+
+  useEffect(() => {
+    sha256string(seed).then((hash) => {
+      setShaseed(hash);
+    });
+  }, [seed]);
+
+  useEffect(() => {
+    // INITIAL KEYFRAME: set keyframe to be current time % KEYFRAMES in seconds
+    setKeyframe(Math.floor(Date.now() / DURATION) % KEYFRAMES);
+    setInitialKeyframe(Math.floor(Date.now() / DURATION) % KEYFRAMES);
+  }, []);
+  useEffect(() => {
+    // set keyframe to be current time % KEYFRAMES in seconds
+    setTimeout(() => {
+      setKeyframe(Math.floor(Date.now() / DURATION) % KEYFRAMES);
+    }, DURATION + 10 - (Date.now() % DURATION));
+  }, [keyframe]);
+  useEffect(() => {
+    if (keyframe == 0) {
+      setRoundtrips((r) => r + 1);
+    }
+  }, [keyframe]);
+
+  const rng = useMemo(() => seedrandom(shaseed), [shaseed]);
+
+  // create circles (position, size, color)
+
+  const n = 2;
+
+  const keyframes = useMemo(() => {
+    function getColor() {
+      return ["#194F39", "#E2A924", "#252116"][randint(rng, 0, 2)]!;
+    }
+    const frames: {
+      rotation: number;
+      circles: {
+        position: { x: number; y: number };
+        size: number;
+        color: string;
+      }[];
+    }[] = [];
+    for (let i = 0; i < KEYFRAMES; i++) {
+      frames.push({
+        rotation:
+          ((i + KEYFRAMES - initialkeyframe) % KEYFRAMES) * 120 +
+          roundtrips * 120 * KEYFRAMES,
+        circles: Array(n)
+          .fill(0)
+          .map((_, j) => {
+            return {
+              position: {
+                // x: randint(rng, -100, 100),
+                // y: randint(rng, -100, 100),
+                x: j == 0 ? -40 : 40,
+                y: 0,
+              },
+              size: randint(rng, 30, 50),
+              color: getColor(),
+            };
+          }),
+      });
+    }
+    return frames;
+  }, [rng, n, roundtrips, initialkeyframe]);
+
+  const frame = keyframes[keyframe]!;
+
+  return (
+    <div
+      className={classNames(
+        "h-full w-full",
+        DEBUG_COLORS ? "bg-green-100" : ""
+      )}
+    >
+      <motion.div
+        className="absolute top-0 left-0 right-0 bottom-0"
+        animate={{
+          rotate: frame.rotation,
+        }}
+        transition={{
+          duration: DURATION / 1000,
+          ease: [0.6, 0.8, 0.4, 0.6],
+          // ease: "linear",
+        }}
+        initial={false}
+      >
+        {frame.circles.map((circle, i) => (
+          <motion.div
+            className="absolute top-1/2 left-1/2 rounded-full blur-sm"
+            key={i}
+            animate={{
+              x: circle.position.x - circle.size / 2,
+              y: circle.position.y - circle.size / 2,
+              width: circle.size,
+              height: circle.size,
+              backgroundColor: circle.color,
+            }}
+            transition={{
+              duration: DURATION / 1000,
+              // ease: [0.6, 0.8, 0.1, 0.6],
+              // ease: "linear",
+            }}
+            initial={false}
+          />
+        ))}
+      </motion.div>
+    </div>
+  );
 }
 
 function StoryAnimation({ seed }: { seed: string }): JSX.Element {
@@ -246,6 +370,10 @@ export default function AddFriendInPerson({
   const [showtedious, setShowtedious] = useState<boolean>(false);
   const [showverify, setShowverify] = useState<boolean>(false);
   const [theirstorylist, setTheirstory] = useState<string[]>([]);
+  const [displayName, setDisplayName] = useState<string>("");
+  const [uniqueName, setUniqueName] = useState<string>("");
+  const [hasModifiedUniqueName, setHasModifiedUniqueName] =
+    useState<boolean>(false);
 
   useEffect(() => {
     setTimeout(() => {
@@ -281,6 +409,46 @@ export default function AddFriendInPerson({
       setShowverify(true);
     }
   }, [theirstorylist]);
+
+  const finish = useCallback(() => {
+    if (displayName.length == 0) {
+      setStatus({
+        message: "Please enter a name.",
+        action: () => {},
+        actionName: null,
+      });
+      return;
+    }
+    window
+      .addSyncFriend({
+        uniqueName,
+        displayName,
+        story: theirstorylist.join(" "),
+      })
+      .then((successOrError: any) => {
+        if (successOrError === true) {
+          setStatus({
+            message: `Added ${displayName} as a contact.`,
+            action: () => {},
+            actionName: null,
+          });
+          onClose();
+        } else {
+          setStatus({
+            message: `Could not add ${displayName}: ${successOrError}`,
+            action: () => {},
+            actionName: null,
+          });
+        }
+      })
+      .catch((err) => {
+        setStatus({
+          message: `Could not add ${displayName}: ${err}`,
+          action: () => {},
+          actionName: null,
+        });
+      });
+  }, [theirstorylist, uniqueName, displayName, setStatus, onClose]);
 
   const shareStoriesComponent = (
     <>
@@ -392,6 +560,9 @@ export default function AddFriendInPerson({
           className={classNames(
             "unselectable rounded-lg bg-asbrown-100 px-3 py-1 text-asbrown-light"
           )}
+          onClick={() => {
+            setProgress(2);
+          }}
         >
           Yes, they are identical.
         </button>
@@ -408,7 +579,98 @@ export default function AddFriendInPerson({
   );
   const finishComponent = (
     <>
-      <div>unimplemented</div>
+      <h3
+        className={classNames(
+          "absolute left-0 right-0 top-14  z-10 text-center font-['Lora'] text-xl",
+          DEBUG_COLORS ? "bg-yellow-700" : ""
+        )}
+      >
+        Great! What do you want to call them?
+      </h3>
+      <div
+        className={classNames(
+          "absolute bottom-20 top-36 left-0 right-0",
+          DEBUG_COLORS ? "bg-purple-100" : ""
+        )}
+      >
+        <div className="grid h-full w-full grid-cols-1 justify-center justify-items-center">
+          <div></div>
+          <div className="relative h-32 w-32">
+            <StoryAnimationSmall seed={story + theirstorylist.join("")} />{" "}
+          </div>
+          <div></div>
+          <div className="grid h-fit grid-cols-1 gap-4">
+            <input
+              type="text"
+              autoFocus={true}
+              className="
+          m-0
+          block
+          h-fit
+          w-full
+          border-0
+          border-b-2
+          border-asbrown-100
+          p-2 text-center text-xl
+          placeholder-asbrown-300 focus:border-asbrown-300
+          focus:ring-0
+          "
+              onChange={(e) => {
+                setDisplayName(e.target.value);
+                if (!hasModifiedUniqueName) {
+                  setUniqueName(
+                    generateUniqueNameFromDisplayName(e.target.value)
+                  );
+                }
+              }}
+              value={displayName}
+              placeholder="First Last"
+            />
+            <input
+              type="text"
+              className="m-0
+          block
+          h-fit
+          w-full
+          border-0
+          border-asbrown-100
+          p-0
+          text-center text-sm text-asbrown-light
+          placeholder-asbrown-300 focus:border-asbrown-300
+          focus:ring-0
+          "
+              onChange={(e) => {
+                setUniqueName(e.target.value);
+                setHasModifiedUniqueName(true);
+              }}
+              value={uniqueName}
+            />
+          </div>
+          <div></div>
+          <div></div>
+        </div>
+      </div>
+      <div className="absolute left-0 right-0 bottom-8 grid items-center justify-center text-center">
+        <button
+          className={classNames(
+            "unselectable rounded-lg bg-asbrown-100 px-3 py-1 text-asbrown-light",
+            showverify ? "" : "disabled cursor-not-allowed opacity-20"
+          )}
+          onClick={() => {
+            finish();
+          }}
+        >
+          Finish
+        </button>
+      </div>
+      <div className="absolute left-0 right-0 bottom-2 grid items-center justify-center text-center">
+        <button
+          className="unselectable ring-none text-xs text-asbrown-200 outline-none"
+          onClick={() => setProgress(1)}
+        >
+          ‹ Go back
+        </button>
+      </div>
     </>
   );
 
