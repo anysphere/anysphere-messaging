@@ -213,7 +213,7 @@ function StoryAnimation({ seed }: { seed: string }): JSX.Element {
       ></div> */}
       {keyframes[keyframe].map((circle, i) => (
         <motion.div
-          className="blur-xs -z-1 absolute top-1/2 left-1/2 rounded-full filter"
+          className="blur-xs absolute top-1/2 left-1/2 rounded-full filter"
           animate={{
             x: circle.position.x - circle.size / 2,
             y: circle.position.y - circle.size / 2,
@@ -378,7 +378,7 @@ export default function AddFriendInPerson({
     <>
       <h3
         className={classNames(
-          "absolute left-0 right-0 top-14  text-center font-['Lora'] text-xl",
+          "absolute left-0 right-0 top-14  z-10 text-center font-['Lora'] text-xl",
           DEBUG_COLORS ? "bg-yellow-700" : ""
         )}
       >
@@ -398,7 +398,7 @@ export default function AddFriendInPerson({
       </div>
       <div className="absolute left-0 right-0 bottom-2 grid items-center justify-center text-center">
         <button
-          className="unselectable text-xs text-asbrown-200"
+          className="unselectable ring-none text-xs text-asbrown-200 outline-none"
           onClick={() => setProgress(0)}
         >
           ‹ No, take me back.
