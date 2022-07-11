@@ -47,7 +47,6 @@ export default function AddFriendRemote({
         </h6>
         <input
           type="text"
-          autoFocus={true}
           className="
           absolute
           bottom-10
