@@ -719,7 +719,12 @@ unsafe fn errmsg_to_string(errmsg: *const std::os::raw::c_char) -> String {
 impl DB {
   pub fn connect(&self) -> Result<SqliteConnection, DbError> {
     match SqliteConnection::establish(&self.address) {
-      Ok(c) => Ok(c),
+      Ok(c) => {
+        // we sleep for up to 1000 ms while the database is locked
+        // we also enforce foreign key constraints
+        c.batch_execute("PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 1000;")?;
+        Ok(c)
+      },
       Err(e) => return Err(DbError::Unknown(format!("failed to connect to database, {}", e,))),
     }
   }

@@ -3,8 +3,10 @@
 Set up VSCode rust-analyzer (very recommended!):
 
 ```
-bazelisk run @rules_rust//tools/rust_analyzer:gen_rust_project
+./update-rust-project.sh
 ```
+
+Then restart the rust-analyzer server in VSCode with F1 and then searching for "Rust analyzer: restart server".
 
 ## Database changes
 
