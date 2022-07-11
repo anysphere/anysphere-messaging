@@ -149,7 +149,6 @@ export function SelectableList<T>({
       <div ref={parentRef} className="relative max-h-full">
         <div
           role="listbox"
-          // TODO(sualeh): ask Arvid about this.
           className="w-full"
           /* This is a hack to make the listbox scrollable. */
           style={{
