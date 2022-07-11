@@ -137,7 +137,7 @@ function StoryAnimationSmall({ seed }: { seed: string }): JSX.Element {
   const n = 2;
 
   const keyframes = useMemo(() => {
-    function getColor() {
+    function getColor(): string {
       return ["#194F39", "#E2A924", "#252116"][randint(rng, 0, 2)]!;
     }
     const frames: {
