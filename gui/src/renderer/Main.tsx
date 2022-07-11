@@ -53,13 +53,13 @@ function Main() {
 
   const readMessage = React.useCallback(
     (message: Message, _mode: string) => {
-      for (let i = 0; i < tabs.length; i++) {
-        if (tabs[i].type === TabType.Read && tabs[i].data.id === message.id) {
-          switchTab(tabs[i].id);
+      for (const tab of tabs) {
+        if (tab.type === TabType.Read && tab.data.id === message.id) {
+          switchTab(tab.id);
           return;
         }
       }
-      window.messageSeenOLD(message.id);
+      window.messageSeen({ id: message.id }).catch(console.error);
       const readTab = {
         type: TabType.Read,
         name: `${truncate(message.message, 10)} - ${message.from}`,

@@ -398,10 +398,10 @@ contextBridge.exposeInMainWorld("getSentMessagesOLD", async () => {
 });
 
 contextBridge.exposeInMainWorld(
-  "messageSeenOLD",
-  async (message_id: number) => {
+  "messageSeen",
+  async (messageSeenRequest: daemon_pb.MessageSeenRequest.AsObject) => {
     const request = new daemonM.MessageSeenRequest();
-    request.setId(message_id);
+    request.setId(messageSeenRequest.id);
     const messageSeen = promisify(daemonClient.messageSeen).bind(daemonClient);
     try {
       const response = await messageSeen(request);
