@@ -27,19 +27,24 @@ interface SelectableListProps<T, TT = ListItem<T> | string> {
   searchable: boolean;
 }
 
-export function SelectableList<T>(props: SelectableListProps<T>) {
+export function SelectableList<T>({
+  items,
+  onRender,
+  globalAction,
+  searchable,
+}: SelectableListProps<T>): JSX.Element {
   const activeRef = React.useRef<HTMLDivElement>(null);
   const parentRef = React.useRef(null);
 
   let startIndex = 0;
-  while (typeof props.items[startIndex] === "string") startIndex++;
+  while (typeof items[startIndex] === "string") startIndex++;
 
   const [activeIndex, setActiveIndex] = React.useState(startIndex);
 
   // store a ref to all items so we do not have to pass
   // them as a dependency when setting up event listeners.
-  const itemsRef = React.useRef(props.items);
-  itemsRef.current = props.items;
+  const itemsRef = React.useRef(items);
+  itemsRef.current = items;
 
   const rowVirtualizer = useVirtual({
     size: itemsRef.current.length,
@@ -49,40 +54,39 @@ export function SelectableList<T>(props: SelectableListProps<T>) {
   const previousIndex = React.useCallback(
     (oldIndex: number) => {
       let nextIndex = oldIndex > startIndex ? oldIndex - 1 : oldIndex;
-      while (typeof props.items[nextIndex] === "string") {
+      while (typeof items[nextIndex] === "string") {
         if (nextIndex === startIndex) break;
         nextIndex -= 1;
       }
       return nextIndex;
     },
-    [props.items, startIndex]
+    [items, startIndex]
   );
 
   const nextIndex = React.useCallback(
     (oldIndex: number) => {
-      let nextIndex =
-        oldIndex < props.items.length - 1 ? oldIndex + 1 : oldIndex;
-      while (typeof props.items[nextIndex] === "string") {
-        if (nextIndex === props.items.length - 1) break;
+      let nextIndex = oldIndex < items.length - 1 ? oldIndex + 1 : oldIndex;
+      while (typeof items[nextIndex] === "string") {
+        if (nextIndex === items.length - 1) break;
         nextIndex += 1;
       }
       return nextIndex;
     },
-    [props.items]
+    [items]
   );
 
   React.useEffect(() => {
-    if (activeIndex > props.items.length - 1 && props.items.length > 0) {
-      setActiveIndex(props.items.length - 1);
+    if (activeIndex > items.length - 1 && items.length > 0) {
+      setActiveIndex(items.length - 1);
     }
-  }, [props.items.length, activeIndex, setActiveIndex]);
+  }, [items.length, activeIndex, setActiveIndex]);
 
   // Handle keyboard up and down events.
   React.useEffect(() => {
-    const handler = (event: any) => {
+    const handler = (event: KeyboardEvent): void => {
       if (
         event.key === "ArrowUp" ||
-        ((event.ctrlKey || !props.searchable) && event.key === "k")
+        ((event.ctrlKey || !searchable) && event.key === "k")
       ) {
         setActiveIndex((old) => {
           console.log("oldIndex: " + old);
@@ -90,7 +94,7 @@ export function SelectableList<T>(props: SelectableListProps<T>) {
         });
       } else if (
         event.key === "ArrowDown" ||
-        ((event.ctrlKey || !props.searchable) && event.key === "j")
+        ((event.ctrlKey || !searchable) && event.key === "j")
       ) {
         setActiveIndex((old) => {
           console.log("oldIndex: " + old);
@@ -108,7 +112,7 @@ export function SelectableList<T>(props: SelectableListProps<T>) {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [setActiveIndex, previousIndex, nextIndex]);
+  }, [setActiveIndex, previousIndex, nextIndex, searchable]);
 
   // destructuring here to prevent linter warning to pass
   // entire rowVirtualizer in the dependencies array.
@@ -122,18 +126,21 @@ export function SelectableList<T>(props: SelectableListProps<T>) {
     });
   }, [activeIndex, scrollToIndex]);
 
-  const execute = React.useCallback((item: RenderParams<T>["item"]) => {
-    if (typeof item === "string") return;
-    if (item.action) {
-      item.action();
-      props.globalAction();
-      // if you click divider, you should only display things in that section
-      // TODO(sualeh): this is a hack, we should be able to do this
-      //   } else {
-      //     query.setSearch("");
-      //     query.setCurrentRootAction(item.id);
-    }
-  }, []);
+  const execute = React.useCallback(
+    (item: RenderParams<T>["item"]) => {
+      if (typeof item === "string") return;
+      if (item.action) {
+        item.action();
+        globalAction();
+        // if you click divider, you should only display things in that section
+        // TODO(sualeh): this is a hack, we should be able to do this
+        //   } else {
+        //     query.setSearch("");
+        //     query.setCurrentRootAction(item.id);
+      }
+    },
+    [globalAction]
+  );
 
   const pointerMoved = usePointerMovedSinceMount();
 
@@ -174,7 +181,7 @@ export function SelectableList<T>(props: SelectableListProps<T>) {
                 {...handlers}
               >
                 {React.cloneElement(
-                  props.onRender({
+                  onRender({
                     item,
                     active,
                   }),

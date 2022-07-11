@@ -89,7 +89,7 @@ function Main() {
       window.send(content, to).then((s: boolean) => {
         if (s) {
           statusState.setStatus({
-            message: `Message sent to ${to}!`,
+            message: `Message sent to ${to}.`,
             action: () => {},
             actionName: null,
           });
