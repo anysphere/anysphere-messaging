@@ -222,8 +222,9 @@ function Main() {
                     statusState.setVisible();
                   })
                   .catch((e) => {
+                    console.error(e);
                     statusState.setStatus({
-                      message: `Unable to register. Perhaps incorrect access key? Error: ${e}`,
+                      message: `Unable to register. Perhaps incorrect access key?`,
                       action: () => {},
                       actionName: null,
                     });

@@ -102,7 +102,7 @@ function RegisterModalForm({
               focus:ring-0 border-b-2 flex-grow border-asbrown-100"
           />
         </div> */}
-          <div className="my-2 flex flex-row justify-center gap-1">
+          <div className="my-2 flex flex-row items-baseline justify-center gap-1">
             <label className="unselectable">Access key: </label>
             <input
               type="text"
@@ -110,8 +110,9 @@ function RegisterModalForm({
               onChange={(e) => {
                 setAccesskey(e.target.value);
               }}
-              className="mx-2 flex-grow border-b-2 border-asbrown-100 bg-red-100/[0]
-              px-1 font-mono placeholder:text-asbrown-200 focus:outline-none focus:ring-0"
+              className="mx-2 
+              flex-grow border-0 border-b-2 border-asbrown-100 px-1 py-1
+              font-mono placeholder:text-asbrown-200 focus:border-asbrown-300 focus:outline-none focus:ring-0"
               autoFocus
               placeholder="alpha testing access key"
             />
