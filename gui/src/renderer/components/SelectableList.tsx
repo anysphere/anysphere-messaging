@@ -179,15 +179,13 @@ export function SelectableList<T>({
                 }}
                 {...handlers}
               >
-                {React.cloneElement(
-                  onRender({
-                    item,
-                    active,
-                  }),
-                  {
-                    ref: virtualRow.measureRef,
-                  }
-                )}
+                {/* This is a hack to make the list resize when a single item changes. See https://github.com/TanStack/virtual/issues/85. 
+                React-virtual v3 has the function virtualizer.measure() which we could call instead, and which would be better than this.
+                When that becomes stable we should use that instead.
+                */}
+                <div ref={(element) => virtualRow.measureRef(element)}>
+                  {onRender({ item, active })}
+                </div>
               </div>
             );
           })}
