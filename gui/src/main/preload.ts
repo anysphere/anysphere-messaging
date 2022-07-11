@@ -479,12 +479,6 @@ contextBridge.exposeInMainWorld(
           publicId: "asdfasdf",
           invitationProgress: daemon_pb.InvitationProgress.COMPLETE,
         },
-        {
-          uniqueName: "SLeeP",
-          displayName: "SLeeP",
-          publicId: "asdfasdf",
-          invitationProgress: daemon_pb.InvitationProgress.OUTGOINGASYNC,
-        },
       ];
     }
 
@@ -606,9 +600,10 @@ contextBridge.exposeInMainWorld(
       return {
         invitationsList: [
           {
-            uniqueName: "Sualeh",
-            displayName: "Sualeh Asif",
-            story: "hihihihihihihihih",
+            uniqueName: "arvid",
+            displayName: "Arvid Lunnemark",
+            story:
+              "Haphazard ambassador hides gradient. Cool mark resolves ambush. Eerie kiss revises distinction. Fashionable film fosters age. New customer views proprietor. Boiled plant kicks truck. Spectacular commission complies triumph. Faint.",
             sentAt: Timestamp.fromDate(new Date()).toObject(),
           },
         ],

@@ -9,6 +9,12 @@ import { Friend } from "../../types";
 import { useSearch, useFocus } from "../utils";
 import { SelectableList, ListItem } from "./SelectableList";
 
+type WriteFriend = {
+  uniqueName: string;
+  displayName: string;
+  publicId?: string;
+};
+
 type MultiSelectData = {
   text: string;
 };
@@ -20,21 +26,21 @@ type WriteData = {
 };
 
 function MultiSelect(props: {
-  options: Friend[];
+  options: WriteFriend[];
   multiSelectState: MultiSelectData;
   onSelect: (state: MultiSelectData) => void;
   onEdit: (state: MultiSelectData) => void;
   onClick: () => void;
   focused: boolean;
   className: string;
-}) {
+}): JSX.Element {
   const filteredOptions = useSearch(
     props.options,
     props.multiSelectState.text,
     ["uniqueName", "displayName"]
   );
 
-  let selectableOptions: (ListItem<string> | string)[] = filteredOptions.map(
+  const selectableOptions: (ListItem<string> | string)[] = filteredOptions.map(
     (friend) => {
       return {
         id: friend.uniqueName,
@@ -123,18 +129,64 @@ function Write(props: {
   send: (content: string, to: string) => void;
   edit: (data: any) => void;
   onClose: () => void;
-}) {
+}): JSX.Element {
   const content = props.data.content;
   const to = props.data.multiSelectState.text;
 
-  const [friends, setFriends] = React.useState<Friend[]>([]);
+  const [friends, setFriends] = React.useState<WriteFriend[]>([]);
 
   const [contextTestareaFocusRef, setContextTestareaFocusRef] = useFocus();
 
   React.useEffect(() => {
-    window.getFriendList().then((friends: Friend[]) => {
-      setFriends(friends);
-    });
+    // get both the complete friends and the sync invitations
+    // the sync invitations have verified each other so it is safe to treat as a real friend
+    // in the daemon.proto we keep them separate because we still want to display progress information
+    window
+      .getFriendList()
+      .then((friends: Friend[]) => {
+        setFriends((f) => [
+          ...f,
+          ...friends.map((friend: Friend) => {
+            return {
+              uniqueName: friend.uniqueName,
+              displayName: friend.displayName,
+              publicId: friend.publicId,
+            };
+          }),
+        ]);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }, []);
+  React.useEffect(() => {
+    // get both the complete friends and the sync invitations
+    // the sync invitations have verified each other so it is safe to treat as a real friend
+    // in the daemon.proto we keep them separate because we still want to display progress information
+    window
+      .getOutgoingSyncInvitations()
+      .then(
+        (
+          invitations: daemon_pb.GetOutgoingSyncInvitationsResponse.AsObject
+        ) => {
+          setFriends((f) => [
+            ...f,
+            ...invitations.invitationsList.map(
+              (
+                friend: daemon_pb.GetOutgoingSyncInvitationsResponse.OutgoingSyncInvitationInfo.AsObject
+              ) => {
+                return {
+                  uniqueName: friend.uniqueName,
+                  displayName: friend.displayName,
+                };
+              }
+            ),
+          ]);
+        }
+      )
+      .catch((err) => {
+        console.error(err);
+      });
   }, []);
 
   const send = React.useCallback(() => {
@@ -143,10 +195,10 @@ function Write(props: {
       return;
     }
     props.send(content, to);
-  }, [content, to]);
+  }, [content, to, props]);
 
   React.useEffect(() => {
-    const handler = (event: any) => {
+    const handler = (event: KeyboardEvent): void => {
       if (event.key === "Tab") {
         event.preventDefault();
         props.edit({
@@ -181,11 +233,7 @@ function Write(props: {
             </div>
             <MultiSelect
               className="flex-1"
-              options={friends.filter(
-                (friend) =>
-                  friend.invitationProgress ===
-                  daemon_pb.InvitationProgress.COMPLETE
-              )}
+              options={friends}
               onEdit={(state: MultiSelectData) =>
                 props.edit({ ...props.data, multiSelectState: state })
               }

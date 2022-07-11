@@ -31,7 +31,7 @@ declare global {
       addAsyncFriendRequest: daemon_pb.AddAsyncFriendRequest.AsObject
     ): Promise<boolean>;
 
-    getOutgoingSyncInvitations(): Promise<daemon_pb.GetOutgoingSyncInvitationsResponse>;
+    getOutgoingSyncInvitations(): Promise<daemon_pb.GetOutgoingSyncInvitationsResponse.AsObject>;
 
     getOutgoingAsyncInvitations(
       getOutgoingAsyncInvitationsRequest: daemon_pb.GetOutgoingAsyncInvitationsRequest

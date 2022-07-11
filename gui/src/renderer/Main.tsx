@@ -403,7 +403,7 @@ function Main() {
       </CmdK>
 
       <SideBar
-        title="Welcome to Private Messaging!"
+        title="Communicate privately."
         open={sidebarOpen}
         setOpen={setSidebarOpen}
         sideBarCallback={sideBarCallback}
