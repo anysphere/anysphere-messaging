@@ -80,13 +80,13 @@ export function StoryForm({
   );
 }
 
-async function sha256(s: string) {
+async function sha256(s: string): Promise<ArrayBuffer> {
   const encoder = new TextEncoder();
   const data = encoder.encode(s);
   const hash = await crypto.subtle.digest("SHA-256", data);
   return hash;
 }
-async function sha256string(s: string) {
+async function sha256string(s: string): Promise<string> {
   const hashBuffer = await sha256(s);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   const hashHex = hashArray
@@ -95,7 +95,7 @@ async function sha256string(s: string) {
   return hashHex;
 }
 
-function randint(rng: any, min: number, max: number) {
+function randint(rng: any, min: number, max: number): number {
   return Math.floor(rng() * (max - min + 1)) + min;
 }
 
