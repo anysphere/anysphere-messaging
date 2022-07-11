@@ -347,6 +347,11 @@ auto Transmitter::retrieve() -> void {
               chunk.num_chunks() > 1 ? chunk.chunks_start_sequence_number()
                                      : chunk.sequence_number();
 
+          auto chunk_content = rust::Vec<uint8_t>();
+          for (auto& c : chunk.msg()) {
+            chunk_content.push_back(c);
+          }
+
           // TODO: we probably don't want to cast to int32 here... let's use
           // int64s everywhere
           auto receive_chunk_status = G.db->receive_chunk(
@@ -355,7 +360,8 @@ auto Transmitter::retrieve() -> void {
                   .sequence_number = static_cast<int>(chunk.sequence_number()),
                   .chunks_start_sequence_number =
                       static_cast<int>(chunks_start_sequence_number),
-                  .content = chunk.msg()},
+                  .content = chunk_content,
+              },
               static_cast<int>(num_chunks));
           if (receive_chunk_status ==
               db::ReceiveChunkStatus::NewChunkAndNewMessage) {
@@ -369,7 +375,6 @@ auto Transmitter::retrieve() -> void {
             previous_success_receive_friend = std::optional<int>(f.uid);
           }
         }
-
       } else {
         ASPHR_LOG_INFO(
             "Failed to decrypt message (message was probably not for us, "
@@ -432,9 +437,11 @@ auto Transmitter::send() -> void {
         default:
           ASPHR_ASSERT(false);
       }
-      message.set_system_message_data(std::string(chunk_to_send.content));
+      message.set_system_message_data(std::string(chunk_to_send.content.begin(),
+                                                  chunk_to_send.content.end()));
     } else {
-      message.set_msg(std::string(chunk_to_send.content));
+      message.set_msg(std::string(chunk_to_send.content.begin(),
+                                  chunk_to_send.content.end()));
       if (chunk_to_send.num_chunks > 1) {
         message.set_num_chunks(chunk_to_send.num_chunks);
         message.set_chunks_start_sequence_number(

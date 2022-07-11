@@ -122,6 +122,20 @@ mod util {
   }
 }
 
+#[cxx::bridge(namespace = "chunk_handler")]
+pub mod chunk_handler {
+  struct MsgProto {
+    other_recipients: Vec<String>,
+    msg: String,
+  }
+
+  unsafe extern "C++" {
+    include!("daemon/chunk_handler/chunk_handler.hpp");
+
+    fn chunks_to_msg(chunks: Vec<u8>) -> Result<MsgProto>;
+  }
+}
+
 #[derive(Insertable)]
 #[diesel(table_name = crate::schema::sent)]
 struct Sent {
@@ -679,7 +693,6 @@ pub mod ffi {
       &self,
       to_unique_name: Vec<String>,
       message: &str,
-      chunks: Vec<u8>,
       chunk_size: i32,
     ) -> Result<()>;
 
@@ -1715,7 +1728,7 @@ impl DB {
 
     self.check_rep(&mut conn);
 
-    let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+    let r = conn.transaction::<_, anyhow::Error, _>(|conn_b| {
       // Updating the sequence number of the chunk.
       let chunk_status =
         self.update_sequence_number(conn_b, chunk.from_friend, chunk.sequence_number)?;
@@ -1791,11 +1804,16 @@ impl DB {
         // now assemble the message, write it, and be happy!
         let all_chunks =
           q.order_by(incoming_chunk::sequence_number).load::<ffi::IncomingChunk>(conn_b)?;
+        
+        // redice all incoming chunks to a single Vec<u8>
+        let mut assembled_chunks = Vec::new();
+        for chunk in all_chunks {
+          assembled_chunks.extend_from_slice(&chunk.content);
+        }
 
-        let msg = all_chunks.iter().fold(String::new(), |mut acc, chunk| {
-          acc.push_str(&chunk.content);
-          acc
-        });
+        let msg_struct = chunk_handler::chunks_to_msg(assembled_chunks)?;
+
+        let msg = msg_struct.msg;
 
         // Updating the message table with the message content and updating the received table with the
         // delivered status and delivered_at time.
@@ -2228,7 +2246,6 @@ impl DB {
     &self,
     to_unique_name: Vec<String>,
     message: &str,
-    chunks: Vec<u8>,
     chunk_size: i32,
   ) -> Result<(), DbError> {
     // We chunk in C++ because we potentially need to do things with protobuf
@@ -2256,6 +2273,16 @@ impl DB {
           .values((message::content.eq(message),))
           .returning(message::uid)
           .get_result::<i32>(conn_b)?;
+
+        // chunk up the message into chunks of size chunk_size.
+        // TODO(sualeh): VERIFY
+        let mut chunks = vec![];
+        for i in 0..(message.len() as i32 / chunk_size) {
+          let start = i * chunk_size;
+          let end = start + chunk_size;
+          let chunk = &message[start as usize..end as usize];
+          chunks.push(chunk.to_string());
+        }
 
         diesel::insert_into(sent::table)
           .values((

@@ -5,7 +5,7 @@
 
 load("@cxx.rs//tools/bazel:rust_cxx_bridge.bzl", "rust_cxx_bridge")
 load("@rules_cc//cc:defs.bzl", "cc_library")
-load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_static_library", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_static_library", "rust_library", "rust_test")
 
 rust_binary(
     name = "main",
@@ -17,7 +17,7 @@ rust_binary(
     deps = [
         ":main_bridge",
         ":main_lib",
-        "@cxx.rs//:cxx",
+        "@cxx.rs//:cxx"
     ],
 )
 
@@ -41,7 +41,10 @@ rust_cxx_bridge(
 )
 
 # static because depended upon by c++!
+# NOTE: this includes chunk_handler_lib because the db_test needs it. I know :(
+# TODO(sualeh): remove the dependency on chunk_handler_lib once we can get modular parts to work.
 rust_static_library(
+# rust_library(
     name = "db_lib",
     srcs = [
         "db/db.rs",
@@ -52,6 +55,7 @@ rust_static_library(
     compile_data = [":migrations"],
     deps = [
         ":db_bridge",
+        ":chunk_handler_lib",
         "@crate_index//:anyhow",
         "@crate_index//:diesel",
         "@crate_index//:diesel_migrations",
@@ -73,6 +77,7 @@ cc_library(
         ":cpp_include",
         ":db_bridge",
         ":db_lib",
+        ":chunk_handler_lib",
         "//client_lib",
         "//daemon/crypto:crypto_lib",
         "//daemon/identifier",
@@ -137,11 +142,42 @@ cc_library(
     ],
 )
 
-rust_cxx_bridge(
-    name = "chunk_bridge",
-    src = "chunk_handler/chunk_handler.rs",
-    deps = [],
+# rust_cxx_bridge(
+#     name = "chunk_bridge",
+#     src = "chunk_handler/chunk_handler.rs",
+#     deps = [
+#         ":cpp_include",
+#     ],
+# )
+
+cc_library(
+    name = "chunk_handler_lib",
+    srcs = [
+        "chunk_handler/chunk_handler.cc",
+    ],
+    hdrs = [
+        "chunk_handler/chunk_handler.hpp",
+    ],
+    linkstatic = True,
+    deps = [
+        "@asphr//schema:message_proto_cc",
+        ":db_bridge",
+        "@asphr//asphr:asphr_lib",
+    ],
 )
+
+
+# rust_static_library(
+# # rust_library(
+#     name = "chunk_rust_lib",
+#     srcs = [
+#         "chunk_handler/chunk_handler.rs",
+#         "chunk_handler/lib.rs",
+#     ],
+#     deps = [
+#         ":chunk_handler_lib",
+#     ]
+# )
 
 cc_library(
     name = "cpp_include",
@@ -152,10 +188,8 @@ cc_library(
     ],
     linkstatic = True,
     deps = [
-        "@asphr//asphr:asphr_lib",
-        "@asphr//schema:message_proto_cc",
+        "@asphr//asphr:asphr_lib",        
         "@cxx.rs//:core",
-        ":chunk_bridge",
     ],
 )
 

@@ -565,7 +565,8 @@ Status DaemonRpc::SendMessage(
   }
 
   try {
-    G.db->queue_message_to_send(unique_names_vec, message, chunked_message);
+    G.db->queue_message_to_send(unique_names_vec, message,
+                                GUARANTEED_SINGLE_MESSAGE_SIZE);
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Failed to send message.", error, e.what(), rpc_call,
                   "SendMessage");
