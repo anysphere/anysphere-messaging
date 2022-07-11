@@ -96,7 +96,6 @@ declare global {
     getAllMessagesStreamed(messageHandler: (_: Message[]) => void): () => void;
 
     hasRegistered(): Promise<boolean>;
-    register(username: string, accessKey: string): Promise<boolean>;
     getOutboxMessagesOLD(): Promise<Message[]>;
     getSentMessagesOLD(): Promise<Message[]>;
   }

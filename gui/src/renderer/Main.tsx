@@ -202,36 +202,40 @@ function Main() {
   }
 
   React.useEffect(() => {
-    window.hasRegistered().then((registered: boolean) => {
-      if (!registered) {
-        setModal(
-          <RegisterModal
-            onClose={() => {}} // should not be able to close modal by clicking outside
-            onRegister={(username: string, key: string) => {
-              window.register(username, key).then((registered: boolean) => {
-                if (registered) {
-                  closeModal();
-                  statusState.setStatus({
-                    message: `Registered!`,
-                    action: () => {},
-                    actionName: null,
+    window
+      .hasRegistered()
+      .then((registered: boolean) => {
+        if (!registered) {
+          setModal(
+            <RegisterModal
+              onClose={() => {}} // should not be able to close modal by clicking outside
+              onRegister={(username: string, key: string) => {
+                window
+                  .registerUser({ name: username, betaKey: key })
+                  .then(() => {
+                    closeModal();
+                    statusState.setStatus({
+                      message: `Registered!`,
+                      action: () => {},
+                      actionName: null,
+                    });
+                    statusState.setVisible();
+                  })
+                  .catch((e) => {
+                    statusState.setStatus({
+                      message: `Unable to register. Perhaps incorrect access key? Error: ${e}`,
+                      action: () => {},
+                      actionName: null,
+                    });
+                    statusState.setVisible();
                   });
-                  statusState.setVisible();
-                } else {
-                  statusState.setStatus({
-                    message: `Unable to register. Perhaps incorrect access key?`,
-                    action: () => {},
-                    actionName: null,
-                  });
-                  statusState.setVisible();
-                }
-              });
-            }}
-          />
-        );
-      }
-    });
-  }, []);
+              }}
+            />
+          );
+        }
+      })
+      .catch(console.error);
+  }, [closeModal, statusState]);
 
   const openOutbox = React.useCallback(() => {
     for (let i = 0; i < tabs.length; i++) {

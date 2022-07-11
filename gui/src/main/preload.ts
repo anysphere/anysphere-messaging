@@ -430,20 +430,13 @@ contextBridge.exposeInMainWorld("hasRegistered", async () => {
 });
 
 contextBridge.exposeInMainWorld(
-  "register",
-  async (username: string, accessKey: string) => {
+  "registerUser",
+  async (registerUserRequest: daemon_pb.RegisterUserRequest.AsObject) => {
     const request = new daemonM.RegisterUserRequest();
-    request.setName(username);
-    request.setBetaKey(accessKey);
+    request.setName(registerUserRequest.name);
+    request.setBetaKey(registerUserRequest.betaKey);
     const register = promisify(daemonClient.registerUser).bind(daemonClient);
-    try {
-      const response = await register(request);
-      console.log("register response", response);
-      return true;
-    } catch (e) {
-      console.log(`error in register: ${e}`);
-    }
-    return false;
+    await register(request);
   }
 );
 
