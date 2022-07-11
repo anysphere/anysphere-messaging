@@ -79,3 +79,9 @@ To connect to daemon 2, run:
 ```bash
 ./wrap2.sh ./bazel-bin/cli/asphr [command]
 ```
+
+For the gui, run:
+
+```bash
+./wrap2.sh ./gui/start.sh
+```
