@@ -65,7 +65,7 @@ function RegisterModalForm({
 }: {
   onClose: () => void;
   onRegister: (username: string, key: string) => void;
-}) {
+}): JSX.Element {
   const [username, setUsername] = React.useState<string>("No Name");
   const [accesskey, setAccesskey] = React.useState<string>("");
   return (
@@ -89,19 +89,6 @@ function RegisterModalForm({
             While in alpha, don't send anything on Anysphere that you wouldn't
             send on Signal.
           </div>
-          {/* <div className="flex flex-row my-2 gap-1 justify-center">
-          <label className="unselectable">Name: </label>
-          <input
-            autoFocus
-            type="text"
-            value={username}
-            onChange={(e) => {
-              setUsername(e.target.value);
-            }}
-            className="bg-red-100/[0] px-1 mx-2 font-mono focus:outline-none
-              focus:ring-0 border-b-2 flex-grow border-asbrown-100"
-          />
-        </div> */}
           <div className="my-2 flex flex-row items-baseline justify-center gap-1">
             <label className="unselectable">Access key: </label>
             <input
