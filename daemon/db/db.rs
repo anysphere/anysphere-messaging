@@ -733,7 +733,7 @@ impl DB {
     // a complete check_rep that is called every single time is a HUGE bug-safety advantage.
     use crate::schema::*;
     // we unwrap everything here because we're in check_rep! so we want to fail fast.
-    conn
+    let res = conn
       .transaction::<(), DbError, _>(|conn_b| {
         // invitation_progress should correspond to the correct table existing
         let friends = friend::table
@@ -745,25 +745,21 @@ impl DB {
             friend::invitation_progress,
             friend::deleted,
           ))
-          .load::<ffi::Friend>(conn_b)
-          .unwrap();
+          .load::<ffi::Friend>(conn_b)?;
 
         for friend in friends {
           let complete_count = complete_friend::table
             .filter(complete_friend::friend_uid.eq(friend.uid))
             .count()
-            .get_result::<i64>(conn_b)
-            .unwrap();
+            .get_result::<i64>(conn_b)?;
           let sync_count = outgoing_sync_invitation::table
             .filter(outgoing_sync_invitation::friend_uid.eq(friend.uid))
             .count()
-            .get_result::<i64>(conn_b)
-            .unwrap();
+            .get_result::<i64>(conn_b)?;
           let async_count = outgoing_async_invitation::table
             .filter(outgoing_async_invitation::friend_uid.eq(friend.uid))
             .count()
-            .get_result::<i64>(conn_b)
-            .unwrap();
+            .get_result::<i64>(conn_b)?;
           match friend.invitation_progress {
             ffi::InvitationProgress::Complete => {
               assert!(
@@ -803,8 +799,7 @@ impl DB {
           .filter(outgoing_chunk::message_uid.eq::<Option<i32>>(None))
           .filter(outgoing_chunk::system.eq(false))
           .count()
-          .get_result::<i64>(conn_b)
-          .unwrap();
+          .get_result::<i64>(conn_b)?;
         assert!(
           null_uid_and_not_system == 0,
           "null_uid_and_not_system = {}",
@@ -817,8 +812,7 @@ impl DB {
           .filter(outgoing_chunk::message_uid.is_not_null())
           .filter(outgoing_chunk::system.eq(true))
           .count()
-          .get_result::<i64>(conn_b)
-          .unwrap();
+          .get_result::<i64>(conn_b)?;
         assert!(
           non_null_uid_and_system == 0,
           "non_null_uid_and_system = {}",
@@ -830,8 +824,7 @@ impl DB {
           .filter(sent::delivered_at.is_not_null())
           .filter(sent::delivered.eq(false))
           .count()
-          .get_result::<i64>(conn_b)
-          .unwrap();
+          .get_result::<i64>(conn_b)?;
         assert!(
           delivered_at_not_null_and_delivered_false_count == 0,
           "delivered_at_not_null_and_delivered_false_count = {}",
@@ -844,8 +837,7 @@ impl DB {
           .filter(sent::delivered_at.is_null())
           .filter(sent::delivered.eq(true))
           .count()
-          .get_result::<i64>(conn_b)
-          .unwrap();
+          .get_result::<i64>(conn_b)?;
         assert!(
           delivered_at_null_and_delivered_true_count == 0,
           "delivered_at_null_and_delivered_true_count = {}",
@@ -857,8 +849,7 @@ impl DB {
           .filter(received::delivered_at.is_not_null())
           .filter(received::delivered.eq(false))
           .count()
-          .get_result::<i64>(conn_b)
-          .unwrap();
+          .get_result::<i64>(conn_b)?;
         assert!(
           delivered_at_not_null_and_delivered_false_count == 0,
           "delivered_at_not_null_and_delivered_false_count = {}",
@@ -871,8 +862,7 @@ impl DB {
           .filter(received::delivered_at.is_null())
           .filter(received::delivered.eq(true))
           .count()
-          .get_result::<i64>(conn_b)
-          .unwrap();
+          .get_result::<i64>(conn_b)?;
         assert!(
           delivered_at_null_and_delivered_true_count == 0,
           "delivered_at_null_and_delivered_true_count = {}",
@@ -883,8 +873,7 @@ impl DB {
         let draft_and_sent_count = draft::table
           .inner_join(sent::table.on(draft::uid.eq(sent::uid)))
           .count()
-          .get_result::<i64>(conn_b)
-          .unwrap();
+          .get_result::<i64>(conn_b)?;
         assert!(
           draft_and_sent_count == 0,
           "draft_and_sent_count = {}",
@@ -894,8 +883,7 @@ impl DB {
         let draft_and_received_count = draft::table
           .inner_join(received::table.on(draft::uid.eq(received::uid)))
           .count()
-          .get_result::<i64>(conn_b)
-          .unwrap();
+          .get_result::<i64>(conn_b)?;
         assert!(
           draft_and_received_count == 0,
           "draft_and_received_count = {}",
@@ -905,8 +893,7 @@ impl DB {
         let sent_and_received_count = sent::table
           .inner_join(received::table.on(sent::uid.eq(received::uid)))
           .count()
-          .get_result::<i64>(conn_b)
-          .unwrap();
+          .get_result::<i64>(conn_b)?;
         assert!(
           sent_and_received_count == 0,
           "sent_and_received_count = {}",
@@ -914,12 +901,12 @@ impl DB {
         );
 
         // exactly 1 config always
-        let config_count = config::table.count().get_result::<i64>(conn_b).unwrap();
+        let config_count = config::table.count().get_result::<i64>(conn_b)?;
         assert!(config_count == 1, "config_count = {}", config_count);
 
         // if has_registered is true, then should have exactly 1 registration
-        let has_registered = config::table.select(config::has_registered).first::<bool>(conn_b).unwrap();
-        let registration_count = registration::table.count().get_result::<i64>(conn_b).unwrap();
+        let has_registered = config::table.select(config::has_registered).first::<bool>(conn_b)?;
+        let registration_count = registration::table.count().get_result::<i64>(conn_b)?;
         if has_registered {
           assert!(registration_count == 1, "registration_count = {}, has_registered = {}", registration_count, has_registered);
         } else {
@@ -927,9 +914,9 @@ impl DB {
         }
 
         // transmission table iff !deleted
-        let transmission_non_deleted_count = friend::table.filter(friend::deleted.eq(false)).inner_join(transmission::table).count().get_result::<i64>(conn_b).unwrap();
-        let non_deleted_count = friend::table.filter(friend::deleted.eq(false)).count().get_result::<i64>(conn_b).unwrap();
-        let transmission_count = transmission::table.count().get_result::<i64>(conn_b).unwrap();
+        let transmission_non_deleted_count = friend::table.filter(friend::deleted.eq(false)).inner_join(transmission::table).count().get_result::<i64>(conn_b)?;
+        let non_deleted_count = friend::table.filter(friend::deleted.eq(false)).count().get_result::<i64>(conn_b)?;
+        let transmission_count = transmission::table.count().get_result::<i64>(conn_b)?;
         assert!(
           transmission_non_deleted_count == non_deleted_count,
           "transmission_non_deleted_count = {}, non_deleted_count = {}",
@@ -949,7 +936,7 @@ impl DB {
           outgoing_chunk::to_friend,
           outgoing_chunk::chunks_start_sequence_number,
           outgoing_chunk::message_uid,
-        )).get_results::<ChunkInterestingNumbers>(conn_b).unwrap();
+        )).get_results::<ChunkInterestingNumbers>(conn_b)?;
         let mut to_friend_seqnum_map_to_message_uid = HashMap::new();
         for chunk in &chunks {
           let to_friend = chunk.to_friend;
@@ -960,7 +947,7 @@ impl DB {
             e.insert(message_uid);
           } else {
             assert!(
-              to_friend_seqnum_map_to_message_uid.get(&(to_friend, seqnum)).unwrap() == &message_uid,
+              to_friend_seqnum_map_to_message_uid.get(&(to_friend, seqnum)) == Some(&message_uid),
               "chunk = {:?}",
               chunk
             );
@@ -981,7 +968,7 @@ impl DB {
             e.insert(seqnum);
           } else {
             assert!(
-              to_friend_message_uid_map_to_seqnum.get(&(to_friend, message_uid)).unwrap() == &seqnum,
+              to_friend_message_uid_map_to_seqnum.get(&(to_friend, message_uid)) == Some(&seqnum),
               "chunk = {:?}",
               chunk
             );
@@ -993,7 +980,7 @@ impl DB {
           incoming_chunk::from_friend,
           incoming_chunk::chunks_start_sequence_number,
           incoming_chunk::message_uid,
-        )).get_results::<IncomingChunkInterestingNumbers>(conn_b).unwrap();
+        )).get_results::<IncomingChunkInterestingNumbers>(conn_b)?;
         let mut from_friend_seqnum_map_to_message_uid = HashMap::new();
         for chunk in &chunks {
           let from_friend = chunk.from_friend;
@@ -1003,7 +990,7 @@ impl DB {
             e.insert(message_uid);
           } else {
             assert!(
-              from_friend_seqnum_map_to_message_uid.get(&(from_friend, seqnum)).unwrap() == &message_uid,
+              from_friend_seqnum_map_to_message_uid.get(&(from_friend, seqnum)) == Some(&message_uid),
               "chunk = {:?}",
               chunk
             );
@@ -1020,7 +1007,7 @@ impl DB {
             e.insert(seqnum);
           } else {
             assert!(
-              from_friend_message_uid_map_to_seqnum.get(&(from_friend, message_uid)).unwrap() == &seqnum,
+              from_friend_message_uid_map_to_seqnum.get(&(from_friend, message_uid)) == Some(&seqnum),
               "chunk = {:?}",
               chunk
             );
@@ -1028,13 +1015,23 @@ impl DB {
         }
 
         // ack_index must always be >= 0
-        let ack_index_count = transmission::table.filter(transmission::ack_index.lt(0)).count().get_result::<i64>(conn_b).unwrap();
+        let ack_index_count = transmission::table.filter(transmission::ack_index.lt(0)).count().get_result::<i64>(conn_b)?;
         assert!(ack_index_count == 0, "ack_index_count = {}", ack_index_count);
 
 
         Ok(())
-      })
-      .unwrap();
+      });
+
+      match res {
+        Ok(()) => (),
+        Err(e) => {
+          // if e contains "database is locked", then we just return ()
+          if e.to_string().contains("database is locked") {
+            return;
+          }
+          panic!("{}", e);
+        }
+      }
   }
 
   #[cfg(not(debug_assertions))]

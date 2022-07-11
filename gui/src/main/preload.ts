@@ -211,12 +211,12 @@ contextBridge.exposeInMainWorld(
     }
     const request = new daemonM.GetMessagesRequest();
     request.setFilter(daemonM.GetMessagesRequest.Filter.ALL);
-    var call = daemonClient.getMessagesStreamed(request);
+    const call = daemonClient.getMessagesStreamed(request);
     call.on("data", function (r: daemonM.GetMessagesResponse) {
       try {
         const lm = r.getMessagesList();
         const l = lm.map(convertProtobufIncomingMessageToTypedMessage);
-        let l2: Message[] = [];
+        const l2: Message[] = [];
         for (const m of l) {
           if (m) {
             l2.push(m);
@@ -226,7 +226,7 @@ contextBridge.exposeInMainWorld(
       } catch (e) {
         console.log(`error in getAllMessagesStreamed: ${e}`);
       }
-      console.log("got all messages streamed", r);
+      // console.log("got all messages streamed", r);
     });
     call.on("end", function () {
       // The server has finished sending
@@ -291,7 +291,7 @@ contextBridge.exposeInMainWorld(
       } catch (e) {
         console.log(`error in getNewMessagesStreamed: ${e}`);
       }
-      console.log("got all messages streamed", r);
+      // console.log("got all messages streamed", r);
     });
     call.on("end", function () {
       // The server has finished sending
@@ -568,9 +568,9 @@ contextBridge.exposeInMainWorld(
   "addSyncFriend",
   async (
     addSyncFriendRequest: daemon_pb.AddSyncFriendRequest.AsObject
-  ): Promise<boolean> => {
+  ): Promise<void> => {
     if (FAKE_DATA) {
-      return true;
+      return;
     }
 
     const request = new daemonM.AddSyncFriendRequest();
@@ -584,10 +584,9 @@ contextBridge.exposeInMainWorld(
 
     try {
       await addSyncFriend(request);
-      return true;
     } catch (e) {
       console.log(`error in addSyncFriend: ${e}`);
-      return false;
+      throw e;
     }
   }
 );

@@ -7,14 +7,15 @@ use diesel::prelude::*;
 
 use crate::db::*;
 use rand::Rng;
+use std::sync::Arc;
 
 /**
  * Test the database.
- * 
+ *
  * Partition tested:
  * - 2 friends
  * - async addition of friends
- * 
+ *
  * - test_recieive_msg(): basic functionality of the following APIs:
  *  - add_outgoing_async_invitation
  *  - add_incoming_async_invitation
@@ -77,6 +78,27 @@ fn test_connection() {
 
   let connection = db.connect();
   assert!(connection.is_ok());
+}
+
+#[test]
+fn test_checkrep_in_parallel() {
+  let db_file = gen_temp_file();
+  println!("db_file: {}", db_file);
+  let db = init(db_file.as_str()).unwrap();
+  let db: Arc<DB> = Arc::new(*db);
+
+  // start 100 threads, each calling db.check_rep
+  let mut threads = vec![];
+  for _ in 0..100 {
+    let db2 = db.clone();
+    threads.push(std::thread::spawn(move || {
+      let mut conn = db2.connect().unwrap();
+      db2.check_rep(&mut conn);
+    }));
+  }
+  for t in threads {
+    t.join().unwrap();
+  }
 }
 
 #[test]

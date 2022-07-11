@@ -422,21 +422,13 @@ export default function AddFriendInPerson({
         displayName,
         story: theirstorylist.join(" "),
       })
-      .then((successOrError: any) => {
-        if (successOrError === true) {
-          setStatus({
-            message: `Added ${displayName} as a contact.`,
-            action: () => {},
-            actionName: null,
-          });
-          onClose();
-        } else {
-          setStatus({
-            message: `Could not add ${displayName}: ${successOrError}`,
-            action: () => {},
-            actionName: null,
-          });
-        }
+      .then(() => {
+        setStatus({
+          message: `Added ${displayName} as a contact.`,
+          action: () => {},
+          actionName: null,
+        });
+        onClose();
       })
       .catch((err) => {
         setStatus({

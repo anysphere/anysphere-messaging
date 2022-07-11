@@ -131,7 +131,7 @@ function Write(props: {
   onClose: () => void;
 }): JSX.Element {
   const content = props.data.content;
-  const to = props.data.multiSelectState.text;
+  const toDisplayName = props.data.multiSelectState.text;
 
   const [friends, setFriends] = React.useState<WriteFriend[]>([]);
 
@@ -190,12 +190,16 @@ function Write(props: {
   }, []);
 
   const send = React.useCallback(() => {
-    if (to === "") {
+    // find friend with the right display name
+    const friend = friends.find(
+      (friend) => friend.displayName === toDisplayName
+    );
+    if (!friend) {
       console.log("not sending! need to select whom to send to");
       return;
     }
-    props.send(content, to);
-  }, [content, to, props]);
+    props.send(content, friend.uniqueName);
+  }, [content, toDisplayName, props]);
 
   React.useEffect(() => {
     const handler = (event: KeyboardEvent): void => {

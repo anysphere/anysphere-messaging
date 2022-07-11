@@ -25,7 +25,7 @@ declare global {
 
     addSyncFriend(
       addSyncFriendRequest: daemon_pb.AddSyncFriendRequest.AsObject
-    ): Promise<boolean>;
+    ): Promise<void>;
 
     addAsyncFriend(
       addAsyncFriendRequest: daemon_pb.AddAsyncFriendRequest.AsObject
