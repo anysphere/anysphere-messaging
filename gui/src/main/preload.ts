@@ -9,7 +9,6 @@ import grpc from "@grpc/grpc-js";
 import daemonM from "../daemon/schema/daemon_pb";
 import * as daemon_pb from "../daemon/schema/daemon_pb";
 import { Friend, Message } from "../types";
-import { DaemonClient } from "daemon/schema/daemon_grpc_pb";
 
 import {
   getDaemonClient,
@@ -17,26 +16,18 @@ import {
   convertProtobufOutgoingMessageToTypedMessage,
 } from "./daemon";
 import { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
-import { throwDeprecation } from "process";
 
 const daemonClient = getDaemonClient();
 
-const FAKE_DATA = process.env.ASPHR_FAKE_DATA === "true";
+const FAKE_DATA = process.env["ASPHR_FAKE_DATA"] === "true";
 
-contextBridge.exposeInMainWorld("copyToClipboard", async (s: string) => {
+contextBridge.exposeInMainWorld("copyToClipboard", (s: string) => {
   clipboard.writeText(s, "selection");
 });
 
 contextBridge.exposeInMainWorld("isPlatformMac", () => {
   return process.platform === "darwin";
 });
-
-// use typescript to promisify every method inside the DaemonClient
-
-// for every function called here, it asks DaemonService to do the work.
-// contextBridge.exposeInMainWorld("daemonClient", DaemonClient);
-
-////////////////////////////////////////////////////////////////////////////////
 
 contextBridge.exposeInMainWorld("send", async (message: string, to: string) => {
   if (FAKE_DATA) {
