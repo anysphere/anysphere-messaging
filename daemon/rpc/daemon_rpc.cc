@@ -670,7 +670,9 @@ Status DaemonRpc::GetMessagesStreamed(
 
   // guarantee: the caller will get each message in the order of the
   // delivered_at timestamp. each message will be delivered exactly once.
-  absl::Time last_delivered_at = absl::InfinitePast();
+  // we do 0 here because the db.get_most_recent_delivered_at returns 0 if no
+  // message found
+  absl::Time last_delivered_at = absl::FromUnixMicros(0);
 
   try {
     auto messages = G.db->get_received_messages(db::MessageQuery{

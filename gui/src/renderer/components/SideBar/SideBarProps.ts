@@ -3,6 +3,7 @@ export enum SideBarButton {
   INBOX = "INBOX",
   OUTBOX = "OUTBOX",
   SENT = "SENT",
+  ADD_FRIEND = "ADD_FRIEND",
 }
 
 export interface SideBarProps {

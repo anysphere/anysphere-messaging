@@ -8,8 +8,6 @@ import * as React from "react";
 import MessageList from "./components/MessageList";
 import Read from "./components/Read";
 import Write from "./components/Write";
-import FriendsModal from "./components/FriendsModal";
-import { InitFriendModal } from "./components/FriendsModal";
 import { RegisterModal } from "./components/RegisterModal";
 import { Message } from "../types";
 import { Tab, TabType, TabContainer, useTabs } from "./components/Tabs";
@@ -22,7 +20,7 @@ import { KBarOptions } from "./components/cmd-k/types";
 import { StatusHandler, StatusContext } from "./components/Status";
 import { SideBar } from "./components/SideBar/SideBar";
 import { SideBarButton } from "./components/SideBar/SideBarProps";
-import { BackgroundCircles } from "./components/BackgroundCircles/BackgroundCircles";
+import AddFriend from "./components/AddFriend/AddFriend";
 
 const defaultTabs: Tab[] = [
   { type: TabType.New, name: "New", data: null, unclosable: true, id: "new" },
@@ -53,14 +51,14 @@ function Main() {
   const statusState = React.useContext(StatusContext);
 
   const readMessage = React.useCallback(
-    (message: Message, mode: string) => {
-      for (let i = 0; i < tabs.length; i++) {
-        if (tabs[i].type === TabType.Read && tabs[i].data.id === message.id) {
-          switchTab(tabs[i].id);
+    (message: Message, _mode: string) => {
+      for (const tab of tabs) {
+        if (tab.type === TabType.Read && tab.data.id === message.id) {
+          switchTab(tab.id);
           return;
         }
       }
-      window.messageSeen(message.id);
+      window.messageSeen({ id: message.id }).catch(console.error);
       const readTab = {
         type: TabType.Read,
         name: `${truncate(message.message, 10)} - ${message.from}`,
@@ -90,7 +88,7 @@ function Main() {
       window.send(content, to).then((s: boolean) => {
         if (s) {
           statusState.setStatus({
-            message: `Message sent to ${to}!`,
+            message: `Message sent to ${to}.`,
             action: () => {},
             actionName: null,
           });
@@ -131,55 +129,15 @@ function Main() {
 
   const openFriendModal = React.useCallback(() => {
     setModal(
-      <FriendsModal onClose={closeModal} onAddFriend={openAddFriendModal} />
+      <AddFriend
+        onClose={closeModal}
+        setStatus={(x) => {
+          statusState.setStatus(x);
+          statusState.setVisible();
+        }}
+      />
     );
-  }, [setModal, closeModal]);
-
-  const openAddFriendModal = React.useCallback(
-    (friend: string) => {
-      window
-        .generateFriendKey(friend)
-        .then((friendKeyMaybe: null | { friend: string; key: string }) => {
-          if (friendKeyMaybe) {
-            setModal(
-              <InitFriendModal
-                onClose={closeModal}
-                friend={friendKeyMaybe.friend}
-                friendKey={friendKeyMaybe.key}
-                onPasteKey={(key: string) => {
-                  window.addFriend(friend, key).then((successOrError: any) => {
-                    if (successOrError === true) {
-                      statusState.setStatus({
-                        message: `Added ${friend}!`,
-                        action: () => {},
-                        actionName: null,
-                      });
-                      statusState.setVisible();
-                    } else {
-                      statusState.setStatus({
-                        message: `Friend ${friend} not added: ${successOrError}`,
-                        action: () => {},
-                        actionName: null,
-                      });
-                      statusState.setVisible();
-                    }
-                  });
-                  closeModal();
-                }}
-              />
-            );
-          } else {
-            statusState.setStatus({
-              message: `Could not generate friend key for ${friend}`,
-              action: () => {},
-              actionName: null,
-            });
-            statusState.setVisible();
-          }
-        });
-    },
-    [setModal, closeModal, statusState]
-  );
+  }, [setModal, closeModal, statusState]);
 
   let selectedComponent;
   console.log(selectedTab);
@@ -243,36 +201,41 @@ function Main() {
   }
 
   React.useEffect(() => {
-    window.hasRegistered().then((registered: boolean) => {
-      if (!registered) {
-        setModal(
-          <RegisterModal
-            onClose={() => {}} // should not be able to close modal by clicking outside
-            onRegister={(username: string, key: string) => {
-              window.register(username, key).then((registered: boolean) => {
-                if (registered) {
-                  closeModal();
-                  statusState.setStatus({
-                    message: `Registered!`,
-                    action: () => {},
-                    actionName: null,
+    window
+      .hasRegistered()
+      .then((registered: boolean) => {
+        if (!registered) {
+          setModal(
+            <RegisterModal
+              onClose={() => {}} // should not be able to close modal by clicking outside
+              onRegister={(username: string, key: string) => {
+                window
+                  .registerUser({ name: username, betaKey: key })
+                  .then(() => {
+                    closeModal();
+                    statusState.setStatus({
+                      message: `Registered!`,
+                      action: () => {},
+                      actionName: null,
+                    });
+                    statusState.setVisible();
+                  })
+                  .catch((e) => {
+                    console.error(e);
+                    statusState.setStatus({
+                      message: `Unable to register. Perhaps incorrect access key?`,
+                      action: () => {},
+                      actionName: null,
+                    });
+                    statusState.setVisible();
                   });
-                  statusState.setVisible();
-                } else {
-                  statusState.setStatus({
-                    message: `Unable to register. Perhaps incorrect access key?`,
-                    action: () => {},
-                    actionName: null,
-                  });
-                  statusState.setVisible();
-                }
-              });
-            }}
-          />
-        );
-      }
-    });
-  }, []);
+              }}
+            />
+          );
+        }
+      })
+      .catch(console.error);
+  }, [closeModal, statusState]);
 
   const openOutbox = React.useCallback(() => {
     for (let i = 0; i < tabs.length; i++) {
@@ -319,6 +282,8 @@ function Main() {
         return openOutbox();
       case SideBarButton.SENT:
         return openSent();
+      case SideBarButton.ADD_FRIEND:
+        return openFriendModal();
       default:
         return React.useCallback(() => {}, []);
         break;
@@ -396,8 +361,8 @@ function Main() {
 
   return (
     <div className="w-full">
-      <div className="h-4 draggable" />
-      <div className="flex flex-row gap-2 fixed w-full pt-2 px-2">
+      <div className="draggable h-4" />
+      <div className="fixed flex w-full flex-row gap-2 px-2 pt-2">
         <TabContainer
           tabs={tabs}
           selectTab={switchTab}
@@ -412,20 +377,20 @@ function Main() {
           }
         />
         <button
-          className="unselectable px-2 rounded-md bg-asbrown-100 text-asbrown-light "
+          className="unselectable rounded-md bg-asbrown-100 px-2 text-asbrown-light "
           onClick={openFriendModal}
         >
           <div className="codicon codicon-person-add"></div>
         </button>
         <button
-          className="unselectable px-2 rounded-md bg-asbrown-100 text-asbrown-light "
+          className="unselectable rounded-md bg-asbrown-100 px-2 text-asbrown-light "
           onClick={writeMessage}
         >
           <div className="codicon codicon-edit"></div>
         </button>
       </div>
       <div>
-        <div className="overflow-scroll mt-9 pb-12 h-[calc(100vh_-_3.25rem)]">
+        <div className="mt-9 h-[calc(100vh_-_3.25rem)] overflow-scroll pb-12">
           {selectedComponent}
         </div>
       </div>
@@ -442,7 +407,7 @@ function Main() {
       </CmdK>
 
       <SideBar
-        title="Welcome to Private Messaging!"
+        title="Communicate privately."
         open={sidebarOpen}
         setOpen={setSidebarOpen}
         sideBarCallback={sideBarCallback}

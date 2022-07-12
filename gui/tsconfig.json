@@ -15,8 +15,12 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "moduleResolution": "node",
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitOverride": true,
     "esModuleInterop": true,
+    "noPropertyAccessFromIndexSignature": true,
     "allowSyntheticDefaultImports": true,
+    "noUncheckedIndexedAccess": true,
     "resolveJsonModule": true,
     "allowJs": true,
     "outDir": "release/app/dist"

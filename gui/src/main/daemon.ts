@@ -5,7 +5,7 @@
 
 const grpc = require("@grpc/grpc-js");
 import daemonS from "../daemon/schema/daemon_grpc_pb";
-import daemonM from "../daemon/schema/daemon_pb";
+import * as daemon_pb from "../daemon/schema/daemon_pb";
 import { Message } from "../types";
 import path from "path";
 
@@ -45,12 +45,18 @@ export function getDaemonClient(): daemonS.DaemonClient {
 }
 
 export function convertProtobufIncomingMessageToTypedMessage(
-  m: daemonM.IncomingMessage
+  m: daemon_pb.IncomingMessage
 ): Message | null {
-  console.log("seconds", m.getDeliveredAt().getSeconds());
-  var d = new Date(
-    m.getDeliveredAt().getSeconds() * 1e3 + m.getDeliveredAt().getNanos() / 1e6
-  );
+  const msg = m.toObject();
+  console.log("seconds", msg.deliveredAt?.seconds);
+  let d: Date;
+  if (msg.deliveredAt) {
+    d = new Date(msg.deliveredAt.seconds * 1e3 + msg.deliveredAt.nanos / 1e6);
+  } else {
+    d = new Date();
+  }
+
+  // TODO(sualeh): clean this up.
   const M = m.getM();
   return M
     ? {
@@ -65,12 +71,18 @@ export function convertProtobufIncomingMessageToTypedMessage(
 }
 
 export function convertProtobufOutgoingMessageToTypedMessage(
-  m: daemonM.OutgoingMessage
+  m: daemon_pb.OutgoingMessage
 ): Message | null {
-  console.log("seconds", m.getSentAt().getSeconds());
-  var d = new Date(
-    m.getSentAt().getSeconds() * 1e3 + m.getSentAt().getNanos() / 1e6
-  );
+  const msg = m.toObject();
+  console.log("seconds", msg.sentAt?.seconds);
+
+  let d: Date;
+  if (msg.sentAt) {
+    d = new Date(msg.sentAt.seconds * 1e3 + msg.sentAt.nanos / 1e6);
+  } else {
+    d = new Date();
+  }
+
   const M = m.getM();
   return M
     ? {

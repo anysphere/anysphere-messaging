@@ -3,10 +3,17 @@
 // SPDX-License-Identifier: GPL-3.0-only
 //
 
+import * as daemon_pb from "daemon/schema/daemon_pb";
 import * as React from "react";
 import { Friend } from "../../types";
 import { useSearch, useFocus } from "../utils";
 import { SelectableList, ListItem } from "./SelectableList";
+
+type WriteFriend = {
+  uniqueName: string;
+  displayName: string;
+  publicId?: string;
+};
 
 type MultiSelectData = {
   text: string;
@@ -19,39 +26,39 @@ type WriteData = {
 };
 
 function MultiSelect(props: {
-  options: Friend[];
+  options: WriteFriend[];
   multiSelectState: MultiSelectData;
   onSelect: (state: MultiSelectData) => void;
   onEdit: (state: MultiSelectData) => void;
   onClick: () => void;
   focused: boolean;
   className: string;
-}) {
+}): JSX.Element {
   const filteredOptions = useSearch(
     props.options,
     props.multiSelectState.text,
-    ["name"]
+    ["uniqueName", "displayName"]
   );
 
-  let selectableOptions: (ListItem<string> | string)[] = filteredOptions.map(
+  const selectableOptions: (ListItem<string> | string)[] = filteredOptions.map(
     (friend) => {
       return {
-        id: friend.name,
+        id: friend.uniqueName,
         action: () => {
           console.log("action!");
           props.onSelect({
             ...props.multiSelectState,
-            text: friend.name,
+            text: friend.displayName,
           });
         },
-        data: friend.name,
+        data: friend.displayName,
       };
     }
   );
 
   if (selectableOptions.length === 0) {
     selectableOptions.push(
-      `No friends matching ${props.multiSelectState.text}`
+      `No contacts matching ${props.multiSelectState.text}`
     );
   }
 
@@ -70,13 +77,13 @@ function MultiSelect(props: {
           globalAction={() => {}}
           onRender={({ item, active }) =>
             typeof item === "string" ? (
-              <div className="unselectable text-asbrown-300 text-xs">
+              <div className="unselectable text-xs text-asbrown-300">
                 {item}
               </div>
             ) : (
               <div
-                className={`text-sm px-2 py-1 mx-auto border-l-4 ${
-                  active ? "bg-asbeige border-asbrown-100" : "border-white"
+                className={`mx-auto border-l-4 px-2 py-1 text-sm ${
+                  active ? "border-asbrown-100 bg-asbeige" : "border-white"
                 }`}
               >
                 {item.data}
@@ -99,7 +106,7 @@ function MultiSelect(props: {
       <div className="grid pl-2">
         <input
           type="text"
-          className="focus:outline-none w-full placeholder:text-asbrown-100 text-sm"
+          className="w-full border-0 p-0 text-sm placeholder:text-asbrown-100 focus:outline-none focus:ring-0"
           onChange={(e) =>
             props.onEdit({
               ...props.multiSelectState,
@@ -107,7 +114,7 @@ function MultiSelect(props: {
             })
           }
           ref={inputRef}
-          placeholder="Search for a friend..."
+          placeholder="Search for a contact..."
           value={props.multiSelectState.text}
           autoFocus={props.focused}
         ></input>
@@ -122,30 +129,80 @@ function Write(props: {
   send: (content: string, to: string) => void;
   edit: (data: any) => void;
   onClose: () => void;
-}) {
+}): JSX.Element {
   const content = props.data.content;
-  const to = props.data.multiSelectState.text;
+  const toDisplayName = props.data.multiSelectState.text;
 
-  const [friends, setFriends] = React.useState<Friend[]>([]);
+  const [friends, setFriends] = React.useState<WriteFriend[]>([]);
 
   const [contextTestareaFocusRef, setContextTestareaFocusRef] = useFocus();
 
   React.useEffect(() => {
-    window.getFriendList().then((friends: Friend[]) => {
-      setFriends(friends);
-    });
+    // get both the complete friends and the sync invitations
+    // the sync invitations have verified each other so it is safe to treat as a real friend
+    // in the daemon.proto we keep them separate because we still want to display progress information
+    window
+      .getFriendList()
+      .then((friends: Friend[]) => {
+        setFriends((f) => [
+          ...f,
+          ...friends.map((friend: Friend) => {
+            return {
+              uniqueName: friend.uniqueName,
+              displayName: friend.displayName,
+              publicId: friend.publicId,
+            };
+          }),
+        ]);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }, []);
+  React.useEffect(() => {
+    // get both the complete friends and the sync invitations
+    // the sync invitations have verified each other so it is safe to treat as a real friend
+    // in the daemon.proto we keep them separate because we still want to display progress information
+    window
+      .getOutgoingSyncInvitations()
+      .then(
+        (
+          invitations: daemon_pb.GetOutgoingSyncInvitationsResponse.AsObject
+        ) => {
+          setFriends((f) => [
+            ...f,
+            ...invitations.invitationsList.map(
+              (
+                friend: daemon_pb.GetOutgoingSyncInvitationsResponse.OutgoingSyncInvitationInfo.AsObject
+              ) => {
+                return {
+                  uniqueName: friend.uniqueName,
+                  displayName: friend.displayName,
+                };
+              }
+            ),
+          ]);
+        }
+      )
+      .catch((err) => {
+        console.error(err);
+      });
   }, []);
 
   const send = React.useCallback(() => {
-    if (to === "") {
+    // find friend with the right display name
+    const friend = friends.find(
+      (friend) => friend.displayName === toDisplayName
+    );
+    if (!friend) {
       console.log("not sending! need to select whom to send to");
       return;
     }
-    props.send(content, to);
-  }, [content, to]);
+    props.send(content, friend.uniqueName);
+  }, [content, toDisplayName, props]);
 
   React.useEffect(() => {
-    const handler = (event: any) => {
+    const handler = (event: KeyboardEvent): void => {
       if (event.key === "Tab") {
         event.preventDefault();
         props.edit({
@@ -171,16 +228,16 @@ function Write(props: {
   }, [props.data.focus, setContextTestareaFocusRef]);
 
   return (
-    <div className="flex place-content-center w-full mt-8">
-      <div className="place-self-center flex flex-col w-full max-w-3xl bg-white p-2 px-4">
+    <div className="mt-8 flex w-full place-content-center">
+      <div className="flex w-full max-w-3xl flex-col place-self-center bg-white p-2 px-4">
         <div className="py-2">
           <div className="flex flex-row content-center items-start">
-            <div className="place-content-center grid">
-              <div className="text-sm unselectable">To:</div>
+            <div className="grid place-content-center">
+              <div className="unselectable text-sm">To:</div>
             </div>
             <MultiSelect
               className="flex-1"
-              options={friends.filter((friend) => friend.status === "added")}
+              options={friends}
               onEdit={(state: MultiSelectData) =>
                 props.edit({ ...props.data, multiSelectState: state })
               }
@@ -210,7 +267,7 @@ function Write(props: {
               focus: "content",
             });
           }}
-          className="whitespace-pre-wrap resize-none w-full focus:outline-none h-full grow pt-4 text-sm"
+          className="h-full w-full grow resize-none whitespace-pre-wrap border-0 p-0 pt-4 text-sm focus:outline-none focus:ring-0"
           value={content}
           onChange={(e) =>
             props.edit({
@@ -224,7 +281,7 @@ function Write(props: {
         <div className="flex flex-row content-center py-2">
           <div className="flex-1"></div>
           <button
-            className="rounded-lg unselectable bg-asbrown-100 text-asbrown-light px-3 py-1"
+            className="unselectable rounded-lg bg-asbrown-100 px-3 py-1 text-asbrown-light"
             onClick={send}
           >
             Send
