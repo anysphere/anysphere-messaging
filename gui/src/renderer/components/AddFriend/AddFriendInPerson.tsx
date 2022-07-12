@@ -39,6 +39,15 @@ function generateUniqueNameFromDisplayName(displayName: string): string {
   return name;
 }
 
+// compute a deterministic seed that will be the same for both people
+// we sort to make sure the seeds are the same
+function computeSeedFromStories(
+  mystory: string,
+  theirstorylist: string[]
+): string {
+  return [mystory, theirstorylist.join(" ")].sort().join(" ");
+}
+
 export function StoryForm({
   theirstory,
   setTheirStory,
@@ -542,9 +551,7 @@ export default function AddFriendInPerson({
         Are the animations identical?
       </h3>
       <div className="absolute left-0 right-0 top-0 bottom-0">
-        <StoryAnimation
-          seed={[story, theirstorylist.join(" ")].sort().join(" ")}
-        />
+        <StoryAnimation seed={computeSeedFromStories(story, theirstorylist)} />
       </div>
       <div className="absolute left-0 right-0 bottom-8 grid items-center justify-center text-center">
         <button
@@ -587,7 +594,9 @@ export default function AddFriendInPerson({
         <div className="grid h-full w-full grid-cols-1 justify-center justify-items-center">
           <div></div>
           <div className="relative h-32 w-32">
-            <StoryAnimationSmall seed={story + theirstorylist.join("")} />{" "}
+            <StoryAnimationSmall
+              seed={computeSeedFromStories(story, theirstorylist)}
+            />{" "}
           </div>
           <div></div>
           <div className="grid h-fit grid-cols-1 gap-4">
