@@ -3,6 +3,61 @@
 namespace asphr::testing {
 namespace {
 
+using DaemonRpcDeathTest = DaemonRpcTest;
+
+// regression test
+TEST_F(DaemonRpcDeathTest, StreamMessagesWithoutAnyMessages) {
+  ResetStub();
+
+  GTEST_FLAG_SET(death_test_style, "threadsafe");
+
+  ASSERT_DEATH(
+      {
+        auto v = register_people(1);
+        auto friend1 = std::move(v.at(0));
+
+        const int rpc1_port = absl::Uniform(bitgen_, 10'000, 65'000);
+        std::ostringstream rpc1_addr;
+        rpc1_addr << "localhost:" << rpc1_port;
+        grpc::ServerBuilder builder;
+        builder.AddListeningPort(rpc1_addr.str(),
+                                 grpc::InsecureServerCredentials());
+        builder.RegisterService(&(*friend1.rpc));
+        auto rpc1_server = builder.BuildAndStart();
+        std::shared_ptr<grpc::Channel> rpc1_channel = grpc::CreateChannel(
+            rpc1_addr.str(), grpc::InsecureChannelCredentials());
+        auto rpc1_stub = asphrdaemon::Daemon::NewStub(rpc1_channel);
+
+        auto did_unblock = false;
+
+        // launch a thread
+        std::thread t([&]() {
+          GetMessagesRequest request;
+          request.set_filter(GetMessagesRequest::ALL);
+          grpc::ClientContext context;
+          auto stream = rpc1_stub->GetMessagesStreamed(&context, request);
+          GetMessagesResponse response;
+          stream->Read(&response);
+          stream->Read(&response);
+          did_unblock = true;
+        });
+        cout << "waiting for thread to block" << endl;
+
+        // wait for 5 seconds
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+        if (did_unblock) {
+          // bad case — the thread is not stalling, which is very very bad...
+          // there are no messages so we shouldn't receive any messages!!
+          t.join();
+          return;
+        } else {
+          // good case — the thread is stalling, which is just what we want!
+          std::terminate();
+        }
+      },
+      "");
+}
+
 TEST_F(DaemonRpcTest, StreamMessages) {
   ResetStub();
 
