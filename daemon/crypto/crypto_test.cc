@@ -22,7 +22,7 @@ TEST(CryptoTest, EncryptDecrypt) {
   ASSERT_EQ(w2, r1);
 
   std::string plaintext = "hello world";
-  asphrclient::Message message;
+  asphrclient::Chunk message;
   message.set_msg(plaintext);
 
   auto ciphertext = crypto::encrypt_send(message, w1);
@@ -51,7 +51,7 @@ TEST(CryptoTest, EncryptDecryptMaxSize) {
   for (size_t i = 0; i < GUARANTEED_SINGLE_MESSAGE_SIZE; i++) {
     plaintext += 'a';
   }
-  asphrclient::Message message;
+  asphrclient::Chunk message;
   message.set_msg(plaintext);
 
   auto ciphertext = crypto::encrypt_send(message, w1);
@@ -80,7 +80,7 @@ TEST(CryptoTest, EncryptDecryptBiggerThanMaxSize) {
   for (size_t i = 0; i < GUARANTEED_SINGLE_MESSAGE_SIZE + 1; i++) {
     plaintext += 'a';
   }
-  asphrclient::Message message;
+  asphrclient::Chunk message;
   message.set_msg(plaintext);
 
   auto ciphertext = crypto::encrypt_send(message, w1);

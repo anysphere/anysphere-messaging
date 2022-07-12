@@ -180,6 +180,12 @@ fn test_receive_msg() {
   db.add_incoming_async_invitation("hi_this_is_a_public_id", "invitation: hi from friend 1")
     .unwrap();
 
+  // create a chunk
+  let chunk_content = chunk_handler::serialize_message(chunk_handler::WireMessage {
+    other_recipients: vec![],
+    msg: "hi im a chunk".to_string(),
+  });
+
   let msg = "hi im a chunk";
   let chunk_status = db
     .receive_chunk(
@@ -187,7 +193,7 @@ fn test_receive_msg() {
         from_friend: f.uid,
         sequence_number: 1,
         chunks_start_sequence_number: 1,
-        content: br#"hi im a chunk"#.to_vec(),
+        content: chunk_content,
       },
       1,
     )
@@ -270,7 +276,8 @@ fn test_send_msg() {
   assert!(chunk_to_send.sequence_number == 1);
   assert!(chunk_to_send.chunks_start_sequence_number == 1);
   // assert!(chunk_to_send.message_uid == 0); // we don't necessarily know what message_uid sqlite chooses
-  assert!(chunk_to_send.content == "my_public_id".to_string().as_bytes().to_vec());
+  assert!(chunk_to_send.system);
+  assert!(chunk_to_send.system_message_data == "my_public_id".to_string());
   assert!(chunk_to_send.write_key == br#"wwww"#.to_vec());
   assert!(chunk_to_send.num_chunks == 1);
 

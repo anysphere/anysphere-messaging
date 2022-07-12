@@ -1,6 +1,6 @@
 //
-// copyright 2022 anysphere, inc.
-// spdx-license-identifier: gpl-3.0-only
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
 //
 
 #pragma once
@@ -11,8 +11,12 @@
 
 namespace chunk_handler {
 
-struct MsgProto;
+struct WireMessage;
 
-auto chunks_to_msg(rust::Vec<uint8_t> chunks) -> chunk_handler::MsgProto;
+// both of these may throw
+auto deserialize_message(rust::Vec<uint8_t> serialized)
+    -> chunk_handler::WireMessage;
+auto serialize_message(chunk_handler::WireMessage message)
+    -> rust::Vec<uint8_t>;
 
 }  // namespace chunk_handler

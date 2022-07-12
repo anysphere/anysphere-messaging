@@ -147,7 +147,7 @@ CREATE TABLE received (
     received_at timestamp NOT NULL, -- timestamp when the first chunk was received
     delivered boolean NOT NULL, -- true when the entire message has been delivered
     delivered_at timestamp UNIQUE, -- timestamp when the last chunk was delivered. unique because we want to use it as a monotonically increasing index in the order that messages are delivered. since we use microseconds collisions are unlikely, and if there is a collision we can just rengtry the entire transaction.
-    other_recipients_comma_sep text NOT NULL, -- comma-separated list of the names of other recipients.
+    other_recipients_comma_sep text NOT NULL, -- comma-separated list of the public IDs of the other recipients
     seen boolean NOT NULL,
     FOREIGN KEY(uid) REFERENCES message(uid),
     FOREIGN KEY(from_friend) REFERENCES friend(uid)

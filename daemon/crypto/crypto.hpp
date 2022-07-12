@@ -53,11 +53,11 @@ auto derive_read_write_keys(string my_public_key, string my_private_key,
 // we need key privacy. Block-cipher based symmetric-key encryption
 // schemes do support this out of the box, but it is important to keep in
 // mind because it is a somewhat nonstandard requirement.
-auto encrypt_send(const asphrclient::Message& message_in,
-                  const string& write_key) -> asphr::StatusOr<pir_value_t>;
+auto encrypt_send(const asphrclient::Chunk& message_in, const string& write_key)
+    -> asphr::StatusOr<pir_value_t>;
 
 auto decrypt_receive(const pir_value_t& ciphertext, const string& read_key)
-    -> asphr::StatusOr<asphrclient::Message>;
+    -> asphr::StatusOr<asphrclient::Chunk>;
 
 // encrypt_ack encrypts the ack_id to the friend
 auto encrypt_ack(uint32_t ack_id, const string& write_key)

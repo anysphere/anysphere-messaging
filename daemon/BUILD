@@ -141,14 +141,6 @@ cc_library(
     ],
 )
 
-# rust_cxx_bridge(
-#     name = "chunk_bridge",
-#     src = "chunk_handler/chunk_handler.rs",
-#     deps = [
-#         ":cpp_include",
-#     ],
-# )
-
 cc_library(
     name = "chunk_handler_lib",
     srcs = [
@@ -159,23 +151,12 @@ cc_library(
     ],
     linkstatic = True,
     deps = [
+        ":cpp_db_lib",
         ":db_bridge",
         "@asphr//asphr:asphr_lib",
         "@asphr//schema:message_proto_cc",
     ],
 )
-
-# rust_static_library(
-# # rust_library(
-#     name = "chunk_rust_lib",
-#     srcs = [
-#         "chunk_handler/chunk_handler.rs",
-#         "chunk_handler/lib.rs",
-#     ],
-#     deps = [
-#         ":chunk_handler_lib",
-#     ]
-# )
 
 cc_library(
     name = "cpp_include",

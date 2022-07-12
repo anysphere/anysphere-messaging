@@ -124,7 +124,10 @@ mod util {
 
 #[cxx::bridge(namespace = "chunk_handler")]
 pub mod chunk_handler {
-  struct MsgProto {
+  // try to keep this mostly in line with message.proto
+  // this is the message sent over the wire. it is not the
+  // message stored in our DB.
+  struct WireMessage {
     other_recipients: Vec<String>,
     msg: String,
   }
@@ -132,7 +135,13 @@ pub mod chunk_handler {
   unsafe extern "C++" {
     include!("daemon/chunk_handler/chunk_handler.hpp");
 
-    fn chunks_to_msg(chunks: Vec<u8>) -> Result<MsgProto>;
+    // the message is serialized to and from a bytes array
+    // using Protobuf. We do not want to depend on protobuf
+    // in Rust so we simply pass this over to the C++ side.
+    // deserialization may fail
+    fn deserialize_message(serialized: Vec<u8>) -> Result<WireMessage>;
+    // serialization is always ok
+    fn serialize_message(message: WireMessage) -> Vec<u8>;
   }
 }
 
@@ -156,11 +165,6 @@ struct Received {
   pub other_recipients_comma_sep: String,
   pub seen: bool,
 }
-
-// #[derive(Queryable)]
-// struct QueryableSent {
-
-// }
 
 pub struct I64ButZeroIsNone(i64);
 
@@ -740,7 +744,7 @@ impl DB {
         // we also enforce foreign key constraints
         c.batch_execute("PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 1000;")?;
         Ok(c)
-      },
+      }
       Err(e) => return Err(DbError::Unknown(format!("failed to connect to database, {}", e,))),
     }
   }
@@ -840,8 +844,9 @@ impl DB {
         );
 
         // delivered_at is set iff delivered
-        // TODO(refactor, sualeh): add appropriate check
-        let delivered_at_not_null_and_delivered_false_count = sent::table
+        let delivered_at_not_null_and_delivered_false_count = sent_friend::table
+          .filter(sent_friend::delivered_at.is_not_null())
+          .filter(sent_friend::delivered.eq(false))
           .count()
           .get_result::<i64>(conn_b)?;
         assert!(
@@ -851,7 +856,6 @@ impl DB {
         );
         // Checking that there are no rows in the sent table where the delivered_at column is null and
         // the delivered column is true.
-        // TODO(refactor, sualeh): add appropriate check
         let delivered_at_null_and_delivered_true_count = sent_friend::table
           .filter(sent_friend::delivered_at.is_null())
           .filter(sent_friend::delivered.eq(true))
@@ -1049,16 +1053,16 @@ impl DB {
         Ok(())
       });
 
-      match res {
-        Ok(()) => (),
-        Err(e) => {
-          // if e contains "database is locked", then we just return ()
-          if e.to_string().contains("database is locked") {
-            return;
-          }
-          panic!("{}", e);
+    match res {
+      Ok(()) => (),
+      Err(e) => {
+        // if e contains "database is locked", then we just return ()
+        if e.to_string().contains("database is locked") {
+          return;
         }
+        panic!("{}", e);
       }
+    }
   }
 
   #[cfg(not(debug_assertions))]
@@ -1807,25 +1811,27 @@ impl DB {
         // now assemble the message, write it, and be happy!
         let all_chunks =
           q.order_by(incoming_chunk::sequence_number).load::<ffi::IncomingChunk>(conn_b)?;
-        
+
         // redice all incoming chunks to a single Vec<u8>
         let mut assembled_chunks = Vec::new();
         for chunk in all_chunks {
           assembled_chunks.extend_from_slice(&chunk.content);
         }
 
-        let msg_struct = chunk_handler::chunks_to_msg(assembled_chunks)?;
-
-        let msg = msg_struct.msg;
+        let msg_struct = chunk_handler::deserialize_message(assembled_chunks)?;
 
         // Updating the message table with the message content and updating the received table with the
         // delivered status and delivered_at time.
         diesel::update(message::table.find(message_uid))
-          .set((message::content.eq(msg),))
+          .set((message::content.eq(msg_struct.msg),))
           .execute(conn_b)?;
         // update the receive table
         diesel::update(received::table.find(message_uid))
-          .set((received::delivered.eq(true), received::delivered_at.eq(util::unix_micros_now())))
+          .set((
+            received::delivered.eq(true),
+            received::delivered_at.eq(util::unix_micros_now()),
+            received::other_recipients_comma_sep.eq(msg_struct.other_recipients.join(",")),
+          ))
           .execute(conn_b)?;
         // finally, delete the chunks
         diesel::delete(incoming_chunk::table.filter(
@@ -2265,6 +2271,8 @@ impl DB {
 
     self.check_rep(&mut conn);
 
+    // TODO: What is going on here?
+    // I'm not sure why we would need to chunk in rust...
     conn
       .transaction::<_, anyhow::Error, _>(|conn_b| {
         // TODO(sualeh, refactor): we should take all the names.
@@ -3356,6 +3364,7 @@ impl DB {
             received::received_at.eq(util::unix_micros_now()),
             received::delivered.eq(true),
             received::delivered_at.eq(util::unix_micros_now()),
+            received::other_recipients_comma_sep.eq(""), // invitations are only addressed to indivdual friends, so this is empty
             received::seen.eq(false),
           ))
           .execute(conn_b)?;
