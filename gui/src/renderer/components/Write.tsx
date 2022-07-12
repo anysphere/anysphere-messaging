@@ -6,20 +6,21 @@
 import * as daemon_pb from "daemon/schema/daemon_pb";
 import * as React from "react";
 import { Friend } from "../../types";
-import { useSearch, useFocus } from "../utils";
+import { useSearch, useFocus, classNames } from "../utils";
 import { SelectableList, ListItem } from "./SelectableList";
 
-type WriteFriend = {
+export type WriteFriend = {
   uniqueName: string;
   displayName: string;
   publicId?: string;
 };
 
-type MultiSelectData = {
+export type MultiSelectData = {
+  friends: WriteFriend[];
   text: string;
 };
 
-type WriteData = {
+export type WriteData = {
   content: string;
   multiSelectState: MultiSelectData;
   focus: "content" | "to";
@@ -28,7 +29,7 @@ type WriteData = {
 function MultiSelect(props: {
   options: WriteFriend[];
   multiSelectState: MultiSelectData;
-  onSelect: (state: MultiSelectData) => void;
+  onNext: () => void;
   onEdit: (state: MultiSelectData) => void;
   onClick: () => void;
   focused: boolean;
@@ -46,9 +47,14 @@ function MultiSelect(props: {
         id: friend.uniqueName,
         action: () => {
           console.log("action!");
-          props.onSelect({
+          let oldFriends = props.multiSelectState.friends;
+          if (!oldFriends.find((f) => f.uniqueName === friend.uniqueName)) {
+            oldFriends = [...oldFriends, friend];
+          }
+          props.onEdit({
             ...props.multiSelectState,
-            text: friend.displayName,
+            friends: oldFriends,
+            text: "",
           });
         },
         data: friend.displayName,
@@ -56,16 +62,26 @@ function MultiSelect(props: {
     }
   );
 
-  if (selectableOptions.length === 0) {
+  if (
+    selectableOptions.length === 0 &&
+    props.multiSelectState.text.length > 0
+  ) {
     selectableOptions.push(
       `No contacts matching ${props.multiSelectState.text}`
     );
   }
 
+  if (
+    props.options.length === 0 &&
+    props.multiSelectState.friends.length === 0
+  ) {
+    selectableOptions.push("No contacts. Add some!");
+  }
+
   const [inputRef, setInputRef] = useFocus();
 
   let selectBox = undefined;
-  if (props.focused) {
+  if (props.focused && selectableOptions.length > 0) {
     selectBox = (
       <div
         className="mt-1 max-h-32 overflow-scroll"
@@ -104,20 +120,54 @@ function MultiSelect(props: {
   return (
     <div className={`${props.className}`} onClick={props.onClick}>
       <div className="grid pl-2">
-        <input
-          type="text"
-          className="w-full border-0 p-0 text-sm placeholder:text-asbrown-100 focus:outline-none focus:ring-0"
-          onChange={(e) =>
-            props.onEdit({
-              ...props.multiSelectState,
-              text: e.target.value,
-            })
-          }
-          ref={inputRef}
-          placeholder="Search for a contact..."
-          value={props.multiSelectState.text}
-          autoFocus={props.focused}
-        ></input>
+        <div className="flex flex-row gap-2">
+          {props.multiSelectState.friends.map((friend) => {
+            return (
+              <div
+                className="shrink-0 rounded-full bg-asbeige px-1 text-sm text-asbrown-dark"
+                key={friend.uniqueName}
+              >
+                {friend.displayName}
+              </div>
+            );
+          })}
+          <input
+            type="text"
+            className={classNames(
+              "w-full border-0 p-0 text-sm placeholder:text-asbrown-100 focus:outline-none focus:ring-0",
+              !props.focused && props.multiSelectState.text.length > 0
+                ? "underline decoration-red-500 decoration-dotted decoration-2 underline-offset-2"
+                : ""
+            )}
+            onChange={(e) =>
+              props.onEdit({
+                ...props.multiSelectState,
+                text: e.target.value,
+              })
+            }
+            spellCheck={false}
+            onKeyDown={(e) => {
+              if (
+                e.key === "Backspace" &&
+                props.multiSelectState.text.length === 0
+              ) {
+                console.log("delete");
+                props.onEdit({
+                  ...props.multiSelectState,
+                  friends: props.multiSelectState.friends.slice(0, -1),
+                });
+              }
+            }}
+            ref={inputRef}
+            placeholder={
+              props.multiSelectState.friends.length > 0
+                ? ""
+                : "Search for a contact..."
+            }
+            value={props.multiSelectState.text}
+            autoFocus={props.focused}
+          ></input>
+        </div>
         {selectBox}
       </div>
     </div>
@@ -199,7 +249,7 @@ function Write(props: {
       return;
     }
     props.send(content, friend.uniqueName);
-  }, [content, toDisplayName, props]);
+  }, [friends, props, content, toDisplayName]);
 
   React.useEffect(() => {
     const handler = (event: KeyboardEvent): void => {
@@ -237,14 +287,17 @@ function Write(props: {
             </div>
             <MultiSelect
               className="flex-1"
-              options={friends}
+              options={friends.filter((friend) => {
+                return !props.data.multiSelectState.friends.find(
+                  (f) => f.uniqueName === friend.uniqueName
+                );
+              })}
               onEdit={(state: MultiSelectData) =>
                 props.edit({ ...props.data, multiSelectState: state })
               }
-              onSelect={(state: MultiSelectData) =>
+              onNext={() =>
                 props.edit({
                   ...props.data,
-                  multiSelectState: state,
                   focus: props.data.focus === "content" ? "to" : "content",
                 })
               }

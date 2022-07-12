@@ -8,6 +8,7 @@ import * as React from "react";
 import MessageList from "./components/MessageList";
 import Read from "./components/Read";
 import Write from "./components/Write";
+import { WriteData } from "./components/Write";
 import { RegisterModal } from "./components/RegisterModal";
 import { Message } from "../types";
 import { Tab, TabType, TabContainer, useTabs } from "./components/Tabs";
@@ -108,15 +109,18 @@ function Main() {
   );
 
   const writeMessage = React.useCallback(() => {
+    const writeData: WriteData = {
+      multiSelectState: {
+        text: "",
+        friends: [],
+      },
+      content: "",
+      focus: "to",
+    };
     const writeTab: Tab = {
       type: TabType.Write,
       name: "Compose",
-      data: {
-        content: "",
-        to: "",
-        multiSelectState: { text: "" },
-        focus: "to",
-      },
+      data: writeData,
       unclosable: false,
       id: "write-" + randomString(10),
     };
