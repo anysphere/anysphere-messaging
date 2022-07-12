@@ -239,6 +239,8 @@ function StoryAnimation({ seed }: { seed: string }): JSX.Element {
   const [shaseed, setShaseed] = useState("");
   const [keyframe, setKeyframe] = useState(0);
 
+  console.log("SEED for story animation:", seed);
+
   useEffect(() => {
     sha256string(seed).then((hash) => {
       setShaseed(hash);
