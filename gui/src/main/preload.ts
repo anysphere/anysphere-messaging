@@ -3,19 +3,31 @@
 // SPDX-License-Identifier: GPL-3.0-only
 //
 
-import { contextBridge, clipboard } from "electron";
+import { contextBridge, clipboard, contentTracing } from "electron";
 import { promisify } from "util";
 import grpc from "@grpc/grpc-js";
 import daemonM from "../daemon/schema/daemon_pb";
+import * as daemon_pb from "../daemon/schema/daemon_pb";
+import { Friend, Message } from "../types";
+
 import {
   getDaemonClient,
   convertProtobufIncomingMessageToTypedMessage,
   convertProtobufOutgoingMessageToTypedMessage,
 } from "./daemon";
-import { Message } from "../types";
+import { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
+
 const daemonClient = getDaemonClient();
 
-const FAKE_DATA = process.env.ASPHR_FAKE_DATA === "true";
+const FAKE_DATA = process.env["ASPHR_FAKE_DATA"] === "true";
+
+contextBridge.exposeInMainWorld("copyToClipboard", (s: string) => {
+  clipboard.writeText(s, "selection");
+});
+
+contextBridge.exposeInMainWorld("isPlatformMac", () => {
+  return process.platform === "darwin";
+});
 
 contextBridge.exposeInMainWorld("send", async (message: string, to: string) => {
   if (FAKE_DATA) {
@@ -33,10 +45,6 @@ contextBridge.exposeInMainWorld("send", async (message: string, to: string) => {
     console.log(`error in send: ${e}`);
     return false;
   }
-});
-
-contextBridge.exposeInMainWorld("copyToClipboard", async (s: string) => {
-  clipboard.writeText(s, "selection");
 });
 
 contextBridge.exposeInMainWorld("getNewMessages", async () => {
@@ -75,53 +83,6 @@ contextBridge.exposeInMainWorld("getNewMessages", async () => {
     return [];
   }
 });
-
-contextBridge.exposeInMainWorld(
-  "generateFriendKey",
-  async (requestedFriend: string) => {
-    if (FAKE_DATA) {
-      return {
-        friend: "sualeh",
-        key: "6aFLPa03ldA9OyY-XlCRibbo3SG8Wsprw1iylnjvZIiFc",
-      };
-    }
-    const request = new daemonM.GenerateFriendKeyRequest();
-    request.setUniqueName(requestedFriend);
-    const generateFriendKey = promisify(daemonClient.generateFriendKey).bind(
-      daemonClient
-    );
-    try {
-      const response = (await generateFriendKey(
-        request
-      )) as daemonM.GenerateFriendKeyResponse;
-      return {
-        friend: requestedFriend,
-        key: response.getKey(),
-      };
-    } catch (e) {
-      console.log(`error in generateFriendKey: ${e}`);
-      return null;
-    }
-  }
-);
-
-contextBridge.exposeInMainWorld(
-  "addFriend",
-  async (requestedFriend: string, requestedFriendKey: string) => {
-    const request = new daemonM.AddFriendRequest();
-    request.setUniqueName(requestedFriend);
-    request.setKey(requestedFriendKey);
-    const addFriend = promisify(daemonClient.addFriend).bind(daemonClient);
-    try {
-      const response = await addFriend(request);
-      console.log("addFriend response", response);
-      return true;
-    } catch (e) {
-      console.log(`error in addFriend: ${e}`);
-      return false;
-    }
-  }
-);
 
 contextBridge.exposeInMainWorld("getAllMessages", async () => {
   if (FAKE_DATA) {
@@ -241,12 +202,12 @@ contextBridge.exposeInMainWorld(
     }
     const request = new daemonM.GetMessagesRequest();
     request.setFilter(daemonM.GetMessagesRequest.Filter.ALL);
-    var call = daemonClient.getMessagesStreamed(request);
+    const call = daemonClient.getMessagesStreamed(request);
     call.on("data", function (r: daemonM.GetMessagesResponse) {
       try {
         const lm = r.getMessagesList();
         const l = lm.map(convertProtobufIncomingMessageToTypedMessage);
-        let l2: Message[] = [];
+        const l2: Message[] = [];
         for (const m of l) {
           if (m) {
             l2.push(m);
@@ -256,7 +217,7 @@ contextBridge.exposeInMainWorld(
       } catch (e) {
         console.log(`error in getAllMessagesStreamed: ${e}`);
       }
-      console.log("got all messages streamed", r);
+      // console.log("got all messages streamed", r);
     });
     call.on("end", function () {
       // The server has finished sending
@@ -321,7 +282,7 @@ contextBridge.exposeInMainWorld(
       } catch (e) {
         console.log(`error in getNewMessagesStreamed: ${e}`);
       }
-      console.log("got all messages streamed", r);
+      // console.log("got all messages streamed", r);
     });
     call.on("end", function () {
       // The server has finished sending
@@ -342,7 +303,18 @@ contextBridge.exposeInMainWorld(
   }
 );
 
-contextBridge.exposeInMainWorld("getOutboxMessages", async () => {
+contextBridge.exposeInMainWorld(
+  "getOutboxMessages",
+  async (
+    getOutboxMessagesRequest: daemon_pb.GetOutboxMessagesRequest.AsObject
+  ): Promise<daemon_pb.GetOutboxMessagesResponse> => {
+    // unimplemented
+    console.error("getOutboxMessages not implemented");
+    throw new Error("getOutboxMessages not implemented");
+  }
+);
+
+contextBridge.exposeInMainWorld("getOutboxMessagesOLD", async () => {
   if (FAKE_DATA) {
     return [
       {
@@ -396,7 +368,7 @@ contextBridge.exposeInMainWorld("getOutboxMessages", async () => {
   }
 });
 
-contextBridge.exposeInMainWorld("getSentMessages", async () => {
+contextBridge.exposeInMainWorld("getSentMessagesOLD", async () => {
   if (FAKE_DATA) {
     return [
       {
@@ -418,6 +390,7 @@ contextBridge.exposeInMainWorld("getSentMessages", async () => {
       },
     ];
   }
+
   const request = new daemonM.GetSentMessagesRequest();
   const getSentMessages = promisify(daemonClient.getSentMessages).bind(
     daemonClient
@@ -435,60 +408,27 @@ contextBridge.exposeInMainWorld("getSentMessages", async () => {
   }
 });
 
-contextBridge.exposeInMainWorld("getFriendList", async () => {
-  if (FAKE_DATA) {
-    return [
-      {
-        name: "Srini",
-        status: "initiated",
-      },
-      {
-        name: "Sualeh",
-        status: "added",
-      },
-      {
-        name: "Shengtong",
-        status: "added",
-      },
-    ];
+contextBridge.exposeInMainWorld(
+  "messageSeen",
+  async (messageSeenRequest: daemon_pb.MessageSeenRequest.AsObject) => {
+    const request = new daemonM.MessageSeenRequest();
+    request.setId(messageSeenRequest.id);
+    const messageSeen = promisify(daemonClient.messageSeen).bind(daemonClient);
+    try {
+      const response = await messageSeen(request);
+      console.log("messageSeen response", response);
+      return true;
+    } catch (e) {
+      console.log(`error in send: ${e}`);
+      return false;
+    }
   }
-  const request = new daemonM.GetFriendListRequest();
-  const getFriendList = promisify(daemonClient.getFriendList).bind(
-    daemonClient
-  );
-  try {
-    const response = (await getFriendList(
-      request
-    )) as daemonM.GetFriendListResponse;
-    const lm = response.getFriendInfosList();
-    const l = lm.map((m) => {
-      return {
-        name: m.getUniqueName(),
-        status: m.getEnabled() ? "added" : "initiated",
-      };
-    });
-    return l;
-  } catch (e) {
-    console.log(`error in getFriendList: ${e}`);
-    return [];
-  }
-});
-
-contextBridge.exposeInMainWorld("messageSeen", async (message_id: number) => {
-  const request = new daemonM.MessageSeenRequest();
-  request.setId(message_id);
-  const messageSeen = promisify(daemonClient.messageSeen).bind(daemonClient);
-  try {
-    const response = await messageSeen(request);
-    console.log("messageSeen response", response);
-    return true;
-  } catch (e) {
-    console.log(`error in send: ${e}`);
-    return false;
-  }
-});
+);
 
 contextBridge.exposeInMainWorld("hasRegistered", async () => {
+  if (FAKE_DATA) {
+    return true;
+  }
   const request = new daemonM.GetStatusRequest();
   const getStatus = promisify(daemonClient.getStatus).bind(daemonClient);
   try {
@@ -501,23 +441,400 @@ contextBridge.exposeInMainWorld("hasRegistered", async () => {
 });
 
 contextBridge.exposeInMainWorld(
-  "register",
-  async (username: string, accessKey: string) => {
+  "registerUser",
+  async (registerUserRequest: daemon_pb.RegisterUserRequest.AsObject) => {
     const request = new daemonM.RegisterUserRequest();
-    request.setName(username);
-    request.setBetaKey(accessKey);
+    request.setName(registerUserRequest.name);
+    request.setBetaKey(registerUserRequest.betaKey);
     const register = promisify(daemonClient.registerUser).bind(daemonClient);
-    try {
-      const response = await register(request);
-      console.log("register response", response);
-      return true;
-    } catch (e) {
-      console.log(`error in register: ${e}`);
-    }
-    return false;
+    await register(request);
   }
 );
 
-contextBridge.exposeInMainWorld("isPlatformMac", () => {
-  return process.platform === "darwin";
-});
+contextBridge.exposeInMainWorld(
+  "getFriendList",
+  async (): Promise<Friend[]> => {
+    if (FAKE_DATA) {
+      return [
+        {
+          uniqueName: "Sualeh",
+          displayName: "Sualeh Asif",
+          publicId: "asdfasdf",
+          invitationProgress: daemon_pb.InvitationProgress.COMPLETE,
+        },
+        {
+          uniqueName: "Shengtong",
+          displayName: "Shengtong",
+          publicId: "asdfasdf",
+          invitationProgress: daemon_pb.InvitationProgress.COMPLETE,
+        },
+        {
+          uniqueName: "Bob",
+          displayName: "Bob",
+          publicId: "asdfasdf",
+          invitationProgress: daemon_pb.InvitationProgress.COMPLETE,
+        },
+      ];
+    }
+
+    const request = new daemonM.GetFriendListRequest();
+    const getFriendList = promisify(daemonClient.getFriendList).bind(
+      daemonClient
+    );
+
+    try {
+      const response = (await getFriendList(
+        request
+      )) as daemonM.GetFriendListResponse;
+      const lm = response.getFriendInfosList();
+      const l = lm.map((m) => {
+        // TODO: fix this when the schema is cleaned up.
+        return {
+          uniqueName: m.getUniqueName(),
+          displayName: m.getDisplayName(),
+          publicId: m.getPublicId(),
+          invitationProgress: m.getInvitationProgress(),
+        };
+      });
+      return l;
+    } catch (e) {
+      console.log(`error in getFriendList: ${e}`);
+      return [];
+    }
+  }
+);
+
+// removeFriend
+contextBridge.exposeInMainWorld(
+  "removeFriend",
+  async (uniqueName: string): Promise<boolean> => {
+    if (FAKE_DATA) {
+      return true;
+    }
+
+    const request = new daemonM.RemoveFriendRequest();
+    request.setUniqueName(uniqueName);
+    const removeFriend = promisify(daemonClient.removeFriend).bind(
+      daemonClient
+    );
+
+    try {
+      await removeFriend(request);
+      return true;
+    } catch (e) {
+      console.log(`error in removeFriend: ${e}`);
+      return false;
+    }
+  }
+);
+
+// addAsyncFriend
+contextBridge.exposeInMainWorld(
+  "addAsyncFriend",
+  async (
+    addAsyncFriendRequest: daemon_pb.AddAsyncFriendRequest.AsObject
+  ): Promise<boolean> => {
+    if (FAKE_DATA) {
+      return true;
+    }
+
+    const request = new daemonM.AddAsyncFriendRequest();
+    request.setUniqueName(addAsyncFriendRequest.uniqueName);
+    request.setDisplayName(addAsyncFriendRequest.displayName);
+    request.setPublicId(addAsyncFriendRequest.publicId);
+    request.setMessage(addAsyncFriendRequest.message);
+
+    const addAsyncFriend = promisify(daemonClient.addAsyncFriend).bind(
+      daemonClient
+    );
+
+    try {
+      await addAsyncFriend(request);
+      return true;
+    } catch (e) {
+      console.log(`error in addAsyncFriend: ${e}`);
+      return false;
+    }
+  }
+);
+
+// addSyncFriend
+contextBridge.exposeInMainWorld(
+  "addSyncFriend",
+  async (
+    addSyncFriendRequest: daemon_pb.AddSyncFriendRequest.AsObject
+  ): Promise<void> => {
+    if (FAKE_DATA) {
+      return;
+    }
+
+    const request = new daemonM.AddSyncFriendRequest();
+    request.setUniqueName(addSyncFriendRequest.uniqueName);
+    request.setDisplayName(addSyncFriendRequest.displayName);
+    request.setStory(addSyncFriendRequest.story);
+
+    const addSyncFriend = promisify(daemonClient.addSyncFriend).bind(
+      daemonClient
+    );
+
+    try {
+      await addSyncFriend(request);
+    } catch (e) {
+      console.log(`error in addSyncFriend: ${e}`);
+      throw e;
+    }
+  }
+);
+
+// getOutgoingSyncInvitations
+contextBridge.exposeInMainWorld(
+  "getOutgoingSyncInvitations",
+  async (): Promise<daemon_pb.GetOutgoingSyncInvitationsResponse.AsObject> => {
+    if (FAKE_DATA) {
+      return {
+        invitationsList: [
+          {
+            uniqueName: "arvid",
+            displayName: "Arvid Lunnemark",
+            story:
+              "Haphazard ambassador hides gradient. Cool mark resolves ambush. Eerie kiss revises distinction. Fashionable film fosters age. New customer views proprietor. Boiled plant kicks truck. Spectacular commission complies triumph. Faint.",
+            sentAt: Timestamp.fromDate(new Date()).toObject(),
+          },
+        ],
+      };
+    }
+
+    const request = new daemonM.GetOutgoingSyncInvitationsRequest();
+
+    const getOutgoingSyncInvitations = promisify(
+      daemonClient.getOutgoingSyncInvitations
+    ).bind(daemonClient);
+
+    try {
+      const response = (await getOutgoingSyncInvitations(
+        request
+      )) as daemonM.GetOutgoingSyncInvitationsResponse;
+
+      return response.toObject();
+    } catch (e) {
+      console.log(`error in getOutgoingSyncInvitations: ${e}`);
+      return {
+        invitationsList: [],
+      };
+    }
+  }
+);
+
+// getOutgoingAsyncInvitations
+contextBridge.exposeInMainWorld(
+  "getOutgoingAsyncInvitations",
+  async (): Promise<daemon_pb.GetOutgoingAsyncInvitationsResponse.AsObject> => {
+    if (FAKE_DATA) {
+      return {
+        invitationsList: [
+          {
+            uniqueName: "OutgoingSualeh",
+            displayName: "Sualeh Asif ooooo",
+            publicId: "asdfasdf",
+            message: "hihihihihihihihih",
+            sentAt: Timestamp.fromDate(new Date()).toObject(),
+          },
+          {
+            uniqueName: "OutgoingShengtong",
+            displayName: "Shengtong aaaaaa",
+            publicId: "asdfasdf",
+            message: "hihihihihihihihih",
+            sentAt: Timestamp.fromDate(new Date()).toObject(),
+          },
+        ],
+      };
+    }
+
+    const request = new daemonM.GetOutgoingAsyncInvitationsRequest();
+
+    const getOutgoingAsyncInvitations = promisify(
+      daemonClient.getOutgoingAsyncInvitations
+    ).bind(daemonClient);
+
+    try {
+      const response = (await getOutgoingAsyncInvitations(
+        request
+      )) as daemonM.GetOutgoingAsyncInvitationsResponse;
+
+      return response.toObject();
+    } catch (e) {
+      console.log(`error in getOutgoingAsyncInvitations: ${e}`);
+      return {
+        invitationsList: [],
+      };
+    }
+  }
+);
+
+// getIncomingAsyncInvitations
+contextBridge.exposeInMainWorld(
+  "getIncomingAsyncInvitations",
+  async (): Promise<daemon_pb.GetIncomingAsyncInvitationsResponse.AsObject> => {
+    if (FAKE_DATA) {
+      return {
+        invitationsList: [
+          {
+            message: "Im First",
+            publicId: "asdfasdf",
+            receivedAt: Timestamp.fromDate(new Date()).toObject(),
+          },
+          {
+            message: "Im Second",
+            publicId: "asdfasdf",
+            receivedAt: Timestamp.fromDate(new Date()).toObject(),
+          },
+        ],
+      };
+    }
+
+    const request = new daemonM.GetIncomingAsyncInvitationsRequest();
+
+    const getIncomingAsyncInvitations = promisify(
+      daemonClient.getIncomingAsyncInvitations
+    ).bind(daemonClient);
+
+    try {
+      const response = (await getIncomingAsyncInvitations(
+        request
+      )) as daemonM.GetIncomingAsyncInvitationsResponse;
+
+      return response.toObject();
+    } catch (e) {
+      console.log(`error in getIncomingAsyncInvitations: ${e}`);
+      return {
+        invitationsList: [],
+      };
+    }
+  }
+);
+
+// acceptAsyncInvitation
+contextBridge.exposeInMainWorld(
+  "acceptAsyncInvitation",
+  async (
+    acceptAsyncInvitationRequest: daemon_pb.AcceptAsyncInvitationRequest.AsObject
+  ): Promise<boolean> => {
+    if (FAKE_DATA) {
+      return true;
+    }
+
+    const request = new daemonM.AcceptAsyncInvitationRequest();
+    request.setPublicId(acceptAsyncInvitationRequest.publicId);
+    request.setUniqueName(acceptAsyncInvitationRequest.uniqueName);
+    request.setDisplayName(acceptAsyncInvitationRequest.displayName);
+
+    const acceptAsyncInvitation = promisify(
+      daemonClient.acceptAsyncInvitation
+    ).bind(daemonClient);
+
+    try {
+      await acceptAsyncInvitation(request);
+      return true;
+    } catch (e) {
+      console.log(`error in acceptAsyncInvitation: ${e}`);
+      return false;
+    }
+  }
+);
+
+// rejectAsyncInvitation
+contextBridge.exposeInMainWorld(
+  "rejectAsyncInvitation",
+  async (
+    rejectAsyncInvitationRequest: daemon_pb.RejectAsyncInvitationRequest.AsObject
+  ): Promise<boolean> => {
+    if (FAKE_DATA) {
+      return true;
+    }
+
+    const request = new daemonM.RejectAsyncInvitationRequest();
+    request.setPublicId(rejectAsyncInvitationRequest.publicId);
+
+    const rejectAsyncInvitation = promisify(
+      daemonClient.rejectAsyncInvitation
+    ).bind(daemonClient);
+
+    try {
+      await rejectAsyncInvitation(request);
+      return true;
+    } catch (e) {
+      console.log(`error in rejectAsyncInvitation: ${e}`);
+      return false;
+    }
+  }
+);
+
+// getMyPublicID
+contextBridge.exposeInMainWorld(
+  "getMyPublicID",
+  async (): Promise<daemon_pb.GetMyPublicIDResponse.AsObject> => {
+    if (FAKE_DATA) {
+      return {
+        publicId:
+          "3X2riNETQqUuFTqVrWqkGF8EsepzoarMYrNASmRJAzKwr9XB4Z7amnFNrgGm9wuq3wXAvvhPpu47eHWv29ikv5fbbzeeyfRvcgYqT",
+        story:
+          "Haphazard ambassador hides gradient. Cool mark resolves ambush. Eerie kiss revises distinction. Fashionable film fosters age. New customer views proprietor. Boiled plant kicks truck. Spectacular commission complies triumph. Faint.",
+      };
+    }
+
+    const request = new daemonM.GetMyPublicIDRequest();
+
+    const getMyPublicID = promisify(daemonClient.getMyPublicID).bind(
+      daemonClient
+    );
+
+    try {
+      const response = (await getMyPublicID(
+        request
+      )) as daemonM.GetMyPublicIDResponse;
+
+      return response.toObject();
+    } catch (e) {
+      // TODO: maybe this error is unrecoverable? maybe we want to try to restart the daemon?
+      console.log(`error in getMyPublicID: ${e}`);
+      throw e;
+    }
+  }
+);
+
+/**
+ * @deprecated
+ * @param requestedFriend the friend to get messages for
+ */
+contextBridge.exposeInMainWorld(
+  "generateFriendKey",
+  async (requestedFriend: string) => {
+    try {
+      return {
+        friend: requestedFriend,
+        key: "6aFLPa03ldA9OyY-XlCRibbo3SG8Wsprw1iylnjvZIiFc",
+      };
+    } catch (e) {
+      console.log(`error in generateFriendKey: ${e}`);
+      return null;
+    }
+  }
+);
+
+/**
+ * @deprecated
+ * @param requestedFriend the friend to add.
+ */
+contextBridge.exposeInMainWorld(
+  "addFriend",
+  async (_requestedFriend: string, _requestedFriendKey: string) => {
+    try {
+      return true;
+    } catch (e) {
+      console.log(`error in addFriend: ${e}`);
+      return false;
+    }
+  }
+);
+
+contextBridge.exposeInMainWorld("sendAsyncFriendRequest", async () => {});

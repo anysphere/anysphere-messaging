@@ -1,6 +1,4 @@
 export function BackgroundCircles(props: { backgroundColor?: string }) {
-  console.log(props);
-
   return (
     <div className={`flex min-h-screen items-center justify-center`}>
       <div className="relative w-full max-w-lg">

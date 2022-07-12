@@ -250,6 +250,20 @@ int main(int argc, char** argv) {
     cout << "Successfully changed latency to " << latency << " seconds!"
          << endl;
 
+  } else if (command == "story") {
+    grpc::ClientContext context;
+    asphrdaemon::GetMyPublicIDRequest request;
+    asphrdaemon::GetMyPublicIDResponse response;
+
+    grpc::Status status = stub->GetMyPublicID(&context, request, &response);
+
+    if (!status.ok()) {
+      cout << "failed to get my public ID: " << status.error_message() << endl;
+      return 0;
+    }
+
+    cout << "Story: " << response.story() << endl;
+
   } else {
     cout << "Unknown command: " << command << endl;
     cout << help << endl;

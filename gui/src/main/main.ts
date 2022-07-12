@@ -210,7 +210,6 @@ function registerForNotifications() {
     } catch (e) {
       console.log(`error in getNewMessagesStreamed: ${e}`);
     }
-    console.log("got all messages streamed", r);
   });
   call.on("end", function () {
     // The server has finished sending

@@ -37,7 +37,7 @@ export function TabElem({
   const [hovering, setHovering] = React.useState(false);
   const closeButton = (
     <div
-      className={`place-content-center grid ${
+      className={`grid place-content-center ${
         hovering || selected ? "" : "invisible"
       }`}
     >
@@ -53,7 +53,7 @@ export function TabElem({
 
   return (
     <div
-      className={`px-2 flex flex-row content-center py-1 unselectable text-sm hover:cursor-pointer ${
+      className={`unselectable flex flex-row content-center px-2 py-1 text-sm hover:cursor-pointer ${
         selected ? "text-black" : "text-asbrown-200"
       }`}
       onClick={onClick}
@@ -107,7 +107,7 @@ export function TabContainer(props: {
       onMouseOut={() => setHovering(false)}
     >
       <div
-        className={`flex-1 mb-1 ${
+        className={`mb-1 flex-1 ${
           props.hidden && !hovering ? "invisible" : ""
         }`}
       >
