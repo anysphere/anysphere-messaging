@@ -581,8 +581,10 @@ export namespace RemoveFriendResponse {
 }
 
 export class SendMessageRequest extends jspb.Message {
-  getUniqueName(): string;
-  setUniqueName(value: string): void;
+  clearUniqueNameList(): void;
+  getUniqueNameList(): Array<string>;
+  setUniqueNameList(value: Array<string>): void;
+  addUniqueName(value: string, index?: number): string;
 
   getMessage(): string;
   setMessage(value: string): void;
@@ -599,7 +601,7 @@ export class SendMessageRequest extends jspb.Message {
 
 export namespace SendMessageRequest {
   export type AsObject = {
-    uniqueName: string,
+    uniqueNameList: Array<string>,
     message: string,
   }
 }
@@ -620,43 +622,55 @@ export namespace SendMessageResponse {
   }
 }
 
-export class BaseMessage extends jspb.Message {
-  getId(): number;
-  setId(value: number): void;
+export class IncomingMaybeFriend extends jspb.Message {
+  getPublicId(): string;
+  setPublicId(value: string): void;
 
-  getMessage(): string;
-  setMessage(value: string): void;
-
+  hasUniqueName(): boolean;
+  clearUniqueName(): void;
   getUniqueName(): string;
   setUniqueName(value: string): void;
 
+  hasDisplayName(): boolean;
+  clearDisplayName(): void;
   getDisplayName(): string;
   setDisplayName(value: string): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): BaseMessage.AsObject;
-  static toObject(includeInstance: boolean, msg: BaseMessage): BaseMessage.AsObject;
+  toObject(includeInstance?: boolean): IncomingMaybeFriend.AsObject;
+  static toObject(includeInstance: boolean, msg: IncomingMaybeFriend): IncomingMaybeFriend.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: BaseMessage, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): BaseMessage;
-  static deserializeBinaryFromReader(message: BaseMessage, reader: jspb.BinaryReader): BaseMessage;
+  static serializeBinaryToWriter(message: IncomingMaybeFriend, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): IncomingMaybeFriend;
+  static deserializeBinaryFromReader(message: IncomingMaybeFriend, reader: jspb.BinaryReader): IncomingMaybeFriend;
 }
 
-export namespace BaseMessage {
+export namespace IncomingMaybeFriend {
   export type AsObject = {
-    id: number,
-    message: string,
+    publicId: string,
     uniqueName: string,
     displayName: string,
   }
 }
 
 export class IncomingMessage extends jspb.Message {
-  hasM(): boolean;
-  clearM(): void;
-  getM(): BaseMessage | undefined;
-  setM(value?: BaseMessage): void;
+  getUid(): number;
+  setUid(value: number): void;
+
+  getMessage(): string;
+  setMessage(value: string): void;
+
+  getFromUniqueName(): string;
+  setFromUniqueName(value: string): void;
+
+  getFromDisplayName(): string;
+  setFromDisplayName(value: string): void;
+
+  clearOtherRecipientsList(): void;
+  getOtherRecipientsList(): Array<IncomingMaybeFriend>;
+  setOtherRecipientsList(value: Array<IncomingMaybeFriend>): void;
+  addOtherRecipients(value?: IncomingMaybeFriend, index?: number): IncomingMaybeFriend;
 
   hasDeliveredAt(): boolean;
   clearDeliveredAt(): void;
@@ -681,23 +695,23 @@ export class IncomingMessage extends jspb.Message {
 
 export namespace IncomingMessage {
   export type AsObject = {
-    m?: BaseMessage.AsObject,
+    uid: number,
+    message: string,
+    fromUniqueName: string,
+    fromDisplayName: string,
+    otherRecipientsList: Array<IncomingMaybeFriend.AsObject>,
     deliveredAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     seen: boolean,
     delivered: boolean,
   }
 }
 
-export class OutgoingMessage extends jspb.Message {
-  hasM(): boolean;
-  clearM(): void;
-  getM(): BaseMessage | undefined;
-  setM(value?: BaseMessage): void;
+export class OutgoingFriend extends jspb.Message {
+  getUniqueName(): string;
+  setUniqueName(value: string): void;
 
-  hasSentAt(): boolean;
-  clearSentAt(): void;
-  getSentAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
-  setSentAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+  getDisplayName(): string;
+  setDisplayName(value: string): void;
 
   getDelivered(): boolean;
   setDelivered(value: boolean): void;
@@ -706,6 +720,42 @@ export class OutgoingMessage extends jspb.Message {
   clearDeliveredAt(): void;
   getDeliveredAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
   setDeliveredAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): OutgoingFriend.AsObject;
+  static toObject(includeInstance: boolean, msg: OutgoingFriend): OutgoingFriend.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: OutgoingFriend, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): OutgoingFriend;
+  static deserializeBinaryFromReader(message: OutgoingFriend, reader: jspb.BinaryReader): OutgoingFriend;
+}
+
+export namespace OutgoingFriend {
+  export type AsObject = {
+    uniqueName: string,
+    displayName: string,
+    delivered: boolean,
+    deliveredAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+  }
+}
+
+export class OutgoingMessage extends jspb.Message {
+  getUid(): number;
+  setUid(value: number): void;
+
+  getMessage(): string;
+  setMessage(value: string): void;
+
+  clearToFriendsList(): void;
+  getToFriendsList(): Array<OutgoingFriend>;
+  setToFriendsList(value: Array<OutgoingFriend>): void;
+  addToFriends(value?: OutgoingFriend, index?: number): OutgoingFriend;
+
+  hasSentAt(): boolean;
+  clearSentAt(): void;
+  getSentAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setSentAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OutgoingMessage.AsObject;
@@ -719,10 +769,10 @@ export class OutgoingMessage extends jspb.Message {
 
 export namespace OutgoingMessage {
   export type AsObject = {
-    m?: BaseMessage.AsObject,
+    uid: number,
+    message: string,
+    toFriendsList: Array<OutgoingFriend.AsObject>,
     sentAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
-    delivered: boolean,
-    deliveredAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
   }
 }
 
