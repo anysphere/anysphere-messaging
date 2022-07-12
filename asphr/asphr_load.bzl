@@ -28,6 +28,15 @@ def load_asphr_repos(asphr_path):
         url = "https://github.com/grailbio/bazel-toolchain/archive/{tag}.tar.gz".format(tag = BAZEL_TOOLCHAIN_TAG),
     )
 
+    # TODO(sualeh): this should be upgraded to something stable.
+    # Bug, main issue: cyclic dependency for rules_nodejs??
+    # http_archive(
+    #     name = "rules_proto_grpc",
+    #     sha256 = "a0519dccb89582a403a585fbdcd927d36894d43b5d9e71f445221d221d7106fd",
+    #     strip_prefix = "rules_proto_grpc-7ceb4ffaeaa9b3a4734bc7669b2a1c5aa65d9d73",
+    #     urls = ["https://github.com/rules-proto-grpc/rules_proto_grpc/archive/7ceb4ffaeaa9b3a4734bc7669b2a1c5aa65d9d73.tar.gz"],
+    # )
+
     http_archive(
         name = "rules_proto_grpc",
         sha256 = "507e38c8d95c7efa4f3b1c0595a8e8f139c885cb41a76cab7e20e4e67ae87731",
@@ -37,33 +46,32 @@ def load_asphr_repos(asphr_path):
 
     http_archive(
         name = "rules_proto",
-        sha256 = "66bfdf8782796239d3875d37e7de19b1d94301e8972b3cbd2446b332429b4df1",
-        strip_prefix = "rules_proto-4.0.0",
+        sha256 = "9850fcf6ad40fa348e6f13b2cfef4bb4639762f804794f2bf61d988f4ba0dae9",
+        strip_prefix = "rules_proto-4.0.0-3.19.2-2",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/refs/tags/4.0.0.tar.gz",
-            "https://github.com/bazelbuild/rules_proto/archive/refs/tags/4.0.0.tar.gz",
+            "https://github.com/bazelbuild/rules_proto/archive/refs/tags/4.0.0-3.19.2-2.tar.gz",
         ],
     )
 
     http_archive(
         name = "com_github_grpc_grpc",
-        sha256 = "9647220c699cea4dafa92ec0917c25c7812be51a18143af047e20f3fb05adddc",
-        strip_prefix = "grpc-1.43.0",
-        urls = ["https://github.com/grpc/grpc/archive/refs/tags/v1.43.0.tar.gz"],
+        sha256 = "271bdc890bf329a8de5b65819f0f9590a5381402429bca37625b63546ed19e54",
+        strip_prefix = "grpc-1.47.0",
+        urls = ["https://github.com/grpc/grpc/archive/refs/tags/v1.47.0.tar.gz"],
     )
 
     http_archive(
         name = "com_google_absl",
-        sha256 = "c696ed0f7fe14d2d5a95d89116dbeb0fa945d7c249c4c6ffc10a469c303628cb",
-        strip_prefix = "abseil-cpp-73316fc3c565e5998983b0fb502d938ccddcded2",
-        urls = ["https://github.com/abseil/abseil-cpp/archive/73316fc3c565e5998983b0fb502d938ccddcded2.zip"],  # master as of 2022-02-11
+        sha256 = "507ab77efa6b4c527c877707b7b184867ea809f769be2bb0ee4d548af477869d",
+        strip_prefix = "abseil-cpp-b35ae3281ac7be49b42dc574403ff5fbcf1788fb",
+        urls = ["https://github.com/abseil/abseil-cpp/archive/b35ae3281ac7be49b42dc574403ff5fbcf1788fb.zip"],  # master as of 2022-06-29
     )
 
     http_archive(
         name = "com_google_googletest",
-        sha256 = "5cf189eb6847b4f8fc603a3ffff3b0771c08eec7dd4bd961bfd45477dd13eb73",
-        strip_prefix = "googletest-609281088cfefc76f9d0ce82e1ff6c30cc3591e5",
-        urls = ["https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip"],
+        sha256 = "872e31f550e261936fc3aff1d0b5b454924466d4933aa4af1444af189fdd8598",
+        strip_prefix = "googletest-d9335595b4cd73c8450c18e4dbf1ee0801c23c2e",
+        urls = ["https://github.com/google/googletest/archive/d9335595b4cd73c8450c18e4dbf1ee0801c23c2e.zip"],  # master as of 2022-06-29
     )
 
     http_archive(
