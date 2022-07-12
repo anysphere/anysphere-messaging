@@ -99,8 +99,12 @@ function randint(rng: any, min: number, max: number): number {
   return Math.floor(rng() * (max - min + 1)) + min;
 }
 
+// StoryAnimationSmall is a variant of StoryAnimation that is used
+// in the last page. It has less strict requirements than StoryAnimation
+// and is mostly used because it looks nice.
 function StoryAnimationSmall({ seed }: { seed: string }): JSX.Element {
-  const KEYFRAMES = 5; // even if for some reason the time is timezone-dependent, mod 60 should still agree anywhere in the world
+  // see StoryAnimation for detailed information here
+  const KEYFRAMES = 20;
   const DURATION = 3000;
   const [shaseed, setShaseed] = useState("");
   const [keyframe, setKeyframe] = useState(0);
@@ -189,7 +193,6 @@ function StoryAnimationSmall({ seed }: { seed: string }): JSX.Element {
         transition={{
           duration: DURATION / 1000,
           ease: [0.6, 0.8, 0.4, 0.6],
-          // ease: "linear",
         }}
         initial={false}
       >
@@ -206,8 +209,6 @@ function StoryAnimationSmall({ seed }: { seed: string }): JSX.Element {
             }}
             transition={{
               duration: DURATION / 1000,
-              // ease: [0.6, 0.8, 0.1, 0.6],
-              // ease: "linear",
             }}
             initial={false}
           />
@@ -217,9 +218,25 @@ function StoryAnimationSmall({ seed }: { seed: string }): JSX.Element {
   );
 }
 
+// StoryAnimation is an animation with the goal of uniquely identifying the seed.
+// Requirements:
+//    1. Given a seed, the animation is deterministic.
+//    2. It is highly unlikely that two seeds give the same animation.
+//    3. It is very easy to tell if two animations are identical.
+//    4. It is easy to tell if two animations are different.
 function StoryAnimation({ seed }: { seed: string }): JSX.Element {
-  const KEYFRAMES = 60; // even if for some reason the time is timezone-dependent, mod 60 should still agree anywhere in the world
+  // Strategy: we pregenerate some number of keyframes, and interpolate between them.
+  // We make sure to time the animation based on the wallclock time,
+  // meaning that two computers showing the same animation will be synced.
+
+  // We use a divisor of 15*60 because all timezones are offset from each other
+  // with a granularity of a multiple of 15 minutes (fact check needed).
+  const KEYFRAMES = 60;
+  // We spend 2000 milliseconds between each keyframe.
   const DURATION = 2000;
+  // We hash the seed to make sure it is somewhat random-looking.
+  // This is to make sure that even if two seeds are nearly identical,
+  // the actual output will be very different still.
   const [shaseed, setShaseed] = useState("");
   const [keyframe, setKeyframe] = useState(0);
 
@@ -241,8 +258,6 @@ function StoryAnimation({ seed }: { seed: string }): JSX.Element {
   }, [keyframe]);
 
   const rng = useMemo(() => seedrandom(shaseed), [shaseed]);
-
-  // create circles (position, size, color)
 
   const n = useMemo(() => {
     return randint(rng, 15, 20);
@@ -281,10 +296,6 @@ function StoryAnimation({ seed }: { seed: string }): JSX.Element {
     // the animation repeats every KEYFRAMES seconds, with 1 frame per second
     for (let i = 0; i < KEYFRAMES; i++) {
       const nextCircles = circles[i]!.map((circle) => {
-        const newPosition = {
-          x: circle.position.x + circle.velocity.x,
-          y: circle.position.y + circle.velocity.y,
-        };
         const newVelocity = {
           x: circle.velocity.x + randint(rng, -1, 1),
           y: circle.velocity.y + randint(rng, -1, 1),
@@ -292,7 +303,6 @@ function StoryAnimation({ seed }: { seed: string }): JSX.Element {
         const newSize = Math.max(circle.size + randint(rng, -2, 2), 20);
         return {
           ...circle,
-          // position: newPosition,
           position: {
             x: randint(rng, -500, 500),
             y: randint(rng, -200, 200),
@@ -307,9 +317,6 @@ function StoryAnimation({ seed }: { seed: string }): JSX.Element {
     return circles;
   }, [rng, n]);
 
-  console.log("n", n);
-  console.log("circles", keyframes[0]);
-
   return (
     <div
       className={classNames(
@@ -317,21 +324,6 @@ function StoryAnimation({ seed }: { seed: string }): JSX.Element {
         DEBUG_COLORS ? "bg-green-100" : ""
       )}
     >
-      {/* <div
-        className={`animation-delay-2000 absolute top-[20px] left-[135px] h-[115px] w-[115px] animate-blob rounded-full bg-gradient-to-t 
-                      from-asbrown-dark to-asbrown-dark/70 opacity-80 mix-blend-multiply shadow-lg shadow-stone-800 blur-lg filter
-                      md:top-[10px] md:left-[-10px] md:h-[230px] md:w-[230px] `}
-      ></div>
-      <div
-        className="absolute -top-[50px] left-[200px] h-[130px] w-[130px] animate-blob rounded-full bg-gradient-to-t from-asyellow-dark 
-                      to-asyellow-light/70 opacity-80 mix-blend-multiply shadow-lg shadow-stone-800 blur-lg filter 
-                      md:-top-[130px] md:left-[260px] md:h-[300px] md:w-[300px]"
-      ></div>
-      <div
-        className="animation-delay-4000 absolute -bottom-4 left-10 h-[190px] w-[190px] animate-blob rounded-full bg-gradient-to-t from-asgreen-dark
-                      to-asgreen-dark/70 opacity-90 mix-blend-multiply shadow-lg shadow-stone-800 blur-lg filter 
-                      md:-bottom-3 md:left-0 md:h-[440px] md:w-[440px]"
-      ></div> */}
       {keyframes[keyframe].map((circle, i) => (
         <motion.div
           className="blur-xs absolute top-1/2 left-1/2 rounded-full filter"
