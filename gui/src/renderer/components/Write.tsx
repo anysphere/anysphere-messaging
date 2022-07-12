@@ -237,7 +237,7 @@ function Write(props: {
             </div>
             <MultiSelect
               className="flex-1"
-              options={friends.slice(0, 1)}
+              options={friends}
               onEdit={(state: MultiSelectData) =>
                 props.edit({ ...props.data, multiSelectState: state })
               }
