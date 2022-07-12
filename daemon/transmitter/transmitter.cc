@@ -437,8 +437,7 @@ auto Transmitter::send() -> void {
         default:
           ASPHR_ASSERT(false);
       }
-      chunk.set_system_message_data(std::string(chunk_to_send.content.begin(),
-                                                chunk_to_send.content.end()));
+      chunk.set_system_message_data(string(chunk_to_send.system_message_data));
     } else {
       chunk.set_msg(std::string(chunk_to_send.content.begin(),
                                 chunk_to_send.content.end()));

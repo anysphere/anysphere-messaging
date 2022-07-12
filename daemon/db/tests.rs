@@ -265,7 +265,6 @@ fn test_send_msg() {
   db.add_incoming_async_invitation("hi_this_is_a_public_id", "hi from freidn 1").unwrap();
 
   let msg = "hi im a single chunk";
-  let msg_u8 = msg.as_bytes().to_vec();
   db.queue_message_to_send(vec!["friend_1".to_string()], msg, 1024).unwrap();
 
   let chunk_to_send = db.chunk_to_send(vec![]).unwrap();
@@ -291,7 +290,12 @@ fn test_send_msg() {
   assert!(chunk_to_send.sequence_number == 2);
   assert!(chunk_to_send.chunks_start_sequence_number == 2);
   // assert!(chunk_to_send.message_uid == 0); // we don't necessarily know what message_uid sqlite chooses
-  assert!(chunk_to_send.content == "hi im a single chunk".to_string().as_bytes().to_vec());
+  let wire_msg = chunk_handler::WireMessage {
+    other_recipients: vec![],
+    msg: "hi im a single chunk".to_string(),
+  };
+  let serialized_wire_msg = chunk_handler::serialize_message(wire_msg);
+  assert!(chunk_to_send.content == serialized_wire_msg);
   assert!(chunk_to_send.write_key == br#"wwww"#.to_vec());
   assert!(chunk_to_send.num_chunks == 1);
 }

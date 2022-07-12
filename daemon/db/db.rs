@@ -2244,7 +2244,7 @@ impl DB {
   /// Arguments:
   ///
   /// * `to_unique_name`: The unique name of the friend we're sending to.
-  /// * `message`: The message to send.
+  /// * `message`: The string message to send. Not a fully serialized protobuf Message or WireMessage, because those messages need to be specialized to each friend it is sent to.
   /// * `chunks`: Vec<String>
   ///
   /// Returns:
@@ -2257,8 +2257,6 @@ impl DB {
     message: &str,
     chunk_size: i32,
   ) -> Result<(), DbError> {
-    // We chunk in C++ because we potentially need to do things with protobuf
-
     // What do we do here?
     // 1. Create a new message.
     // 2. Create a new sent message.
@@ -2271,8 +2269,6 @@ impl DB {
 
     self.check_rep(&mut conn);
 
-    // TODO: What is going on here?
-    // I'm not sure why we would need to chunk in rust...
     conn
       .transaction::<_, anyhow::Error, _>(|conn_b| {
         // TODO(sualeh, refactor): we should take all the names.
@@ -2285,14 +2281,20 @@ impl DB {
           .returning(message::uid)
           .get_result::<i32>(conn_b)?;
 
-        // chunk up the message into chunks of size chunk_size.
-        // TODO(sualeh): VERIFY
+        // For each user, we create a WireMessage and serialized it to a protobuf, and then chunk it up.
+        // TODO: do this for multiple users.
+        let wire_message = chunk_handler::WireMessage {
+          other_recipients: vec![], // TODO: fix this
+          msg: message.to_string(),
+        };
+        let serialized_message = chunk_handler::serialize_message(wire_message);
         let mut chunks = vec![];
-        for i in 0..(message.len() as i32 / chunk_size) {
+        let num_chunks = (serialized_message.len() as i32 + chunk_size - 1) / chunk_size;
+        for i in 0..num_chunks {
           let start = i * chunk_size;
-          let end = start + chunk_size;
-          let chunk = &message[start as usize..end as usize];
-          chunks.push(chunk.to_string());
+          let end = std::cmp::min(start + chunk_size, serialized_message.len() as i32);
+          let chunk = &serialized_message[start as usize..end as usize];
+          chunks.push(chunk);
         }
 
         diesel::insert_into(sent::table)
@@ -2303,8 +2305,7 @@ impl DB {
           ))
           .execute(conn_b)?;
 
-        // loop over all friends, and insert all chunks into the `sent_friend` table.
-        // TODO(sualeh, refactor): actually loop. not for now
+        // TODO: make this work for multiiple recipients
         diesel::insert_into(sent_friend::table)
           .values((
             sent_friend::sent_uid.eq(message_uid),
@@ -2315,22 +2316,22 @@ impl DB {
 
         let new_seqnum = self.get_seqnum_for_new_chunk(conn_b, friend_uid)?;
 
-        // TODO(sualeh, refactor): we need to chunk inside rust now.
-        // // Inserting the chunks into the database.
-        // for (i, chunk) in chunks.iter().enumerate() {
-        //   diesel::insert_into(outgoing_chunk::table)
-        //     .values((
-        //       outgoing_chunk::to_friend.eq(friend_uid),
-        //       outgoing_chunk::sequence_number.eq(new_seqnum + i as i32),
-        //       outgoing_chunk::chunks_start_sequence_number.eq(new_seqnum),
-        //       outgoing_chunk::message_uid.eq(message_uid),
-        //       outgoing_chunk::content.eq(chunk),
-        //       outgoing_chunk::system.eq(false),
-        //       outgoing_chunk::system_message.eq(ffi::SystemMessage::OutgoingInvitation), // doesn't matter, we don't use this if control is false anyway
-        //       outgoing_chunk::system_message_data.eq(""), // doesn't matter, we don't use this if control is false anyway
-        //     ))
-        //     .execute(conn_b)?;
-        // }
+        // Inserting the chunks into the database.
+        // TODO: separate chunks for each friend
+        for (i, chunk) in chunks.iter().enumerate() {
+          diesel::insert_into(outgoing_chunk::table)
+            .values((
+              outgoing_chunk::to_friend.eq(friend_uid),
+              outgoing_chunk::sequence_number.eq(new_seqnum + i as i32),
+              outgoing_chunk::chunks_start_sequence_number.eq(new_seqnum),
+              outgoing_chunk::message_uid.eq(message_uid),
+              outgoing_chunk::content.eq(chunk),
+              outgoing_chunk::system.eq(false),
+              outgoing_chunk::system_message.eq(ffi::SystemMessage::OutgoingInvitation), // doesn't matter, we don't use this if control is false anyway
+              outgoing_chunk::system_message_data.eq(""), // doesn't matter, we don't use this if control is false anyway
+            ))
+            .execute(conn_b)?;
+        }
 
         Ok(())
       })

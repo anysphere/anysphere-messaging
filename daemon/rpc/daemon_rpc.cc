@@ -528,13 +528,6 @@ Status DaemonRpc::SendMessage(
     ServerContext* context,
     const asphrdaemon::SendMessageRequest* sendMessageRequest,
     asphrdaemon::SendMessageResponse* sendMessageResponse) {
-  /**
-    message SendMessageRequest {
-      repeated string unique_name = 1;
-      string message = 2;
-    }
-   */
-
   const auto names = sendMessageRequest->unique_name();
   const vector<string> unique_names(names.begin(), names.end());
   ASPHR_LOG_INFO("SendMessage() called.", rpc_call, "SendMessage",
@@ -547,17 +540,6 @@ Status DaemonRpc::SendMessage(
   }
 
   auto message = sendMessageRequest->message();
-
-  // chunk up the message and add it!
-  // TODO: we probably want to use a protobuf for the entire message
-  // and then chunk the resulting protobuf bytestring.
-  // this is necessary for when we start supporting images, for example
-  // for now, this is fine.
-  rust::Vec<rust::String> chunked_message;
-  for (size_t i = 0; i < message.size(); i += GUARANTEED_SINGLE_MESSAGE_SIZE) {
-    chunked_message.push_back(
-        message.substr(i, GUARANTEED_SINGLE_MESSAGE_SIZE));
-  }
 
   rust::Vec<rust::String> unique_names_vec;
   for (const auto& unique_name : unique_names) {

@@ -158,10 +158,10 @@ CREATE TABLE outgoing_chunk (
     sequence_number integer NOT NULL,
     chunks_start_sequence_number integer NOT NULL,
     message_uid integer, -- null iff system message
-    content blob NOT NULL,
+    content blob NOT NULL, -- must have length <= GUARANTEED_SINGLE_MESSAGE_SIZE, or else it will be truncated
     system boolean NOT NULL,
     system_message integer NOT NULL, -- corresponds to the enum value in the protobuf
-    system_message_data text NOT NULL, -- the content of the system message
+    system_message_data text NOT NULL, -- the content of the system message, must have length <= GUARANTEED_SINGLE_MESSAGE_SIZE, or else it will be truncated
     PRIMARY KEY (to_friend, sequence_number),
     FOREIGN KEY(message_uid) REFERENCES sent(uid),
     FOREIGN KEY(to_friend) REFERENCES friend(uid)

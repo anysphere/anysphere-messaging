@@ -95,6 +95,11 @@ auto encrypt_send(const asphrclient::Chunk& message_in, const string& write_key)
   if (message.msg().size() > GUARANTEED_SINGLE_MESSAGE_SIZE) {
     message.mutable_msg()->resize(GUARANTEED_SINGLE_MESSAGE_SIZE);
   }
+  // same thing with system message data
+  if (message.system_message_data().size() > GUARANTEED_SINGLE_MESSAGE_SIZE) {
+    message.mutable_system_message_data()->resize(
+        GUARANTEED_SINGLE_MESSAGE_SIZE);
+  }
 
   std::string plaintext;
   if (!message.SerializeToString(&plaintext)) {
