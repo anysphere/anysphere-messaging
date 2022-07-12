@@ -543,7 +543,7 @@ export default function AddFriendInPerson({
       </h3>
       <div className="absolute left-0 right-0 top-0 bottom-0">
         <StoryAnimation
-          seed={[story, theirstorylist.join("")].sort().join("")}
+          seed={[story, theirstorylist.join(" ")].sort().join(" ")}
         />
       </div>
       <div className="absolute left-0 right-0 bottom-8 grid items-center justify-center text-center">
