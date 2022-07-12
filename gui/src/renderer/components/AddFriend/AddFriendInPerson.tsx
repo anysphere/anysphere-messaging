@@ -104,7 +104,7 @@ function randint(rng: any, min: number, max: number): number {
 // and is mostly used because it looks nice.
 function StoryAnimationSmall({ seed }: { seed: string }): JSX.Element {
   // see StoryAnimation for detailed information here
-  const KEYFRAMES = 20;
+  const KEYFRAMES = 10;
   const DURATION = 3000;
   const [shaseed, setShaseed] = useState("");
   const [keyframe, setKeyframe] = useState(0);
@@ -229,9 +229,8 @@ function StoryAnimation({ seed }: { seed: string }): JSX.Element {
   // We make sure to time the animation based on the wallclock time,
   // meaning that two computers showing the same animation will be synced.
 
-  // We use a divisor of 15*60 because all timezones are offset from each other
-  // with a granularity of a multiple of 15 minutes (fact check needed).
-  const KEYFRAMES = 60;
+  // KEYFRAMES*DURATION must be a divisor of 15*60, because we want to make sure that even if two users are in different time zones they will still be synced. All timezones are offset from each other with a granularity of a multiple of 15 minutes (fact check needed).
+  const KEYFRAMES = 90;
   // We spend 2000 milliseconds between each keyframe.
   const DURATION = 2000;
   // We hash the seed to make sure it is somewhat random-looking.
@@ -263,6 +262,13 @@ function StoryAnimation({ seed }: { seed: string }): JSX.Element {
     return randint(rng, 15, 20);
   }, [rng]);
 
+  // we precompute all keyframes
+  // we need to do this because we want to sync by time, which means
+  // we need to random access into the animation.
+  // since we have a PRG and not a PRF at hand, we need to generate
+  // all pseudorandom numbers in advance. We could just generate a list
+  // of the random numbers, but then we might as well just compute all
+  // keyframes, which we do here.
   const keyframes = useMemo(() => {
     const initialCircles: {
       position: { x: number; y: number };
