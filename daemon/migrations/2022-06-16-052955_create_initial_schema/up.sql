@@ -115,6 +115,7 @@ CREATE TABLE draft (
 CREATE TABLE sent_friend (
     sent_uid integer NOT NULL,
     to_friend integer NOT NULL,
+    num_chunks integer NOT NULL, -- in sent_friend because the num_chunks to different people may possibly be different
     delivered boolean NOT NULL, -- true when the entire message has been delivered and acked
     delivered_at timestamp UNIQUE, -- time when the message was delivered. 
     PRIMARY KEY(sent_uid, to_friend),
@@ -134,7 +135,6 @@ CREATE TABLE draft_friend (
 -- sent includes messages that have only partially been sent, and still have chunks (delivered=false)
 CREATE TABLE sent (
     uid integer PRIMARY KEY NOT NULL,
-    num_chunks integer NOT NULL,
     sent_at timestamp NOT NULL, -- time when the user pressed 'Send'
     FOREIGN KEY(uid) REFERENCES message(uid)
 );

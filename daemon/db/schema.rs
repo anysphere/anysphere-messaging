@@ -132,7 +132,6 @@ diesel::table! {
 diesel::table! {
     sent (uid) {
         uid -> Integer,
-        num_chunks -> Integer,
         sent_at -> BigInt,
     }
 }
@@ -141,6 +140,7 @@ diesel::table! {
     sent_friend (sent_uid, to_friend) {
         sent_uid -> Integer,
         to_friend -> Integer,
+        num_chunks -> Integer,
         delivered -> Bool,
         delivered_at -> Nullable<BigInt>,
     }
@@ -177,20 +177,20 @@ diesel::joinable!(sent_friend -> sent (sent_uid));
 diesel::joinable!(transmission -> friend (friend_uid));
 
 diesel::allow_tables_to_appear_in_same_query!(
-  complete_friend,
-  config,
-  draft,
-  draft_friend,
-  friend,
-  incoming_chunk,
-  incoming_invitation,
-  message,
-  outgoing_async_invitation,
-  outgoing_chunk,
-  outgoing_sync_invitation,
-  received,
-  registration,
-  sent,
-  sent_friend,
-  transmission,
+    complete_friend,
+    config,
+    draft,
+    draft_friend,
+    friend,
+    incoming_chunk,
+    incoming_invitation,
+    message,
+    outgoing_async_invitation,
+    outgoing_chunk,
+    outgoing_sync_invitation,
+    received,
+    registration,
+    sent,
+    sent_friend,
+    transmission,
 );

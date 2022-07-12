@@ -146,14 +146,6 @@ pub mod chunk_handler {
 }
 
 #[derive(Insertable)]
-#[diesel(table_name = crate::schema::sent)]
-struct Sent {
-  pub uid: i32,
-  pub num_chunks: i32,
-  pub sent_at: i64, // unix micros
-}
-
-#[derive(Insertable)]
 #[diesel(table_name = crate::schema::received)]
 struct Received {
   pub uid: i32,
@@ -692,7 +684,10 @@ pub mod ffi {
     fn chunk_to_send(&self, uid_priority: Vec<i32>) -> Result<OutgoingChunkPlusPlus>;
     fn acks_to_send(&self) -> Result<Vec<OutgoingAck>>;
 
-    // fails if the friend does not exist, or does not satisfy enabled && !deleted
+    // fails if the friend does not exist or is deleted
+    // also fails if we are trying to send to multiple friends
+    // and one of them is not a complete_friend (because then we do not
+    // have a public id for them)
     fn queue_message_to_send(
       &self,
       to_unique_name: Vec<String>,
@@ -1893,6 +1888,7 @@ impl DB {
     use crate::schema::friend;
     use crate::schema::outgoing_chunk;
     use crate::schema::sent;
+    use crate::schema::sent_friend;
     use crate::schema::transmission;
 
     // We could do probably this in one query, by joining on the select statement
@@ -1984,6 +1980,10 @@ impl DB {
           .find(chosen_chunk)
           .inner_join(friend::table.inner_join(transmission::table))
           .inner_join(sent::table)
+          .inner_join(
+            sent_friend::table
+              .on(sent::uid.eq(sent_friend::sent_uid).and(sent_friend::to_friend.eq(friend::uid))),
+          )
           .select((
             outgoing_chunk::to_friend,
             outgoing_chunk::sequence_number,
@@ -1991,7 +1991,7 @@ impl DB {
             outgoing_chunk::message_uid,
             outgoing_chunk::content,
             transmission::write_key,
-            sent::num_chunks,
+            sent_friend::num_chunks,
             outgoing_chunk::system,
             outgoing_chunk::system_message,
             outgoing_chunk::system_message_data,
@@ -2142,6 +2142,21 @@ impl DB {
     let q = friend::table.filter(friend::unique_name.eq(unique_name)).select(friend::uid);
     q.first(conn)
   }
+  // Returns an error if the unique_name is not found in complete_friend
+  fn get_public_id_by_unique_name(
+    &self,
+    conn: &mut SqliteConnection,
+    unique_name: &str,
+  ) -> Result<String, diesel::result::Error> {
+    use crate::schema::complete_friend;
+    use crate::schema::friend;
+
+    let q = complete_friend::table
+      .inner_join(friend::table)
+      .filter(friend::unique_name.eq(unique_name))
+      .select(complete_friend::public_id);
+    q.first(conn)
+  }
 
   /// Get a friend from the database, given their public ID.
   ///
@@ -2277,60 +2292,63 @@ impl DB {
           .returning(message::uid)
           .get_result::<i32>(conn_b)?;
 
-        // TODO(sualeh, refactor): we should take all the names.
-        let first_friend = to_unique_name.first().unwrap();
-        let friend_uid = self.get_friend_uid_by_unique_name(conn_b, first_friend)?;
-
-        // For each user, we create a WireMessage and serialize it to a protobuf, and then chunk it up.
-        // TODO: do this for multiple users.
-        let wire_message = chunk_handler::WireMessage {
-          other_recipients: vec![], // TODO: fix this
-          msg: message.to_string(),
-        };
-        let serialized_message = chunk_handler::serialize_message(wire_message);
-        let mut chunks = vec![];
-        let num_chunks = (serialized_message.len() as i32 + chunk_size - 1) / chunk_size;
-        for i in 0..num_chunks {
-          let start = i * chunk_size;
-          let end = std::cmp::min(start + chunk_size, serialized_message.len() as i32);
-          let chunk = &serialized_message[start as usize..end as usize];
-          chunks.push(chunk);
-        }
-
         diesel::insert_into(sent::table)
-          .values((
-            sent::uid.eq(message_uid),
-            sent::num_chunks.eq(chunks.len() as i32),
-            sent::sent_at.eq(util::unix_micros_now()),
-          ))
+          .values((sent::uid.eq(message_uid), sent::sent_at.eq(util::unix_micros_now())))
           .execute(conn_b)?;
 
-        // TODO: make this work for multiiple recipients
-        diesel::insert_into(sent_friend::table)
-          .values((
-            sent_friend::sent_uid.eq(message_uid),
-            sent_friend::to_friend.eq(friend_uid),
-            sent_friend::delivered.eq(false),
-          ))
-          .execute(conn_b)?;
+        for unique_name in &to_unique_name {
+          let friend_uid = self.get_friend_uid_by_unique_name(conn_b, &unique_name)?;
 
-        let new_seqnum = self.get_seqnum_for_new_chunk(conn_b, friend_uid)?;
+          // For each user, we create a WireMessage and serialize it to a protobuf, and then chunk it up.
+          // this will fail if there are more than 1 to_unique_name and
+          // one of them is not a complete_friend. that is okay.
+          let mut other_recipients: Vec<String> = vec![];
+          for x in &to_unique_name {
+            if x != unique_name {
+              let public_id = self.get_public_id_by_unique_name(conn_b, &x)?;
+              other_recipients.push(public_id);
+            }
+          }
+          let wire_message = chunk_handler::WireMessage {
+            other_recipients: other_recipients,
+            msg: message.to_string(),
+          };
+          let serialized_message = chunk_handler::serialize_message(wire_message);
+          let mut chunks = vec![];
+          let num_chunks = (serialized_message.len() as i32 + chunk_size - 1) / chunk_size;
+          for i in 0..num_chunks {
+            let start = i * chunk_size;
+            let end = std::cmp::min(start + chunk_size, serialized_message.len() as i32);
+            let chunk = &serialized_message[start as usize..end as usize];
+            chunks.push(chunk);
+          }
 
-        // Inserting the chunks into the database.
-        // TODO: separate chunks for each friend
-        for (i, chunk) in chunks.iter().enumerate() {
-          diesel::insert_into(outgoing_chunk::table)
+          diesel::insert_into(sent_friend::table)
             .values((
-              outgoing_chunk::to_friend.eq(friend_uid),
-              outgoing_chunk::sequence_number.eq(new_seqnum + i as i32),
-              outgoing_chunk::chunks_start_sequence_number.eq(new_seqnum),
-              outgoing_chunk::message_uid.eq(message_uid),
-              outgoing_chunk::content.eq(chunk),
-              outgoing_chunk::system.eq(false),
-              outgoing_chunk::system_message.eq(ffi::SystemMessage::OutgoingInvitation), // doesn't matter, we don't use this if control is false anyway
-              outgoing_chunk::system_message_data.eq(""), // doesn't matter, we don't use this if control is false anyway
+              sent_friend::sent_uid.eq(message_uid),
+              sent_friend::to_friend.eq(friend_uid),
+              sent_friend::num_chunks.eq(chunks.len() as i32),
+              sent_friend::delivered.eq(false),
             ))
             .execute(conn_b)?;
+
+          let new_seqnum = self.get_seqnum_for_new_chunk(conn_b, friend_uid)?;
+
+          // Inserting the chunks into the database.
+          for (i, chunk) in chunks.iter().enumerate() {
+            diesel::insert_into(outgoing_chunk::table)
+              .values((
+                outgoing_chunk::to_friend.eq(friend_uid),
+                outgoing_chunk::sequence_number.eq(new_seqnum + i as i32),
+                outgoing_chunk::chunks_start_sequence_number.eq(new_seqnum),
+                outgoing_chunk::message_uid.eq(message_uid),
+                outgoing_chunk::content.eq(chunk),
+                outgoing_chunk::system.eq(false),
+                outgoing_chunk::system_message.eq(ffi::SystemMessage::OutgoingInvitation), // doesn't matter, we don't use this if control is false anyway
+                outgoing_chunk::system_message_data.eq(""), // doesn't matter, we don't use this if control is false anyway
+              ))
+              .execute(conn_b)?;
+          }
         }
 
         Ok(())
@@ -2592,7 +2610,7 @@ impl DB {
         sent::uid,
         friend::unique_name,
         friend::display_name,
-        sent::num_chunks,
+        sent_friend::num_chunks,
         sent::sent_at,
         sent_friend::delivered,
         sent_friend::delivered_at,
@@ -3278,17 +3296,14 @@ impl DB {
         .get_result::<i32>(conn_b)?;
 
       diesel::insert_into(sent::table)
-        .values((
-          sent::uid.eq(message_uid),
-          sent::num_chunks.eq(1),
-          sent::sent_at.eq(async_invitation.sent_at),
-        ))
+        .values((sent::uid.eq(message_uid), sent::sent_at.eq(async_invitation.sent_at)))
         .execute(conn_b)?;
 
       diesel::insert_into(sent_friend::table)
         .values((
           sent_friend::sent_uid.eq(message_uid),
           sent_friend::to_friend.eq(friend_uid),
+          sent_friend::num_chunks.eq(1),
           sent_friend::delivered.eq(true),
           sent_friend::delivered_at.eq(util::unix_micros_now()),
         ))
