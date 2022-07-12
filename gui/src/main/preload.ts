@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 //
 
-import { contextBridge, clipboard } from "electron";
+import { contextBridge, clipboard, contentTracing } from "electron";
 import { promisify } from "util";
 import grpc from "@grpc/grpc-js";
 import daemonM from "../daemon/schema/daemon_pb";
@@ -300,6 +300,17 @@ contextBridge.exposeInMainWorld(
       console.log("cancelling grpc!");
       call.cancel();
     };
+  }
+);
+
+contextBridge.exposeInMainWorld(
+  "getOutboxMessages",
+  async (
+    getOutboxMessagesRequest: daemon_pb.GetOutboxMessagesRequest.AsObject
+  ): Promise<daemon_pb.GetOutboxMessagesResponse> => {
+    // unimplemented
+    console.error("getOutboxMessages not implemented");
+    throw new Error("getOutboxMessages not implemented");
   }
 );
 
