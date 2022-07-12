@@ -5,7 +5,7 @@
 
 load("@cxx.rs//tools/bazel:rust_cxx_bridge.bzl", "rust_cxx_bridge")
 load("@rules_cc//cc:defs.bzl", "cc_library")
-load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_static_library", "rust_library", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_static_library", "rust_test")
 
 rust_binary(
     name = "main",
@@ -17,7 +17,7 @@ rust_binary(
     deps = [
         ":main_bridge",
         ":main_lib",
-        "@cxx.rs//:cxx"
+        "@cxx.rs//:cxx",
     ],
 )
 
@@ -44,7 +44,6 @@ rust_cxx_bridge(
 # NOTE: this includes chunk_handler_lib because the db_test needs it. I know :(
 # TODO(sualeh): remove the dependency on chunk_handler_lib once we can get modular parts to work.
 rust_static_library(
-# rust_library(
     name = "db_lib",
     srcs = [
         "db/db.rs",
@@ -54,8 +53,8 @@ rust_static_library(
     ],
     compile_data = [":migrations"],
     deps = [
-        ":db_bridge",
         ":chunk_handler_lib",
+        ":db_bridge",
         "@crate_index//:anyhow",
         "@crate_index//:diesel",
         "@crate_index//:diesel_migrations",
@@ -73,11 +72,11 @@ cc_library(
     ],
     linkstatic = True,
     deps = [
+        ":chunk_handler_lib",
         ":cpp_db_lib",
         ":cpp_include",
         ":db_bridge",
         ":db_lib",
-        ":chunk_handler_lib",
         "//client_lib",
         "//daemon/crypto:crypto_lib",
         "//daemon/identifier",
@@ -160,12 +159,11 @@ cc_library(
     ],
     linkstatic = True,
     deps = [
-        "@asphr//schema:message_proto_cc",
         ":db_bridge",
         "@asphr//asphr:asphr_lib",
+        "@asphr//schema:message_proto_cc",
     ],
 )
-
 
 # rust_static_library(
 # # rust_library(
@@ -182,13 +180,13 @@ cc_library(
 cc_library(
     name = "cpp_include",
     hdrs = [
+        "chunk_handler/chunk_handler.hpp",
         "main.hpp",
         "util.hpp",
-        "chunk_handler/chunk_handler.hpp"
     ],
     linkstatic = True,
     deps = [
-        "@asphr//asphr:asphr_lib",        
+        "@asphr//asphr:asphr_lib",
         "@cxx.rs//:core",
     ],
 )
