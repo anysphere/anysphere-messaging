@@ -2271,17 +2271,17 @@ impl DB {
 
     conn
       .transaction::<_, anyhow::Error, _>(|conn_b| {
-        // TODO(sualeh, refactor): we should take all the names.
-        let first_friend = to_unique_name.first().unwrap();
-        let friend_uid = self.get_friend_uid_by_unique_name(conn_b, first_friend)?;
-
         // Inserting a message into the database and then inserting a sent message into the `sent` table.
         let message_uid = diesel::insert_into(message::table)
           .values((message::content.eq(message),))
           .returning(message::uid)
           .get_result::<i32>(conn_b)?;
 
-        // For each user, we create a WireMessage and serialized it to a protobuf, and then chunk it up.
+        // TODO(sualeh, refactor): we should take all the names.
+        let first_friend = to_unique_name.first().unwrap();
+        let friend_uid = self.get_friend_uid_by_unique_name(conn_b, first_friend)?;
+
+        // For each user, we create a WireMessage and serialize it to a protobuf, and then chunk it up.
         // TODO: do this for multiple users.
         let wire_message = chunk_handler::WireMessage {
           other_recipients: vec![], // TODO: fix this
@@ -2467,8 +2467,10 @@ impl DB {
     let response: Vec<ffi::ReceivedPlusPlus> = response
       .into_iter()
       .map(|x| {
-        let other_recipients_public_ids: Vec<String> =
-          x.other_recipients_comma_sep.split(',').map(|x| x.to_string()).collect();
+        let other_recipients_public_ids: Vec<String> = match x.other_recipients_comma_sep.len() {
+          0 => Vec::new(),
+          _ => x.other_recipients_comma_sep.split(',').map(|x| x.to_string()).collect(),
+        };
 
         // try to find the name of the people associated with the public id in the other_recipients vector
         let mut other_recipients: Vec<ffi::MaybeFriend> = Vec::new();
