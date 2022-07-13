@@ -29,23 +29,23 @@ contextBridge.exposeInMainWorld("isPlatformMac", () => {
   return process.platform === "darwin";
 });
 
-contextBridge.exposeInMainWorld("send", async (message: string, to: string) => {
-  if (FAKE_DATA) {
-    return true;
+contextBridge.exposeInMainWorld(
+  "sendMessage",
+  async (
+    sendMessageRequest: daemon_pb.SendMessageRequest.AsObject
+  ): Promise<daemon_pb.SendMessageResponse.AsObject> => {
+    if (FAKE_DATA) {
+      return {};
+    }
+    const request = new daemonM.SendMessageRequest();
+    request.setUniqueNameList(sendMessageRequest.uniqueNameList);
+    request.setMessage(sendMessageRequest.message);
+    const sendMessage = promisify(daemonClient.sendMessage).bind(daemonClient);
+    return (
+      (await sendMessage(request)) as daemon_pb.SendMessageResponse
+    ).toObject();
   }
-  const request = new daemonM.SendMessageRequest();
-  request.setUniqueName(to);
-  request.setMessage(message);
-  const sendMessage = promisify(daemonClient.sendMessage).bind(daemonClient);
-  try {
-    const response = await sendMessage(request);
-    console.log("send response", response);
-    return true;
-  } catch (e) {
-    console.log(`error in send: ${e}`);
-    return false;
-  }
-});
+);
 
 contextBridge.exposeInMainWorld("getNewMessages", async () => {
   if (FAKE_DATA) {

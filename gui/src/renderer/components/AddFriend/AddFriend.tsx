@@ -2,7 +2,6 @@ import Modal from "../Modal";
 import { ModalType } from "../Modal";
 import { StatusProps } from "../Status";
 import * as React from "react";
-import { classNames } from "../../utils";
 import AddFriendChoice from "./AddFriendChoice";
 import AddFriendInPerson from "./AddFriendInPerson";
 import AddFriendRemote from "./AddFriendRemote";

@@ -89,7 +89,6 @@ declare global {
       killRequest: daemon_pb.KillRequest.AsObject
     ): Promise<daemon_pb.KillResponse.AsObject>;
 
-    send(message: string, to: string): Promise<boolean>;
     getNewMessages(): Promise<Message[]>;
     getAllMessages(): Promise<Message[]>;
     getNewMessagesStreamed(messageHandler: (_: Message[]) => void): () => void;

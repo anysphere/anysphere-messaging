@@ -6,8 +6,12 @@
 import * as daemon_pb from "daemon/schema/daemon_pb";
 import * as React from "react";
 import { Friend } from "../../types";
+import { StatusProps } from "../Status";
 import { useSearch, useFocus, classNames } from "../utils";
 import { SelectableList, ListItem } from "./SelectableList";
+
+const DEBUG_COLORS = false;
+// const DEBUG_COLORS = true;
 
 export type WriteFriend = {
   uniqueName: string;
@@ -174,14 +178,21 @@ function MultiSelect(props: {
   );
 }
 
-function Write(props: {
+function Write({
+  data,
+  onDone,
+  edit,
+  setStatus,
+  onClose,
+}: {
   data: WriteData;
-  send: (content: string, to: string) => void;
+  onDone: () => void;
   edit: (data: any) => void;
+  setStatus: (status: StatusProps) => void;
   onClose: () => void;
 }): JSX.Element {
-  const content = props.data.content;
-  const toDisplayName = props.data.multiSelectState.text;
+  const content = data.content;
+  const toDisplayName = data.multiSelectState.text;
 
   const [friends, setFriends] = React.useState<WriteFriend[]>([]);
 
@@ -240,46 +251,96 @@ function Write(props: {
   }, []);
 
   const send = React.useCallback(() => {
-    // find friend with the right display name
-    const friend = friends.find(
-      (friend) => friend.displayName === toDisplayName
-    );
-    if (!friend) {
-      console.log("not sending! need to select whom to send to");
+    if (data.multiSelectState.text.length > 0) {
+      setStatus({
+        message: `Unknown contact: ${data.multiSelectState.text}.`,
+        action: () => {},
+        actionName: null,
+      });
       return;
     }
-    props.send(content, friend.uniqueName);
-  }, [friends, props, content, toDisplayName]);
+    if (data.multiSelectState.friends.length === 0) {
+      setStatus({
+        message: `No contacts selected.`,
+        action: () => {},
+        actionName: null,
+      });
+      return;
+    }
+    const uniqueNames = data.multiSelectState.friends.map(
+      (friend) => friend.uniqueName
+    );
+    const displayNames = data.multiSelectState.friends.map(
+      (friend) => friend.displayName
+    );
+    window
+      .sendMessage({
+        uniqueNameList: uniqueNames,
+        message: content,
+      })
+      .then((_) => {
+        setStatus({
+          message: `Message sent to ${displayNames.join(", ")}.`,
+          action: () => {},
+          actionName: null,
+        });
+        onDone();
+      })
+      .catch((err) => {
+        console.error(err);
+        setStatus({
+          message: `Message failed to send.`,
+          action: () => {},
+          actionName: null,
+        });
+      });
+  }, [
+    data.multiSelectState.text,
+    data.multiSelectState.friends,
+    content,
+    setStatus,
+    onDone,
+  ]);
 
   React.useEffect(() => {
     const handler = (event: KeyboardEvent): void => {
       if (event.key === "Tab") {
         event.preventDefault();
-        props.edit({
-          ...props.data,
-          focus: props.data.focus === "content" ? "to" : "content",
+        edit({
+          ...data,
+          focus: data.focus === "content" ? "to" : "content",
         });
       } else if (event.metaKey && event.key === "Enter") {
         event.preventDefault();
         send();
       } else if (event.key === "Escape") {
         event.preventDefault();
-        props.onClose();
+        onClose();
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [props, send]);
+  }, [data, edit, onClose, send]);
 
   React.useEffect(() => {
-    if (props.data.focus === "content") {
+    if (data.focus === "content") {
       setContextTestareaFocusRef();
     }
-  }, [props.data.focus, setContextTestareaFocusRef]);
+  }, [data.focus, setContextTestareaFocusRef]);
 
   return (
-    <div className="mt-8 flex w-full place-content-center">
-      <div className="flex w-full max-w-3xl flex-col place-self-center bg-white p-2 px-4">
+    <div
+      className={classNames(
+        "relative mt-8 flex h-full w-full place-content-center",
+        DEBUG_COLORS ? "bg-yellow-300" : ""
+      )}
+    >
+      <div
+        className={classNames(
+          "absolute top-0 flex w-full max-w-3xl flex-col bg-white p-2 px-4",
+          DEBUG_COLORS ? "bg-gray-200" : ""
+        )}
+      >
         <div className="py-2">
           <div className="flex flex-row content-center items-start">
             <div className="grid place-content-center">
@@ -288,24 +349,24 @@ function Write(props: {
             <MultiSelect
               className="flex-1"
               options={friends.filter((friend) => {
-                return !props.data.multiSelectState.friends.find(
+                return !data.multiSelectState.friends.find(
                   (f) => f.uniqueName === friend.uniqueName
                 );
               })}
               onEdit={(state: MultiSelectData) =>
-                props.edit({ ...props.data, multiSelectState: state })
+                edit({ ...data, multiSelectState: state })
               }
               onNext={() =>
-                props.edit({
-                  ...props.data,
-                  focus: props.data.focus === "content" ? "to" : "content",
+                edit({
+                  ...data,
+                  focus: data.focus === "content" ? "to" : "content",
                 })
               }
-              multiSelectState={props.data.multiSelectState}
-              focused={props.data.focus === "to"}
+              multiSelectState={data.multiSelectState}
+              focused={data.focus === "to"}
               onClick={() => {
-                props.edit({
-                  ...props.data,
+                edit({
+                  ...data,
                   focus: "to",
                 });
               }}
@@ -313,24 +374,28 @@ function Write(props: {
           </div>
         </div>
         <hr className="border-asbrown-100" />
-        <textarea
+        <div
           onClick={() => {
-            props.edit({
-              ...props.data,
+            edit({
+              ...data,
               focus: "content",
             });
           }}
-          className="h-full w-full grow resize-none whitespace-pre-wrap border-0 p-0 pt-4 text-sm focus:outline-none focus:ring-0"
-          value={content}
-          onChange={(e) =>
-            props.edit({
-              ...props.data,
-              content: e.target.value,
+          className={classNames(
+            "h-full w-full grow resize-none whitespace-pre-wrap border-0 p-0 pt-4 text-sm focus:outline-none focus:ring-0"
+          )}
+          onInput={(e) =>
+            edit({
+              ...data,
+              content: e.currentTarget.innerText,
             })
           }
-          autoFocus={props.data.focus === "content"}
+          // autoFocus={data.focus === "content"}
           ref={contextTestareaFocusRef}
-        />
+          contentEditable
+        >
+          {content}
+        </div>
         <div className="flex flex-row content-center py-2">
           <div className="flex-1"></div>
           <button

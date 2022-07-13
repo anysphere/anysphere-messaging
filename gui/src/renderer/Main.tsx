@@ -84,30 +84,6 @@ function Main() {
     [selectedTab, updateTab]
   );
 
-  const send = React.useCallback(
-    (content: string, to: string) => {
-      window.send(content, to).then((s: boolean) => {
-        if (s) {
-          statusState.setStatus({
-            message: `Message sent to ${to}.`,
-            action: () => {},
-            actionName: null,
-          });
-          statusState.setVisible();
-        } else {
-          statusState.setStatus({
-            message: `Message to ${to} failed to send.`,
-            action: () => {},
-            actionName: null,
-          });
-          statusState.setVisible();
-        }
-      });
-      closeTab(selectedTab.id);
-    },
-    [selectedTab, closeTab, statusState]
-  );
-
   const writeMessage = React.useCallback(() => {
     const writeData: WriteData = {
       multiSelectState: {
@@ -191,11 +167,15 @@ function Main() {
     case TabType.Write:
       selectedComponent = (
         <Write
-          send={send}
+          onDone={() => closeTab(selectedTab.id)}
           edit={editWrite}
           data={selectedTab.data}
           onClose={() => {
             closeTab(selectedTab.id);
+          }}
+          setStatus={(x) => {
+            statusState.setStatus(x);
+            statusState.setVisible();
           }}
         />
       );
