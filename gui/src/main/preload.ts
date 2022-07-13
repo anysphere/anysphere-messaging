@@ -35,6 +35,7 @@ contextBridge.exposeInMainWorld(
     sendMessageRequest: daemon_pb.SendMessageRequest.AsObject
   ): Promise<daemon_pb.SendMessageResponse.AsObject> => {
     if (FAKE_DATA) {
+      console.log("Sending message:", sendMessageRequest);
       return {};
     }
     const request = new daemonM.SendMessageRequest();

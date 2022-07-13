@@ -5,10 +5,12 @@
 
 import * as daemon_pb from "daemon/schema/daemon_pb";
 import * as React from "react";
-import { Friend } from "../../types";
+import { Friend } from "../../../types";
 import { StatusProps } from "../Status";
-import { useSearch, useFocus, classNames } from "../utils";
-import { SelectableList, ListItem } from "./SelectableList";
+import { useSearch, useFocus, classNames } from "../../utils";
+import { SelectableList, ListItem } from "../SelectableList";
+import { Editor } from "./Editor";
+import { $getRoot, EditorState } from "lexical";
 
 const DEBUG_COLORS = false;
 // const DEBUG_COLORS = true;
@@ -191,12 +193,9 @@ function Write({
   setStatus: (status: StatusProps) => void;
   onClose: () => void;
 }): JSX.Element {
-  const content = data.content;
-  const toDisplayName = data.multiSelectState.text;
-
   const [friends, setFriends] = React.useState<WriteFriend[]>([]);
 
-  const [contextTestareaFocusRef, setContextTestareaFocusRef] = useFocus();
+  const editorStateRef = React.useRef<EditorState>(null);
 
   React.useEffect(() => {
     // get both the complete friends and the sync invitations
@@ -267,6 +266,19 @@ function Write({
       });
       return;
     }
+    if (editorStateRef.current === null) {
+      setStatus({
+        message: `Internal error. Please try again.`,
+        action: () => {},
+        actionName: null,
+      });
+      return;
+    }
+    let content = "";
+    editorStateRef.current.read(() => {
+      content = $getRoot().getTextContent();
+    });
+
     const uniqueNames = data.multiSelectState.friends.map(
       (friend) => friend.uniqueName
     );
@@ -297,7 +309,6 @@ function Write({
   }, [
     data.multiSelectState.text,
     data.multiSelectState.friends,
-    content,
     setStatus,
     onDone,
   ]);
@@ -322,22 +333,16 @@ function Write({
     return () => window.removeEventListener("keydown", handler);
   }, [data, edit, onClose, send]);
 
-  React.useEffect(() => {
-    if (data.focus === "content") {
-      setContextTestareaFocusRef();
-    }
-  }, [data.focus, setContextTestareaFocusRef]);
-
   return (
     <div
       className={classNames(
-        "relative mt-8 flex h-full w-full place-content-center",
+        "mt-8 flex w-full place-content-center",
         DEBUG_COLORS ? "bg-yellow-300" : ""
       )}
     >
       <div
         className={classNames(
-          "absolute top-0 flex w-full max-w-3xl flex-col bg-white p-2 px-4",
+          "flex w-full max-w-3xl flex-col bg-white p-2 px-4",
           DEBUG_COLORS ? "bg-gray-200" : ""
         )}
       >
@@ -374,28 +379,17 @@ function Write({
           </div>
         </div>
         <hr className="border-asbrown-100" />
-        <div
-          onClick={() => {
+        <div className="py-2" />
+        <Editor
+          focused={data.focus === "content"}
+          onFocus={() => {
             edit({
               ...data,
               focus: "content",
             });
           }}
-          className={classNames(
-            "h-full w-full grow resize-none whitespace-pre-wrap border-0 p-0 pt-4 text-sm focus:outline-none focus:ring-0"
-          )}
-          onInput={(e) =>
-            edit({
-              ...data,
-              content: e.currentTarget.innerText,
-            })
-          }
-          // autoFocus={data.focus === "content"}
-          ref={contextTestareaFocusRef}
-          contentEditable
-        >
-          {content}
-        </div>
+          editorStateRef={editorStateRef}
+        />
         <div className="flex flex-row content-center py-2">
           <div className="flex-1"></div>
           <button

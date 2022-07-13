@@ -7,8 +7,8 @@ import * as React from "react";
 
 import MessageList from "./components/MessageList";
 import Read from "./components/Read";
-import Write from "./components/Write";
-import { WriteData } from "./components/Write";
+import Write from "./components/Compose/Write";
+import { WriteData } from "./components/Compose/Write";
 import { RegisterModal } from "./components/RegisterModal";
 import { Message } from "../types";
 import { Tab, TabType, TabContainer, useTabs } from "./components/Tabs";
