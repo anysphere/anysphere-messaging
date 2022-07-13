@@ -75,13 +75,13 @@ function MultiSelect(props: {
     selectableOptions.push(
       `No contacts matching ${props.multiSelectState.text}`
     );
-  }
-
-  if (
-    props.options.length === 0 &&
-    props.multiSelectState.friends.length === 0
-  ) {
-    selectableOptions.push("No contacts. Add some!");
+  } else {
+    if (
+      props.options.length === 0 &&
+      props.multiSelectState.friends.length === 0
+    ) {
+      selectableOptions.push("No contacts. Add some!");
+    }
   }
 
   const [inputRef, setInputRef] = useFocus();
