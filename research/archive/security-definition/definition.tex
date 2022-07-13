@@ -1,0 +1,150 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{yufei}
+\setlength{\parindent}{0em}
+\setlength{\parskip}{1em}
+\title{Security Definition for Anysphere}
+\date{July 13, 2022}
+\newcommand{\MAC}{\text{MAC}}
+\newcommand{\Gen}{\text{Gen}}
+\newcommand{\Enc}{\text{Enc}}
+\newcommand{\Dec}{\text{Dec}}
+\newcommand{\Com}{\text{Com}}
+\newcommand{\Verify}{\text{Verify}}
+\newcommand{\TU}{\mathsf{TU}}
+\newcommand{\msg}{\mathsf{msg}}
+\newcommand{\reg}{\mathsf{reg}}
+\newcommand{\req}{\mathsf{req}}
+\newcommand{\resp}{\mathsf{resp}}
+\newcommand{\cK}{\mathcal{K}}
+\newcommand{\Sim}{\mathsf{Sim}}
+\begin{document}
+\maketitle
+We design a security definition for a real-time multi-round messaging scheme. This draft is more based on the security definition presented in NIAR.
+
+\textbf{Currently, we assume all users have registered before execution. We also do not handle trust establishment.}
+\begin{definition}
+In this document, we divide our execution into discrete \textbf{timesteps}. In reality, each timestep might be a small unit of time, like 100ms. This is different from ``rounds" used in most MPM security definitions, since clients do not necessarily transmit real or fake messages at every timestep.
+\end{definition}
+\begin{definition}
+The \textbf{view} of a user is a tuple consisting of
+
+1. A list of friends of the user, and when the friend is added.
+
+2. A list of messages sent and received by the user, together with the time sent.
+\end{definition}
+\begin{definition}
+A \textbf{user input} is a command the user can issue to our messaging application. Currently, we support the following commands.
+
+$\mathsf{TrustEstablishment}(\reg)$: Add the user identified by $\reg$ as a friend, and enable the two parties to start a conversation.
+
+$\mathsf{Send}(\reg, \msg)$: Send the message $\msg$ to the user identified by $\reg$.
+
+
+\end{definition}
+\begin{definition}
+A \textbf{Messaging Scheme} is a tuple of polynomial time methods. We assume that the client and servers are stated, which means they have a database from which they can read or write between method calls.
+
+Client Side Algorithms.
+\begin{itemize}
+    \item $D_C.\mathsf{Register}(1^{\lambda}, i) \to \reg$, takes in a security parameter $\lambda$, the index $i$ of the client, and outputs a public registration info $\reg$ and initializes the client database $D_C$.
+    
+    \item $D_C.\mathsf{UserInteract}(t, \cI) \to \req$, takes in a set $\cI$ of user inputs, updates the local storage to reflect that, and issues a request $\req$ to the server. The request can be empty, which means the client doesn't request the server on that timestep.
+    
+    \item $D_C.\mathsf{ServerInteract}(t, \resp)\to \lambda$, updates the database given the server response $\resp$.
+    
+    \item $D_C.\mathsf{GetView}() \to V$, outputs the view of the client.
+\end{itemize}
+
+Server Side Algorithms.
+
+\begin{itemize}
+    \item $D_S.\mathsf{InitServer}(1^{\lambda}, N)$, takes in the security parameter $\lambda$, number of users $N$, and initializes the server side database $D_S$.
+    \item $D_S.\mathsf{ClientInteract}(t, \{\req_i\}_{i = 1}^n) \to \{\resp_i\}_{i = 1}^n$, responds to all client requests of the timestep.
+\end{itemize}
+\end{definition}
+We now define how the algorithm will be executed, and correctness
+\begin{definition}[ Honest Server Experiment]
+\textbf{Parameters}: \begin{enumerate}
+    \item $\lambda$, the security parameter.
+    \item $N$, the number of users, bounded above by a polynomial function $N(\lambda)$ of $\lambda$.
+    \item $T$, the number of timesteps, bounded above by a polynomial function $T(\lambda)$ of $\lambda$.
+    \item For each user $i$ and timestep $t$, a set of user inputs $\cI_{i, t}$, whose length is bounded by a constant.
+\end{enumerate}
+\textbf{Execution}:
+\begin{enumerate}
+\item $D_S\leftarrow \mathsf{InitServer}(1^{\lambda}, N)$. For each $i \in [N]$, $\reg_i \leftarrow D_C[i].\mathsf{Register}(1^{\lambda}, i)$. 
+\item For $t$ from $1$ to $T$:
+    \begin{enumerate}
+    \item For each $i \in [N]$, $\req_i \leftarrow D_C[i].\mathsf{UserInteract}(t, \cI)$.
+    
+    \item $\{\resp_i\} \leftarrow D_S.\mathsf{ClientInteract}(t, \{\req_i\})$.
+    
+    \item For each $i \in [N]$, $D_C[i].\mathsf{ServerInteract}(t, \resp_i)$.
+    \end{enumerate}
+\end{enumerate}
+\end{definition}
+The definition of correctness is a bit tricky: we do not immediately read all messages sent by our friends. Instead, we settle for a pair of weaker consistency models defined in 6.033. %https://www.microsoft.com/en-us/research/wp-content/uploads/2011/10/ConsistencyAndBaseballReport.pdf
+\begin{definition}
+Define the correct view given user inputs. Informally speaking, the correct view should satisfy
+\begin{enumerate}
+    \item The list of friends should contain the friends we called $\mathsf{TrustEstablishment}$ on.
+    \item Messages from a user with established trust should be present and timestamped correctly.
+    \item No other friends or messages should be present.
+\end{enumerate}
+\end{definition}
+\begin{definition}[Correctness]
+ We say a messaging scheme is \textbf{correct} if the following consistency models are satisfied. 
+ 
+ Take any choice of parameters of our main experiment, any index $i \in [N]$, and any time $T$. Let $V \leftarrow D_C[i].\mathsf{GetView}()$ be the view of user $i$ after timestep $T$. Then
+
+1) \textbf{Consistent Prefix}: $V$ is identical to the correct view of the user $i$ if a prefix of user inputs have been executed on each machine.
+
+2) \textbf{Eventual Consistency}: There is a polynomial function $T'(\lambda)$ such that if $T \geq T'(\lambda)$, then $V$ must be identical to the correct view of the user $i$ if all user inputs have been executed.
+
+\end{definition}
+We use the real world-ideal world definition of metadata privacy.
+\begin{definition}[Real world Experiment $\mathsf{Real}^{\cA}(1^{\lambda})$]
+Same notation as above. Let $\cA$ be a stateful adversary. Let $\cK, \cH$ denote the set of compromised/honest users. The real-world experiment is described below.
+\begin{enumerate}
+\item $N, T, \cK, \cH, \{\cI_{i, t}\}_{i \in \cH, t \in T} \leftarrow \cA(1^{\lambda})$.
+\item For each $i \in \cH$, $\reg_i \leftarrow D_C[i].\mathsf{Register}(1^{\lambda}, i)$. 
+\item For $t$ from $1$ to $T$:
+    \begin{enumerate}
+    \item For each $i \in H$, $\req_i \leftarrow D_C[i].\mathsf{UserInteract}(t, \cI_{i, t})$.
+    
+    \item $\{\resp_i\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\reg_i\}_{i \in \cH}, \{\req_i\}_{i \in \cH})$.
+    
+    \item For each $i \in \cH$, $D_C[i].\mathsf{ServerInteract}(t, \resp_i)$.
+    \end{enumerate}
+\end{enumerate}
+\end{definition}
+\begin{definition}[Leakage]
+Let $\cK$ be compromised users, and let $H = [N] - \cK$ be honest users. Let $\{\cI_{i, t}\}_{i \in H, t \in [T]}$ be the input from honest users. We define the \textbf{Leakage} $\mathsf{Leak}(\{\cI_{i, t}\}, \cK)$ as the set of informations known to compromised users if the user inputs are executed by a trusted third party. Informally, it contains the time and contents of
+\begin{enumerate}
+    \item Trust establishment with compromised users.
+    \item Messages sent to the compromised users.
+\end{enumerate}
+CF attack?
+\end{definition}
+\begin{definition}[Ideal World Experiment $\mathsf{Ideal}^{\cA, \Sim}(1^{\lambda})$]
+Same notations as above. Let $\Sim$ be a simulator, which is a stated Turing machine. The ideal-world experiment is described below.
+\begin{enumerate}
+\item $N, T, \cK, \cH, \{\cI_{i, t}\}_{i \in \cH, t \in [T]} \leftarrow \cA(1^{\lambda})$.
+\item $\{\reg_i\}_{i \in \cH} \leftarrow \Sim(1^{\lambda}, N, T, \cK, \mathsf{Leak}(\{\cI_{i, t}\}, \cK))$. 
+\item For $t$ from $1$ to $T$:
+    \begin{enumerate}
+    \item For each $i \in \cH$, $\req_i \leftarrow \Sim(t, i)$.
+    
+    \item $\{\resp_i\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\reg_i\}_{i \in \cH}, \{\req_i\}_{i \in \cH})$.
+    
+    \item $\Sim(t, \{\resp_i\}_{i \in \cH})$.
+    \end{enumerate}
+\end{enumerate}
+\end{definition}
+\begin{definition}[Simulation Security]
+We say a messaging scheme is SIM-secure iff there exsits a p.p.t simulator $\Sim$ such that for any p.p.t adversary $\cA$, and any polynomial upper bounds on $N$ and $T$, the view of $\cA$ is indistinguishable in $\mathsf{Real}^{\cA}(1^{\lambda})$ and $\mathsf{Ideal}^{\cA, \mathsf{\Sim}}(1^{\lambda})$.
+\end{definition}
+
+
+\end{document}
