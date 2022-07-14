@@ -33,7 +33,7 @@ export default function AddFriend({
           onClose={onClose}
           setStatus={setStatus}
           chooseInperson={() => {
-            window
+            window.daemon
               .getMyPublicID()
               .then((publicID) => {
                 setStory(publicID.story);
@@ -48,7 +48,7 @@ export default function AddFriend({
               });
           }}
           chooseRemote={() => {
-            window
+            window.daemon
               .getMyPublicID()
               .then((publicID) => {
                 setPublicID(publicID.publicId);
