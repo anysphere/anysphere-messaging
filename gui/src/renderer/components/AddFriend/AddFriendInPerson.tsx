@@ -3,6 +3,8 @@ import { classNames } from "../../utils";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import seedrandom from "seedrandom";
 import { motion } from "framer-motion";
+import spellCheck from "./SpellCheck";
+
 
 const DEBUG_COLORS = false;
 // const DEBUG_COLORS = true;
@@ -56,7 +58,7 @@ export function StoryForm({
   setTheirStory(story: string[]): void;
 }): JSX.Element {
   return (
-    <div className="grid grid-cols-1 gap-4">
+    <div className="grid grid-cols-1 gap-4" spellCheck="true">
       {theirstory.map((line, i) => (
         <div className="flex flex-row gap-4" key={i}>
           <p className="text-sm text-asbrown-300">{i + 1}.</p>
@@ -72,6 +74,30 @@ export function StoryForm({
           border-asbrown-100 p-0 text-sm
           focus:border-asbrown-300 focus:ring-0"
             onChange={(e) => {
+              let sentence = e.target.value;
+              e.target.style.color = 'black';
+              if (sentence.length > 0) {
+                let words = sentence.split(" ");
+                let correct = true;
+                // too many words
+                if (words.length >= 5) {
+                  correct = false;
+                }
+                // check for typo
+                for (let w of words) {
+                  if (!spellCheck(w)) {
+                    correct = false;
+                    break;
+                  }
+                }
+                console.log(correct);
+                if (!correct) {
+                  e.target.style.color = 'red'; 
+                }
+                else {
+                  e.target.style.color = 'black';
+                }
+              }
               setTheirStory(
                 theirstory.map((line, j) => {
                   if (j == i) {
