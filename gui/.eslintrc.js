@@ -63,6 +63,12 @@ module.exports = {
         leadingUnderscore: "allow",
         trailingUnderscore: "allow",
       },
+      {
+        selector: "function",
+        format: ["camelCase", "PascalCase"],
+        leadingUnderscore: "allow",
+        trailingUnderscore: "allow",
+      },
 
       {
         selector: "variable",

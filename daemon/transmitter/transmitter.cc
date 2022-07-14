@@ -228,7 +228,8 @@ auto Transmitter::retrieve() -> void {
     read_indices.push_back(r.read_index);
   }
 
-  auto pir_replies = batch_retrieve_pir(client, read_indices);
+  vector<absl::StatusOr<asphrserver::ReceiveMessageResponse>> pir_replies =
+      batch_retrieve_pir(client, read_indices);
 
   assert(pir_replies.size() == RECEIVE_FRIENDS_PER_ROUND);
 
@@ -346,6 +347,11 @@ auto Transmitter::retrieve() -> void {
               chunk.num_chunks() > 1 ? chunk.chunks_start_sequence_number()
                                      : chunk.sequence_number();
 
+          auto chunk_content = rust::Vec<uint8_t>();
+          for (auto& c : chunk.msg()) {
+            chunk_content.push_back(c);
+          }
+
           // TODO: we probably don't want to cast to int32 here... let's use
           // int64s everywhere
           auto receive_chunk_status = G.db->receive_chunk(
@@ -354,7 +360,8 @@ auto Transmitter::retrieve() -> void {
                   .sequence_number = static_cast<int>(chunk.sequence_number()),
                   .chunks_start_sequence_number =
                       static_cast<int>(chunks_start_sequence_number),
-                  .content = chunk.msg()},
+                  .content = chunk_content,
+              },
               static_cast<int>(num_chunks));
           if (receive_chunk_status ==
               db::ReceiveChunkStatus::NewChunkAndNewMessage) {
@@ -368,7 +375,6 @@ auto Transmitter::retrieve() -> void {
             previous_success_receive_friend = std::optional<int>(f.uid);
           }
         }
-
       } else {
         ASPHR_LOG_INFO(
             "Failed to decrypt message (message was probably not for us, "
@@ -414,29 +420,30 @@ auto Transmitter::send() -> void {
     prioritized_friends.push_back(just_acked_friend.value());
   }
   string write_key;
-  asphrclient::Message message;
+  asphrclient::Chunk chunk;
   try {
     auto chunk_to_send = G.db->chunk_to_send(prioritized_friends);
     just_sent_friend = chunk_to_send.to_friend;
     write_key = rust_u8Vec_to_string(chunk_to_send.write_key);
 
-    message.set_sequence_number(chunk_to_send.sequence_number);
+    chunk.set_sequence_number(chunk_to_send.sequence_number);
 
     if (chunk_to_send.system) {
-      message.set_system(true);
+      chunk.set_system(true);
       switch (chunk_to_send.system_message) {
         case db::SystemMessage::OutgoingInvitation:
-          message.set_system_message(asphrclient::OUTGOING_INVITATION);
+          chunk.set_system_message(asphrclient::OUTGOING_INVITATION);
           break;
         default:
           ASPHR_ASSERT(false);
       }
-      message.set_system_message_data(std::string(chunk_to_send.content));
+      chunk.set_system_message_data(string(chunk_to_send.system_message_data));
     } else {
-      message.set_msg(std::string(chunk_to_send.content));
+      chunk.set_msg(std::string(chunk_to_send.content.begin(),
+                                chunk_to_send.content.end()));
       if (chunk_to_send.num_chunks > 1) {
-        message.set_num_chunks(chunk_to_send.num_chunks);
-        message.set_chunks_start_sequence_number(
+        chunk.set_num_chunks(chunk_to_send.num_chunks);
+        chunk.set_chunks_start_sequence_number(
             chunk_to_send.chunks_start_sequence_number);
       }
     }
@@ -445,11 +452,11 @@ auto Transmitter::send() -> void {
     ASPHR_LOG_INFO("No chunks to send (probably).", error_msg, e.what());
     just_sent_friend = std::nullopt;
     write_key = rust_u8Vec_to_string(dummy_address.value().write_key);
-    message.set_sequence_number(0);
-    message.set_msg("fake message");
+    chunk.set_sequence_number(0);
+    chunk.set_msg("fake chunk");
   }
 
-  auto encrypted_chunk_status = crypto::encrypt_send(message, write_key);
+  auto encrypted_chunk_status = crypto::encrypt_send(chunk, write_key);
   if (!encrypted_chunk_status.ok()) {
     ASPHR_LOG_ERR("Could not encrypt message.", error_msg,
                   encrypted_chunk_status.status().message());

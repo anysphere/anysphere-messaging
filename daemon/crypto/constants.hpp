@@ -17,6 +17,10 @@ constexpr int CRYPTO_NPUBBYTES = crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
 // the string, and 1 + 5 is for num_chunks and 1 + 5 is for
 // chunks_start_sequence_number element. -1 at the end is for the padding which
 // reserves one byte.
+//
+// this refers to the serialized version of a Message object defined in
+// message.proto. the actual plaintext utf8 message corresponding to this may be
+// smaller, because of other metadata like recipient information, etc.
 constexpr int GUARANTEED_SINGLE_MESSAGE_SIZE =
     MESSAGE_SIZE - (1 + 5) -
     (1 +

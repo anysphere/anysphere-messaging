@@ -4,14 +4,24 @@
 //
 
 import * as daemon_pb from "./daemon/schema/daemon_pb";
+import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
 
-export type Message = {
-  id: number;
-  from: string;
-  to: string;
-  message: string;
-  timestamp: Date;
-  type: "outgoing" | "incoming";
-};
-
+export type IncomingMessage = daemon_pb.IncomingMessage.AsObject;
+export type OutgoingMessage = daemon_pb.OutgoingMessage.AsObject;
 export type Friend = daemon_pb.FriendInfo.AsObject;
+
+// TODO(sualeh): move these to utils
+export function protobufDateToDate(
+  date: google_protobuf_timestamp_pb.Timestamp.AsObject
+): Date {
+  return new Date(date.seconds * 1e3 + date.nanos / 1e6);
+}
+
+export function dateToProtobufDate(
+  date: Date
+): google_protobuf_timestamp_pb.Timestamp.AsObject {
+  return {
+    seconds: Math.floor(date.getTime() / 1e3),
+    nanos: (date.getTime() % 1e3) * 1e6,
+  };
+}

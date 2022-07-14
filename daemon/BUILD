@@ -41,6 +41,8 @@ rust_cxx_bridge(
 )
 
 # static because depended upon by c++!
+# NOTE: this includes chunk_handler_lib because the db_test needs it. I know :(
+# TODO(sualeh): remove the dependency on chunk_handler_lib once we can get modular parts to work.
 rust_static_library(
     name = "db_lib",
     srcs = [
@@ -51,6 +53,7 @@ rust_static_library(
     ],
     compile_data = [":migrations"],
     deps = [
+        ":chunk_handler_lib",
         ":db_bridge",
         "@crate_index//:anyhow",
         "@crate_index//:diesel",
@@ -69,6 +72,7 @@ cc_library(
     ],
     linkstatic = True,
     deps = [
+        ":chunk_handler_lib",
         ":cpp_db_lib",
         ":cpp_include",
         ":db_bridge",
@@ -138,8 +142,26 @@ cc_library(
 )
 
 cc_library(
+    name = "chunk_handler_lib",
+    srcs = [
+        "chunk_handler/chunk_handler.cc",
+    ],
+    hdrs = [
+        "chunk_handler/chunk_handler.hpp",
+    ],
+    linkstatic = True,
+    deps = [
+        ":cpp_db_lib",
+        ":db_bridge",
+        "@asphr//asphr:asphr_lib",
+        "@asphr//schema:message_proto_cc",
+    ],
+)
+
+cc_library(
     name = "cpp_include",
     hdrs = [
+        "chunk_handler/chunk_handler.hpp",
         "main.hpp",
         "util.hpp",
     ],

@@ -4,7 +4,7 @@
 //
 
 import * as daemon_pb from "./daemon/schema/daemon_pb";
-import { Message, Friend } from "./types";
+import { IncomingMessage, OutgoingMessage, Friend } from "./types";
 
 declare global {
   interface Window {
@@ -57,13 +57,9 @@ declare global {
       getMessagesRequest: daemon_pb.GetMessagesRequest.AsObject
     ): Promise<daemon_pb.GetMessagesResponse.AsObject>;
 
-    getMessagesStreamed(
-      getMessagesRequest: daemon_pb.GetMessagesRequest.AsObject
-    ): Promise<daemon_pb.GetMessagesResponse.AsObject>;
-
     getOutboxMessages(
       getOutboxMessagesRequest: daemon_pb.GetOutboxMessagesRequest.AsObject
-    ): Promise<daemon_pb.GetOutboxMessagesResponse>;
+    ): Promise<daemon_pb.GetOutboxMessagesResponse.AsObject>;
 
     getSentMessages(
       getSentMessagesRequest: daemon_pb.GetSentMessagesRequest.AsObject
@@ -89,15 +85,12 @@ declare global {
       killRequest: daemon_pb.KillRequest.AsObject
     ): Promise<daemon_pb.KillResponse.AsObject>;
 
-    send(message: string, to: string): Promise<boolean>;
-    getNewMessages(): Promise<Message[]>;
-    getAllMessages(): Promise<Message[]>;
-    getNewMessagesStreamed(messageHandler: (_: Message[]) => void): () => void;
-    getAllMessagesStreamed(messageHandler: (_: Message[]) => void): () => void;
+    getMessagesStreamed(
+      getMessagesRequest: daemon_pb.GetMessagesRequest.AsObject,
+      messageHandler: (_: IncomingMessage[]) => void
+    ): () => void;
 
     hasRegistered(): Promise<boolean>;
-    getOutboxMessagesOLD(): Promise<Message[]>;
-    getSentMessagesOLD(): Promise<Message[]>;
   }
 }
 

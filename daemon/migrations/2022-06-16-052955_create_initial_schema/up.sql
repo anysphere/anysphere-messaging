@@ -108,21 +108,35 @@ CREATE TABLE message (
 
 CREATE TABLE draft (
     uid integer PRIMARY KEY NOT NULL,
+    FOREIGN KEY(uid) REFERENCES message(uid)
+);
+
+-- sent, friends have a many-to-many relationship.
+CREATE TABLE sent_friend (
+    sent_uid integer NOT NULL,
     to_friend integer NOT NULL,
-    FOREIGN KEY(uid) REFERENCES message(uid),
+    num_chunks integer NOT NULL, -- in sent_friend because the num_chunks to different people may possibly be different
+    delivered boolean NOT NULL, -- true when the entire message has been delivered and acked
+    delivered_at timestamp UNIQUE, -- time when the message was delivered. 
+    PRIMARY KEY(sent_uid, to_friend),
+    FOREIGN KEY(sent_uid) REFERENCES sent(uid),
+    FOREIGN KEY(to_friend) REFERENCES friend(uid)
+);
+
+-- draft, friends have a many-to-many relationship.
+CREATE TABLE draft_friend (
+    draft_uid integer NOT NULL,
+    to_friend integer NOT NULL,
+    PRIMARY KEY(draft_uid, to_friend),
+    FOREIGN KEY(draft_uid) REFERENCES draft(uid),
     FOREIGN KEY(to_friend) REFERENCES friend(uid)
 );
 
 -- sent includes messages that have only partially been sent, and still have chunks (delivered=false)
 CREATE TABLE sent (
     uid integer PRIMARY KEY NOT NULL,
-    to_friend integer NOT NULL,
-    num_chunks integer NOT NULL,
     sent_at timestamp NOT NULL, -- time when the user pressed 'Send'
-    delivered boolean NOT NULL, -- true when the entire message has been delivered and acked
-    delivered_at timestamp UNIQUE, -- time when the message was delivered. 
-    FOREIGN KEY(uid) REFERENCES message(uid),
-    FOREIGN KEY(to_friend) REFERENCES friend(uid)
+    FOREIGN KEY(uid) REFERENCES message(uid)
 );
 
 -- received includes messages that have only partially been received, and still have chunks (delivered=false)
@@ -132,7 +146,8 @@ CREATE TABLE received (
     num_chunks integer NOT NULL,
     received_at timestamp NOT NULL, -- timestamp when the first chunk was received
     delivered boolean NOT NULL, -- true when the entire message has been delivered
-    delivered_at timestamp UNIQUE, -- timestamp when the last chunk was delivered. unique because we want to use it as a monotonically increasing index in the order that messages are delivered. since we use microseconds collisions are unlikely, and if there is a collision we can just retry the entire transaction.
+    delivered_at timestamp UNIQUE, -- timestamp when the last chunk was delivered. unique because we want to use it as a monotonically increasing index in the order that messages are delivered. since we use microseconds collisions are unlikely, and if there is a collision we can just rengtry the entire transaction.
+    other_recipients_comma_sep text NOT NULL, -- comma-separated list of the public IDs of the other recipients
     seen boolean NOT NULL,
     FOREIGN KEY(uid) REFERENCES message(uid),
     FOREIGN KEY(from_friend) REFERENCES friend(uid)
@@ -143,9 +158,10 @@ CREATE TABLE outgoing_chunk (
     sequence_number integer NOT NULL,
     chunks_start_sequence_number integer NOT NULL,
     message_uid integer, -- null iff system message
-    content text NOT NULL,
+    content blob NOT NULL, -- must have length <= GUARANTEED_SINGLE_MESSAGE_SIZE, or else it will be truncated
     system boolean NOT NULL,
     system_message integer NOT NULL, -- corresponds to the enum value in the protobuf
+    system_message_data text NOT NULL, -- the content of the system message, must have length <= GUARANTEED_SINGLE_MESSAGE_SIZE, or else it will be truncated
     PRIMARY KEY (to_friend, sequence_number),
     FOREIGN KEY(message_uid) REFERENCES sent(uid),
     FOREIGN KEY(to_friend) REFERENCES friend(uid)
@@ -156,14 +172,11 @@ CREATE TABLE incoming_chunk (
     sequence_number integer NOT NULL,
     chunks_start_sequence_number integer NOT NULL,
     message_uid integer NOT NULL,
-    content text NOT NULL,
+    content blob NOT NULL,
     PRIMARY KEY (from_friend, sequence_number),
     FOREIGN KEY(message_uid) REFERENCES received(uid),
     FOREIGN KEY(from_friend) REFERENCES friend(uid)
 );
-
-
-
 
 
 

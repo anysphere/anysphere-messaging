@@ -23,7 +23,7 @@ interface RenderParams<T, TT = ListItem<T> | string> {
 interface SelectableListProps<T, TT = ListItem<T> | string> {
   items: TT[];
   onRender: (params: RenderParams<T>) => React.ReactElement;
-  globalAction: () => void;
+  globalAction?: () => void;
   searchable: boolean;
 }
 
@@ -131,7 +131,7 @@ export function SelectableList<T>({
       if (typeof item === "string") return;
       if (item.action) {
         item.action();
-        globalAction();
+        if (globalAction) globalAction();
         // if you click divider, you should only display things in that section
         // TODO(sualeh): this is a hack, we should be able to do this
         //   } else {
@@ -156,7 +156,7 @@ export function SelectableList<T>({
           }}
         >
           {rowVirtualizer.virtualItems.map((virtualRow) => {
-            const item = itemsRef.current[virtualRow.index];
+            const item = itemsRef.current[virtualRow.index] ?? "";
             const handlers = typeof item !== "string" && {
               onPointerMove: () =>
                 pointerMoved &&

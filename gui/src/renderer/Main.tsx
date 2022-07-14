@@ -5,11 +5,15 @@
 
 import * as React from "react";
 
-import MessageList from "./components/MessageList";
+import {
+  IncomingMessageList,
+  OutgoingMessageList,
+} from "./components/MessageList";
 import Read from "./components/Read";
-import Write from "./components/Write";
+import Write from "./components/Compose/Write";
+import { WriteData } from "./components/Compose/Write";
 import { RegisterModal } from "./components/RegisterModal";
-import { Message } from "../types";
+import { IncomingMessage, OutgoingMessage } from "../types";
 import { Tab, TabType, TabContainer, useTabs } from "./components/Tabs";
 import { randomString, truncate } from "./utils";
 import { CmdK } from "./components/cmd-k/CmdK";
@@ -27,7 +31,7 @@ const defaultTabs: Tab[] = [
   { type: TabType.All, name: "All", data: null, unclosable: true, id: "all" },
 ];
 
-function MainWrapper() {
+function MainWrapper(): JSX.Element {
   return (
     <StatusHandler>
       <Main />
@@ -35,7 +39,7 @@ function MainWrapper() {
   );
 }
 
-function Main() {
+function Main(): JSX.Element {
   const [
     selectedTab,
     tabs,
@@ -51,18 +55,24 @@ function Main() {
   const statusState = React.useContext(StatusContext);
 
   const readMessage = React.useCallback(
-    (message: Message, _mode: string) => {
+    (message: IncomingMessage | OutgoingMessage, _mode: string) => {
       for (const tab of tabs) {
-        if (tab.type === TabType.Read && tab.data.id === message.id) {
+        if (tab.type === TabType.Read && tab.data.id === message.uid) {
           switchTab(tab.id);
           return;
         }
       }
-      window.messageSeen({ id: message.id }).catch(console.error);
+      window.messageSeen({ id: message.uid }).catch(console.error);
+      let title = "";
+      if ("fromDisplayName" in message) {
+        title = `${truncate(message.message, 10)} - ${message.fromDisplayName}`;
+      } else {
+        title = `${truncate(message.message, 10)} - me`;
+      }
       const readTab = {
         type: TabType.Read,
-        name: `${truncate(message.message, 10)} - ${message.from}`,
-        id: `read-${message.id}`,
+        name: title,
+        id: `read-${message.uid}`,
         data: message,
         unclosable: false,
       };
@@ -83,40 +93,19 @@ function Main() {
     [selectedTab, updateTab]
   );
 
-  const send = React.useCallback(
-    (content: string, to: string) => {
-      window.send(content, to).then((s: boolean) => {
-        if (s) {
-          statusState.setStatus({
-            message: `Message sent to ${to}.`,
-            action: () => {},
-            actionName: null,
-          });
-          statusState.setVisible();
-        } else {
-          statusState.setStatus({
-            message: `Message to ${to} failed to send.`,
-            action: () => {},
-            actionName: null,
-          });
-          statusState.setVisible();
-        }
-      });
-      closeTab(selectedTab.id);
-    },
-    [selectedTab, closeTab, statusState]
-  );
-
   const writeMessage = React.useCallback(() => {
+    const writeData: WriteData = {
+      multiSelectState: {
+        text: "",
+        friends: [],
+      },
+      content: "",
+      focus: "to",
+    };
     const writeTab: Tab = {
       type: TabType.Write,
       name: "Compose",
-      data: {
-        content: "",
-        to: "",
-        multiSelectState: { text: "" },
-        focus: "to",
-      },
+      data: writeData,
       unclosable: false,
       id: "write-" + randomString(10),
     };
@@ -144,33 +133,33 @@ function Main() {
   switch (selectedTab.type) {
     case TabType.New:
       selectedComponent = (
-        <MessageList
-          readCallback={(m: Message) => readMessage(m, "new")}
-          messages="new"
+        <IncomingMessageList
+          readCallback={(m: IncomingMessage) => readMessage(m, "new")}
+          type="new"
         />
       );
       break;
     case TabType.All:
       selectedComponent = (
-        <MessageList
-          readCallback={(m: Message) => readMessage(m, "all")}
-          messages="all"
+        <IncomingMessageList
+          readCallback={(m: IncomingMessage) => readMessage(m, "all")}
+          type="all"
         />
       );
       break;
     case TabType.Outbox:
       selectedComponent = (
-        <MessageList
-          readCallback={(m: Message) => readMessage(m, "outbox")}
-          messages="outbox"
+        <OutgoingMessageList
+          readCallback={(m: OutgoingMessage) => readMessage(m, "outbox")}
+          type="outbox"
         />
       );
       break;
     case TabType.Sent:
       selectedComponent = (
-        <MessageList
-          readCallback={(m: Message) => readMessage(m, "sent")}
-          messages="sent"
+        <OutgoingMessageList
+          readCallback={(m: OutgoingMessage) => readMessage(m, "sent")}
+          type="sent"
         />
       );
       break;
@@ -187,11 +176,15 @@ function Main() {
     case TabType.Write:
       selectedComponent = (
         <Write
-          send={send}
+          onDone={() => closeTab(selectedTab.id)}
           edit={editWrite}
           data={selectedTab.data}
           onClose={() => {
             closeTab(selectedTab.id);
+          }}
+          setStatus={(x) => {
+            statusState.setStatus(x);
+            statusState.setVisible();
           }}
         />
       );

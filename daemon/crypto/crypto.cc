@@ -79,8 +79,8 @@ auto derive_read_write_keys(string my_public_key, string my_private_key,
   return std::make_pair(read_key, write_key);
 }
 
-auto encrypt_send(const asphrclient::Message& message_in,
-                  const string& write_key) -> asphr::StatusOr<pir_value_t> {
+auto encrypt_send(const asphrclient::Chunk& message_in, const string& write_key)
+    -> asphr::StatusOr<pir_value_t> {
   auto message = message_in;
   if (write_key.size() != crypto_aead_xchacha20poly1305_ietf_KEYBYTES) {
     return asphr::InvalidArgumentError("write_key is not the correct size");
@@ -91,9 +91,14 @@ auto encrypt_send(const asphrclient::Message& message_in,
   unsigned long long ciphertext_len;
 
   // truncate the message if it is too long
-  // this should never happne, but just in case
+  // this should never happen, but just in case
   if (message.msg().size() > GUARANTEED_SINGLE_MESSAGE_SIZE) {
     message.mutable_msg()->resize(GUARANTEED_SINGLE_MESSAGE_SIZE);
+  }
+  // same thing with system message data
+  if (message.system_message_data().size() > GUARANTEED_SINGLE_MESSAGE_SIZE) {
+    message.mutable_system_message_data()->resize(
+        GUARANTEED_SINGLE_MESSAGE_SIZE);
   }
 
   std::string plaintext;
@@ -145,7 +150,7 @@ auto encrypt_send(const asphrclient::Message& message_in,
 }
 
 auto decrypt_receive(const pir_value_t& ciphertext, const string& read_key)
-    -> asphr::StatusOr<asphrclient::Message> {
+    -> asphr::StatusOr<asphrclient::Chunk> {
   auto ciphertext_len =
       MESSAGE_SIZE - crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
   string ciphertext_str = "";
@@ -188,7 +193,7 @@ auto decrypt_receive(const pir_value_t& ciphertext, const string& read_key)
 
   plaintext.resize(unpadded_plaintext_len);
 
-  asphrclient::Message message;
+  asphrclient::Chunk message;
   if (!message.ParseFromString(plaintext)) {
     return absl::UnknownError("failed to parse message");
   }

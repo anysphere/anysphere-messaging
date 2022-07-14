@@ -48,20 +48,6 @@ struct IncomingChunkInterestingNumbers {
   message_uid: i32,
 }
 
-#[derive(Queryable)]
-struct OutgoingChunkPlusPlusMinusNumChunks {
-  pub to_friend: i32,
-  pub sequence_number: i32,
-  pub chunks_start_sequence_number: i32,
-  #[diesel(deserialize_as = crate::db::I32ButMinusOneIsNone)]
-  pub message_uid: i32, // -1 iff system message
-  pub content: String,
-  pub write_key: Vec<u8>,
-  pub system: bool,
-  #[diesel(deserialize_as = ffi::SystemMessage)]
-  pub system_message: ffi::SystemMessage,
-}
-
 impl Error for DbError {}
 
 impl fmt::Display for DbError {
@@ -136,15 +122,27 @@ mod util {
   }
 }
 
-#[derive(Insertable)]
-#[diesel(table_name = crate::schema::sent)]
-struct Sent {
-  pub uid: i32,
-  pub to_friend: i32,
-  pub num_chunks: i32,
-  pub sent_at: i64, // unix micros
-  pub delivered: bool,
-  pub delivered_at: Option<i64>, // unix micros
+#[cxx::bridge(namespace = "chunk_handler")]
+pub mod chunk_handler {
+  // try to keep this mostly in line with message.proto
+  // this is the message sent over the wire. it is not the
+  // message stored in our DB.
+  struct WireMessage {
+    other_recipients: Vec<String>,
+    msg: String,
+  }
+
+  unsafe extern "C++" {
+    include!("daemon/chunk_handler/chunk_handler.hpp");
+
+    // the message is serialized to and from a bytes array
+    // using Protobuf. We do not want to depend on protobuf
+    // in Rust so we simply pass this over to the C++ side.
+    // deserialization may fail
+    fn deserialize_message(serialized: Vec<u8>) -> Result<WireMessage>;
+    // serialization is always ok
+    fn serialize_message(message: WireMessage) -> Vec<u8>;
+  }
 }
 
 #[derive(Insertable)]
@@ -156,6 +154,7 @@ struct Received {
   pub received_at: i64, // unix micros
   pub delivered: bool,
   pub delivered_at: Option<i64>, // unix micros
+  pub other_recipients_comma_sep: String,
   pub seen: bool,
 }
 
@@ -294,7 +293,7 @@ pub mod ffi {
     pub completed_at: i64, // unix micros
   }
 
-  #[derive(Insertable)]
+  #[derive(Queryable, Insertable)]
   #[diesel(table_name = crate::schema::friend)]
   struct FriendFragment {
     pub unique_name: String,
@@ -398,14 +397,14 @@ pub mod ffi {
     pub sequence_number: i32,
     pub chunks_start_sequence_number: i32,
     pub message_uid: i32,
-    pub content: String,
+    pub content: Vec<u8>,
   }
 
   struct IncomingChunkFragment {
     pub from_friend: i32,
     pub sequence_number: i32,
     pub chunks_start_sequence_number: i32,
-    pub content: String,
+    pub content: Vec<u8>,
   }
 
   #[derive(Debug, AsExpression)]
@@ -421,12 +420,13 @@ pub mod ffi {
     pub chunks_start_sequence_number: i32,
     #[diesel(deserialize_as = crate::db::I32ButMinusOneIsNone)]
     pub message_uid: i32, // -1 iff system message
-    pub content: String,
+    pub content: Vec<u8>,
     pub write_key: Vec<u8>,
     pub num_chunks: i32,
     pub system: bool,
     #[diesel(deserialize_as = SystemMessage)]
     pub system_message: SystemMessage,
+    pub system_message_data: String,
   }
 
   #[derive(Queryable)]
@@ -456,21 +456,27 @@ pub mod ffi {
 
   /// `MessageQuery` is a query for messages.
   /// Properties:
-  /// 
+  ///
   /// * `limit`: The maximum number of messages to return. Use -1 to get all messages.
   /// * `filter`: New, All
   /// * `delivery_status`: Delivered, Undelivered, All
   /// * `sort_by`: SentAt, ReceivedAt, DeliveredAt, None. descending, always. newest first
   /// * `after`: unix micros. return all messages with a sort_by strictly greater than this. use 0 to disable.
   struct MessageQuery {
-    pub limit: i32, 
+    pub limit: i32,
     pub filter: MessageFilter,
     pub delivery_status: DeliveryStatus,
-    pub sort_by: SortBy, 
-    pub after: i64, 
+    pub sort_by: SortBy,
+    pub after: i64,
   }
 
-  #[derive(Queryable)]
+  // TODO(sualeh): when Option<T> gets supported inside CXX, please use it here.
+  struct MaybeFriend {
+    pub public_id: String,
+    pub unique_name: String,  // if empty then dont know
+    pub display_name: String, // if empty then dont know
+  }
+
   struct ReceivedPlusPlus {
     pub uid: i32,
     pub from_unique_name: String,
@@ -478,24 +484,27 @@ pub mod ffi {
     pub num_chunks: i32,
     pub received_at: i64,
     pub delivered: bool,
-    #[diesel(deserialize_as = crate::db::I64ButZeroIsNone)]
     pub delivered_at: i64, // 0 iff !delivered (cxx.rs doesn't support Option)
+    pub other_recipients: Vec<MaybeFriend>,
     pub seen: bool,
     pub content: String,
   }
-  #[derive(Queryable)]
+
+  struct OutgoingFriend {
+    pub unique_name: String,
+    pub display_name: String,
+    pub delivered: bool,
+    pub delivered_at: i64,
+  }
+
   struct SentPlusPlus {
     pub uid: i32,
-    pub to_unique_name: String,
-    pub to_display_name: String,
+    pub to_friends: Vec<OutgoingFriend>,
     pub num_chunks: i32,
     pub sent_at: i64,
-    pub delivered: bool,
-    #[diesel(deserialize_as = crate::db::I64ButZeroIsNone)]
-    pub delivered_at: i64, // 0 iff !delivered (cxx.rs doesn't support Option)
     pub content: String,
   }
-  #[derive(Queryable)]
+
   struct DraftPlusPlus {
     pub uid: i32,
     pub to_unique_name: String,
@@ -514,7 +523,6 @@ pub mod ffi {
   #[diesel(table_name = crate::schema::draft)]
   struct Draft {
     pub uid: i32,
-    pub to_friend: i32,
   }
 
   enum ReceiveChunkStatus {
@@ -605,6 +613,9 @@ pub mod ffi {
     // fails if no such friend exists
     fn get_random_enabled_friend_address_excluding(&self, uids: Vec<i32>) -> Result<Address>;
 
+    // this exists as a helper function if you need it. They take a connection
+    // fn get_friend_from_public_id(&self, public_id: &str) -> Result<CompleteFriend>;
+
     //
     // Invitations
     //
@@ -673,12 +684,15 @@ pub mod ffi {
     fn chunk_to_send(&self, uid_priority: Vec<i32>) -> Result<OutgoingChunkPlusPlus>;
     fn acks_to_send(&self) -> Result<Vec<OutgoingAck>>;
 
-    // fails if the friend does not exist, or does not satisfy enabled && !deleted
+    // fails if the friend does not exist or is deleted
+    // also fails if we are trying to send to multiple friends
+    // and one of them is not a complete_friend (because then we do not
+    // have a public id for them)
     fn queue_message_to_send(
       &self,
-      to_unique_name: &str,
+      to_unique_name: Vec<String>,
       message: &str,
-      chunks: Vec<String>,
+      chunk_size: i32,
     ) -> Result<()>;
 
     fn get_received_messages(&self, query: MessageQuery) -> Result<Vec<ReceivedPlusPlus>>;
@@ -725,7 +739,7 @@ impl DB {
         // we also enforce foreign key constraints
         c.batch_execute("PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 1000;")?;
         Ok(c)
-      },
+      }
       Err(e) => return Err(DbError::Unknown(format!("failed to connect to database, {}", e,))),
     }
   }
@@ -811,7 +825,6 @@ impl DB {
           "null_uid_and_not_system = {}",
           null_uid_and_not_system
         );
-        
         // Counting the number of rows in the outgoing_chunk table where the message_uid is not null
         // and the system is true.
         let non_null_uid_and_system = outgoing_chunk::table
@@ -826,9 +839,9 @@ impl DB {
         );
 
         // delivered_at is set iff delivered
-        let delivered_at_not_null_and_delivered_false_count = sent::table
-          .filter(sent::delivered_at.is_not_null())
-          .filter(sent::delivered.eq(false))
+        let delivered_at_not_null_and_delivered_false_count = sent_friend::table
+          .filter(sent_friend::delivered_at.is_not_null())
+          .filter(sent_friend::delivered.eq(false))
           .count()
           .get_result::<i64>(conn_b)?;
         assert!(
@@ -836,12 +849,11 @@ impl DB {
           "delivered_at_not_null_and_delivered_false_count = {}",
           delivered_at_not_null_and_delivered_false_count
         );
-        
         // Checking that there are no rows in the sent table where the delivered_at column is null and
         // the delivered column is true.
-        let delivered_at_null_and_delivered_true_count = sent::table
-          .filter(sent::delivered_at.is_null())
-          .filter(sent::delivered.eq(true))
+        let delivered_at_null_and_delivered_true_count = sent_friend::table
+          .filter(sent_friend::delivered_at.is_null())
+          .filter(sent_friend::delivered.eq(true))
           .count()
           .get_result::<i64>(conn_b)?;
         assert!(
@@ -1019,25 +1031,33 @@ impl DB {
             );
           }
         }
-
+        // get the sent_uid from the `sent_friend` table
+        let sent_uids = sent::table.select(sent::uid).get_results::<i32>(conn_b).unwrap();
+        for sent_uid in sent_uids {
+          assert!(
+            // check that the sent_uid is in the `sent_friend` table
+            sent_friend::table.filter(sent_friend::sent_uid.eq(sent_uid)).count().get_result::<i64>(conn_b).unwrap() > 0,
+            "sent_uid = {}",
+            sent_uid
+          );
+        }
         // ack_index must always be >= 0
         let ack_index_count = transmission::table.filter(transmission::ack_index.lt(0)).count().get_result::<i64>(conn_b)?;
         assert!(ack_index_count == 0, "ack_index_count = {}", ack_index_count);
 
-
         Ok(())
       });
 
-      match res {
-        Ok(()) => (),
-        Err(e) => {
-          // if e contains "database is locked", then we just return ()
-          if e.to_string().contains("database is locked") {
-            return;
-          }
-          panic!("{}", e);
+    match res {
+      Ok(()) => (),
+      Err(e) => {
+        // if e contains "database is locked", then we just return ()
+        if e.to_string().contains("database is locked") {
+          return;
         }
+        panic!("{}", e);
       }
+    }
   }
 
   #[cfg(not(debug_assertions))]
@@ -1124,11 +1144,10 @@ impl DB {
     Ok(())
   }
 
-
   /// Returns whether the user has registered.
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// Whether the user has registered.
   pub fn has_registered(&self) -> Result<bool, DbError> {
     let mut conn = self.connect()?;
@@ -1144,13 +1163,13 @@ impl DB {
   }
 
   /// It checks if there's already a registration in the database, and if not, it inserts one
-  /// 
+  ///
   /// Arguments:
-  /// 
+  ///
   /// * `reg`: ffi::RegistrationFragment
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// A Result<(), DbError>
   pub fn do_register(&self, reg: ffi::RegistrationFragment) -> Result<(), DbError> {
     let mut conn = self.connect()?;
@@ -1171,7 +1190,7 @@ impl DB {
         .values(&reg)
         .returning(registration::uid)
         .get_result::<i32>(conn_b)?;
-      
+
       // update the config table
       diesel::update(config::table)
         .set((config::has_registered.eq(true), config::registration_uid.eq(reg_uid)))
@@ -1189,11 +1208,11 @@ impl DB {
     }
   }
 
-  /// It gets the registration from the database. 
+  /// It gets the registration from the database.
   /// If there is no registration, it returns an error.
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// A Result<ffi::Registration, DbError>
   pub fn get_registration(&self) -> Result<ffi::Registration, DbError> {
     let mut conn = self.connect()?;
@@ -1209,9 +1228,9 @@ impl DB {
 
   /// It deletes the registration from the database.
   /// If there is no registration or it fails to delete it, it returns an error.
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// A Result<(), DbError>
   pub fn delete_registration(&self) -> Result<(), DbError> {
     let mut conn = self.connect()?;
@@ -1263,13 +1282,13 @@ impl DB {
   }
 
   /// Get the PIR secret key from the database.
-  /// 
+  ///
   /// The first thing we do is connect to the database. Then we use the `registration` table. We select
   /// the `pir_secret_key` column. We get the first row. We return the `pir_secret_key` column from that
   /// row
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// A vector of bytes
   pub fn get_pir_secret_key(&self) -> Result<Vec<u8>, DbError> {
     let mut conn = self.connect()?;
@@ -1285,9 +1304,9 @@ impl DB {
   }
 
   /// It gets the send info from the database
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// A tuple of the allocation and authentication_token
   pub fn get_send_info(&self) -> Result<ffi::SendInfo, DbError> {
     let mut conn = self.connect()?;
@@ -1304,12 +1323,12 @@ impl DB {
   }
 
   /// Get a friend from the database by their unique name.
-  /// 
+  ///
   /// Arguments:
   /// * `unique_name`: &str
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// A Result<ffi::Friend, DbError>
   pub fn get_friend(&self, unique_name: &str) -> Result<ffi::Friend, DbError> {
     let mut conn = self.connect()?;
@@ -1328,10 +1347,10 @@ impl DB {
 
   /// Get all the friends that are complete.
   /// If there are no friends, or there is a db error, it returns an error.
-  /// 
-  /// 
+  ///
+  ///
   /// Returns:
-  /// 
+  ///
   /// A vector of complete friends.
   pub fn get_friends(&self) -> Result<Vec<ffi::CompleteFriend>, DbError> {
     let mut conn = self.connect()?;
@@ -1362,11 +1381,11 @@ impl DB {
     }
   }
 
-  /// `get_friends_including_outgoing` returns a list of all friends, including outgoing invitations. 
+  /// `get_friends_including_outgoing` returns a list of all friends, including outgoing invitations.
   /// Ensures friends are not deleted
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// A vector of friends.
   pub fn get_friends_including_outgoing(&self) -> Result<Vec<ffi::Friend>, DbError> {
     let mut conn = self.connect()?;
@@ -1392,13 +1411,13 @@ impl DB {
   }
 
   /// It deletes a friend from the database.
-  /// 
+  ///
   /// Arguments:
-  /// 
+  ///
   /// * `unique_name`: The unique name of the friend to delete.
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// True if the friend was deleted, false if it was not.
   /// As a Result<(), DbError>
   pub fn delete_friend(&self, unique_name: &str) -> Result<(), DbError> {
@@ -1423,12 +1442,12 @@ impl DB {
   }
 
   /// It updates the latency value in the config table
-  /// 
+  ///
   /// Arguments:
   /// * `latency`: The number of seconds to wait before sending a message to the server.
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// A Result<(), DbError>
   /// The result is Ok if the update was successful, and Err if it was not.
   pub fn set_latency(&self, latency: i32) -> Result<(), DbError> {
@@ -1448,9 +1467,9 @@ impl DB {
   }
 
   /// It gets the latency from the database
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// A Result<i32, DbError>
   pub fn get_latency(&self) -> Result<i32, DbError> {
     let mut conn = self.connect()?;
@@ -1467,13 +1486,13 @@ impl DB {
 
   /// It updates the server_address column in the config table with the value of the server_address
   /// parameter
-  /// 
+  ///
   /// Arguments:
-  /// 
+  ///
   /// * `server_address`: The address of the server that the client will connect to.
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// A Result<(), DbError>
   pub fn set_server_address(&self, server_address: &str) -> Result<(), DbError> {
     let mut conn = self.connect()?;
@@ -1492,9 +1511,9 @@ impl DB {
   }
 
   /// It gets the server address from the database
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// A Result<String, DbError>
   pub fn get_server_address(&self) -> Result<String, DbError> {
     let mut conn = self.connect()?;
@@ -1521,14 +1540,14 @@ impl DB {
   /// *   corresponding to "OutgoingAsyncRequest", we promote the friend to a complete the friend.
   ///
   /// Arguments:
-  /// 
+  ///
   /// * `uid`: the uid of the friend
   /// * `ack`: the ack index read by the PIR from the friend's slot server.
   ///          A friend send an ACK(a) if it has seen all message up to and including chunk a.
   ///
-  /// 
-  /// Returns: 
-  /// 
+  ///
+  /// Returns:
+  ///
   /// a boolean value, true if the ack > old_ack, and the update was successful, false if it was not.
   /// return error if the update failed.
   pub fn receive_ack(&self, uid: i32, ack: i32) -> Result<bool, DbError> {
@@ -1536,6 +1555,7 @@ impl DB {
     use crate::schema::outgoing_async_invitation;
     use crate::schema::outgoing_chunk;
     use crate::schema::sent;
+    use crate::schema::sent_friend;
     use crate::schema::transmission;
 
     self.check_rep(&mut conn);
@@ -1584,23 +1604,28 @@ impl DB {
             .filter(outgoing_chunk::sequence_number.le(ack)),
         )
         .execute(conn_b)?;
+
         // potentially transition messages to delivered status!
         // when? when there are messages in received that aren't
         // delivered but also do not have incoming chunks
         //
         // Loading the uid of all the messages that have been sent to a friend but not delivered.
         let newly_delivered = sent::table
-          .filter(sent::to_friend.eq(uid))
-          .filter(sent::delivered.eq(false))
           .left_outer_join(outgoing_chunk::table)
+          .inner_join(sent_friend::table)
+          .filter(sent_friend::to_friend.eq(uid))
+          .filter(sent_friend::delivered.eq(false))
           .filter(outgoing_chunk::sequence_number.nullable().is_null())
-          .select(sent::uid)
-          .load::<i32>(conn_b)?;
+          .select((sent_friend::sent_uid, sent_friend::to_friend))
+          .load::<(i32, i32)>(conn_b)?;
 
         // we use ii to make sure that times are guaranteed to be unique
-        for (ii, uid) in (0_i64..).zip(newly_delivered.into_iter()) {
-          diesel::update(sent::table.find(uid))
-            .set((sent::delivered.eq(true), sent::delivered_at.eq(util::unix_micros_now() + ii)))
+        for (ii, (sent_id, friend_id)) in (0_i64..).zip(newly_delivered.into_iter()) {
+          diesel::update(sent_friend::table.find((sent_id, friend_id)))
+            .set((
+              sent_friend::delivered.eq(true),
+              sent_friend::delivered_at.eq(util::unix_micros_now() + ii),
+            ))
             .execute(conn_b)?;
         }
       }
@@ -1629,17 +1654,17 @@ impl DB {
   ///
   /// If the new sequence number is exactly one more than the last sequence number, then we update
   /// the database to reflect that change. Otherwise, we do nothing.
-  /// 
+  ///
   /// Arguments:
-  /// 
+  ///
   /// * `conn`: &mut SqliteConnection
   /// * `from_friend`: the friend number of the friend who sent the chunk
   /// * `sequence_number`: the sequence number of the chunk
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// A Result<ffi::ReceiveChunkStatus, diesel::result::Error>
-  /// 
+  ///
   /// enum ReceiveChunkStatus {
   ///   NewChunk,
   ///   NewChunkAndNewMessage,
@@ -1680,18 +1705,18 @@ impl DB {
   /// Handling recieving a chunk.
   ///
   /// Behaviour:
-  /// 
+  ///
   /// It receives a chunk, checks if it is the first chunk of a message, if it is, it creates a new
   /// message and inserts the chunk. If it is not, it inserts the chunk. It then checks if we have
   /// received all the chunks for a message. If so, it assembles the message and writes it to the database
-  /// 
+  ///
   /// Arguments:
-  /// 
+  ///
   /// * `chunk`: ffi::IncomingChunkFragment,
   /// * `num_chunks`: The number of chunks that the message is broken into.
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// a Result<ffi::ReceiveChunkStatus, DbError>
   pub fn receive_chunk(
     &self,
@@ -1705,7 +1730,7 @@ impl DB {
 
     self.check_rep(&mut conn);
 
-    let r = conn.transaction::<_, diesel::result::Error, _>(|conn_b| {
+    let r = conn.transaction::<_, anyhow::Error, _>(|conn_b| {
       // Updating the sequence number of the chunk.
       let chunk_status =
         self.update_sequence_number(conn_b, chunk.from_friend, chunk.sequence_number)?;
@@ -1718,7 +1743,7 @@ impl DB {
         incoming_chunk::table.filter(incoming_chunk::from_friend.eq(chunk.from_friend).and(
           incoming_chunk::chunks_start_sequence_number.eq(chunk.chunks_start_sequence_number),
         ));
-      
+
       // Checking if the chunk is the first chunk of a message. If it is, it creates a new message and
       // inserts the chunk. If it is not, it inserts the chunk.
       let message_uid;
@@ -1741,7 +1766,6 @@ impl DB {
             .values(message::content.eq(""))
             .get_result::<ffi::Message>(conn_b)?;
 
-          
           // Creating a new message and adding it to the database.
           message_uid = new_msg.uid;
           let new_received = Received {
@@ -1751,6 +1775,7 @@ impl DB {
             received_at: util::unix_micros_now(),
             delivered: false,
             delivered_at: None,
+            other_recipients_comma_sep: "".to_string(),
             seen: false,
           };
 
@@ -1768,7 +1793,7 @@ impl DB {
         }
       };
 
-      // Checking if we have received all the chunks for a message. 
+      // Checking if we have received all the chunks for a message.
       // If so, it assembles the message and writes it to the database.
       let q =
         incoming_chunk::table.filter(incoming_chunk::from_friend.eq(chunk.from_friend).and(
@@ -1781,19 +1806,27 @@ impl DB {
         // now assemble the message, write it, and be happy!
         let all_chunks =
           q.order_by(incoming_chunk::sequence_number).load::<ffi::IncomingChunk>(conn_b)?;
-        let msg = all_chunks.iter().fold(String::new(), |mut acc, chunk| {
-          acc.push_str(&chunk.content);
-          acc
-        });
+
+        // redice all incoming chunks to a single Vec<u8>
+        let mut assembled_chunks = Vec::new();
+        for chunk in all_chunks {
+          assembled_chunks.extend_from_slice(&chunk.content);
+        }
+
+        let msg_struct = chunk_handler::deserialize_message(assembled_chunks)?;
 
         // Updating the message table with the message content and updating the received table with the
         // delivered status and delivered_at time.
         diesel::update(message::table.find(message_uid))
-          .set((message::content.eq(msg),))
+          .set((message::content.eq(msg_struct.msg),))
           .execute(conn_b)?;
         // update the receive table
         diesel::update(received::table.find(message_uid))
-          .set((received::delivered.eq(true), received::delivered_at.eq(util::unix_micros_now())))
+          .set((
+            received::delivered.eq(true),
+            received::delivered_at.eq(util::unix_micros_now()),
+            received::other_recipients_comma_sep.eq(msg_struct.other_recipients.join(",")),
+          ))
           .execute(conn_b)?;
         // finally, delete the chunks
         diesel::delete(incoming_chunk::table.filter(
@@ -1815,16 +1848,33 @@ impl DB {
       Err(e) => Err(DbError::Unknown(format!("receive_chunk: {}", e))),
     }
   }
+}
 
+#[derive(Queryable)]
+struct OutgoingChunkPlusPlusMinusNumChunks {
+  pub to_friend: i32,
+  pub sequence_number: i32,
+  pub chunks_start_sequence_number: i32,
+  #[diesel(deserialize_as = crate::db::I32ButMinusOneIsNone)]
+  pub message_uid: i32, // -1 iff system message
+  pub content: Vec<u8>,
+  pub write_key: Vec<u8>,
+  pub system: bool,
+  #[diesel(deserialize_as = ffi::SystemMessage)]
+  pub system_message: ffi::SystemMessage,
+  pub system_message_data: String,
+}
+
+impl DB {
   /// Chose a chunk at random from the database, given the priorities and returns it.
-  /// 
+  ///
   /// Arguments:
-  /// 
+  ///
   /// * `uid_priority`: a list of friend uids. The chunk that is chosen will be from one of these
   /// friends.
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// A tuple of the to_friend, sequence_number, chunks_start_sequence_number, message_uid, content,
   /// write_key, num_chunks, system, and system_message.
   pub fn chunk_to_send(
@@ -1838,6 +1888,7 @@ impl DB {
     use crate::schema::friend;
     use crate::schema::outgoing_chunk;
     use crate::schema::sent;
+    use crate::schema::sent_friend;
     use crate::schema::transmission;
 
     // We could do probably this in one query, by joining on the select statement
@@ -1860,7 +1911,7 @@ impl DB {
           };
           acc
         });
-      
+
       // Ensure that it is not empty
       if first_chunk_per_friend.is_empty() {
         return Err(diesel::result::Error::NotFound).map_err(|e| e.into());
@@ -1884,7 +1935,7 @@ impl DB {
         .find(chosen_chunk)
         .select(outgoing_chunk::system)
         .first::<bool>(conn_b)?;
-      
+
       if is_system_message {
         // the number of chunks for system messages is always 1
         // unfortunately, system messages do not have an entry in the sent table
@@ -1904,6 +1955,7 @@ impl DB {
             transmission::write_key,
             outgoing_chunk::system,
             outgoing_chunk::system_message,
+            outgoing_chunk::system_message_data,
           ))
           .first::<OutgoingChunkPlusPlusMinusNumChunks>(conn_b)
           .context("chunk_to_send, cannot find chosen chunk in the outgoing_chunk table")?;
@@ -1918,16 +1970,20 @@ impl DB {
           num_chunks: 1,
           system: chunk_plusplus_minusnumchunks.system,
           system_message: chunk_plusplus_minusnumchunks.system_message,
+          system_message_data: chunk_plusplus_minusnumchunks.system_message_data,
         };
         Ok(chunk_plusplus)
       } else {
-
         // Finding the chosen chunk in the outgoing_chunk table and then joining it with the friend
         // table and the transmission table. It then joins the sent table and selects the chunk.
         let chunk_plusplus = outgoing_chunk::table
           .find(chosen_chunk)
           .inner_join(friend::table.inner_join(transmission::table))
           .inner_join(sent::table)
+          .inner_join(
+            sent_friend::table
+              .on(sent::uid.eq(sent_friend::sent_uid).and(sent_friend::to_friend.eq(friend::uid))),
+          )
           .select((
             outgoing_chunk::to_friend,
             outgoing_chunk::sequence_number,
@@ -1935,9 +1991,10 @@ impl DB {
             outgoing_chunk::message_uid,
             outgoing_chunk::content,
             transmission::write_key,
-            sent::num_chunks,
+            sent_friend::num_chunks,
             outgoing_chunk::system,
             outgoing_chunk::system_message,
+            outgoing_chunk::system_message_data,
           ))
           .first::<ffi::OutgoingChunkPlusPlus>(conn_b)
           .context("chunk_to_send, cannot find chosen chunk in the outgoing_chunk table")?;
@@ -1951,9 +2008,9 @@ impl DB {
   }
 
   /// Returns the acks that we need to send to the server.
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// A vector of OutgoingAck structs.
   pub fn acks_to_send(&self) -> Result<Vec<ffi::OutgoingAck>, DbError> {
     let mut conn = self.connect()?;
@@ -1982,13 +2039,13 @@ impl DB {
   }
 
   /// It gets the address of a friend from the database.
-  /// 
+  ///
   /// Arguments:
-  /// 
+  ///
   /// * `uid`: The user id of the friend.
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// A tuple of the friend_uid, read_index, read_key, write_key, and ack_index.
   pub fn get_friend_address(&self, uid: i32) -> Result<ffi::Address, DbError> {
     let mut conn = self.connect()?;
@@ -2013,13 +2070,13 @@ impl DB {
   }
 
   /// Get a random friend that is not deleted and not in the excluded list
-  /// 
+  ///
   /// Arguments:
-  /// 
+  ///
   /// * `uids`: A list of friend uids to exclude from the random selection.
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// A random friend address that is not deleted and is not in the excluded list.
   pub fn get_random_enabled_friend_address_excluding(
     &self,
@@ -2066,14 +2123,14 @@ impl DB {
   }
 
   /// Get the friend's uid from the database by their unique name.
-  /// 
+  ///
   /// Arguments:
-  /// 
+  ///
   /// * `conn`: &mut SqliteConnection
   /// * `unique_name`: The unique name of the friend.
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// The friend::uid
   fn get_friend_uid_by_unique_name(
     &self,
@@ -2085,22 +2142,82 @@ impl DB {
     let q = friend::table.filter(friend::unique_name.eq(unique_name)).select(friend::uid);
     q.first(conn)
   }
+  // Returns an error if the unique_name is not found in complete_friend
+  fn get_public_id_by_unique_name(
+    &self,
+    conn: &mut SqliteConnection,
+    unique_name: &str,
+  ) -> Result<String, diesel::result::Error> {
+    use crate::schema::complete_friend;
+    use crate::schema::friend;
 
+    let q = complete_friend::table
+      .inner_join(friend::table)
+      .filter(friend::unique_name.eq(unique_name))
+      .select(complete_friend::public_id);
+    q.first(conn)
+  }
+
+  /// Get a friend from the database, given their public ID.
+  ///
+  /// Arguments:
+  ///
+  /// * `conn`: &mut SqliteConnection
+  /// * `public_id`: The public ID of the friend to get.
+  ///
+  /// Returns:
+  /// The complete friend. If the friend does not exist, returns an error.
+  fn get_friend_from_public_id(
+    &self,
+    conn: &mut SqliteConnection,
+    public_id: &str,
+  ) -> Result<ffi::CompleteFriend, diesel::result::Error> {
+    use crate::schema::complete_friend;
+    use crate::schema::friend;
+
+    let q = friend::table
+      .inner_join(complete_friend::table)
+      .filter(complete_friend::public_id.eq(public_id))
+      .select((
+        friend::uid,
+        friend::unique_name,
+        friend::display_name,
+        friend::invitation_progress,
+        friend::deleted,
+        complete_friend::public_id,
+        complete_friend::completed_at,
+      ))
+      .load::<ffi::CompleteFriend>(conn);
+
+    if let Some(friend) = q.ok().unwrap().first() {
+      Ok(ffi::CompleteFriend {
+        uid: friend.uid,
+        unique_name: friend.unique_name.to_string(),
+        display_name: friend.display_name.to_string(),
+        invitation_progress: friend.invitation_progress,
+        deleted: friend.deleted,
+        public_id: friend.public_id.to_string(),
+        completed_at: friend.completed_at,
+      })
+    } else {
+      Err(diesel::result::Error::NotFound)
+    }
+  }
 
   /// It gets the next sequence number for a new chunk.
-  /// 
+  ///
   /// input: the uid of a friend.
   /// output: the next sequence number to use for sending a message to that friend.
   ///         this is equal to the previous seqnum + 1,
   ///         or 1 if no previous message exist
-  /// 
+  ///
   /// Arguments:
-  /// 
+  ///
   /// * `conn`: &mut SqliteConnection: this is the connection to the database.
   /// * `friend_uid`: the uid of the friend we're sending the chunk to.
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// The new sequence number.
   fn get_seqnum_for_new_chunk(
     &self,
@@ -2120,7 +2237,7 @@ impl DB {
         .limit(1)
         .load::<i32>(conn_b)
         .context("get_seqnum_for_new_chunk, failed to find old sequence number from the outgoing chunk table")?;
-      
+
       // Checking if the length of the vector is 0, if it is, then it is doing a database query to get
       // the value. If it is not 0, then it is using vec[0]
       let old_seqnum = match maybe_old_seqnum.len() {
@@ -2135,27 +2252,26 @@ impl DB {
     })
   }
 
-  /// We insert a message into the `message` table, 
+  /// We insert a message into the `message` table,
   /// then we insert a sent message into the `sent` table,
   /// then we insert the chunks into the `outgoing_chunk` table
-  /// 
+  ///
   /// Arguments:
-  /// 
+  ///
   /// * `to_unique_name`: The unique name of the friend we're sending to.
-  /// * `message`: The message to send.
+  /// * `message`: The string message to send. Not a fully serialized protobuf Message or WireMessage, because those messages need to be specialized to each friend it is sent to.
   /// * `chunks`: Vec<String>
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// A Result<(), DbError>
   /// Errors out on database failure, if friend doesn't exist.
   pub fn queue_message_to_send(
     &self,
-    to_unique_name: &str,
+    to_unique_name: Vec<String>,
     message: &str,
-    chunks: Vec<String>,
+    chunk_size: i32,
   ) -> Result<(), DbError> {
-    // We chunk in C++ because we potentially need to do things with protobuf
     // What do we do here?
     // 1. Create a new message.
     // 2. Create a new sent message.
@@ -2164,44 +2280,75 @@ impl DB {
     use crate::schema::message;
     use crate::schema::outgoing_chunk;
     use crate::schema::sent;
+    use crate::schema::sent_friend;
 
     self.check_rep(&mut conn);
 
     conn
       .transaction::<_, anyhow::Error, _>(|conn_b| {
-        let friend_uid = self.get_friend_uid_by_unique_name(conn_b, to_unique_name)?;
-
         // Inserting a message into the database and then inserting a sent message into the `sent` table.
         let message_uid = diesel::insert_into(message::table)
-         .values((message::content.eq(message),))
+          .values((message::content.eq(message),))
           .returning(message::uid)
           .get_result::<i32>(conn_b)?;
 
         diesel::insert_into(sent::table)
-          .values((
-            sent::uid.eq(message_uid),
-            sent::to_friend.eq(friend_uid),
-            sent::num_chunks.eq(chunks.len() as i32),
-            sent::sent_at.eq(util::unix_micros_now()),
-            sent::delivered.eq(false),
-          ))
+          .values((sent::uid.eq(message_uid), sent::sent_at.eq(util::unix_micros_now())))
           .execute(conn_b)?;
 
-        let new_seqnum = self.get_seqnum_for_new_chunk(conn_b, friend_uid)?;
+        for unique_name in &to_unique_name {
+          let friend_uid = self.get_friend_uid_by_unique_name(conn_b, &unique_name)?;
 
-        // Inserting the chunks into the database.
-        for (i, chunk) in chunks.iter().enumerate() {
-          diesel::insert_into(outgoing_chunk::table)
+          // For each user, we create a WireMessage and serialize it to a protobuf, and then chunk it up.
+          // this will fail if there are more than 1 to_unique_name and
+          // one of them is not a complete_friend. that is okay.
+          let mut other_recipients: Vec<String> = vec![];
+          for x in &to_unique_name {
+            if x != unique_name {
+              let public_id = self.get_public_id_by_unique_name(conn_b, &x)?;
+              other_recipients.push(public_id);
+            }
+          }
+          let wire_message = chunk_handler::WireMessage {
+            other_recipients: other_recipients,
+            msg: message.to_string(),
+          };
+          let serialized_message = chunk_handler::serialize_message(wire_message);
+          let mut chunks = vec![];
+          let num_chunks = (serialized_message.len() as i32 + chunk_size - 1) / chunk_size;
+          for i in 0..num_chunks {
+            let start = i * chunk_size;
+            let end = std::cmp::min(start + chunk_size, serialized_message.len() as i32);
+            let chunk = &serialized_message[start as usize..end as usize];
+            chunks.push(chunk);
+          }
+
+          diesel::insert_into(sent_friend::table)
             .values((
-              outgoing_chunk::to_friend.eq(friend_uid),
-              outgoing_chunk::sequence_number.eq(new_seqnum + i as i32),
-              outgoing_chunk::chunks_start_sequence_number.eq(new_seqnum),
-              outgoing_chunk::message_uid.eq(message_uid),
-              outgoing_chunk::content.eq(chunk),
-              outgoing_chunk::system.eq(false),
-              outgoing_chunk::system_message.eq(ffi::SystemMessage::OutgoingInvitation), // doesn't matter, we don't use this if control is false anyway
+              sent_friend::sent_uid.eq(message_uid),
+              sent_friend::to_friend.eq(friend_uid),
+              sent_friend::num_chunks.eq(chunks.len() as i32),
+              sent_friend::delivered.eq(false),
             ))
             .execute(conn_b)?;
+
+          let new_seqnum = self.get_seqnum_for_new_chunk(conn_b, friend_uid)?;
+
+          // Inserting the chunks into the database.
+          for (i, chunk) in chunks.iter().enumerate() {
+            diesel::insert_into(outgoing_chunk::table)
+              .values((
+                outgoing_chunk::to_friend.eq(friend_uid),
+                outgoing_chunk::sequence_number.eq(new_seqnum + i as i32),
+                outgoing_chunk::chunks_start_sequence_number.eq(new_seqnum),
+                outgoing_chunk::message_uid.eq(message_uid),
+                outgoing_chunk::content.eq(chunk),
+                outgoing_chunk::system.eq(false),
+                outgoing_chunk::system_message.eq(ffi::SystemMessage::OutgoingInvitation), // doesn't matter, we don't use this if control is false anyway
+                outgoing_chunk::system_message_data.eq(""), // doesn't matter, we don't use this if control is false anyway
+              ))
+              .execute(conn_b)?;
+          }
         }
 
         Ok(())
@@ -2214,17 +2361,34 @@ impl DB {
 
     Ok(())
   }
+}
 
-  /// `get_received_messages` 
+#[derive(Queryable)]
+struct ReceivedBigStruct {
+  uid: i32,
+  unique_name: String,
+  display_name: String,
+  num_chunks: i32,
+  received_at: i64,
+  delivered: bool,
+  #[diesel(deserialize_as = crate::db::I64ButZeroIsNone)]
+  delivered_at: i64,
+  other_recipients_comma_sep: String,
+  seen: bool,
+  content: String,
+}
+
+impl DB {
+  /// `get_received_messages`
   /// joins the `received`, `message` and `friend` tables, filters the query
   /// based on the `MessageQuery` and returns the result
-  /// 
+  ///
   /// Arguments:
-  /// 
+  ///
   /// * `query`: ffi::MessageQuery
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// Vec<ReceivedPlusPlus>
   pub fn get_received_messages(
     &self,
@@ -2235,7 +2399,7 @@ impl DB {
     use crate::schema::message;
     use crate::schema::received;
     self.check_rep(&mut conn);
-    
+
     // Joining message, friend and received tables.
     let q = received::table.inner_join(message::table).inner_join(friend::table).into_boxed();
 
@@ -2253,7 +2417,7 @@ impl DB {
         return Err(DbError::InvalidArgument("get_received_messages: invalid filter".to_string()))
       }
     };
-    
+
     // Order the query by the given order.
     let q = match query.delivery_status {
       ffi::DeliveryStatus::Delivered => q.filter(received::delivered.eq(true)),
@@ -2301,25 +2465,77 @@ impl DB {
       },
     };
 
-    q.select((
-      received::uid,
-      friend::unique_name,
-      friend::display_name,
-      received::num_chunks,
-      received::received_at,
-      received::delivered,
-      received::delivered_at,
-      received::seen,
-      message::content,
-    ))
-    .load::<ffi::ReceivedPlusPlus>(&mut conn)
-    .map_err(|e| DbError::Unknown(format!("get_received_messages: {}", e)))
+    let response = q
+      .select((
+        received::uid,
+        friend::unique_name,
+        friend::display_name,
+        received::num_chunks,
+        received::received_at,
+        received::delivered,
+        received::delivered_at,
+        received::other_recipients_comma_sep,
+        received::seen,
+        message::content,
+      ))
+      .load::<ReceivedBigStruct>(&mut conn)
+      .map_err(|e| DbError::Unknown(format!("get_received_messages: {}", e)))?;
+
+    // split the comma separated list of recipients into a vector of public ids
+    let response: Vec<ffi::ReceivedPlusPlus> = response
+      .into_iter()
+      .map(|x| {
+        let other_recipients_public_ids: Vec<String> = match x.other_recipients_comma_sep.len() {
+          0 => Vec::new(),
+          _ => x.other_recipients_comma_sep.split(',').map(|x| x.to_string()).collect(),
+        };
+
+        // try to find the name of the people associated with the public id in the other_recipients vector
+        let mut other_recipients: Vec<ffi::MaybeFriend> = Vec::new();
+
+        for public_id in other_recipients_public_ids {
+          let maybe_friend = self.get_friend_from_public_id(&mut conn, &public_id);
+
+          match maybe_friend {
+            Ok(friend) => {
+              other_recipients.push(ffi::MaybeFriend {
+                public_id: friend.public_id,
+                display_name: friend.display_name,
+                unique_name: friend.unique_name,
+              });
+            }
+            Err(_e) => {
+              other_recipients.push(ffi::MaybeFriend {
+                public_id: public_id,
+                display_name: "".to_string(),
+                unique_name: "".to_string(),
+              });
+            }
+          }
+        }
+
+        ffi::ReceivedPlusPlus {
+          uid: x.uid,
+          from_unique_name: x.unique_name,
+          from_display_name: x.display_name,
+          num_chunks: x.num_chunks,
+          received_at: x.received_at,
+          delivered: x.delivered,
+          delivered_at: x.delivered_at,
+          other_recipients,
+          seen: x.seen,
+          content: x.content,
+        }
+      })
+      .collect();
+
+    Ok(response)
   }
 
   /// Get the most recent time a message was delivered.
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// The most recent time a message was delivered.
   pub fn get_most_recent_received_delivered_at(&self) -> Result<i64, DbError> {
     let mut conn = self.connect()?;
@@ -2346,15 +2562,30 @@ impl DB {
       },
     }
   }
+}
 
+#[derive(Queryable)]
+struct SentBigStruct {
+  uid: i32,
+  unique_name: String,
+  display_name: String,
+  num_chunks: i32,
+  sent_at: i64,
+  delivered: bool,
+  #[diesel(deserialize_as = crate::db::I64ButZeroIsNone)]
+  delivered_at: i64,
+  content: String,
+}
+
+impl DB {
   /// Get Sent Messages, filtered and ordered to your liking.
-  /// 
+  ///
   /// Arguments:
-  /// 
+  ///
   /// * `query`: ffi::MessageQuery
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// A vector of SentPlusPlus structs.
   pub fn get_sent_messages(
     &self,
@@ -2366,26 +2597,101 @@ impl DB {
     use crate::schema::friend;
     use crate::schema::message;
     use crate::schema::sent;
+    use crate::schema::sent_friend;
 
-    let q = sent::table.inner_join(message::table).inner_join(friend::table).into_boxed();
+    let q = sent_friend::table
+      .inner_join(sent::table.inner_join(message::table))
+      .inner_join(friend::table)
+      .into_boxed();
 
-    let q = match query.limit {
-      -1 => q,
-      x => q.limit(x as i64),
+    // TODO: when we have a million messages, this will be slow.
+    let sent_big_structs = q
+      .select((
+        sent::uid,
+        friend::unique_name,
+        friend::display_name,
+        sent_friend::num_chunks,
+        sent::sent_at,
+        sent_friend::delivered,
+        sent_friend::delivered_at,
+        message::content,
+      ))
+      .load::<SentBigStruct>(&mut conn)
+      .map_err(|e| DbError::Unknown(format!("get_sent_messages: {}", e)))?;
+
+    // collect the vector to a map of vectors, keyed by message sent uid.
+    let mut sent_messages: HashMap<i32, Vec<SentBigStruct>> = HashMap::new();
+
+    for sent_message in sent_big_structs {
+      let uid = sent_message.uid;
+      let sent_vec = sent_messages.entry(uid).or_insert(Vec::new());
+      sent_vec.push(sent_message);
+    }
+
+    // move the map into a vector of Pair<uid, vector>
+    let mut sent_messages: Vec<(i32, Vec<SentBigStruct>)> = sent_messages.into_iter().collect();
+
+    // // Sorting the query based on the sort_by field.
+    // let q = match query.sort_by {
+    //   ffi::SortBy::None => q,
+    //   ffi::SortBy::SentAt => q.order_by(sent::sent_at.desc()),
+    //   ffi::SortBy::DeliveredAt => q.order_by(sent::delivered_at.desc()),
+    //   ffi::SortBy::ReceivedAt => {
+    //     return Err(DbError::InvalidArgument(
+    //       "Cannot sort by received_at when getting sent messages".to_string(),
+    //     ))
+    //   }
+    // sort the vector by the given order.
+    match query.sort_by {
+      ffi::SortBy::None => (),
+      ffi::SortBy::SentAt => sent_messages.sort_by(|a, b| a.1[0].sent_at.cmp(&b.1[0].sent_at)),
+      ffi::SortBy::DeliveredAt => {
+        return Err(DbError::InvalidArgument(
+          "we cannot decide on what the order should be.".to_string(),
+        ))
+      }
+      ffi::SortBy::ReceivedAt => {
+        return Err(DbError::InvalidArgument(
+          "Cannot sort by received_at when getting sent_messages".to_string(),
+        ))
+      }
+      _ => return Err(DbError::InvalidArgument("get_sent_messages: invalid sort_by".to_string())),
     };
 
-    let q = match query.filter {
-      ffi::MessageFilter::All => q,
+    // let q = match query.filter {
+    //   ffi::MessageFilter::All => q,
+    //   _ => {
+    //     return Err(DbError::InvalidArgument("get_sent_messages_query: invalid filter".to_string()))
+    //   }
+    // };
+    match query.filter {
+      ffi::MessageFilter::All => (),
       _ => {
         return Err(DbError::InvalidArgument("get_sent_messages_query: invalid filter".to_string()))
       }
     };
 
     // Filter on Delivery Status
-    let q = match query.delivery_status {
-      ffi::DeliveryStatus::Delivered => q.filter(sent::delivered.eq(true)),
-      ffi::DeliveryStatus::Undelivered => q.filter(sent::delivered.eq(false)),
-      ffi::DeliveryStatus::All => q,
+    // let q = match query.delivery_status {
+    //   ffi::DeliveryStatus::Delivered => q.filter(sent_friend::delivered.eq(true)),
+    //   ffi::DeliveryStatus::Undelivered => q.filter(sent_friend::delivered.eq(false)),
+    //   ffi::DeliveryStatus::All => q,
+    //   _ => {
+    //     return Err(DbError::InvalidArgument(
+    //       "get_sent_messages_query: invalid delivery status".to_string(),
+    //     ))
+    //   }
+    // };
+    match query.delivery_status {
+      ffi::DeliveryStatus::Delivered => {
+        // remove all entries of the map where the vector contains no friend to which a message was delivered
+        sent_messages.retain(|v| v.1.iter().any(|x| x.delivered));
+      }
+      ffi::DeliveryStatus::Undelivered => {
+        // remove all entries of the map where the vector contains no friend to which a message was not delivered
+        sent_messages.retain(|v| v.1.iter().any(|x| !x.delivered));
+      }
+      ffi::DeliveryStatus::All => (),
       _ => {
         return Err(DbError::InvalidArgument(
           "get_sent_messages_query: invalid delivery status".to_string(),
@@ -2393,30 +2699,19 @@ impl DB {
       }
     };
 
-    // Sorting the query based on the sort_by field.
-    let q = match query.sort_by {
-      ffi::SortBy::None => q,
-      ffi::SortBy::SentAt => q.order_by(sent::sent_at.desc()),
-      ffi::SortBy::DeliveredAt => q.order_by(sent::delivered_at.desc()),
-      ffi::SortBy::ReceivedAt => {
-        return Err(DbError::InvalidArgument(
-          "Cannot sort by received_at when getting sent messages".to_string(),
-        ))
-      }
-      _ => {
-        return Err(DbError::InvalidArgument(
-          "get_sent_messages_query: invalid sort_by".to_string(),
-        ))
-      }
-    };
-
     // Checking if the query has an after value. If it does, it is filtering the query by the after value.
-    let q = match query.after {
-      0 => q,
-      x => match query.sort_by {
-        ffi::SortBy::None => q,
-        ffi::SortBy::SentAt => q.filter(sent::sent_at.gt(x)),
-        ffi::SortBy::DeliveredAt => q.filter(sent::delivered_at.gt(x)),
+    match query.after {
+      0 => (),
+      t => match query.sort_by {
+        ffi::SortBy::None => (),
+        ffi::SortBy::SentAt => {
+          sent_messages.retain(|v| v.1.iter().any(|x| x.sent_at > t));
+        }
+        ffi::SortBy::DeliveredAt => {
+          return Err(DbError::InvalidArgument(
+            "get_sent_messages_query: invalid sort_by".to_string(),
+          ))
+        }
         ffi::SortBy::ReceivedAt => {
           return Err(DbError::InvalidArgument(
             "Cannot sort by received_at when getting sent_messages".to_string(),
@@ -2430,82 +2725,117 @@ impl DB {
       },
     };
 
-    q.select((
-      sent::uid,
-      friend::unique_name,
-      friend::display_name,
-      sent::num_chunks,
-      sent::sent_at,
-      sent::delivered,
-      sent::delivered_at,
-      message::content,
-    ))
-    .load::<ffi::SentPlusPlus>(&mut conn)
-    .map_err(|e| DbError::Unknown(format!("get_sent_messages: {}", e)))
-  }
+    // let q = match query.limit {
+    //   -1 => q,
+    //   x => q.limit(x as i64),
+    // };
+    match query.limit {
+      -1 => (),
+      x => sent_messages.truncate(x as usize),
+    }
 
+    // turn it into a vector of SentPlusPlus
+    let mut return_msgs: Vec<ffi::SentPlusPlus> = Vec::new();
+    for (uid, msgs) in sent_messages {
+      let mut sent_plus_plus = ffi::SentPlusPlus {
+        uid: uid,
+        to_friends: Vec::new(),
+        num_chunks: msgs[0].num_chunks,
+        sent_at: msgs[0].sent_at,
+        content: msgs[0].content.clone(),
+      };
+
+      for m in msgs {
+        let outgoing_friend = ffi::OutgoingFriend {
+          unique_name: m.unique_name.clone(),
+          display_name: m.display_name.clone(),
+          delivered: m.delivered,
+          delivered_at: m.delivered_at,
+        };
+        sent_plus_plus.to_friends.push(outgoing_friend);
+      }
+      return_msgs.push(sent_plus_plus);
+    }
+
+    Ok(return_msgs)
+  }
+}
+
+#[allow(dead_code)]
+struct DraftBigStruct {
+  uid: i32,
+  to_unique_name: String,
+  to_display_name: String,
+  content: String,
+}
+
+impl DB {
   /// Get Draft messages, filtered and ordered to your liking.
   /// It joins the `draft` table with the `message` table and the `friend` table, and then selects the
   /// `uid`, `unique_name`, `display_name`, and `content` columns from the joined table
-  /// 
+  ///
   /// Arguments:
-  /// 
+  ///
   /// * `query`: ffi::MessageQuery
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// A vector of DraftPlusPlus structs.
   pub fn get_draft_messages(
     &self,
-    query: ffi::MessageQuery,
+    _query: ffi::MessageQuery,
   ) -> Result<Vec<ffi::DraftPlusPlus>, DbError> {
     let mut conn = self.connect()?;
     self.check_rep(&mut conn);
 
-    use crate::schema::draft;
-    use crate::schema::friend;
-    use crate::schema::message;
+    // error: unimplemented
+    return Err(DbError::Unimplemented("get_draft_messages".to_string()));
 
-    let q = draft::table.inner_join(message::table).inner_join(friend::table).into_boxed();
+    // use crate::schema::draft;
+    // use crate::schema::draft_friend;
+    // use crate::schema::friend;
+    // use crate::schema::message;
 
-    // Filtering and sorting on the necessary query paramaters.
-    let q = match query.limit {
-      -1 => q,
-      x => q.limit(x as i64),
-    };
+    // let q = draft::table.inner_join(message::table).inner_join(friend::table).into_boxed();
 
-    let q = match query.filter {
-      ffi::MessageFilter::All => q,
-      _ => return Err(DbError::InvalidArgument("get_draft_messages: invalid filter".to_string())),
-    };
+    // // Filtering and sorting on the necessary query paramaters.
+    // let q = match query.limit {
+    //   -1 => q,
+    //   x => q.limit(x as i64),
+    // };
 
-    let q = match query.delivery_status {
-      ffi::DeliveryStatus::All => q,
-      _ => {
-        return Err(DbError::InvalidArgument(
-          "get_draft_messages: invalid delivery status".to_string(),
-        ))
-      }
-    };
+    // let q = match query.filter {
+    //   ffi::MessageFilter::All => q,
+    //   _ => return Err(DbError::InvalidArgument("get_draft_messages: invalid filter".to_string())),
+    // };
 
-    let q = match query.sort_by {
-      ffi::SortBy::None => q,
-      _ => return Err(DbError::InvalidArgument("get_draft_messages: invalid sort_by".to_string())),
-    };
+    // let q = match query.delivery_status {
+    //   ffi::DeliveryStatus::All => q,
+    //   _ => {
+    //     return Err(DbError::InvalidArgument(
+    //       "get_draft_messages: invalid delivery status".to_string(),
+    //     ))
+    //   }
+    // };
 
-    q.select((draft::uid, friend::unique_name, friend::display_name, message::content))
-      .load::<ffi::DraftPlusPlus>(&mut conn)
-      .map_err(|e| DbError::Unknown(format!("get_draft_messages: {}", e)))
+    // let q = match query.sort_by {
+    //   ffi::SortBy::None => q,
+    //   _ => return Err(DbError::InvalidArgument("get_draft_messages: invalid sort_by".to_string())),
+    // };
+
+    // q.select((draft::uid, friend::unique_name, friend::display_name, message::content))
+    //   .load::<ffi::DraftPlusPlus>(&mut conn)
+    //   .map_err(|e| DbError::Unknown(format!("get_draft_messages: {}", e)))
   }
 
   /// It marks a message as seen
-  /// 
+  ///
   /// Arguments:
-  /// 
+  ///
   /// * `uid`: the unique id of the message
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// The uid of the message that was marked as seen.
   /// Errors:
   ///  - If the message with that uid does not exist.
@@ -2513,8 +2843,8 @@ impl DB {
     let mut conn = self.connect()?;
     self.check_rep(&mut conn);
     use crate::schema::received;
-    
-    // Updating the seen column of the received table to true 
+
+    // Updating the seen column of the received table to true
     // where the uid is equal to the uid passed in
     let r = diesel::update(received::table.find(uid))
       .set(received::seen.eq(true))
@@ -2539,11 +2869,11 @@ impl DB {
   ////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////
 
-  /// It returns true iff no async friend requests are in the database, 
+  /// It returns true iff no async friend requests are in the database,
   /// because we only allow 1 outgoing right now.s
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// Returns true iff there are no async friend requests in the database.
   pub fn has_space_for_async_invitations(&self) -> Result<bool, DbError> {
     // return true iff no async friend requests are in the database, because we only allow 1 outgoing right now
@@ -2560,13 +2890,13 @@ impl DB {
   }
 
   /// Get the public id of the user.
-  /// 
+  ///
   /// Arguments:
-  /// 
+  ///
   /// * `conn`: &mut SqliteConnection
-  /// 
+  ///
   /// Returns:
-  /// 
+  ///
   /// Your public id.
   fn get_public_id(&self, conn: &mut SqliteConnection) -> Result<String, diesel::result::Error> {
     use crate::schema::registration;
@@ -2577,7 +2907,7 @@ impl DB {
   // Validate whether we can add an outgoing invitation or accept an incoming invitation
   // given the desired unique_name, kx_public_key, and maximum friend limit.
   //
-  // It returns false if either unique_name or kx_public_key conflicts 
+  // It returns false if either unique_name or kx_public_key conflicts
   fn can_add_friend(
     &self,
     conn: &mut SqliteConnection,
@@ -2755,9 +3085,10 @@ impl DB {
           outgoing_chunk::sequence_number.eq(new_seqnum),
           outgoing_chunk::chunks_start_sequence_number.eq(new_seqnum),
           outgoing_chunk::message_uid.eq::<Option<i32>>(None), //waived
-          outgoing_chunk::content.eq(my_public_id),            // the content is public_id
+          outgoing_chunk::content.eq(vec![]),                  //waived
           outgoing_chunk::system.eq(true),
           outgoing_chunk::system_message.eq(ffi::SystemMessage::OutgoingInvitation),
+          outgoing_chunk::system_message_data.eq(my_public_id), // the content is public_id,
         ))
         .execute(conn_b)
         .context("Fail to insert into outgoing_chunk::table")?;
@@ -2859,9 +3190,10 @@ impl DB {
           outgoing_chunk::sequence_number.eq(new_seqnum),
           outgoing_chunk::chunks_start_sequence_number.eq(new_seqnum),
           outgoing_chunk::message_uid.eq::<Option<i32>>(None), // message UID should be null
-          outgoing_chunk::content.eq(my_public_id), // the content is public_id
+          outgoing_chunk::content.eq(vec![]),
           outgoing_chunk::system.eq(true),
           outgoing_chunk::system_message.eq(ffi::SystemMessage::OutgoingInvitation),
+          outgoing_chunk::system_message_data.eq(my_public_id), // the content is public_id
         ))
         .execute(conn_b).context("add_outgoing_async_invitation, failed to insert friend into outgoing_chunk::table")?;
 
@@ -2924,6 +3256,7 @@ impl DB {
     use crate::schema::message;
     use crate::schema::outgoing_async_invitation;
     use crate::schema::sent;
+    use crate::schema::sent_friend;
     // 1. make the friend complete
     // 2. create a complete_friend and remove a async_outgoing_invitation
     // 3. create a message for the original outgoing async message
@@ -2963,13 +3296,16 @@ impl DB {
         .get_result::<i32>(conn_b)?;
 
       diesel::insert_into(sent::table)
+        .values((sent::uid.eq(message_uid), sent::sent_at.eq(async_invitation.sent_at)))
+        .execute(conn_b)?;
+
+      diesel::insert_into(sent_friend::table)
         .values((
-          sent::uid.eq(message_uid),
-          sent::to_friend.eq(friend_uid),
-          sent::num_chunks.eq(1),
-          sent::sent_at.eq(async_invitation.sent_at),
-          sent::delivered.eq(true),
-          sent::delivered_at.eq(util::unix_micros_now()),
+          sent_friend::sent_uid.eq(message_uid),
+          sent_friend::to_friend.eq(friend_uid),
+          sent_friend::num_chunks.eq(1),
+          sent_friend::delivered.eq(true),
+          sent_friend::delivered_at.eq(util::unix_micros_now()),
         ))
         .execute(conn_b)?;
 
@@ -3046,6 +3382,7 @@ impl DB {
             received::received_at.eq(util::unix_micros_now()),
             received::delivered.eq(true),
             received::delivered_at.eq(util::unix_micros_now()),
+            received::other_recipients_comma_sep.eq(""), // invitations are only addressed to indivdual friends, so this is empty
             received::seen.eq(false),
           ))
           .execute(conn_b)?;
@@ -3213,6 +3550,7 @@ impl DB {
           received::received_at.eq(inc_invitation.received_at),
           received::delivered.eq(true),
           received::delivered_at.eq(util::unix_micros_now()),
+          received::other_recipients_comma_sep.eq(""),
           received::seen.eq(false),
         ))
         .execute(conn_b)?;
