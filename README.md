@@ -7,7 +7,7 @@ This repository, along with [anysphere/asphr](https://github.com/anysphere/asphr
 Clone anysphere/asphr and anysphere/client and put them in a directory side-by-side. Then, in the `client` directory, run:
 
 ```bash
-bazeliskisk build //...
+bazelisk build //...
 ```
 
 to build, and
@@ -59,25 +59,25 @@ bazelisk build //...
 In one terminal, run normal daemon:
 
 ```bash
-./bazelisk-bin/daemon/daemon
+./bazel-bin/daemon/daemon
 ```
 
 In a new terminal, run a second daemon:
 
 ```bash
-./wrap2.sh ./bazelisk-bin/daemon/daemon
+./wrap2.sh ./bazel-bin/daemon/daemon
 ```
 
 To connect to daemon 1, run:
 
 ```bash
-./bazelisk-bin/cli/asphr [command]
+./bazel-bin/cli/asphr [command]
 ```
 
 To connect to daemon 2, run:
 
 ```bash
-./wrap2.sh ./bazelisk-bin/cli/asphr [command]
+./wrap2.sh ./bazel-bin/cli/asphr [command]
 ```
 
 For the gui, run:
