@@ -1,6 +1,6 @@
 //
-// copyright 2022 anysphere, inc.
-// spdx-license-identifier: gpl-3.0-only
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
 //
 
 #pragma once
