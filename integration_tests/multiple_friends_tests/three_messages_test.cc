@@ -29,7 +29,7 @@ TEST_F(MultipleFriendsTest, SendThreeMessages) {
   // user 1 sends message to 2-4
   for (size_t i = 1; i < friends.size(); i++) {
     SendMessageRequest request;
-    request.set_unique_name(friends.at(i).unique_name);
+    request.add_unique_name(friends.at(i).unique_name);
     request.set_message(absl::StrCat("hello from 0 to ", i));
     asphrdaemon::SendMessageResponse response;
     auto status = friends.at(0).rpc->SendMessage(nullptr, &request, &response);
@@ -54,9 +54,9 @@ TEST_F(MultipleFriendsTest, SendThreeMessages) {
       EXPECT_TRUE(status.ok());
       if (response.messages_size() > 1) {        // +1 for invitation message
         EXPECT_EQ(response.messages_size(), 2);  // +1 for invitation message
-        EXPECT_EQ(response.messages(0).m().unique_name(),
+        EXPECT_EQ(response.messages(0).from_unique_name(),
                   friends.at(0).unique_name);
-        EXPECT_EQ(response.messages(0).m().message(),
+        EXPECT_EQ(response.messages(0).message(),
                   asphr::StrCat("hello from 0 to ", i));
         to_receive.erase(i);
       }

@@ -66,7 +66,7 @@ TEST_F(DaemonRpcTest, StreamMessages) {
 
   {
     SendMessageRequest request;
-    request.set_unique_name(friend1.unique_name);
+    request.add_unique_name(friend1.unique_name);
     request.set_message("FIRST");
     asphrdaemon::SendMessageResponse response;
     auto status = friend2.rpc->SendMessage(nullptr, &request, &response);
@@ -119,33 +119,33 @@ TEST_F(DaemonRpcTest, StreamMessages) {
           GetMessagesResponse response;
           stream->Read(&response);
           EXPECT_EQ(response.messages_size(), 1);
-          EXPECT_EQ(response.messages(0).m().unique_name(),
+          EXPECT_EQ(response.messages(0).from_unique_name(),
                     friend2.unique_name);
-          EXPECT_EQ(response.messages(0).m().message(), "FIRST");
+          EXPECT_EQ(response.messages(0).message(), "FIRST");
         } else if (counter == 2) {
           {
             GetMessagesResponse response;
             stream->Read(&response);
             EXPECT_EQ(response.messages_size(), 1);
-            EXPECT_EQ(response.messages(0).m().unique_name(),
+            EXPECT_EQ(response.messages(0).from_unique_name(),
                       friend2.unique_name);
-            EXPECT_EQ(response.messages(0).m().message(), "SECOND.first");
+            EXPECT_EQ(response.messages(0).message(), "SECOND.first");
           }
           {
             GetMessagesResponse response;
             stream->Read(&response);
             EXPECT_EQ(response.messages_size(), 1);
-            EXPECT_EQ(response.messages(0).m().unique_name(),
+            EXPECT_EQ(response.messages(0).from_unique_name(),
                       friend2.unique_name);
-            EXPECT_EQ(response.messages(0).m().message(), "SECOND.second");
+            EXPECT_EQ(response.messages(0).message(), "SECOND.second");
           }
         } else if (counter == 4) {
           GetMessagesResponse response;
           stream->Read(&response);
           EXPECT_EQ(response.messages_size(), 1);
-          EXPECT_EQ(response.messages(0).m().unique_name(),
+          EXPECT_EQ(response.messages(0).from_unique_name(),
                     friend2.unique_name);
-          EXPECT_EQ(response.messages(0).m().message(), "THIRD");
+          EXPECT_EQ(response.messages(0).message(), "THIRD");
         }
         counter++;
         cv.notify_all();
@@ -167,7 +167,7 @@ TEST_F(DaemonRpcTest, StreamMessages) {
         if (counter == 1) {
           {
             SendMessageRequest request;
-            request.set_unique_name(friend1.unique_name);
+            request.add_unique_name(friend1.unique_name);
             request.set_message("SECOND.first");
             asphrdaemon::SendMessageResponse response;
             auto status =
@@ -176,7 +176,7 @@ TEST_F(DaemonRpcTest, StreamMessages) {
           }
           {
             SendMessageRequest request;
-            request.set_unique_name(friend1.unique_name);
+            request.add_unique_name(friend1.unique_name);
             request.set_message("SECOND.second");
             asphrdaemon::SendMessageResponse response;
             auto status =
@@ -205,7 +205,7 @@ TEST_F(DaemonRpcTest, StreamMessages) {
           }
         } else if (counter == 3) {
           SendMessageRequest request;
-          request.set_unique_name(friend1.unique_name);
+          request.add_unique_name(friend1.unique_name);
           request.set_message("THIRD");
           asphrdaemon::SendMessageResponse response;
           auto status = friend2.rpc->SendMessage(nullptr, &request, &response);
@@ -244,20 +244,20 @@ TEST_F(DaemonRpcTest, StreamMessages) {
     auto status = rpc1_stub->GetMessages(&context, request, &response);
     EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 4);
-    EXPECT_EQ(response.messages(0).m().unique_name(), friend2.unique_name);
-    EXPECT_EQ(response.messages(0).m().message(), "THIRD");
-    EXPECT_EQ(response.messages(1).m().unique_name(), friend2.unique_name);
-    EXPECT_EQ(response.messages(1).m().message(), "SECOND.second");
-    EXPECT_EQ(response.messages(2).m().unique_name(), friend2.unique_name);
-    EXPECT_EQ(response.messages(2).m().message(), "SECOND.first");
-    EXPECT_EQ(response.messages(3).m().unique_name(), friend2.unique_name);
-    EXPECT_EQ(response.messages(3).m().message(), "FIRST");
+    EXPECT_EQ(response.messages(0).from_unique_name(), friend2.unique_name);
+    EXPECT_EQ(response.messages(0).message(), "THIRD");
+    EXPECT_EQ(response.messages(1).from_unique_name(), friend2.unique_name);
+    EXPECT_EQ(response.messages(1).message(), "SECOND.second");
+    EXPECT_EQ(response.messages(2).from_unique_name(), friend2.unique_name);
+    EXPECT_EQ(response.messages(2).message(), "SECOND.first");
+    EXPECT_EQ(response.messages(3).from_unique_name(), friend2.unique_name);
+    EXPECT_EQ(response.messages(3).message(), "FIRST");
   }
 
   // a final message is needed to close the thread
   {
     SendMessageRequest request;
-    request.set_unique_name(friend1.unique_name);
+    request.add_unique_name(friend1.unique_name);
     request.set_message("FOUR");
     asphrdaemon::SendMessageResponse response;
     auto status = friend2.rpc->SendMessage(nullptr, &request, &response);

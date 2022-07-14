@@ -34,7 +34,7 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
   // user 1 sends message to 2-4
   for (size_t i = 1; i < friends.size(); i++) {
     SendMessageRequest request;
-    request.set_unique_name(friends.at(i).unique_name);
+    request.add_unique_name(friends.at(i).unique_name);
     request.set_message(long_message);
     asphrdaemon::SendMessageResponse response;
     auto status = friends.at(0).rpc->SendMessage(nullptr, &request, &response);
@@ -78,9 +78,9 @@ TEST_F(MultipleFriendsTest, SendLongMessage) {
       EXPECT_TRUE(status.ok());
       if (response.messages_size() > 1) {
         EXPECT_EQ(response.messages_size(), 2);
-        EXPECT_EQ(response.messages(0).m().unique_name(),
+        EXPECT_EQ(response.messages(0).from_unique_name(),
                   friends.at(0).unique_name);
-        EXPECT_EQ(response.messages(0).m().message(), long_message);
+        EXPECT_EQ(response.messages(0).message(), long_message);
       } else {
         new_to_receive.insert(i);
       }

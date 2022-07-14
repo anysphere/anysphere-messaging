@@ -1,6 +1,10 @@
 {
   "editor.formatOnSave": true,
   "bazel-cpp-tools.compileCommands.targets": ["//..."],
+  "git.ignoredRepositories": [
+    "/private/var/tmp/**",
+    "/private/var/tmp/*",
+  ],
   "python.formatting.provider": "black",
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"

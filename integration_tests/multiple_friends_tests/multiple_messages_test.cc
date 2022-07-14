@@ -25,7 +25,7 @@ TEST_F(MultipleFriendsTest, SendMultipleMessages) {
 
   {
     SendMessageRequest request;
-    request.set_unique_name(friend2.unique_name);
+    request.add_unique_name(friend2.unique_name);
     request.set_message("hello from 1 to 2");
     asphrdaemon::SendMessageResponse response;
     auto status = friend1.rpc->SendMessage(nullptr, &request, &response);
@@ -34,7 +34,7 @@ TEST_F(MultipleFriendsTest, SendMultipleMessages) {
 
   {
     SendMessageRequest request;
-    request.set_unique_name(friend2.unique_name);
+    request.add_unique_name(friend2.unique_name);
     request.set_message("hello from 1 to 2, again!!!! :0");
     asphrdaemon::SendMessageResponse response;
     auto status = friend1.rpc->SendMessage(nullptr, &request, &response);
@@ -63,8 +63,8 @@ TEST_F(MultipleFriendsTest, SendMultipleMessages) {
     auto status = friend2.rpc->GetMessages(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 2);  // +1 for invitation message.
-    EXPECT_EQ(response.messages(0).m().unique_name(), friend1.unique_name);
-    EXPECT_EQ(response.messages(0).m().message(), "hello from 1 to 2");
+    EXPECT_EQ(response.messages(0).from_unique_name(), friend1.unique_name);
+    EXPECT_EQ(response.messages(0).message(), "hello from 1 to 2");
   }
 
   friend1.t->retrieve();
@@ -89,8 +89,8 @@ TEST_F(MultipleFriendsTest, SendMultipleMessages) {
     auto status = friend2.rpc->GetMessages(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 3);  // +1 for invitation message.
-    EXPECT_EQ(response.messages(0).m().unique_name(), friend1.unique_name);
-    EXPECT_EQ(response.messages(0).m().message(),
+    EXPECT_EQ(response.messages(0).from_unique_name(), friend1.unique_name);
+    EXPECT_EQ(response.messages(0).message(),
               "hello from 1 to 2, again!!!! :0");
   }
 };

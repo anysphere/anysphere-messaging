@@ -15,6 +15,9 @@
 struct FriendTestingInfo {
   string unique_name;
   string display_name;
+  string public_id;
+  int extra_messages;  // number of extra messages (such as invitation messages)
+                       // that should be ignored in the tests
   unique_ptr<Global> G;
   unique_ptr<DaemonRpc> rpc;
   unique_ptr<Transmitter> t;
@@ -91,6 +94,13 @@ class DaemonRpcTest : public ::testing::Test {
     return std::make_tuple(std::move(G), std::move(rpc), std::move(t));
   }
 
+  auto execute_transmitter_round(vector<FriendTestingInfo>& friends) {
+    for (auto& friend_info : friends) {
+      friend_info.t->retrieve();
+      friend_info.t->send();
+    }
+  }
+
   auto generate_friends_from_list_of_pairs(int n, vector<pair<int, int>> pairs)
       -> vector<FriendTestingInfo> {
     vector<string> db_files;
@@ -100,6 +110,7 @@ class DaemonRpcTest : public ::testing::Test {
     return generate_friends_from_list_of_pairs(db_files, pairs);
   }
 
+  // friend2 will have an additional message, the invitation message.
   auto connect_friends_both_async(const FriendTestingInfo& friend1,
                                   const FriendTestingInfo& friend2) {
     // we use the one-sided async invitation procedure to connect the friends
@@ -132,7 +143,7 @@ class DaemonRpcTest : public ::testing::Test {
     {
       AddAsyncFriendRequest request;
       request.set_unique_name(friend2.unique_name);
-      request.set_display_name(friend2.unique_name);
+      request.set_display_name(friend2.display_name);
       request.set_public_id(friend2_id);
       request.set_message("INVITATION-MESSAGE");
       AddAsyncFriendResponse response;
@@ -152,7 +163,7 @@ class DaemonRpcTest : public ::testing::Test {
     {
       AcceptAsyncInvitationRequest request;
       request.set_unique_name(friend1.unique_name);
-      request.set_display_name(friend1.unique_name);
+      request.set_display_name(friend1.display_name);
       request.set_public_id(friend1_id);
       AcceptAsyncInvitationResponse response;
       auto status =
@@ -179,7 +190,7 @@ class DaemonRpcTest : public ::testing::Test {
       EXPECT_EQ(response.friend_infos(friend_index).unique_name(),
                 friend1.unique_name);
       EXPECT_EQ(response.friend_infos(friend_index).display_name(),
-                friend1.unique_name);
+                friend1.display_name);
       EXPECT_EQ(response.friend_infos(friend_index).public_id(), friend1_id);
       EXPECT_EQ(response.friend_infos(friend_index).invitation_progress(),
                 asphrdaemon::InvitationProgress::Complete);
@@ -208,7 +219,7 @@ class DaemonRpcTest : public ::testing::Test {
       EXPECT_EQ(response.friend_infos(friend_index).unique_name(),
                 friend2.unique_name);
       EXPECT_EQ(response.friend_infos(friend_index).display_name(),
-                friend2.unique_name);
+                friend2.display_name);
       EXPECT_EQ(response.friend_infos(friend_index).public_id(), friend2_id);
     }
     // reset transmitter
@@ -237,8 +248,13 @@ class DaemonRpcTest : public ::testing::Test {
         RegisterUserResponse response;
         rpc->RegisterUser(nullptr, &request, &response);
       }
-      friends.push_back(
-          {name, display_name, std::move(G), std::move(rpc), std::move(t)});
+      // get user 1's id via rpc call
+      GetMyPublicIDRequest request;
+      GetMyPublicIDResponse response;
+      rpc->GetMyPublicID(nullptr, &request, &response);
+      auto public_id = response.public_id();
+      friends.push_back({name, display_name, public_id, 0, std::move(G),
+                         std::move(rpc), std::move(t)});
     }
     return friends;
   }
@@ -267,6 +283,7 @@ class DaemonRpcTest : public ::testing::Test {
       auto& friend2 = friends.at(p.second);
       friend_count[friend2.unique_name]++;
       connect_friends_both_async(friend1, friend2);
+      friend2.extra_messages++;
     }
 
     for (const auto& f : friends) {

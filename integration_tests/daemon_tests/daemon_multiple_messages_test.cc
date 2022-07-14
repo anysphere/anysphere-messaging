@@ -12,7 +12,7 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
 
   {
     SendMessageRequest request;
-    request.set_unique_name(friend2.unique_name);
+    request.add_unique_name(friend2.unique_name);
     request.set_message("hello from 1 to 2");
     asphrdaemon::SendMessageResponse response;
     auto status = friend1.rpc->SendMessage(nullptr, &request, &response);
@@ -21,7 +21,7 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
 
   {
     SendMessageRequest request;
-    request.set_unique_name(friend2.unique_name);
+    request.add_unique_name(friend2.unique_name);
     request.set_message("hello from 1 to 2, again!!!! :0");
     asphrdaemon::SendMessageResponse response;
     auto status = friend1.rpc->SendMessage(nullptr, &request, &response);
@@ -30,7 +30,7 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
 
   {
     SendMessageRequest request;
-    request.set_unique_name(friend1.unique_name);
+    request.add_unique_name(friend1.unique_name);
     request.set_message("hello from 2 to 1");
     asphrdaemon::SendMessageResponse response;
     auto status = friend2.rpc->SendMessage(nullptr, &request, &response);
@@ -51,7 +51,7 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
     GetMessagesResponse response;
     auto status = friend1.rpc->GetMessages(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
-    EXPECT_EQ(response.messages_size(), 0);
+    EXPECT_EQ(response.messages_size(), 0 + friend1.extra_messages);
   }
 
   // 2 should have received the first message!
@@ -61,9 +61,9 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
     GetMessagesResponse response;
     auto status = friend2.rpc->GetMessages(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
-    EXPECT_EQ(response.messages_size(), 2);  // +1 for invitation message.
-    EXPECT_EQ(response.messages(0).m().unique_name(), "user1");
-    EXPECT_EQ(response.messages(0).m().message(), "hello from 1 to 2");
+    EXPECT_EQ(response.messages_size(), 1 + friend2.extra_messages);
+    EXPECT_EQ(response.messages(0).from_unique_name(), "user1");
+    EXPECT_EQ(response.messages(0).message(), "hello from 1 to 2");
   }
 
   // 2 has sent the ACK for the first message, so 1 should safely send the next
@@ -82,8 +82,8 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
     auto status = friend1.rpc->GetMessages(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
     EXPECT_EQ(response.messages_size(), 1);
-    EXPECT_EQ(response.messages(0).m().unique_name(), "user2");
-    EXPECT_EQ(response.messages(0).m().message(), "hello from 2 to 1");
+    EXPECT_EQ(response.messages(0).from_unique_name(), "user2");
+    EXPECT_EQ(response.messages(0).message(), "hello from 2 to 1");
   }
 
   {
@@ -92,16 +92,16 @@ TEST_F(DaemonRpcTest, SendMultipleMessagesInBothDirections) {
     GetMessagesResponse response;
     auto status = friend2.rpc->GetMessages(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
-    EXPECT_EQ(response.messages_size(), 3);  // +1 for invitation message.
-    EXPECT_EQ(response.messages(0).m().unique_name(), "user1");
-    cout << "message 1: " << response.messages(0).m().message() << endl;
+    EXPECT_EQ(response.messages_size(), 2 + friend2.extra_messages);
+    EXPECT_EQ(response.messages(0).from_unique_name(), "user1");
+    cout << "message 1: " << response.messages(0).message() << endl;
 
     cout << "message 1 time: "
          << TimeUtil::ToString(response.messages(0).delivered_at()) << endl;
-    cout << "message 2: " << response.messages(1).m().message() << endl;
+    cout << "message 2: " << response.messages(1).message() << endl;
     cout << "message 2 time: "
          << TimeUtil::ToString(response.messages(1).delivered_at()) << endl;
-    EXPECT_EQ(response.messages(0).m().message(),
+    EXPECT_EQ(response.messages(0).message(),
               "hello from 1 to 2, again!!!! :0");
   }
 };

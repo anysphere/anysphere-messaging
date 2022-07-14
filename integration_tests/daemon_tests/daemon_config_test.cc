@@ -17,7 +17,7 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceive) {
 
     {
       SendMessageRequest request;
-      request.set_unique_name("user2");
+      request.add_unique_name("user2");
       request.set_message("hello from 1 to 2");
       asphrdaemon::SendMessageResponse response;
       auto status = rpc1->SendMessage(nullptr, &request, &response);
@@ -26,7 +26,7 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceive) {
 
     {
       SendMessageRequest request;
-      request.set_unique_name("user1");
+      request.add_unique_name("user1");
       request.set_message("hello from 2 to 1");
       asphrdaemon::SendMessageResponse response;
       auto status = rpc2->SendMessage(nullptr, &request, &response);
@@ -51,8 +51,8 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceive) {
       auto status = rpc1->GetMessages(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
       EXPECT_EQ(response.messages_size(), 1);
-      EXPECT_EQ(response.messages(0).m().unique_name(), "user2");
-      EXPECT_EQ(response.messages(0).m().message(), "hello from 2 to 1");
+      EXPECT_EQ(response.messages(0).from_unique_name(), "user2");
+      EXPECT_EQ(response.messages(0).message(), "hello from 2 to 1");
     }
 
     {
@@ -62,8 +62,8 @@ TEST_F(DaemonRpcTest, LoadAndUnloadConfigAndReceive) {
       auto status = rpc2->GetMessages(nullptr, &request, &response);
       EXPECT_TRUE(status.ok());
       EXPECT_EQ(response.messages_size(), 2);  // +1 for invitation message
-      EXPECT_EQ(response.messages(0).m().unique_name(), "user1");
-      EXPECT_EQ(response.messages(0).m().message(), "hello from 1 to 2");
+      EXPECT_EQ(response.messages(0).from_unique_name(), "user1");
+      EXPECT_EQ(response.messages(0).message(), "hello from 1 to 2");
     }
   }
 }

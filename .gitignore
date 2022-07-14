@@ -5,6 +5,9 @@
 *.o
 bazel-*
 
+/private/var/tmp
+/private/var/tmp/*
+
 # perf files
 *.data
 
