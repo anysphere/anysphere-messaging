@@ -16,6 +16,15 @@ package asphrclient;
 // keep this in sync with db.rs, SystemMessage
 enum SystemMessage { OUTGOING_INVITATION = 0; }
 
+// this message protobuf contains everything needed in
+// a message. currently, messages only support a utf-8 message content
+// as well as a list of cc-ed recipients. in the future, we may
+// want to add pictures here, and more.
+message Message {
+  repeated string other_recipients = 1;
+  string msg = 2;
+}
+
 // Given that we have a very very limited bandwidth, our goal is to define a
 // Message type that is as small as possible.
 //
@@ -25,7 +34,7 @@ enum SystemMessage { OUTGOING_INVITATION = 0; }
 //
 // IMPORTANT: update GUARANTEED_MESSAGE_SIZE in client_lib.hpp whenever this is
 // updated.
-message Message {
+message Chunk {
   // sequence_number is a unique id for the message. it is unique for a <sender,
   // receiver> ordered pair. if the id is 0, then the message is a dummy
   // message, with no actual msg to display to the user.
@@ -33,11 +42,9 @@ message Message {
   // used for encryption. this requires some careful thought with dummy
   // messages.
   uint32 sequence_number = 1;
-  // msg contains the actual UTF-8 message, if such a message exists
-  // In the future, we probably want this to be `bytes`, encoding a protobuf.
-  // The protobuf will contain a string message and possibly other information,
-  // like pictures or reply metadata.
-  string msg = 2;
+  // msg is a chunk of a byte sequence that alltogether form the serialization
+  // of a Message, defined above. this msg has a maximum length.
+  bytes msg = 2;
   // if the message is a long message, this field contains the number of parts
   // it has this field is not set if the message isn't long.
   uint32 num_chunks = 3;

@@ -89,8 +89,8 @@ message GetMyPublicIDRequest {}
 
 message GetMyPublicIDResponse {
   string public_id = 1;
-  string story =
-      2; // en encoding of the public identifier in a nice story format
+  string story = 2;
+  // en encoding of the public identifier in a nice story format
 }
 
 message AddSyncFriendRequest {
@@ -168,36 +168,46 @@ message RemoveFriendRequest { string unique_name = 1; }
 message RemoveFriendResponse {}
 
 message SendMessageRequest {
-  string unique_name = 1;
+  repeated string unique_name = 1;
   string message = 2;
 }
 
 message SendMessageResponse {}
 
-message BaseMessage {
-  // this ID is NOT the same as the ID in message.proto
-  // in particular, this ID is guaranteed to be unique among ALL messages (on a
-  // given device), whereas the ID in message.proto is only unique for each
-  // <sender, recipient> pair. the format of this ID is something like
-  // (to|from):sender:sequence_number
-  int32 id = 1;
-  string message = 2;
-  string unique_name = 3;
-  string display_name = 4;
+message IncomingMaybeFriend {
+  string public_id = 1;
+
+  optional string unique_name = 2;
+  optional string display_name = 3;
 }
 
 message IncomingMessage {
-  BaseMessage m = 1;
-  google.protobuf.Timestamp delivered_at = 2;
-  bool seen = 3;
-  bool delivered = 4;
+  int32 uid = 1;
+  string message = 2;
+
+  string from_unique_name = 3;
+  string from_display_name = 4;
+
+  repeated IncomingMaybeFriend other_recipients = 5;
+
+  google.protobuf.Timestamp delivered_at = 6;
+  bool seen = 7;
+  bool delivered = 8;
+}
+
+message OutgoingFriend {
+  string unique_name = 1;
+  string display_name = 2;
+  bool delivered = 3;
+  google.protobuf.Timestamp delivered_at = 4;
 }
 
 message OutgoingMessage {
-  BaseMessage m = 1;
-  google.protobuf.Timestamp sent_at = 2;
-  bool delivered = 3;
-  google.protobuf.Timestamp delivered_at = 4;
+  int32 uid = 1;
+  string message = 2;
+
+  repeated OutgoingFriend to_friends = 3;
+  google.protobuf.Timestamp sent_at = 4;
 }
 
 message GetMessagesRequest {
