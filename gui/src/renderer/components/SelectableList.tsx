@@ -156,7 +156,7 @@ export function SelectableList<T>({
           }}
         >
           {rowVirtualizer.virtualItems.map((virtualRow) => {
-            const item = itemsRef.current[virtualRow.index];
+            const item = itemsRef.current[virtualRow.index] ?? "";
             const handlers = typeof item !== "string" && {
               onPointerMove: () =>
                 pointerMoved &&
