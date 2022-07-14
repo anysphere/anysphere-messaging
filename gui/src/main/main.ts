@@ -187,7 +187,7 @@ app.on("window-all-closed", () => {
 function registerForNotifications() {
   const request = new daemonM.GetMessagesRequest();
   request.setFilter(daemonM.GetMessagesRequest.Filter.NEW);
-  var call = daemonClient.getMessagesStreamed(request);
+  let call = daemonClient.getMessagesStreamed(request);
 
   let firstTime = true;
 
