@@ -2,8 +2,8 @@
   "name": "anysphere",
   "scripts": {
     "update": "cd ../../asphr && bazelisk build //schema:daemon_js_grpc && cd ../client/gui && rm -rf src/daemon && cp -r ../../asphr/bazel-bin/schema/daemon_js_grpc_pb src/daemon && for f in src/daemon/**/*; do echo -e \"// @generated\\n\\n$(cat ${f})\" > ${f}2; mv -f ${f}2 ${f}; echo 'this package.json file is @not-generated' > /dev/null; done;",
-    "build-binaries-mac-arm64": "rm -rf binaries/arm64 && bazelisk build //:asphr-release -c opt && mkdir -p binaries/arm64 && cp $(bazelisk info output_path)/darwin_arm64-opt/bin/cli/asphr binaries/arm64/anysphere && cp $(bazelisk info output_path)/darwin_arm64-opt/bin/daemon/daemon binaries/arm64/anysphered",
-    "build-binaries-mac-x86_64": "rm -rf binaries/x64 && arch --x86_64 /usr/local/bin/bazelisk build //:asphr-release -c opt && mkdir -p binaries/x64 && cp $(bazelisk info output_path)/darwin-opt/bin/cli/asphr binaries/x64/anysphere && cp $(bazelisk info output_path)/darwin-opt/bin/daemon/daemon binaries/x64/anysphered",
+    "build-binaries-mac-arm64": "rm -rf binaries/arm64 && bazelisk build //:asphr-release -c opt && mkdir -p binaries/arm64 && cp $(bazelisk info output_path)/darwin_arm64-opt/bin/cli/asphr binaries/arm64/anysphere && cp $(bazelisk info output_path)/darwin_arm64-opt/bin/daemon/main binaries/arm64/anysphered",
+    "build-binaries-mac-x86_64": "rm -rf binaries/x64 && arch --x86_64 /usr/local/bin/bazelisk build //:asphr-release -c opt && mkdir -p binaries/x64 && cp $(bazelisk info output_path)/darwin-opt/bin/cli/asphr binaries/x64/anysphere && cp $(bazelisk info output_path)/darwin-opt/bin/daemon/main binaries/x64/anysphered",
     "build-binaries-mac": "npm run build-binaries-mac-arm64 && npm run build-binaries-mac-x86_64",
     "build": "concurrently \"npm run build:main\" \"npm run build:renderer\"",
     "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./helpers/configs/webpack.config.main.prod.ts",
