@@ -8,13 +8,15 @@ import { promisify } from "util";
 import grpc from "@grpc/grpc-js";
 import daemonM from "../daemon/schema/daemon_pb";
 import * as daemon_pb from "../daemon/schema/daemon_pb";
-import { Friend, Message } from "../types";
-
 import {
-  getDaemonClient,
-  convertProtobufIncomingMessageToTypedMessage,
-  convertProtobufOutgoingMessageToTypedMessage,
-} from "./daemon";
+  Friend,
+  IncomingMessage,
+  OutgoingMessage,
+  protobufDateToDate,
+  dateToProtobufDate,
+} from "../types";
+
+import { getDaemonClient } from "./daemon";
 import { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
 
 const daemonClient = getDaemonClient();
@@ -48,177 +50,211 @@ contextBridge.exposeInMainWorld(
   }
 );
 
-contextBridge.exposeInMainWorld("getNewMessages", async () => {
-  if (FAKE_DATA) {
-    return [
-      {
-        id: "1",
-        from: "Alice",
-        to: "me",
-        message: "hello!\n\nthis is a test message\n\nbest,\nalice",
-        timestamp: new Date(),
-        type: "incoming",
-      },
-      {
-        id: "2",
-        from: "Bob",
-        to: "me",
-        message: "hi",
-        timestamp: new Date(),
-        type: "incoming",
-      },
-    ];
-  }
-  const request = new daemonM.GetMessagesRequest();
-  request.setFilter(daemonM.GetMessagesRequest.Filter.NEW);
-  const getNewMessages = promisify(daemonClient.getMessages).bind(daemonClient);
-  try {
-    const response = (await getNewMessages(
-      request
-    )) as daemonM.GetMessagesResponse;
-    const lm = response.getMessagesList();
-    const l = lm.map(convertProtobufIncomingMessageToTypedMessage);
-    return l;
-  } catch (e) {
-    console.log(`error in getNewMessages: ${e}`);
-    return [];
-  }
-});
-
-contextBridge.exposeInMainWorld("getAllMessages", async () => {
-  if (FAKE_DATA) {
-    return [
-      {
-        id: "1",
-        from: "Alice",
-        to: "me",
-        message: "hello",
-        timestamp: new Date(),
-        type: "incoming",
-      },
-      {
-        id: "2",
-        from: "Bob",
-        to: "me",
-        message: "hi",
-        timestamp: new Date(),
-        type: "incoming",
-      },
-      {
-        id: "3",
-        from: "Bob",
-        to: "me",
-        message: "hi this is my second message",
-        timestamp: new Date(),
-        type: "incoming",
-      },
-      {
-        id: "4",
-        from: "Bob",
-        to: "me",
-        message: "hi this is my first message",
-        timestamp: new Date(),
-        type: "incoming",
-      },
-    ];
-  }
-  const request = new daemonM.GetMessagesRequest();
-  request.setFilter(daemonM.GetMessagesRequest.Filter.ALL);
-  const getAllMessages = promisify(daemonClient.getMessages).bind(daemonClient);
-  try {
-    const response = (await getAllMessages(
-      request
-    )) as daemonM.GetMessagesResponse;
-    const lm = response.getMessagesList();
-    const l = lm.map(convertProtobufIncomingMessageToTypedMessage);
-    return l;
-  } catch (e) {
-    console.log(`error in getAllMessages: ${e}`);
-    return [];
-  }
-});
-
 contextBridge.exposeInMainWorld(
-  "getAllMessagesStreamed",
-  (messageHandler: (_: Message[]) => void) => {
+  "getMessages",
+  async (
+    getMessagesRequest: daemon_pb.GetMessagesRequest.AsObject
+  ): Promise<daemon_pb.GetMessagesResponse.AsObject> => {
     if (FAKE_DATA) {
-      const l: Message[] = [
-        {
-          id: 5,
-          from: "Sualeh",
-          to: "me",
-          message:
-            "Can you schedule a meeting with Srini for next week, please?",
-          timestamp: new Date(),
-          type: "incoming",
-        },
-        {
-          id: 5,
-          from: "Sualeh",
-          to: "me",
-          message:
-            "I pushed some of my comments on the white paper draft to the repo, but I figured I should explain some of it here, too.",
-          timestamp: new Date(),
-          type: "incoming",
-        },
-        {
-          id: 2,
-          from: "Sualeh",
-          to: "me",
-          message:
-            "I was thinking about the thing you told me about the other day, and I think you're right.",
-          timestamp: new Date(),
-          type: "incoming",
-        },
-        {
-          id: 3,
-          from: "Sualeh",
-          to: "me",
-          message:
-            "Can you take a look at the server branch and see if it works? I made some changes.",
-          timestamp: new Date(),
-          type: "incoming",
-        },
-        {
-          id: 4,
-          from: "Shengtong",
-          to: "me",
-          message:
-            "Hi Arvid,\n\nThank you so much for onboarding me to Anysphere! I am very excited to work with you.\n\nBest,\nShengtong",
-          timestamp: new Date(),
-          type: "incoming",
-        },
-        {
-          id: 1,
-          from: "Sualeh",
-          to: "me",
-          message:
-            "Dear Arvid,\n\nThis is my first ever completely private message to you. No one will be able to read this message, find out when it was sent, or even suspect that I sent anything to you at all.\n\nHere's to a thoughtful, private and free future.\n\nYours truly,\nSualeh",
-          timestamp: new Date(),
-          type: "incoming",
-        },
-      ];
-      messageHandler(l);
-      return () => {};
+      if (
+        getMessagesRequest.filter === daemon_pb.GetMessagesRequest.Filter.NEW
+      ) {
+        return {
+          messagesList: [
+            {
+              uid: 1,
+              message: "Hello! This is a test message.",
+              fromUniqueName: "sualeh-asif",
+              fromDisplayName: "Sualeh Asif",
+              otherRecipientsList: [],
+              deliveredAt: dateToProtobufDate(new Date()),
+              seen: false,
+              delivered: true,
+            },
+            {
+              uid: 2,
+              message:
+                "This is a new message. It has been delivered, but not yet seen.",
+              fromUniqueName: "stzh1555",
+              fromDisplayName: "Shengtong Zhang",
+              otherRecipientsList: [],
+              deliveredAt: dateToProtobufDate(new Date()),
+              seen: false,
+              delivered: true,
+            },
+          ],
+        };
+      } else {
+        return {
+          messagesList: [
+            {
+              uid: 1,
+              message: "Hello! This is a test message.",
+              fromUniqueName: "sualeh-asif",
+              fromDisplayName: "Sualeh Asif",
+              otherRecipientsList: [],
+              deliveredAt: dateToProtobufDate(new Date()),
+              seen: false,
+              delivered: true,
+            },
+            {
+              uid: 2,
+              message:
+                "This is a new message. It has been delivered, but not yet seen.",
+              fromUniqueName: "stzh1555",
+              fromDisplayName: "Shengtong Zhang",
+              otherRecipientsList: [],
+              deliveredAt: dateToProtobufDate(new Date()),
+              seen: false,
+              delivered: true,
+            },
+            {
+              uid: 3,
+              message:
+                "This is a new message. This message has been marked as seen!",
+              fromUniqueName: "stzh1555",
+              fromDisplayName: "Shengtong Zhang",
+              otherRecipientsList: [],
+              deliveredAt: dateToProtobufDate(new Date()),
+              seen: true,
+              delivered: true,
+            },
+          ],
+        };
+      }
     }
     const request = new daemonM.GetMessagesRequest();
-    request.setFilter(daemonM.GetMessagesRequest.Filter.ALL);
+    request.setFilter(getMessagesRequest.filter);
+    const getMessages = promisify(daemonClient.getMessages).bind(daemonClient);
+    return (
+      (await getNewMessages(request)) as daemonM.GetMessagesResponse
+    ).toObject();
+  }
+);
+
+contextBridge.exposeInMainWorld(
+  "getMessagesStreamed",
+  (
+    getMessagesRequest: daemon_pb.GetMessagesRequest.AsObject,
+    messageHandler: (_: IncomingMessage[]) => void
+  ): (() => void) => {
+    if (FAKE_DATA) {
+      if (
+        getMessagesRequest.filter === daemon_pb.GetMessagesRequest.Filter.NEW
+      ) {
+        const l: IncomingMessage[] = [
+          {
+            uid: 1,
+            message:
+              "Can you schedule a meeting with Srini for next week, please?",
+            fromUniqueName: "sualeh-asif",
+            fromDisplayName: "Sualeh Asif",
+            otherRecipientsList: [],
+            deliveredAt: dateToProtobufDate(new Date()),
+            seen: false,
+            delivered: true,
+          },
+          {
+            uid: 2,
+            message:
+              "I pushed some of my comments on the white paper draft to the repo, but I figured I should explain some of it here, too.",
+            fromUniqueName: "sualeh-asif",
+            fromDisplayName: "Sualeh Asif",
+            otherRecipientsList: [],
+            deliveredAt: dateToProtobufDate(new Date()),
+            seen: false,
+            delivered: true,
+          },
+        ];
+        messageHandler(l);
+        return () => {
+          console.log("Stopped streaming messages.");
+        };
+      } else {
+        const l: IncomingMessage[] = [
+          {
+            uid: 1,
+            message:
+              "Can you schedule a meeting with Srini for next week, please?",
+            fromUniqueName: "sualeh-asif",
+            fromDisplayName: "Sualeh Asif",
+            otherRecipientsList: [],
+            deliveredAt: dateToProtobufDate(new Date()),
+            seen: false,
+            delivered: true,
+          },
+          {
+            uid: 2,
+            message:
+              "I pushed some of my comments on the white paper draft to the repo, but I figured I should explain some of it here, too.",
+            fromUniqueName: "sualeh-asif",
+            fromDisplayName: "Sualeh Asif",
+            otherRecipientsList: [],
+            deliveredAt: dateToProtobufDate(new Date()),
+            seen: false,
+            delivered: true,
+          },
+          {
+            uid: 3,
+            message:
+              "I was thinking about the thing you told me about the other day, and I think you're right.",
+            fromUniqueName: "sualeh-asif",
+            fromDisplayName: "Sualeh Asif",
+            otherRecipientsList: [],
+            deliveredAt: dateToProtobufDate(new Date()),
+            seen: true,
+            delivered: true,
+          },
+          {
+            uid: 4,
+            message:
+              "Can you take a look at the server branch and see if it works? I made some changes.",
+            fromUniqueName: "sualeh-asif",
+            fromDisplayName: "Sualeh Asif",
+            otherRecipientsList: [],
+            deliveredAt: dateToProtobufDate(new Date()),
+            seen: true,
+            delivered: true,
+          },
+          {
+            uid: 5,
+            message:
+              "Hi Arvid,\n\nThank you so much for onboarding me to Anysphere! I am very excited to work with you.\n\nBest,\nShengtong",
+            fromUniqueName: "stzh1555",
+            fromDisplayName: "Shengtong Zhang",
+            otherRecipientsList: [],
+            deliveredAt: dateToProtobufDate(new Date()),
+            seen: true,
+            delivered: true,
+          },
+          {
+            uid: 6,
+            message:
+              "Dear Arvid,\n\nThis is my first ever completely private message to you. No one will be able to read this message, find out when it was sent, or even suspect that I sent anything to you at all.\n\nHere's to a thoughtful, private and free future.\n\nYours truly,\nSualeh",
+            fromUniqueName: "stzh1555",
+            fromDisplayName: "Shengtong Zhang",
+            otherRecipientsList: [],
+            deliveredAt: dateToProtobufDate(new Date()),
+            seen: true,
+            delivered: true,
+          },
+        ];
+        messageHandler(l);
+        return () => {
+          console.log("Stopped streaming messages.");
+        };
+      }
+    }
+    const request = new daemonM.GetMessagesRequest();
+    request.setFilter(getMessagesRequest.filter);
     const call = daemonClient.getMessagesStreamed(request);
     call.on("data", function (r: daemonM.GetMessagesResponse) {
       try {
         const lm = r.getMessagesList();
-        const l = lm.map(convertProtobufIncomingMessageToTypedMessage);
-        const l2: Message[] = [];
-        for (const m of l) {
-          if (m) {
-            l2.push(m);
-          }
-        }
-        messageHandler(l2);
+        messageHandler(lm.map((m) => m.toObject()));
       } catch (e) {
         console.log(`error in getAllMessagesStreamed: ${e}`);
       }
-      // console.log("got all messages streamed", r);
     });
     call.on("end", function () {
       // The server has finished sending
@@ -240,174 +276,111 @@ contextBridge.exposeInMainWorld(
 );
 
 contextBridge.exposeInMainWorld(
-  "getNewMessagesStreamed",
-  (messageHandler: (_: Message[]) => void) => {
+  "getOutboxMessages",
+  async (
+    getOutboxMessagesRequest: daemon_pb.GetOutboxMessagesRequest.AsObject
+  ): Promise<daemon_pb.GetOutboxMessagesResponse.AsObject> => {
     if (FAKE_DATA) {
-      const l: Message[] = [
-        {
-          id: 5,
-          from: "Sualeh",
-          to: "me",
-          message:
-            "Can you schedule a meeting with Srini for next week, please?",
-          timestamp: new Date(),
-          type: "incoming",
-        },
-        {
-          id: 5,
-          from: "Sualeh",
-          to: "me",
-          message:
-            "I pushed some of my comments on the white paper draft to the repo, but I figured I should explain some of it here, too.",
-          timestamp: new Date(),
-          type: "incoming",
-        },
-      ];
-      messageHandler(l);
-      return () => {};
+      return {
+        messagesList: [
+          {
+            uid: 1,
+            message:
+              "This is an outbox message that doesn't seem to want to be delivered...",
+            toFriendsList: [
+              {
+                uniqueName: "sualeh-asif",
+                displayName: "Sualeh Asif",
+                delivered: false,
+              },
+            ],
+            sentAt: dateToProtobufDate(new Date()),
+          },
+          {
+            uid: 2,
+            message: "I'm confused...",
+            toFriendsList: [
+              {
+                uniqueName: "stzh1555",
+                displayName: "Shengtong Zhang",
+                delivered: false,
+              },
+            ],
+            sentAt: dateToProtobufDate(new Date()),
+          },
+          {
+            uid: 3,
+            message: "I'm very confused...",
+            toFriendsList: [
+              {
+                uniqueName: "stzh1555",
+                displayName: "Shengtong Zhang",
+                delivered: false,
+              },
+            ],
+            sentAt: dateToProtobufDate(new Date()),
+          },
+        ],
+      };
     }
-    const request = new daemonM.GetMessagesRequest();
-    request.setFilter(daemonM.GetMessagesRequest.Filter.NEW);
-    var call = daemonClient.getMessagesStreamed(request);
-    call.on("data", function (r: daemonM.GetMessagesResponse) {
-      try {
-        const lm = r.getMessagesList();
-        const l = lm.map(convertProtobufIncomingMessageToTypedMessage);
-        let l2: Message[] = [];
-        for (const m of l) {
-          if (m) {
-            l2.push(m);
-          }
-        }
-        messageHandler(l2);
-      } catch (e) {
-        console.log(`error in getNewMessagesStreamed: ${e}`);
-      }
-      // console.log("got all messages streamed", r);
-    });
-    call.on("end", function () {
-      // The server has finished sending
-      console.log("getNewMessagesStreamed end");
-    });
-    call.on("error", function (e: Error) {
-      // An error has occurred and the stream has been closed.
-      console.log("getNewMessagesStreamed error", e);
-    });
-    call.on("status", function (status: grpc.StatusObject) {
-      // process status
-      console.log("getNewMessagesStreamed status", status);
-    });
-    return () => {
-      console.log("cancelling grpc!");
-      call.cancel();
-    };
+    const request = new daemonM.GetOutboxMessagesRequest();
+    const getOutboxMessages = promisify(daemonClient.getOutboxMessages).bind(
+      daemonClient
+    );
+    return (
+      (await getOutboxMessages(request)) as daemonM.GetOutboxMessagesResponse
+    ).toObject();
   }
 );
 
 contextBridge.exposeInMainWorld(
-  "getOutboxMessages",
+  "getSentMessages",
   async (
-    getOutboxMessagesRequest: daemon_pb.GetOutboxMessagesRequest.AsObject
-  ): Promise<daemon_pb.GetOutboxMessagesResponse> => {
-    // unimplemented
-    console.error("getOutboxMessages not implemented");
-    throw new Error("getOutboxMessages not implemented");
+    getSentMessagesRequest: daemon_pb.GetSentMessagesRequest.AsObject
+  ): Promise<daemon_pb.GetSentMessagesResponse.AsObject> => {
+    if (FAKE_DATA) {
+      return {
+        messagesList: [
+          {
+            uid: 1,
+            message: "The draft looks good. Let me know if you need any help!",
+            toFriendsList: [
+              {
+                uniqueName: "sualeh-asif",
+                displayName: "Sualeh Asif",
+                delivered: true,
+                deliveredAt: dateToProtobufDate(new Date()),
+              },
+            ],
+            sentAt: dateToProtobufDate(new Date()),
+          },
+          {
+            uid: 2,
+            message:
+              "Welcome! We are extremely excited to have you as a part of our team.",
+            toFriendsList: [
+              {
+                uniqueName: "shengtong-zhang",
+                displayName: "Shengtong Zhang",
+                delivered: true,
+                deliveredAt: dateToProtobufDate(new Date()),
+              },
+            ],
+            sentAt: dateToProtobufDate(new Date()),
+          },
+        ],
+      };
+    }
+
+    const request = new daemonM.GetSentMessagesRequest();
+    const getSentMessages = promisify(daemonClient.getSentMessages).bind(
+      daemonClient
+    );
+    return (
+      (await getSentMessages(request)) as daemonM.GetSentMessagesResponse
+    ).toObject();
   }
 );
-
-contextBridge.exposeInMainWorld("getOutboxMessagesOLD", async () => {
-  if (FAKE_DATA) {
-    return [
-      {
-        id: "1",
-        from: "me",
-        to: "SUelAh",
-        message: "hello!\n\nthis is a test message\n\nnot the best,\nSuAlEh",
-        timestamp: new Date(),
-        type: "outgoing",
-      },
-      {
-        id: "2",
-        from: "me",
-        to: "HI",
-        message: "HIHI",
-        timestamp: new Date(),
-        type: "outgoing",
-      },
-      {
-        id: "3",
-        from: "me",
-        to: "Bob",
-        message: "hi this is my second message",
-        timestamp: new Date(),
-        type: "outgoing",
-      },
-      {
-        id: "4",
-        from: "me",
-        to: "Bob",
-        message: "hi this is my first message",
-        timestamp: new Date(),
-        type: "outgoing",
-      },
-    ];
-  }
-  const request = new daemonM.GetOutboxMessagesRequest();
-  const getOutboxMessages = promisify(daemonClient.getOutboxMessages).bind(
-    daemonClient
-  );
-  try {
-    const response = (await getOutboxMessages(
-      request
-    )) as daemonM.GetOutboxMessagesResponse;
-    const lm = response.getMessagesList();
-    const l = lm.map(convertProtobufOutgoingMessageToTypedMessage);
-    return l;
-  } catch (e) {
-    console.log(`error in getOutboxMessages: ${e}`);
-    return [];
-  }
-});
-
-contextBridge.exposeInMainWorld("getSentMessagesOLD", async () => {
-  if (FAKE_DATA) {
-    return [
-      {
-        id: "1",
-        from: "me",
-        to: "Sualeh",
-        message: "The draft looks good. Let me know if you need any help!",
-        timestamp: new Date(),
-        type: "outgoing",
-      },
-      {
-        id: "2",
-        from: "me",
-        to: "Shengtong",
-        message:
-          "Welcome! We are extremely excited to have you as a part of our team.",
-        timestamp: new Date(),
-        type: "outgoing",
-      },
-    ];
-  }
-
-  const request = new daemonM.GetSentMessagesRequest();
-  const getSentMessages = promisify(daemonClient.getSentMessages).bind(
-    daemonClient
-  );
-  try {
-    const response = (await getSentMessages(
-      request
-    )) as daemonM.GetSentMessagesResponse;
-    const lm = response.getMessagesList();
-    const l = lm.map(convertProtobufOutgoingMessageToTypedMessage);
-    return l;
-  } catch (e) {
-    console.log(`error in getSentMessages: ${e}`);
-    return [];
-  }
-});
 
 contextBridge.exposeInMainWorld(
   "messageSeen",

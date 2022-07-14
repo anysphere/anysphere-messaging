@@ -4,11 +4,17 @@
 //
 
 import * as React from "react";
-import { Message } from "../../types";
+import { IncomingMessage, OutgoingMessage } from "../../types";
 
-function Read({ message, onClose }: { message: Message; onClose: () => void }) {
+function Read({
+  message,
+  onClose,
+}: {
+  message: IncomingMessage | OutgoingMessage;
+  onClose: () => void;
+}): JSX.Element {
   React.useEffect(() => {
-    const handler = (event: any) => {
+    const handler = (event: KeyboardEvent): void => {
       if (event.key === "Escape") {
         console.log(event.key);
         event.preventDefault();
@@ -20,17 +26,19 @@ function Read({ message, onClose }: { message: Message; onClose: () => void }) {
   }, [onClose]);
 
   return (
-    <div className="flex place-content-center w-full mt-8 text-sm">
-      <div className="place-self-center flex flex-col w-full max-w-3xl bg-white p-2 px-4">
+    <div className="mt-8 flex w-full place-content-center text-sm">
+      <div className="flex w-full max-w-3xl flex-col place-self-center bg-white p-2 px-4">
         <div className="flex flex-row content-center py-2">
-          <div className="place-content-center grid">
-            <div className="align-bottom unselectable">From:</div>
+          <div className="grid place-content-center">
+            <div className="unselectable align-bottom">From:</div>
           </div>
-          <div className="pl-2">{message.from}</div>
+          <div className="pl-2">
+            {"fromDisplayName" in message ? message.fromDisplayName : "me"}
+          </div>
           <div className="flex-1"></div>
         </div>
         <hr className="border-asbrown-100" />
-        <div className="whitespace-pre-wrap resize-none w-full focus:outline-none h-full grow pt-4 pb-4">
+        <div className="h-full w-full grow resize-none whitespace-pre-wrap pt-4 pb-4 focus:outline-none">
           {message.message}
         </div>
       </div>
