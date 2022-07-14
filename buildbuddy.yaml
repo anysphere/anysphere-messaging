@@ -8,5 +8,5 @@ actions:
       pull_request:
         branches:
           - "main"
-    bazel_commands:
+    bazelisk_commands:
       - "test //... --define memdb=true"

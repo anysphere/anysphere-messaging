@@ -9,7 +9,10 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/bazel-bin/integration_tests/daemon_test",
-      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "args": [
+        "--gtest_break_on_failure",
+        "--gtest_catch_exceptions=0"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
@@ -29,8 +32,12 @@
       "name": "Debug all bazel tests",
       "type": "cppdbg",
       "request": "launch",
-      "program": "/home/linuxbrew/.linuxbrew/bin/bazel",
-      "args": ["test", "//...", "-c dbg"],
+      "program": "/home/linuxbrew/.linuxbrew/bin/bazelisk",
+      "args": [
+        "test",
+        "//...",
+        "-c dbg"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
@@ -51,7 +58,10 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/bazel-bin/integration_tests/daemon_friends_test",
-      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "args": [
+        "--gtest_break_on_failure",
+        "--gtest_catch_exceptions=0"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
@@ -72,7 +82,10 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/bazel-bin/integration_tests/daemon_tests/daemon_stream_messages_test",
-      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "args": [
+        "--gtest_break_on_failure",
+        "--gtest_catch_exceptions=0"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
@@ -118,7 +131,10 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/bazel-bin/integration_tests/multiple_friends_test",
-      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "args": [
+        "--gtest_break_on_failure",
+        "--gtest_catch_exceptions=0"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
@@ -139,7 +155,10 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/bazel-bin/server/src/test",
-      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "args": [
+        "--gtest_break_on_failure",
+        "--gtest_catch_exceptions=0"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
@@ -160,7 +179,10 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/bazel-bin/client/daemon/test",
-      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "args": [
+        "--gtest_break_on_failure",
+        "--gtest_catch_exceptions=0"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
@@ -181,7 +203,10 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/bazel-bin/client/daemon/test",
-      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "args": [
+        "--gtest_break_on_failure",
+        "--gtest_catch_exceptions=0"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
@@ -201,7 +226,10 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/bazel-bin/client/daemon/test",
-      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "args": [
+        "--gtest_break_on_failure",
+        "--gtest_catch_exceptions=0"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
@@ -221,7 +249,10 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/bazel-bin/integration_tests/daemon_tests/daemon_stream_messages_test",
-      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "args": [
+        "--gtest_break_on_failure",
+        "--gtest_catch_exceptions=0"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
@@ -241,7 +272,10 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/bazel-bin/client/client_lib/client_lib_test",
-      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "args": [
+        "--gtest_break_on_failure",
+        "--gtest_catch_exceptions=0"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
@@ -262,7 +296,10 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/bazel-bin/client/cli/as_cli_test",
-      "args": ["--gtest_break_on_failure", "--gtest_catch_exceptions=0"],
+      "args": [
+        "--gtest_break_on_failure",
+        "--gtest_catch_exceptions=0"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],

@@ -1,7 +1,7 @@
 # How to check which tests are in the folder
 
 ```
-bazel query 'tests(//integration_tests/...)'
+bazelisk query 'tests(//integration_tests/...)'
 ```
 
 # How to run individual tests

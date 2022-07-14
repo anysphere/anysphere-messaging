@@ -15,9 +15,9 @@ server:
 	DOCKER_BUILDKIT=1 docker build -f server.Dockerfile -t server .
 
 minimal-server: 
-	bazel build //server/src:as_server -c opt
+	bazelisk build //server/src:as_server -c opt
 	rm -f as_server
-	# do echo "$(bazel info output_path)/k8-opt/bin/server/src/as_server"; makefile doesn't support $() syntax
+	# do echo "$(bazelisk info output_path)/k8-opt/bin/server/src/as_server"; makefile doesn't support $() syntax
 	cp /workspace/root_bazel_output_base/execroot/__main__/bazel-out/k8-opt/bin/server/src/as_server as_server
 	DOCKER_BUILDKIT=1 docker build -f minimal-server.Dockerfile -t minimal-server .
 	rm -f as_server

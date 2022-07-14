@@ -1,6 +1,8 @@
 {
   "editor.formatOnSave": true,
-  "bazel-cpp-tools.compileCommands.targets": ["//..."],
+  "bazel-cpp-tools.compileCommands.targets": [
+    "//..."
+  ],
   "git.ignoredRepositories": [
     "/private/var/tmp/**",
     "/private/var/tmp/*",
@@ -146,7 +148,9 @@
     ".trunk/out": true,
     "bazel-anysphere/**": true
   },
-  "rust-analyzer.linkedProjects": ["client/rust-project.json"],
+  "rust-analyzer.linkedProjects": [
+    "client/rust-project.json"
+  ],
   "trunk.inlineDecorators": false,
   "editor.tokenColorCustomizations": {
     "textMateRules": [

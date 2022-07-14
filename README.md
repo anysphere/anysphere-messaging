@@ -31,13 +31,13 @@ in this directory. Then commit and push! This updates the generated schema for t
 ## Testing
 
 ```bash
-bazel test //...
+bazelisk test //...
 ```
 
 Testing with address sanitizer is also recommended:
 
 ```bash
-bazel test --config=asan //...
+bazelisk test --config=asan //...
 ```
 
 ## GitPod
@@ -53,14 +53,14 @@ arch --x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homeb
 ```
 
 Create alias: add `alias x86brew='arch --x86_64 /usr/local/Homebrew/bin/brew'` to your `.bashrc`.
-Install `x86bazel`:
+Install `x86bazelisk`:
 
 ```bash
-x86brew install bazel
+x86brew install bazelisk
 ```
 
-Create alias: add `alias x86bazel='arch --x86_64 /usr/local/bin/bazel'` to your `.bashrc`.
-Make sure `which bazel` is the `/opt/homebrew/...` version, and make sure `x86bazel` is the right thing too.
+Create alias: add `alias x86bazelisk='arch --x86_64 /usr/local/bin/bazelisk` to your `.bashrc`.
+Make sure `which bazelisk` is the `/opt/homebrew/...` version, and make sure `x86bazelisk` is the right thing too.
 
 ## Release
 
