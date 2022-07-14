@@ -62,7 +62,7 @@ function Main(): JSX.Element {
           return;
         }
       }
-      window.messageSeen({ id: message.uid }).catch(console.error);
+      window.daemon.messageSeen({ id: message.uid }).catch(console.error);
       let title = "";
       if ("fromDisplayName" in message) {
         title = `${truncate(message.message, 10)} - ${message.fromDisplayName}`;
@@ -194,7 +194,7 @@ function Main(): JSX.Element {
   }
 
   React.useEffect(() => {
-    window
+    window.daemon
       .hasRegistered()
       .then((registered: boolean) => {
         if (!registered) {
@@ -202,7 +202,7 @@ function Main(): JSX.Element {
             <RegisterModal
               onClose={() => {}} // should not be able to close modal by clicking outside
               onRegister={(username: string, key: string) => {
-                window
+                window.daemon
                   .registerUser({ name: username, betaKey: key })
                   .then(() => {
                     closeModal();
@@ -278,13 +278,13 @@ function Main(): JSX.Element {
       case SideBarButton.ADD_FRIEND:
         return openFriendModal();
       default:
-        return React.useCallback(() => {}, []);
+        return () => {};
         break;
     }
   };
 
   // CmdK options and shortcuts
-  const CmdKActions = [
+  const cmdKActions = [
     {
       id: "friend",
       name: "Add and Manage Friends",
@@ -344,7 +344,7 @@ function Main(): JSX.Element {
     // },
   ];
 
-  const CmdKOptions: KBarOptions = {
+  const cmdKOptions: KBarOptions = {
     callbacks: {
       onClose: () => {
         closeModal();
@@ -388,7 +388,7 @@ function Main(): JSX.Element {
         </div>
       </div>
 
-      <CmdK actions={CmdKActions} options={CmdKOptions}>
+      <CmdK actions={cmdKActions} options={cmdKOptions}>
         {modal}
         <CmdKPortal onClose={closeModal}>
           <CmdKSearch />

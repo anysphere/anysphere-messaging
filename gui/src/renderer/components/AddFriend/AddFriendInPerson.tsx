@@ -425,7 +425,7 @@ export default function AddFriendInPerson({
       });
       return;
     }
-    window
+    window.daemon
       .addSyncFriend({
         uniqueName,
         displayName,

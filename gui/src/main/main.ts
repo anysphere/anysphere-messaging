@@ -3,8 +3,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 //
 
-/* eslint global-require: off, no-console: off, promise/always-return: off */
-
 import path from "path";
 import { app, BrowserWindow, session, shell, Notification } from "electron";
 import MenuBuilder from "./menu";
@@ -14,32 +12,29 @@ import { promisify } from "util";
 import { exec as execNonPromisified } from "child_process";
 const exec = promisify(execNonPromisified);
 
-import {
-  getDaemonClient,
-  convertProtobufIncomingMessageToTypedMessage,
-  truncate,
-} from "./daemon";
-import daemonM from "../daemon/schema/daemon_pb";
+import { truncate, DaemonImpl } from "./daemon";
+import { IncomingMessage } from "../types";
+import * as daemon_pb from "../daemon/schema/daemon_pb";
 import { PLIST_CONTENTS, PLIST_PATH, RELEASE_COMMIT_HASH } from "./constants";
 import { exit } from "process";
 import fs from "fs";
-const daemonClient = getDaemonClient();
+
+const daemon = new DaemonImpl();
 
 const isDevelopment =
-  process.env.NODE_ENV === "development" || process.env.DEBUG_PROD === "true";
+  process.env["NODE_ENV"] === "development" ||
+  process.env["DEBUG_PROD"] === "true";
 
-if (process.env.NODE_ENV === "production") {
+if (process.env["NODE_ENV"] === "production") {
   const sourceMapSupport = require("source-map-support");
-  sourceMapSupport.install();
+  sourcemapsupport.install();
 }
 
-const startDaemonIfNeeded = async (pkgPath: string) => {
-  const request = new daemonM.GetStatusRequest();
-  const getStatus = promisify(daemonClient.getStatus).bind(daemonClient);
+async function startDaemonIfNeeded(pkgPath: string): Promise<void> {
   try {
-    const response = (await getStatus(request)) as daemonM.GetStatusResponse;
+    const daemonStatus = await daemon.getStatus({});
     // if release hash is wrong, we need to restart!
-    if (response.getReleaseHash() !== RELEASE_COMMIT_HASH) {
+    if (daemonStatus.releaseHash !== RELEASE_COMMIT_HASH) {
       throw new Error("incorrect release hash");
     }
     // daemon is running, correct version, nothing to do
@@ -69,19 +64,19 @@ const startDaemonIfNeeded = async (pkgPath: string) => {
     // TODO(arvid): handle windows and linux too
     // possible problem, so let's start the daemon!
     // unload the plist if it exists.
-    const plist_path = PLIST_PATH();
+    const plistPath = PLIST_PATH();
     // 0: create the directory
-    const mkdir_plist = await exec(`mkdir -p ${path.dirname(plist_path)}`);
-    if (mkdir_plist.stderr) {
-      process.stderr.write(mkdir_plist.stderr);
+    const mkdirPlist = await exec(`mkdir -p ${path.dirname(plistPath)}`);
+    if (mkdirPlist.stderr) {
+      process.stderr.write(mkdirPlist.stderr);
     }
     // 1: unload plist
-    await exec("launchctl unload " + plist_path); // we don't care if it fails or not!
+    await exec("launchctl unload " + plistPath); // we don't care if it fails or not!
     let logPath = "";
-    if (process.env.XDG_CACHE_HOME) {
-      logPath = path.join(process.env.XDG_CACHE_HOME, "anysphere", "logs");
-    } else if (process.env.HOME) {
-      logPath = path.join(process.env.HOME, ".anysphere", "cache", "logs");
+    if (process.env["XDG_CACHE_HOME"] !== undefined) {
+      logPath = path.join(process.env["XDG_CACHE_HOME"], "anysphere", "logs");
+    } else if (process.env["HOME"] !== undefined) {
+      logPath = path.join(process.env["HOME"], ".anysphere", "cache", "logs");
     } else {
       process.stderr.write(
         "$HOME or $XDG_CACHE_HOME not set! Cannot create daemon, aborting :("
@@ -90,15 +85,15 @@ const startDaemonIfNeeded = async (pkgPath: string) => {
     }
     const contents = PLIST_CONTENTS(pkgPath, logPath);
     // 2: write plist
-    await fs.promises.writeFile(plist_path, contents);
+    await fs.promises.writeFile(plistPath, contents);
     // 3: load plist
-    const response = await exec("launchctl load " + plist_path);
+    const response = await exec("launchctl load " + plistPath);
     if (response.stderr) {
       process.stderr.write(response.stderr);
       exit(1);
     }
   }
-};
+}
 
 const installExtensions = async () => {
   const installer = require("electron-devtools-installer");
@@ -148,7 +143,7 @@ const createWindow = async () => {
     if (!mainWindow) {
       throw new Error('"mainWindow" is not defined');
     }
-    if (process.env.START_MINIMIZED) {
+    if (process.env["START_MINIMIZED"] === "true") {
       mainWindow.minimize();
     } else {
       mainWindow.show();
@@ -184,50 +179,28 @@ app.on("window-all-closed", () => {
   }
 });
 
-function registerForNotifications() {
-  const request = new daemonM.GetMessagesRequest();
-  request.setFilter(daemonM.GetMessagesRequest.Filter.NEW);
-  let call = daemonClient.getMessagesStreamed(request);
-
+function registerForNotifications(): () => void {
   let firstTime = true;
-
-  call.on("data", function (r) {
-    if (firstTime) {
-      firstTime = false;
-      return;
-    }
-    try {
-      const lm = r.getMessagesList();
-      const l = lm.map(convertProtobufIncomingMessageToTypedMessage);
-      // notify!!!
-      for (const m of l) {
+  const cancel = daemon.getMessagesStreamed(
+    { filter: daemon_pb.GetMessagesRequest.Filter.NEW },
+    (messages: IncomingMessage[]) => {
+      if (firstTime) {
+        firstTime = false;
+        return;
+      }
+      for (const m of messages) {
         const notification = new Notification({
-          title: m.from,
+          title: m.fromDisplayName,
           body: truncate(m.message, 50),
         });
         notification.show();
       }
-    } catch (e) {
-      console.log(`error in getNewMessagesStreamed: ${e}`);
     }
-  });
-  call.on("end", function () {
-    // The server has finished sending
-    // TODO(arvid): resubscribe?
-    console.log("getNewMessagesStreamed end");
-  });
-  call.on("error", function (e) {
-    // An error has occurred and the stream has been closed.
-    // TODO(arvid): resubscribe?
-    console.log("getNewMessagesStreamed error", e);
-  });
-  call.on("status", function (status) {
-    // process status
-    console.log("getNewMessagesStreamed status", status);
-  });
+  );
+
   return () => {
     console.log("cancelling notifications!");
-    call.cancel();
+    cancel();
   };
 }
 

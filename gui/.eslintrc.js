@@ -1,7 +1,7 @@
 // inspired by 6.031 .eslintrc.js
 module.exports = {
   root: true, // don't look any higher in filesystem for eslint config
-  noInlineConfig: true, // don't allow comments in source files to suppress eslint comments
+  noInlineConfig: false, // allow comments in source files to suppress eslint comments
   env: {
     es2021: true,
     node: true,
