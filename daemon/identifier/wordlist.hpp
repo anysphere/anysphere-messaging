@@ -9,6 +9,12 @@
 
 namespace wordlist {
 
+// If we decide to update this wordlist, we need to manually update the spell checker as well.
+// To do so, go into client/gui/src/renderer/components/AddFriend.
+// Replace the txt word lists there
+// then run convert.py
+// then paste the output to the list in SpellCheck.tsx
+
 constexpr auto adjectives = R"EOM(caring
 peculiar
 digital
