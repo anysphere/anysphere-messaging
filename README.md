@@ -7,13 +7,13 @@ This repository, along with [anysphere/asphr](https://github.com/anysphere/asphr
 Clone anysphere/asphr and anysphere/client and put them in a directory side-by-side. Then, in the `client` directory, run:
 
 ```bash
-bazel build //...
+bazeliskisk build //...
 ```
 
 to build, and
 
 ```bash
-bazel test //...
+bazelisk test //...
 ```
 
 to test.
@@ -53,31 +53,31 @@ Let `.env` contain the environment variables specified by `helpers/scripts/packa
 Build:
 
 ```bash
-bazel build //...
+bazelisk build //...
 ```
 
 In one terminal, run normal daemon:
 
 ```bash
-./bazel-bin/daemon/daemon
+./bazelisk-bin/daemon/daemon
 ```
 
 In a new terminal, run a second daemon:
 
 ```bash
-./wrap2.sh ./bazel-bin/daemon/daemon
+./wrap2.sh ./bazelisk-bin/daemon/daemon
 ```
 
 To connect to daemon 1, run:
 
 ```bash
-./bazel-bin/cli/asphr [command]
+./bazelisk-bin/cli/asphr [command]
 ```
 
 To connect to daemon 2, run:
 
 ```bash
-./wrap2.sh ./bazel-bin/cli/asphr [command]
+./wrap2.sh ./bazelisk-bin/cli/asphr [command]
 ```
 
 For the gui, run:
