@@ -94,8 +94,7 @@ Run:
 sudo mkdir -p /usr/local/bin
 sudo ln -sf /Applications/Anysphere.app/Contents/Resources/bin/anysphere /usr/local/bin/anysphere
 cat << EOF >> ~/.zprofile
-# Add Visual Studio Code (code)
-export PATH="\$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+export PATH="\$PATH:/usr/local/bin"
 EOF
 ```
 
