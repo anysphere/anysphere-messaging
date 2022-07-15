@@ -60,7 +60,7 @@
 \begin{document}
 \maketitle
 \section{Purpose}
-Previous MPM papers have focused on the security of single round MPMs where each client sends and receives exactly one message, and asserts that the privacy of the entire messaging system is a corollary of single-round privacy. This is not true for three reasons: 1) It is impractical to assume that each client talks to one and only one client at the same time. For example, a client may have many conversations going on at once. Attempts to address this has created actual security holes like CF attacks. 2) As clients have different level of resources, running synchronous rounds is not economical. For example, big companies might wish rounds run faster to receive timely updates, while individual clients might not want to participate in each round to preserve bandwidth. 3) Practical messaging apps need many more components beyond single round MPMs, such as trust establishment, etc. 
+Previous MPM papers have focused on the security of a single round MPM where each client sends and receives exactly one message, and asserts that the privacy of the entire messaging system is a corollary of single-round privacy. This is not true for three reasons: 1) Single round security does not imply multi-round security at all. CF attacks have shown how a carelessly designed multi-round protocol can leak metadata even if it uses secure single-round primitives. 2) As clients have different level of resources, running synchronous rounds is not economical. For example, big companies might wish rounds run faster to receive timely updates, while individual clients might not want to participate in each round to preserve bandwidth. 3) Practical messaging apps need many more components beyond single round MPMs, such as trust establishment, etc. 
 
 We design a formal security definition for a multi-round real-time messaging scheme. This draft is more based on the security definition presented in NIAR. 
 
@@ -235,7 +235,7 @@ Same notations as above. Let $\Sim$ be a stateful simulator. The ideal-world exp
 \item $\Sim(1, \mathsf{Leak}(\{\cI_{i, 1}\}, \cK))$
 \item For $t$ from $1$ to $T$:
     \begin{enumerate}
-    \item For each $i \in \cH$, $\req_i \leftarrow \Sim(i)$.
+    \item For each $i \in \cH$, $\req_i \leftarrow \Sim(t, i)$.
     
     \item $\{\resp_i\}_{i \in \cH}, \{\cI_{i, t + 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\req_i\}_{i \in \cH})$.
     
@@ -253,9 +253,9 @@ We say a messaging scheme is SIM-secure iff for  any polynomial upper bounds on 
 Unfortunately, Anysphere does not support the strongest security notion described above, due to CF attacks. For the threat model in our whitepaper, we assume that no friends are compromised. We now define a weaker security notion with this additional hypothesis.
 \begin{definition}[SIM-secure with no compromised friends and bounded friends]
 We say that a set of input $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ satisfy \textbf{no compromised friends} if for any $i \in \cH, j \in \cK$ and $t \in [T]$, we have
-$$\mathsf{TrustEstablishment}(\reg_j) \notin \cI_{i, t}.$$
+$$\mathsf{TrustEstablishment}(\reg_j) \neq \cI_{i, t}.$$
 We say that a set of input $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ satisfy \textbf{$B$-bounded friends} if for any $i \in \cH$, the set
-$$\{\reg_j: \exists t, \mathsf{TrustEstablishment}(\reg_j) \in \cI_{i, t}\}$$
+$$\{\reg: \exists t, \mathsf{TrustEstablishment}(\reg) = \cI_{i, t}\}$$
 has cardinality at most $B$.
 
 We say a messaging scheme is correct with $B$-bounded friends iff for any parameters $(\lambda, N, T, \{\cI_{i, t}\})$ of the honest server experiment, if $\{\cI_{i, t}\}$ satisfy $B$-bounded friends, then the scheme produces the correct views.
@@ -267,8 +267,9 @@ We say a messaging scheme is SIM-secure with no compromised friends / $B$-bounde
 Currently we have $B = 2$.
 
 We now explain the construction of Anysphere. 
-\subsection{Secure Primitives}
-Our  two crypto primitives.
+\subsection{Cryptography Primitives}
+Anysphere relies on two crypto primitives. 
+\subsection{The Anysphere Core Protocol}
 \begin{figure}[h!]
 \begin{framed}
 \begin{definition}[The Anysphere Messaging Scheme]
