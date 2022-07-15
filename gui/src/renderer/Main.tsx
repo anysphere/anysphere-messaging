@@ -25,6 +25,7 @@ import { StatusHandler, StatusContext } from "./components/Status";
 import { SideBar } from "./components/SideBar/SideBar";
 import { SideBarButton } from "./components/SideBar/SideBarProps";
 import AddFriend from "./components/AddFriend/AddFriend";
+import Modal from "./components/Modal";
 
 const defaultTabs: Tab[] = [
   { type: TabType.New, name: "New", data: null, unclosable: true, id: "new" },
@@ -62,7 +63,7 @@ function Main(): JSX.Element {
           return;
         }
       }
-      window.daemon.messageSeen({ id: message.uid }).catch(console.error);
+      window.messageSeen({ id: message.uid }).catch(console.error);
       let title = "";
       if ("fromDisplayName" in message) {
         title = `${truncate(message.message, 10)} - ${message.fromDisplayName}`;
@@ -194,7 +195,7 @@ function Main(): JSX.Element {
   }
 
   React.useEffect(() => {
-    window.daemon
+    window
       .hasRegistered()
       .then((registered: boolean) => {
         if (!registered) {
@@ -202,7 +203,7 @@ function Main(): JSX.Element {
             <RegisterModal
               onClose={() => {}} // should not be able to close modal by clicking outside
               onRegister={(username: string, key: string) => {
-                window.daemon
+                window
                   .registerUser({ name: username, betaKey: key })
                   .then(() => {
                     closeModal();
@@ -335,6 +336,52 @@ function Main(): JSX.Element {
       name: "Help",
       shortcut: ["h"],
       keywords: "help",
+    },
+    {
+      id: "install-cli",
+      name: "Install 'anysphere' command",
+      keywords: "install, cli, command",
+      perform: () => {
+        setModal(
+          <Modal
+            onClose={() => {
+              closeModal();
+            }}
+          >
+            <div className="relative h-full w-full">
+              <h1 className="absolute top-4 left-0 right-0 text-center text-sm font-bold">
+                Install 'anysphere' command
+              </h1>
+              <div className="absolute top-8 bottom-0 left-0 right-0 grid place-content-center">
+                <div className="grid h-full w-full gap-2 p-2 text-sm">
+                  <p>
+                    Run the following sequence of commands in your terminal:
+                  </p>
+                  <div className="overflow-scroll bg-asbeige p-1">
+                    <code className="whitespace-pre text-[11px]">
+                      {`sudo mkdir -p /usr/local/bin
+sudo ln -sf /Applications/Anysphere.app/Contents/Resources/bin/anysphere /usr/local/bin/anysphere
+cat << EOF >> ~/.zprofile
+export PATH="\$PATH:/usr/local/bin"
+EOF`}
+                    </code>
+                  </div>
+                  <div className="unselectable pt-1 text-xs text-asbrown-300">
+                    Replace `.zprofile` with `.bash_profile` or something else
+                    if you use a different shell.
+                  </div>
+                  <div className="unselectable pt-1 text-xs text-asbrown-300">
+                    Why do we ask you to run this yourself? Administrator
+                    privileges are needed to install the command, and we don't
+                    want to ask you for your password without you seeing exactly
+                    what is being run.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Modal>
+        );
+      },
     },
     // {
     //   id: "quit",

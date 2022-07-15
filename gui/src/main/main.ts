@@ -18,6 +18,7 @@ import * as daemon_pb from "../daemon/schema/daemon_pb";
 import { PLIST_CONTENTS, PLIST_PATH, RELEASE_COMMIT_HASH } from "./constants";
 import { exit } from "process";
 import fs from "fs";
+import { Console } from "console";
 
 const daemon = new DaemonImpl();
 
@@ -27,7 +28,32 @@ const isDevelopment =
 
 if (process.env["NODE_ENV"] === "production") {
   const sourceMapSupport = require("source-map-support");
-  sourcemapsupport.install();
+  sourceMapSupport.install();
+}
+
+function setupLogger(): void {
+  let logPath = "";
+  if (process.env["XDG_CACHE_HOME"] !== undefined) {
+    logPath = path.join(process.env["XDG_CACHE_HOME"], "anysphere", "logs");
+  } else if (process.env["HOME"] !== undefined) {
+    logPath = path.join(process.env["HOME"], ".anysphere", "cache", "logs");
+  } else {
+    process.stderr.write(
+      "$HOME or $XDG_CACHE_HOME not set! Cannot create log path, aborting :("
+    );
+    exit(1);
+  }
+  app.setAppLogsPath(logPath);
+
+  // in debug mode, use console.log. in production, use the log file.
+  if (isDevelopment) {
+    global.logger = console;
+  } else {
+    global.logger = new Console({
+      stdout: fs.createWriteStream(path.join(logPath, "anysphere-gui.log")),
+      stderr: fs.createWriteStream(path.join(logPath, "anysphere-gui.err")),
+    });
+  }
 }
 
 async function startDaemonIfNeeded(pkgPath: string): Promise<void> {
@@ -38,27 +64,19 @@ async function startDaemonIfNeeded(pkgPath: string): Promise<void> {
       throw new Error("incorrect release hash");
     }
     // daemon is running, correct version, nothing to do
+    logger.log("Daemon is running, with the correct version!");
     return;
   } catch (e) {
     // if development, we don't want to start the daemon (want to do it manually)
     if (isDevelopment) {
-      process.stdout.write(
+      logger.log(
         `Daemon is either not running or running the wrong version. Please start it; we're not doing anything because we're in DEV mode. Error: ${e}.`
       );
       return;
-    }
-
-    // first copy the CLI
-    const cliPath = path.join(pkgPath, "bin", "anysphere");
-    // ln -sf link it!
-    // TODO(arvid): just add to PATH instead, because not everyone has /usr/local/bin in their PATH
-    const mkdir = await exec(`mkdir -p /usr/local/bin`);
-    if (mkdir.stderr) {
-      process.stderr.write(mkdir.stderr);
-    }
-    const clilink = await exec(`ln -sf ${cliPath} /usr/local/bin/anysphere`);
-    if (clilink.stderr) {
-      process.stderr.write(clilink.stderr);
+    } else {
+      logger.log(
+        `Daemon is either not running or running the wrong version. Error: ${e}.`
+      );
     }
 
     // TODO(arvid): handle windows and linux too
@@ -68,36 +86,30 @@ async function startDaemonIfNeeded(pkgPath: string): Promise<void> {
     // 0: create the directory
     const mkdirPlist = await exec(`mkdir -p ${path.dirname(plistPath)}`);
     if (mkdirPlist.stderr) {
-      process.stderr.write(mkdirPlist.stderr);
+      logger.error(mkdirPlist.stderr);
     }
+    logger.log("Successfully created the plist directory.");
     // 1: unload plist
     await exec("launchctl unload " + plistPath); // we don't care if it fails or not!
-    let logPath = "";
-    if (process.env["XDG_CACHE_HOME"] !== undefined) {
-      logPath = path.join(process.env["XDG_CACHE_HOME"], "anysphere", "logs");
-    } else if (process.env["HOME"] !== undefined) {
-      logPath = path.join(process.env["HOME"], ".anysphere", "cache", "logs");
-    } else {
-      process.stderr.write(
-        "$HOME or $XDG_CACHE_HOME not set! Cannot create daemon, aborting :("
-      );
-      exit(1);
-    }
+    const logPath = app.getPath("logs");
     const contents = PLIST_CONTENTS(pkgPath, logPath);
+    logger.log("Successfully unloaded the plist.");
     // 2: write plist
     await fs.promises.writeFile(plistPath, contents);
+    logger.log("Successfully wrote the new plist.");
     // 3: load plist
     const response = await exec("launchctl load " + plistPath);
     if (response.stderr) {
-      process.stderr.write(response.stderr);
+      logger.error(response.stderr);
       exit(1);
     }
+    logger.log("Successfully loaded the new plist.");
   }
 }
 
-const installExtensions = async () => {
+async function installExtensions(): Promise<void> {
   const installer = require("electron-devtools-installer");
-  const forceDownload = !!process.env.UPGRADE_EXTENSIONS;
+  const forceDownload = !!process.env["UPGRADE_EXTENSIONS"];
   const extensions = ["REACT_DEVELOPER_TOOLS"];
 
   return installer
@@ -105,8 +117,8 @@ const installExtensions = async () => {
       extensions.map((name) => installer[name]),
       forceDownload
     )
-    .catch(console.log);
-};
+    .catch(logger.log);
+}
 
 const createWindow = async () => {
   if (isDevelopment) {
@@ -140,9 +152,6 @@ const createWindow = async () => {
   mainWindow.loadURL(resolveHtmlPath("index.html"));
 
   mainWindow.on("ready-to-show", () => {
-    if (!mainWindow) {
-      throw new Error('"mainWindow" is not defined');
-    }
     if (process.env["START_MINIMIZED"] === "true") {
       mainWindow.minimize();
     } else {
@@ -155,12 +164,17 @@ const createWindow = async () => {
 
   // Don't allow ANY requests to any origin! This means that the app will
   // only not be able to communicate with the internet at all, which is PERFECT.
+  session.defaultSession.enableNetworkEmulation({
+    offline: true,
+  });
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {
         ...details.responseHeaders,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         "Content-Security-Policy": [
-          "default-src 'self' style-src 'self' 'unsafe-inline'",
+          "default-src 'self'; style-src 'self' 'unsafe-inline'", // required for tailwind
+          // "default-src 'self'",
         ],
       },
     });
@@ -207,6 +221,8 @@ function registerForNotifications(): () => void {
 app
   .whenReady()
   .then(() => {
+    setupLogger();
+
     autoUpdater.checkForUpdatesAndNotify();
 
     startDaemonIfNeeded(path.dirname(app.getAppPath()));

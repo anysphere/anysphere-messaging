@@ -201,7 +201,7 @@ function Write({
     // get both the complete friends and the sync invitations
     // the sync invitations have verified each other so it is safe to treat as a real friend
     // in the daemon.proto we keep them separate because we still want to display progress information
-    window.daemon
+    window
       .getFriendList()
       .then((friends: Friend[]) => {
         setFriends((f) => [
@@ -223,7 +223,7 @@ function Write({
     // get both the complete friends and the sync invitations
     // the sync invitations have verified each other so it is safe to treat as a real friend
     // in the daemon.proto we keep them separate because we still want to display progress information
-    window.daemon
+    window
       .getOutgoingSyncInvitations()
       .then(
         (
@@ -285,7 +285,7 @@ function Write({
     const displayNames = data.multiSelectState.friends.map(
       (friend) => friend.displayName
     );
-    window.daemon
+    window
       .sendMessage({
         uniqueNameList: uniqueNames,
         message: content,

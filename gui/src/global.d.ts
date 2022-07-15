@@ -6,12 +6,12 @@
 import { Daemon } from "./main/daemon";
 
 declare global {
-  interface Window {
+  // eslint-disable-next-line no-var
+  var logger: Console;
+
+  interface Window extends Daemon {
     copyToClipboard(s: string): void;
     isPlatformMac(): boolean;
-
-    daemon: Daemon;
   }
 }
-
 export {};

@@ -5,7 +5,6 @@ import seedrandom from "seedrandom";
 import { motion } from "framer-motion";
 import spellCheck from "./SpellCheck";
 
-
 const DEBUG_COLORS = false;
 // const DEBUG_COLORS = true;
 
@@ -75,7 +74,7 @@ export function StoryForm({
           focus:border-asbrown-300 focus:ring-0"
             onChange={(e) => {
               let sentence = e.target.value;
-              e.target.style.color = 'black';
+              e.target.style.color = "black";
               if (sentence.length > 0) {
                 let words = sentence.split(" ");
                 let correct = true;
@@ -92,10 +91,9 @@ export function StoryForm({
                 }
                 console.log(correct);
                 if (!correct) {
-                  e.target.style.color = 'red'; 
-                }
-                else {
-                  e.target.style.color = 'black';
+                  e.target.style.color = "red";
+                } else {
+                  e.target.style.color = "black";
                 }
               }
               setTheirStory(
@@ -451,7 +449,7 @@ export default function AddFriendInPerson({
       });
       return;
     }
-    window.daemon
+    window
       .addSyncFriend({
         uniqueName,
         displayName,
