@@ -354,7 +354,9 @@ function Main(): JSX.Element {
               </h1>
               <div className="absolute top-8 bottom-0 left-0 right-0 grid place-content-center">
                 <div className="grid h-full w-full gap-2 p-2 text-sm">
-                  <p>Run the following command in your terminal:</p>
+                  <p>
+                    Run the following sequence of commands in your terminal:
+                  </p>
                   <div className="overflow-scroll bg-asbeige p-1">
                     <code className="whitespace-pre text-[11px]">
                       {`sudo mkdir -p /usr/local/bin
