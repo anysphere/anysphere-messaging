@@ -85,3 +85,18 @@ For the gui, run:
 ```bash
 ./wrap2.sh ./gui/start.sh
 ```
+
+## Installing the CLI
+
+Run:
+
+```bash
+sudo mkdir -p /usr/local/bin
+sudo ln -sf /Applications/Anysphere.app/Contents/Resources/bin/anysphere /usr/local/bin/anysphere
+cat << EOF >> ~/.zprofile
+# Add Visual Studio Code (code)
+export PATH="\$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+EOF
+```
+
+Replace `.zprofile` with `.bash_profile` if you use bash instead.
