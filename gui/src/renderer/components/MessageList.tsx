@@ -95,7 +95,7 @@ export function IncomingMessageList({
   React.useEffect(() => {
     if (type === "new") {
       setMessages([]);
-      const cancel = window.daemon.getMessagesStreamed(
+      const cancel = window.getMessagesStreamed(
         { filter: daemon_pb.GetMessagesRequest.Filter.NEW },
         (messages: IncomingMessage[]) => {
           setMessages((prev: IncomingMessage[]) => {
@@ -121,7 +121,7 @@ export function IncomingMessageList({
       return cancel;
     } else if (type === "all") {
       setMessages([]);
-      const cancel = window.daemon.getMessagesStreamed(
+      const cancel = window.getMessagesStreamed(
         { filter: daemon_pb.GetMessagesRequest.Filter.ALL },
         (messages: IncomingMessage[]) => {
           setMessages((prev: IncomingMessage[]) => {
@@ -195,7 +195,7 @@ export function OutgoingMessageList({
 
   React.useEffect(() => {
     if (type === "outbox") {
-      window.daemon
+      window
         .getOutboxMessages({})
         .then(({ messagesList }: { messagesList: OutgoingMessage[] }) => {
           setMessages(messagesList);
@@ -204,7 +204,7 @@ export function OutgoingMessageList({
           console.error(err);
         });
     } else if (type === "sent") {
-      window.daemon
+      window
         .getSentMessages({})
         .then(({ messagesList }: { messagesList: OutgoingMessage[] }) => {
           setMessages(messagesList);

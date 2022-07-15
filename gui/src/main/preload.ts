@@ -15,12 +15,11 @@ contextBridge.exposeInMainWorld("isPlatformMac", () => {
 });
 
 const daemonI = new DaemonImpl();
-const classToObject = (theClass) => {
-  const originalClass = theClass || {};
-  const keys = Object.getOwnPropertyNames(Object.getPrototypeOf(originalClass));
-  return keys.reduce((classAsObj, key) => {
-    classAsObj[key] = originalClass[key];
-    return classAsObj;
-  }, {});
-};
-contextBridge.exposeInMainWorld("daemon", classToObject(daemonI));
+const methods = Object.getOwnPropertyNames(
+  Object.getPrototypeOf(daemonI)
+).filter((x) => x !== "constructor");
+for (const method of methods) {
+  contextBridge.exposeInMainWorld(method, (...args) => {
+    return daemonI[method](...args);
+  });
+}

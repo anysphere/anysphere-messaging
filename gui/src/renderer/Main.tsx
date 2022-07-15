@@ -62,7 +62,7 @@ function Main(): JSX.Element {
           return;
         }
       }
-      window.daemon.messageSeen({ id: message.uid }).catch(console.error);
+      window.messageSeen({ id: message.uid }).catch(console.error);
       let title = "";
       if ("fromDisplayName" in message) {
         title = `${truncate(message.message, 10)} - ${message.fromDisplayName}`;
@@ -194,7 +194,7 @@ function Main(): JSX.Element {
   }
 
   React.useEffect(() => {
-    window.daemon
+    window
       .hasRegistered()
       .then((registered: boolean) => {
         if (!registered) {
@@ -202,7 +202,7 @@ function Main(): JSX.Element {
             <RegisterModal
               onClose={() => {}} // should not be able to close modal by clicking outside
               onRegister={(username: string, key: string) => {
-                window.daemon
+                window
                   .registerUser({ name: username, betaKey: key })
                   .then(() => {
                     closeModal();
