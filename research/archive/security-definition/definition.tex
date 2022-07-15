@@ -52,6 +52,9 @@
 \newcommand{\cH}{\mathcal{H}}
 \newcommand{\cF}{\mathcal{F}}
 \newcommand{\cM}{\mathcal{M}}
+\newcommand{\sym}{\text{sym}}
+\newcommand{\pir}{\text{pir}}
+\newcommand{\asphr}{\text{asphr}}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -63,7 +66,7 @@
 \begin{document}
 \maketitle
 \section{Purpose}
-Previous MPM papers have focused on the security of a single round MPM where each client sends and receives exactly one message, and asserts that the privacy of the entire messaging system is a corollary of single-round privacy. This is not true for three reasons: 1) Single round security does not imply multi-round security at all. CF attacks have shown how a carelessly designed multi-round protocol can leak metadata even if it uses secure single-round primitives. 2) As clients have different level of resources, running synchronous rounds is not economical. For example, big companies might wish rounds run faster to receive timely updates, while individual clients might not want to participate in each round to preserve bandwidth. 3) Practical messaging apps need many more components beyond single round MPMs, such as trust establishment, etc. 
+Previous MPM papers have focused on the security of a single round MPM where each client sends and receives exactly one message, and asserts that the privacy of the entire messaging system is a corollary of single-round privacy. This is not true for three reasons: 1) Single round security does not imply multi-round security at all. CF attacks have shown how a carelessly designed multi-round protocol can leak metadata even if it uses secure single-round primitives. 2) As clients have different level of resources, running synchronous rounds is not economical. For example, big companies might wish rounds run faster to receive timely updates, while individual clients might not want to participate in each round to preserve bandwidth. 3) Practical messaging apps need many more components beyond sending and receiving messages, such as trust establishment, etc. 
 
 We design a formal security definition for a multi-round real-time messaging scheme. This draft is more based on the security definition presented in NIAR. 
 
@@ -275,12 +278,12 @@ We now explain the construction of Anysphere.
 Anysphere relies on two crypto primitives: a symmetric key encryption scheme, and a PIR scheme. We outline formal simulator-based definition of the two.
 \subsubsection{Key Private IND-CPA symmetric key encryption}
 A key-private IND-CPA symmetric key encryption scheme is a quadruple of algorithms $(\gen, \mathsf{KX}, \enc, \dec)$ with specifications
-\begin{enumerate}
+\begin{itemize}
     \item $\gen(1^{\lambda}) \to (kx^P, kx^S)$,
     \item $\mathsf{KX}(1^{\lambda}, kx_A^P, kx_B^S) \to sk_{AB},$
     \item $\enc(sk_{AB}, m) \to ct,$
     \item $\dec(sk_{BA}, ct) \to m.$
-\end{enumerate}
+\end{itemize}
 such that 
 \begin{definition}[Correctness]
 If we let
@@ -322,12 +325,12 @@ Then we say the encryption scheme is key-private IND-CPA if there exists a p.p.t
 
 \subsubsection{PIR Protocol}
 Central to our application is the Private Information Retrieval(PIR) Protocol. It consists of four efficient algorithms
-\begin{enumerate}
+\begin{itemize}
     \item $\gen(1^{\lambda}, n) \to (pk, sk)$.
     \item $\query(1^{\lambda}, sk, i) \to ct$.
     \item $\answer^{DB}(1^{\lambda}, pk, ct) \to a$.
     \item $\dec(1^{\lambda}, sk, a) \to x_i$.
-\end{enumerate}
+\end{itemize}
 where $DB$ is a length $n$ database with int64 entries, and $n$ is upper bounded by some polynomial $n(\lambda)$. It must satisfy
 \begin{definition}[Correctness]
 For any database $DB$ of length $n$ with int64 entries, if we run
@@ -357,13 +360,29 @@ for any $\lambda, n$, consider the following two experiments. Then we say the PI
 \end{enumerate}
 \end{framed}
 \end{figure}
-
 \end{definition}
+For our definition, we use libsodium's key exchange functionality for the $\mathsf{KX}$ function, then libsodium's secret key AEAD for the $\enc$ and $\dec$ functions. This provides a Key Private IND-CPA symmetric key encryption scheme. We use Addra as the PIR protocol.
 \subsection{The Anysphere Core Protocol}
+Let's first recap and summarize what we have defined so far. Recall that
+\begin{enumerate}
+    \item $\lambda$ is the security parameter.
+    \item $N$ is the number of users.
+    \item $T$ is the number of timesteps our protocol is run.
+    \item We use a key-private IND-CPA symmetric key encryption scheme $\Pi_{\sym}$.
+    \item We use a PIR protocol $\Pi_{\pir}$.
+\end{enumerate}
+We can now formally define Anysphere's core protocol. 
 \begin{figure}[h!]
 \begin{framed}
-\begin{definition}[The Anysphere Messaging Scheme]
-The Anysphere messaging scheme implements \cref{def:messaging-scheme} as follows.
+\begin{definition}[The Anysphere Core Protocol]
+Our protocol, $\Pi_{\asphr}$, implements the methods of \cref{def:messaging-scheme} as below. In any of the methods, we assume the caller will store all inputs for future use.
+\vspace{10pt}
+
+$\mathbf{\Pi_{\asphr}.C.\mathsf{Register}}(1^{\lambda}, i)$
+\vspace{5pt}
+\hrule
+\vspace{5pt}
+The client initializes the following
 \end{definition}
 \end{framed}
 \end{figure}
