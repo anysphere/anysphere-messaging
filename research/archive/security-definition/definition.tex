@@ -34,7 +34,7 @@
 \addbibresource{bib.bib}
 \newcommand\todo[1]{\textcolor{red}{TODO: #1}}
 
-\title{Security Definition of Anysphere}
+\title{Formal Security Definition of Anysphere}
 \newcommand{\MAC}{\text{MAC}}
 \newcommand{\Com}{\text{Com}}
 \newcommand{\Verify}{\text{Verify}}
@@ -59,13 +59,17 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
 \maketitle
-We design a security definition for a multi-round real-time messaging scheme. This draft is more based on the security definition presented in NIAR.
+\section{Purpose}
+Previous MPM papers have focused on the security of single round MPMs where each user sends and receives exactly one message, and asserts that the privacy of the entire messaging system is a corollary of single-round privacy. This is not true for two reasons: 1) It is impractical to assume that each user talks to one and only one user at the same time. For example, a user may have many conversations going on at once. Attempts to address this has created actual security holes like CF attacks. 2) Practical messaging apps need many more components beyond single round MPMs, such as trust establishment, etc.
+
+We design a formal security definition for a multi-round real-time messaging scheme. This draft is more based on the security definition presented in NIAR. 
 
 \todo{Currently, we assume all users have registered before execution. We also do not handle trust establishment.}
 
 \todo{Also, CF attack is a huge problem! What should we do about it?}
 
 \todo{ACKs? Might be too complicated.}
+\section{General Definitions}
 \begin{definition}
 In this document, we divide our execution into discrete \textbf{timesteps}. In reality, each timestep might be a small unit of time, like 100ms. This is different from ``rounds" used in most MPM security definitions, since clients do not necessarily transmit real or fake messages at every timestep.
 \end{definition}
@@ -74,7 +78,7 @@ The \textbf{view} of a user is a tuple consisting of
 
 1. A list of friends $\cF$ of the user.
 
-2. A list of messages $\cM$ received by the user, including the sender, timestep and content of the messages.
+2. A list of messages $\cM$ received by the user, including the sender, timestep and content of the messages. \todo{Do we reveal whether the message have been received?}
 \end{definition}
 \begin{definition}
 A \textbf{user input} is a command the user can issue to our messaging application. Currently, we support the following commands.
@@ -86,7 +90,7 @@ $\mathsf{Send}(\reg, \msg)$: Send the message $\msg$ to the user identified by $
 
 \end{definition}
 \begin{definition}
-A \textbf{Messaging Scheme} is a tuple of polynomial time methods. We assume that the client and servers are stated, which means they have a database from which they can read or write between method calls.
+A \textbf{Messaging Scheme} consists of the following polynomial time methods. We assume that the client and servers are stated, which means they have a database from which they can read or write between method calls.
 
 Client Side Algorithms for client $C$.
 \begin{itemize}
@@ -107,18 +111,19 @@ Server Side Algorithms for server $S$.
 \end{itemize}
 \end{definition}
 We now define how the algorithm will be executed, and correctness.
-\vspace{40mm}
 \begin{figure}[h!]
 \begin{framed}
 \begin{definition}[Honest Server Experiment]  \hfill\\
-
+    
 \textbf{Parameters}: \begin{enumerate}
     \item $\lambda$, the security parameter.
     \item $N$, the number of users, bounded above by a polynomial function $N(\lambda)$ of $\lambda$.
     \item $T$, the number of timesteps, bounded above by a polynomial function $T(\lambda)$ of $\lambda$.
     \item For each user $i$ and timestep $t$, a set of user inputs $\cI_{i, t}$, whose length is bounded by a constant.
-    \item Let $S$ denote the server, let $\{C_i\}_{i = 1}^N$ denote the clients.
 \end{enumerate}
+
+Let $S$ denote the server machine, let $\{C_i\}_{i = 1}^N$ denote the client machines.
+
 \textbf{Execution}:
 \begin{enumerate}
 \item $S.\mathsf{InitServer}(1^{\lambda}, N)$. 
@@ -145,31 +150,35 @@ We define the ``correct" view given user inputs. Informally speaking, the correc
     \item Messages from a user with established trust should be present and timestamped correctly.  
     \item No other friends or messages should be present. 
 \end{enumerate}
-More formally, given a set of users identified by $\{\reg_i\}_{i \in [N]}$, and user inputs $\{\cI_{i, t}\}_{i \in [N], t \in [T]}$, the correct view of user $j$ is defined as
-$$\mathsf{view}_j(\{\reg_i\}, \{\cI_{i, t}\}) = (\cF, \cM)$$
-where
-$$\cF = \{\reg_k: \exists t \in T, \mathsf{TrustEstablishment}(\reg_k) \in \cI_{j, t}\},$$
+More formally, given a set of users identified by $\{\reg_i\}_{i \in [N]}$, and user inputs $\{\cI_{i, t}\}_{i \in [N], t \in [T]}$, a view $(\cF, \cM)$ of user $j$ is said to be \textbf{correct} if it satisfies
+\begin{multline*}
+\cF \cap \{\reg_i: i \in [N]\} = 
+ \\ \{\reg_k: \exists t \in [T], \mathsf{TrustEstablishment}(\reg_k) \in \cI_{j, t}\},    
+\end{multline*}
+and
 \begin{multline*}
  \cM = \{(\reg_k, t, \msg): \mathsf{Send}(\reg_j, \msg) \in \cI_{k, t} \land \\
- \exists t' \leq t, \mathsf{TrustEstablishment}(\reg_k) \in \cI_{j, t'}\}.   
+ \exists t', \mathsf{TrustEstablishment}(\reg_k) \in \cI_{j, t'}\}.   
 \end{multline*}
 \end{definition}
-\todo{How do user verify registration info??}
+\textbf{Remark}: Note that we allow $\cF$ to contain friends that are non-existent. This is because we need a trusted PKI to verify the identity of the user, which we do not have. I do not think having these non-existent friends would cause any harm...
+
+Of course, we have a handshake protocol to verify the validity of friends, but this is a preliminary draft, so I don't know if it is appropriate to go so far right now...
+
+\todo{A problem is that $k$ might be broadcasting the message before $j$ receives the message. Our system is actually capable of receiving such messages.}
+\todo{Another solution is the ACK system we introduced. However, this would make the security proof much longer...}
 \begin{definition}[Correctness]
  We say a messaging scheme is \textbf{correct} if the following consistency model is satisfied. 
  
- Take any choice of parameters of the honest world experiment, any index $i \in [N]$, and any time $T$. Let $V_j \leftarrow C_j.\mathsf{GetView}()$ be the view of user $j$ after timestep $T$ of the Honest World Experiment. Then we want
+ Take any choice of parameters of the honest world experiment, any index $i \in [N]$, and any time $T_0$. Let $V_j \leftarrow C_j.\mathsf{GetView}()$ be the view of user $j$ after timestep $T_0$ of the Honest World Experiment. Then we want
 
-1) \textbf{Consistent Prefix}: $V$ is identical to the correct view of the user $j$ if a prefix of user inputs have been executed on each machine. More formally, for any $j \in [N]$, there exists a map $t: [N] \to [T]$ such that 
-$$V = \mathsf{view}_i(\{\reg_i\}, \{\cI'_{i, t}\})$$
+1) \textbf{Consistent Prefix}: $V$ is identical to the correct view of the user $j$ if a prefix of user inputs have been executed on each machine. More formally, for any $j \in [N]$, there exists a map $t: [N] \to [T]$ such that  $V$ is a correct view of user $j$ under inputs $(\{\reg_i\}_{i \in [N]}, \{\cI'_{i, t}\})$
 where we define
 $$\cI'_{i, t} = \begin{cases}
 \cI_{i, t}, t \leq t(i) \\
 \emptyset, t > t(i)
 \end{cases}.$$
-2) \textbf{Eventual Consistency}: There is a polynomial function $T'(\lambda)$ such that if $T \geq T'(\lambda)$, then $V$ must be identical to the correct view of the user $i$ if all user inputs have been executed. More formally, for any $T \geq T'(\lambda)$ and $j \in [N]$, we have
-$$V_j = \mathsf{view}_j(\{\reg_i\}, \{\cI_{i, t}\}).$$
-
+2) \textbf{Eventual Consistency}: For any $T_1$, there is a polynomial function $T_{cons}$ in $N, T_1$ such that if $T_0 \geq T_{cons}$, then we can take $t(i) \geq T_1$ for every $i$.
 \end{definition}
 We now turn to security definitions. We use the real world-ideal world definition of metadata privacy.
 \begin{figure}[h!]
@@ -177,14 +186,13 @@ We now turn to security definitions. We use the real world-ideal world definitio
 \begin{definition}[Real world Experiment] \hfill\\
 Same notation as above. Let $\cA$ be a stateful adversary. Let $\cK, \cH$ denote the set of compromised/honest users. The real-world experiment $\mathsf{Real}^{\cA}(1^{\lambda})$ is described below.
 \begin{enumerate}
-\item $N, T, \cK, \cH, \{\cI_{i, t}\}_{i \in \cH, t \in T} \leftarrow \cA(1^{\lambda})$.
 \item For each $i \in \cH$, $\reg_i \leftarrow C_i.\mathsf{Register}(1^{\lambda}, i)$. 
-\item $\cA(\{\reg_i\}_{i \in \cH})$.
+\item $N, T, \cK, \cH, \{\cI_{i, 1}\} \leftarrow \cA(1^{\lambda}, \{\reg_i\}_{i \in \cH})$.
 \item For $t$ from $1$ to $T$:
     \begin{enumerate}
     \item For each $i \in H$, $\req_i \leftarrow C_i.\mathsf{Input}(t, \cI_{i, t})$.
     
-    \item $\{\resp_i\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\req_i\}_{i \in \cH})$.
+    \item $\{\resp_i\}_{i \in \cH}, \{\cI_{i, t + 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\req_i\}_{i \in \cH})$.
     
     \item For each $i \in \cH$, $C_i.\mathsf{ServerRPC}(t, \resp_i)$.
     \end{enumerate}
@@ -199,23 +207,28 @@ Let $\cK$ be compromised users, and let $H = [N] - \cK$ be honest users. Let $\{
     \item Trust establishment with compromised users.
     \item Messages sent to the compromised users.
 \end{enumerate}
+More formally, we define
+$$\mathsf{Leak}(\{\cI_{i, t}\}, \cK) = (\cF, \cM)$$
+where
+$$\cF = \{(i, \reg_j): j \in \cK, \exists \}$$
 \todo{CF attack?}
 \end{definition}
 \begin{figure}[h!]
 \begin{framed}
 \begin{definition}[Ideal World Experiment]
-Same notations as above. Let $\Sim$ be a simulator, which is a stated Turing machine. The ideal-world experiment $\mathsf{Ideal}^{\cA, \Sim}(1^{\lambda})$ is described below.
+Same notations as above. Let $\Sim$ be a stateful simulator. The ideal-world experiment $\mathsf{Ideal}^{\cA, \Sim}(1^{\lambda})$ is described below.
 \begin{enumerate}
-\item $N, T, \cK, \cH, \{\cI_{i, t}\}_{i \in \cH, t \in [T]} \leftarrow \cA(1^{\lambda})$.
-\item $\{\reg_i\}_{i \in \cH} \leftarrow \Sim(1^{\lambda}, N, T, \cK, \mathsf{Leak}(\{\cI_{i, t}\}, \cK))$. 
+\item $\{\reg_i\}_{i \in \cH} \leftarrow \Sim(1^{\lambda}, N, T, \cK)$. 
+\item $N, T, \cK, \cH, \{\cI_{i, 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\reg_i\}_{i \in \cH})$.
 \item $\cA(\{\reg_i\}_{i \in \cH})$.
+\item $\Sim(1, \mathsf{Leak}(\{\cI_{i, 1}\}, \cK))$
 \item For $t$ from $1$ to $T$:
     \begin{enumerate}
-    \item For each $i \in \cH$, $\req_i \leftarrow \Sim(t, i)$.
+    \item For each $i \in \cH$, $\req_i \leftarrow \Sim(i)$.
     
-    \item $\{\resp_i\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\reg_i\}_{i \in \cH}, \{\req_i\}_{i \in \cH})$.
+    \item $\{\resp_i\}_{i \in \cH}, \{\cI_{i, t + 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\req_i\}_{i \in \cH})$.
     
-    \item $\Sim(t, \{\resp_i\}_{i \in \cH})$.
+    \item $\Sim(t, \{\resp_i\}_{i \in \cH}, \mathsf{Leak}(\{\cI_{i, t + 1}\}, \cK))$.
     \end{enumerate}
 \end{enumerate}
 \end{definition}
@@ -226,5 +239,25 @@ We say a messaging scheme is SIM-secure iff for  any polynomial upper bounds on 
 \end{definition}
 
 \section{Definition of Anysphere}
-We now describe how Anysphere implements a messaging scheme. 
+Unfortunately, Anysphere does not support the strongest security notion described above, due to CF attacks. For the threat model in our whitepaper, we assume that no friends are compromised. We now define a weaker security notion with this additional hypothesis.
+\begin{definition}[SIM-secure with no compromised friends and bounded friends]
+We say that a set of input $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ satisfy \textbf{no compromised friends} if for any $i \in \cH, j \in \cK$ and $t \in [T]$, we have
+$$\mathsf{TrustEstablishment}(\reg_j) \notin \cI_{i, t}.$$
+We say that a set of input $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ satisfy \textbf{$B$-bounded friends} if for any $i \in \cH$, the set
+$$\{\reg_j: \exists t, \mathsf{TrustEstablishment}(\reg_j) \in \cI_{i, t}\}$$
+has cardinality at most $B$.
+
+We say a messaging scheme is correct with $B$-bounded friends iff for any parameters $(\lambda, N, T, \{\cI_{i, t}\})$ of the honest server experiment, if $\{\cI_{i, t}\}$ satisfy $B$-bounded friends, then the scheme produces the correct views.
+
+We say a messaging scheme is SIM-secure with no compromised friends / $B$-bounded friends iff for any polynomial upper bounds on $N$ and $T$, there exists a p.p.t simulator $\Sim$ such that for any p.p.t adversary $\cA$, the view of $\cA$ is indistinguishable in $\mathsf{Real}^{\cA}(1^{\lambda})$ and $\mathsf{Ideal}^{\cA, \mathsf{\Sim}}(1^{\lambda})$, provided that the input set $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ satisfies no compromised friends / $B$-bounded friends.
+\end{definition}
+\textbf{Remark}: It is possible to bypass CF attacks under either $B$-bounded friends or no compromised friends model. We'll assume the $B$-bounded friends for now.
+
+Currently we have $B = 2$.
+\begin{figure}
+\begin{framed}[h!]
+\begin{definition}[The Anysphere Messaging Scheme]
+\end{definition}
+\end{framed}
+\end{figure}
 \end{document}
