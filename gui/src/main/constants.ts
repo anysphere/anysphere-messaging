@@ -3,7 +3,7 @@ import { exit } from "process";
 import path from "path";
 
 // this commit hash will be automatically updated by gui/package.json.
-export const RELEASE_COMMIT_HASH = "25d2f2b129d01639ccc4f1e6db9906d99220a844";
+export const RELEASE_COMMIT_HASH = "daffc713f235fc2ac1a0b874c84f6b07cd927a13";
 
 export const PLIST_PATH = () => {
   if (process.platform === "darwin" && process.env.HOME) {
