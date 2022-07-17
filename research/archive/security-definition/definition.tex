@@ -56,6 +56,8 @@
 \newcommand{\pir}{\text{pir}}
 \newcommand{\asphr}{\text{asphr}}
 
+\newcommand{\trust}{\mathsf{TrustEstablishment}}
+\newcommand{\send}{\mathsf{Send}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -99,12 +101,13 @@ A \textbf{user input} is a command the user can issue to the client. It can take
 
 $\emptyset$: noop.
 
-$\mathsf{TrustEstablishment}(\reg)$: Add the user identified by $\reg$ as a friend, and enable the two parties to start a conversation.
+$\trust(\reg)$: Add the user identified by $\reg$ as a friend, and enable the two parties to start a conversation.
 
-$\mathsf{Send}(\reg, \msg)$: Send the message $\msg$ to the client identified by $\reg$.
+$\send(\reg, \msg)$: Send the message $\msg$ to the client identified by $\reg$. We assume that the messages have a fixed length $L_{\msg}$ polynomial in $\lambda$.
 
 Without loss of generality, we assume the client issues one input per timestep.
 \end{definition}
+\textbf{Remark}:  To support variable length messages, we simply pad short messages, and split long messages into chunks of length $L_{\msg}$. This does not affect our security definition below.
 \begin{definition}
 \label{def:messaging-scheme}
 A \textbf{Messaging Scheme/Application/App} consists of the following polynomial time methods on stated Turing machines.
@@ -163,26 +166,27 @@ The definition of correctness is a bit tricky: we do not immediately read all me
 \begin{definition}
 We define the ``correct" view given user inputs. Informally speaking, the correct view should satisfy
 \begin{enumerate}
-    \item The list of friends should contain the friends we called $\mathsf{TrustEstablishment}$ on.         
+    \item The list of friends should contain the friends we called $\trust$ on.         
     \item Messages from a client with established trust should be present and timestamped correctly.  
     \item No other friends or messages should be present. 
 \end{enumerate}
 More formally, given a set of clients identified by $\{\reg_i\}_{i \in [N]}$, and user inputs $\{\cI_{i, t}\}_{i \in [N], t \in [T]}$, a view $(\cF, \cM)$ of client $j$ is said to be \textbf{correct} if it satisfies
 \begin{multline*}
 \cF \cap \{\reg_i: i \in [N]\} = 
- \\ \{\reg_k: \exists t \in [T], \mathsf{TrustEstablishment}(\reg_k) = \cI_{j, t}\},    
+ \\ \{\reg_k: \exists t \in [T], \trust(\reg_k) = \cI_{j, t}\},    
 \end{multline*}
 and
 \begin{multline*}
- \cM = \{(\reg_k, t, \msg): \mathsf{Send}(\reg_j, \msg) = \cI_{k, t} \land \\
- \exists t', \mathsf{TrustEstablishment}(\reg_k) = \cI_{j, t'}\}.   
+ \cM = \{(\reg_k, t, \msg): \send(\reg_j, \msg) = \cI_{k, t} \land \\
+ \exists t' < t, \trust(\reg_j) = \cI_{k, t'}\} \land \\
+ \exists t'', \trust(\reg_k) = \cI_{j, t''}\} .   
 \end{multline*}
 \end{definition}
 \textbf{Remark}: Note that we allow $\cF$ to contain friends that are non-existent. This is because we need a trusted PKI to verify the identity of the client, which we do not have. I do not think having these non-existent friends would cause any harm...
 
 Of course, we have a handshake protocol to verify the validity of friends, but this is a preliminary draft, so I don't know if it is appropriate to go so far right now...
 
-Also note that $k$ might be broadcasting the message before $j$ receives the message. Our system is actually capable of receiving such messages.
+Also note that $k$ might be broadcasting the message before $j$ adds $k$ as a friend. Our system is actually capable of receiving such messages.
 \todo{Another solution is the ACK system we introduced. However, this would make the security proof much longer...}
 \begin{definition}[Correctness]
  We say a messaging scheme is \textbf{correct} if the following consistency model is satisfied. 
@@ -227,7 +231,7 @@ Let $\cK$ be compromised clients, and let $H = [N] - \cK$ be honest clients. Let
 More formally, we define
 $$\mathsf{Leak}(\{\cI_{i, t}\}, \cK) = (\cF, \cM)$$
 where
-$$\cF = \{(i, \reg_j, t): j \in \cK, \mathsf{TrustEstablishment}(\reg_j) = \cI_{i, t}\}.$$
+$$\cF = \{(i, \reg_j, t): j \in \cK, \trust(\reg_j) = \cI_{i, t}\}.$$
 $$\cM = \{(i, \reg_j, \msg, t): j \in \cK, \mathsf{SendMessage}(\reg_j, \msg) = \cI_{i, t}\}.$$
 \end{definition}
 \begin{figure}[h!]
@@ -259,9 +263,9 @@ We say a messaging scheme is SIM-secure iff for  any polynomial upper bounds on 
 Unfortunately, Anysphere does not support the strongest security notion described above, due to CF attacks. For the threat model in our whitepaper, we assume that no friends are compromised. We now define a weaker security notion with this additional hypothesis.
 \begin{definition}[SIM-secure with no compromised friends and bounded friends]
 We say that a set of input $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ satisfy \textbf{no compromised friends} if for any $i \in \cH, j \in \cK$ and $t \in [T]$, we have
-$$\mathsf{TrustEstablishment}(\reg_j) \neq \cI_{i, t}.$$
+$$\trust(\reg_j) \neq \cI_{i, t}.$$
 We say that a set of input $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ satisfy \textbf{$B$-bounded friends} if for any $i \in \cH$, the set
-$$\{\reg: \exists t, \mathsf{TrustEstablishment}(\reg) = \cI_{i, t}\}$$
+$$\{\reg: \exists t, \trust(\reg) = \cI_{i, t}\}$$
 has cardinality at most $B$.
 
 We say a messaging scheme is correct with $B$-bounded friends iff for any parameters $(\lambda, N, T, \{\cI_{i, t}\})$ of the honest server experiment, if $\{\cI_{i, t}\}$ satisfy $B$-bounded friends, then the scheme produces the correct views.
@@ -333,7 +337,7 @@ Central to our application is the Private Information Retrieval(PIR) Protocol. I
 \end{itemize}
 where $DB$ is a length $n$ database with int64 entries, and $n$ is upper bounded by some polynomial $n(\lambda)$. It must satisfy
 \begin{definition}[Correctness]
-For any database $DB$ of length $n$ with int64 entries, if we run
+For any database $DB$ of length $n$ with int64 entries, and any message $ct$ of length $L_{\msg}$, if we run
 \begin{enumerate}
     \item $(pk, sk) \leftarrow \gen(1^{\lambda}, n)$.
     \item $ct \leftarrow \query(1^{\lambda}, sk, i)$.
@@ -363,26 +367,52 @@ for any $\lambda, n$, consider the following two experiments. Then we say the PI
 \end{definition}
 For our definition, we use libsodium's key exchange functionality for the $\mathsf{KX}$ function, then libsodium's secret key AEAD for the $\enc$ and $\dec$ functions. This provides a Key Private IND-CPA symmetric key encryption scheme. We use Addra as the PIR protocol.
 \subsection{The Anysphere Core Protocol}
+\todo{I'm going to stick to our actual implementation as closely as possible.}
 Let's first recap and summarize what we have defined so far. Recall that
 \begin{enumerate}
     \item $\lambda$ is the security parameter.
     \item $N$ is the number of users.
     \item $T$ is the number of timesteps our protocol is run.
+    \item $L_{\msg}$ is the length of each message we send.
     \item We use a key-private IND-CPA symmetric key encryption scheme $\Pi_{\sym}$.
     \item We use a PIR protocol $\Pi_{\pir}$.
 \end{enumerate}
-We can now formally define Anysphere's core protocol. 
+We can now formally define Anysphere's core protocol.
+\newcommand{\frienddb}{\mathsf{frdb}}
+\newcommand{\inb}{\mathsf{in}}
+\newcommand{\outb}{\mathsf{out}}
+\newcommand{\msgdb}{\mathsf{msgdb}}
+\newcommand{\trans}{\mathsf{trans}}
 \begin{figure}[h!]
 \begin{framed}
 \begin{definition}[The Anysphere Core Protocol]
-Our protocol, $\Pi_{\asphr}$, implements the methods of \cref{def:messaging-scheme} as below. In any of the methods, we assume the caller will store all inputs for future use.
+Our protocol, $\Pi_{\asphr}$, implements the methods of \cref{def:messaging-scheme} as below. In each method, the caller stores all inputs for future use.
 \vspace{10pt}
 
 $\mathbf{\Pi_{\asphr}.C.\mathsf{Register}}(1^{\lambda}, i)$
 \vspace{5pt}
 \hrule
 \vspace{5pt}
-The client initializes the following
+\begin{enumerate}
+    \item Initializes arrays $\frienddb, \inb, \outb, \msgdb$. \footnote{They are named Friend, Inbox, Outbox, and Received in the code.}
+    \item Set a transmission schedule $T_{\trans}$. The user can customize this parameter.
+    \item $(kx^P, kx^S) \leftarrow \gen(1^{\lambda})$. 
+    \item Return $\reg \leftarrow (i, kx^P)$.
+\end{enumerate}
+
+$\mathbf{\Pi_{\asphr}.C.\mathsf{Input}}(t, \cI)$
+\vspace{5pt}
+\hrule
+\vspace{5pt}
+This method runs in two phases. Phase 1 handles the user input $\cI$, and phase 2 formulates the server request.
+
+Phase 1: 
+
+If $\cI = \emptyset$, do nothing. If $\cI = \send(\reg, \msg)$, do the following
+
+\begin{enumerate}
+    \item If $\cI$
+\end{enumerate}
 \end{definition}
 \end{framed}
 \end{figure}
