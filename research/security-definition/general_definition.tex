@@ -81,7 +81,7 @@ Let $S$ denote the server machine, let $\{C_i\}_{i = 1}^N$ denote the client mac
 \end{definition}
 \end{framed}
 \end{figure}
-
+\arvid{Do we want an adversary to be able to control some of the clients? Ideally I think we would want to, because we want to guarantee resistance against denial of service attacks from clients}
 
 The definition of correctness is a bit tricky: we do not immediately read all messages sent by our friends. Instead, we settle for a pair of weaker consistency models defined in 6.033. %https://www.microsoft.com/en-us/research/wp-content/uploads/2011/10/ConsistencyAndBaseballReport.pdf
 \begin{definition}
@@ -108,7 +108,6 @@ and
 Of course, we have a handshake protocol to verify the validity of friends, but this is a preliminary draft, so I don't know if it is appropriate to go so far right now...
 
 Also note that $k$ might be broadcasting the message before $j$ adds $k$ as a friend. Our system is actually capable of receiving such messages.
-\todo{Another solution is the ACK system we introduced. However, this would make the security proof much longer...}
 \begin{definition}[Correctness]
  We say a messaging scheme is \textbf{correct} if the following consistency model is satisfied. 
  
@@ -157,7 +156,8 @@ where
 $$L_f = \{(i, \reg_j, t): j \in \cK, \trust(\reg_j) = \cI_{i, t}\}.$$
 $$L_m = \{(i, \reg_j, \msg, t): j \in \cK, \mathsf{SendMessage}(\reg_j, \msg) = \cI_{i, t}\}.$$
 \end{definition}
-\arvid{let's use other symbols than $\cF$ and $\cM$ because we use them for the view of a single client already and this is similar but not the same}
+% \arvid{let's use other symbols than $\cF$ and $\cM$ because we use them for the view of a single client already and this is similar but not the same}
+% \stzh{Resolved.}
 \begin{figure}[h!]
 \begin{framed}
 \begin{definition}[Ideal World Experiment]
@@ -186,7 +186,7 @@ We say a messaging scheme is SIM-secure iff for  any polynomial upper bounds on 
 
 Finally, we require the messaging scheme to satisfy Integrity: while a malicious server can drop messages between users, it shouldn't be able to forge messages between honest users. We define the notion of integrity rigorously.
 \begin{definition}[Integrity]
-Same notation as before. Consider the real world experiment described in \cref{defn:real-world}. Take any pair of honest users $i, j \in \cH$, and consider the view of $j$ at the end of the experiment obtained by calling $V_j = (\cF, \cM) \leftarrow C_j.\mathsf{GetView}()$.  Then we say the messaging scheme guarantees Integrity if 
+Same notation as before. Consider the real world experiment described in \cref{defn:real-world}. Take any pair of honest users $i, j \in \cH$, and consider the view of $j$ at the end of the experiment given by $V_j = (\cF, \cM) \leftarrow C_j.\mathsf{GetView}()$.  Then we say the messaging scheme guarantees Integrity if with probability $1 - \negl(\lambda)$, we have
 \begin{multline*}
  \{\msg : (\reg_i, \msg) \subset \cM\} \subset \{\msg : \exists i, \send(\reg_j, \msg) = \cI_{i, t}\}.   
 \end{multline*}
