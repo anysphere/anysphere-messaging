@@ -1,0 +1,191 @@
+
+
+\section{Definition of Anysphere}
+In this section, we define the Anysphere core protocol described in our whitepaper. We rigorously define how our core protocol is able to handle multiple contacts, run asynchronous rounds. In the next section, we will prove that our core protocol maintains correctness and security.
+\subsection{A weaker Security Definition}
+Unfortunately, Anysphere does not support the strongest security notion described above, due to CF attacks. For the threat model in our whitepaper, we assume that no friends are compromised. We now define a weaker security notion with this additional hypothesis.
+\begin{definition}[SIM-secure with no compromised friends and bounded friends]
+We say that a set of input $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ satisfy \textbf{no compromised friends} if for any $i \in \cH, j \in \cK$ and $t \in [T]$, we have
+$$\trust(\reg_j) \neq \cI_{i, t}.$$
+We say that a set of input $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ satisfy \textbf{$B$-bounded friends} if for any $i \in \cH$, the set
+$$\{\reg: \exists t, \trust(\reg) = \cI_{i, t}\}$$
+has cardinality at most $B$.
+
+We say a messaging scheme is correct with $B$-bounded friends iff for any parameters $(\lambda, N, T, \{\cI_{i, t}\})$ of the honest server experiment, if $\{\cI_{i, t}\}$ satisfy $B$-bounded friends, then the scheme produces the correct views.
+
+We say a messaging scheme is SIM-secure with no compromised friends / $B$-bounded friends iff for any polynomial upper bounds on $N$ and $T$, there exists a p.p.t simulator $\Sim$ such that for any p.p.t adversary $\cA$, the view of $\cA$ is indistinguishable in $\mathsf{Real}^{\cA}(1^{\lambda})$ and $\mathsf{Ideal}^{\cA, \mathsf{\Sim}}(1^{\lambda})$, provided that the input set $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ satisfies no compromised friends / $B$-bounded friends.
+\end{definition}
+\textbf{Remark}: It is possible to bypass CF attacks under either $B$-bounded friends or no compromised friends model. We'll assume the $B$-bounded friends for now.
+
+Currently we have $B = 2$.
+
+We now explain the construction of Anysphere. 
+\subsection{Cryptography Primitives}
+\todo{Are there existing definition of these schemes?}
+Anysphere relies on two crypto primitives: a symmetric key encryption scheme, and a PIR scheme. We outline formal simulator-based definition of the two.
+\subsubsection{Key Private IND-CPA symmetric key encryption}
+A key-private IND-CPA symmetric key encryption scheme is a quadruple of algorithms $(\gen, \mathsf{KX}, \enc, \dec)$ with specifications
+\begin{itemize}
+    \item $\gen(1^{\lambda}) \to (kx^P, kx^S)$,
+    \item $\mathsf{KX}(1^{\lambda}, kx_A^P, kx_B^S) \to sk_{AB},$
+    \item $\enc(sk_{AB}, m) \to ct,$
+    \item $\dec(sk_{BA}, ct) \to m.$
+\end{itemize}
+such that 
+\begin{definition}[Correctness]
+If we let
+\begin{enumerate}
+    \item $(kx^P_A, kx_A^S), (kx^P_B, kx_B^S)  \leftarrow \gen(1^{\lambda}).$
+    \item $sk_{AB} \leftarrow \mathsf{KX}(1^{\lambda}, kx_A^P, kx_B^S), sk_{BA} \leftarrow \mathsf{KX}(1^{\lambda}, kx_B^P, kx_A^S)$
+\end{enumerate}
+then for any plaintext $m$, we have
+$$\dec(sk_{BA}, \enc(sk_{AB}, m)) = m.$$
+Furthermore, for any secret key $sk' \neq sk_{AB}$, we have
+$$\dec(sk_{BA}, \enc(sk', m)) = \bot.$$
+\todo{negligible probability here?}
+\end{definition}
+\begin{definition}[Key private IND-CPA]
+Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
+\begin{figure}[h!]
+\begin{framed}
+\textbf{Real World Experiment}
+\begin{enumerate}
+    \item For $i$ from $1$ to $N$, $(kx_i^P, kx_i^S) \leftarrow \gen(1^{\lambda}).$
+    \item For $(i, j)$ in $[N]^2$, $sk_{ij} \leftarrow \mathsf{KX}(1^{\lambda}, kx_i^P, kx_j^S)$.
+    \item For $r$ from $1$ to $R$
+    \begin{enumerate}
+        \item $i, j, m \leftarrow \cA(1^{\lambda}, r, \{kx_i^P\}_{i \in [N]}, \{ct_{s}^0\}_{s < r}\})$
+        \item $ct^{0}_r \leftarrow \enc(sk_{ij}, m)$.
+    \end{enumerate}
+\end{enumerate}
+\textbf{Ideal World Experiment}
+\begin{enumerate}
+    \item For $i$ from $1$ to $N$, $(kx_i^P, kx_i^S) \leftarrow \gen(1^{\lambda}).$
+    \item For $(i, j)$ in $[N]^2$, $sk_{ij} \leftarrow \mathsf{KX}(1^{\lambda}, kx_i^P, kx_j^S)$.
+    \item For $r$ from $1$ to $R$
+    \begin{enumerate}
+        \item $i, j, m \leftarrow \cA(1^{\lambda}, r, \{kx_i^P\}_{i \in [N]})$.
+        \item $ct^1_r \leftarrow \Sim(\{kx_i^P\}_{i \in [N]})$.
+    \end{enumerate}
+\end{enumerate}
+\end{framed}
+\end{figure}
+Then we say the encryption scheme is key-private IND-CPA if there exists a p.p.t simulator $\Sim$ such that for any p.p.t adversary $\cA$, the view of $\cA$ under the real world experiment and the ideal world experiment are computationally indistinguishable. The view of $\cA$ is defined as the input, output, and random coins of $\cA$, plus the array $\{ct_r\}_{r \in [R]}$.
+\end{definition}
+
+\subsubsection{PIR Protocol}
+Central to our application is the Private Information Retrieval(PIR) Protocol. It consists of four efficient algorithms
+\begin{itemize}
+    \item $\gen(1^{\lambda}, n) \to (pk, sk)$.
+    \item $\query(1^{\lambda}, sk, i) \to ct$.
+    \item $\answer^{DB}(1^{\lambda}, pk, ct) \to a$.
+    \item $\dec(1^{\lambda}, sk, a) \to x_i$.
+\end{itemize}
+where $DB$ is a length $n$ database with int64 entries, and $n$ is upper bounded by some polynomial $n(\lambda)$. It must satisfy
+\begin{definition}[Correctness]
+For any database $DB$ of length $n$ with int64 entries, and any message $ct$ of length $L_{\msg}$, if we run
+\begin{enumerate}
+    \item $(pk, sk) \leftarrow \gen(1^{\lambda}, n)$.
+    \item $ct \leftarrow \query(1^{\lambda}, sk, i)$.
+    \item $a \leftarrow \answer^{DB}(1^{\lambda}, pk, ct)$.
+    \item $x_i \leftarrow \dec(1^{\lambda}, sk, a)$.
+\end{enumerate}
+then $x_i = DB[i]$.
+\end{definition}
+\begin{definition}[Privacy]
+for any $\lambda, n$, consider the following two experiments. Then we say the PIR scheme is  if there exists a p.p.t simulator $\Sim$ such that for any p.p.t adversary $\cA$, the view of $\cA$ under the real world experiment and the ideal world experiment are computationally indistinguishable. The view of $\cA$ is defined as the input, output, and random coins of $\cA$, plus the query $ct^b$.
+\begin{figure}[h!]
+\begin{framed}
+\textbf{Real World Experiment}
+\begin{enumerate}
+    \item $(pk, sk) \leftarrow \gen(1^{\lambda}, n).$
+    \item $i \leftarrow \cA(1^{\lambda}, n, pk)$.
+    \item $ct^0 \leftarrow \query(1^{\lambda}, sk, i)$.
+\end{enumerate}
+\textbf{Ideal World Experiment}
+\begin{enumerate}
+    \item $(pk, sk) \leftarrow \gen(1^{\lambda}).$
+    \item $i \leftarrow \cA(1^{\lambda}, n, pk)$.
+    \item $ct^1 \leftarrow \Sim(1^{\lambda}, n, pk)$.
+\end{enumerate}
+\end{framed}
+\end{figure}
+\end{definition}
+For our implementation, we use libsodium's key exchange functionality for the $\mathsf{KX}$ function, then libsodium's secret key AEAD for the $\enc$ and $\dec$ functions. This provides a Key Private IND-CPA symmetric key encryption scheme. We use Addra as the PIR protocol.
+\newcommand{\ACK}{\mathsf{ACK}}
+\subsection{Sequence numbers and ACK}
+To guarantee the consistent prefix property, each client $i$ labels all messages to be sent to another client $j$ with a sequence number. In the order user $i$ received
+
+Critical to both consistent prefix and eventual consistency is the ACK messages. An ACK message is a special type of messages denoted $\ACK(k)$.\todo{In the whitepaper an additional chunk number is used. Since this definition does not use chunking, I'll ignore it}. When client $j$ sends $\ACK(k)$ to client $i$, it simply means ``I have read all messages up to message $k$ from you". As we will soon define rigorously, user $i$ will keep broadcasting message $k$
+\subsection{The Anysphere Core Protocol}
+\todo{I'm going to stick to our actual implementation as closely as possible.}
+Let's first recap and summarize what we have defined so far. Recall that
+\begin{enumerate}
+    \item $\lambda$ is the security parameter.
+    \item $N$ is the number of users.
+    \item $T$ is the number of timesteps our protocol is run.
+    \item $L_{\msg}$ is the length of each message we send.
+    \item We use a key-private IND-CPA symmetric key encryption scheme $\Pi_{\sym}$.
+    \item We use a PIR protocol $\Pi_{\pir}$.
+\end{enumerate}
+We can now formally define Anysphere's core protocol.
+\newcommand{\frienddb}{\mathsf{frdb}}
+\newcommand{\inb}{\mathsf{in}}
+\newcommand{\outb}{\mathsf{out}}
+\newcommand{\msgdb}{\mathsf{msgdb}}
+\newcommand{\trans}{\mathsf{trans}}
+We first describe the behavior of an honest server. The server implementation is very simple, only consisting of two databases and a PIR query handler.
+\begin{figure}[h!]
+\begin{framed}
+\begin{definition}[The Anysphere Core Protocol]
+Our protocol, $\Pi_{\asphr}$, implements the methods of \cref{def:messaging-scheme} as below. In each method, the caller stores all inputs for future use.
+\vspace{10pt}
+
+$\mathbf{\Pi_{\asphr}.C.\mathsf{Register}}(1^{\lambda}, i)$
+\vspace{5pt}
+\hrule
+\vspace{5pt}
+\begin{enumerate}
+    \item Initialize map $\frienddb$. The map take registration info as keys, and secret key as values.
+    \item Initialize maps $\inb, \outb$. The maps take registration info as keys, and arrays of messages as values.\footnote{They are named Friend, Inbox, Outbox in our code. Our code is slightly more complicated to support features like sending to multiple friends and chunking.}
+    \item Set a transmission schedule $T_{\trans}$. The user can customize this parameter.
+    \item $(kx^P, kx^S) \leftarrow \gen(1^{\lambda})$. 
+    \item Return $\reg \leftarrow (i, kx^P)$.
+\end{enumerate}
+
+$\mathbf{\Pi_{\asphr}.C.\mathsf{Input}}(t, \cI)$
+\vspace{5pt}
+\hrule
+\vspace{5pt}
+This method runs in two phases. Phase 1 handles the user input $\cI$, and phase 2 formulates the server request.
+
+Phase 1: 
+
+If $\cI = \emptyset$, do nothing. 
+
+If $\cI = \send(\reg, \msg)$, 
+
+\begin{enumerate}
+    \item Check if $\reg$ is in $\frienddb$. If not, break.
+    \item Push $\msg$ to $\outb[\reg]$.
+\end{enumerate}
+
+If $\cI = \trust(\reg)$.
+\begin{enumerate}
+    \item Check if $\reg$ is in $\frienddb$. If so, break.
+    \item $(i, kx_f^P) \leftarrow \reg$.
+    \item $sk \leftarrow \Pi_{\sym}.\mathsf{KX}(1^{\lambda}, kx_f^P, kx^S).$
+    \item $\frienddb[\reg] \leftarrow sk$.
+\end{enumerate}
+
+Phase 2:
+\begin{enumerate}
+    \item Let $\{\reg_1, \cdots, \reg_k\}$ be the keys of $\frienddb$, with $k\leq B$. Construct $S = [\reg_1,\cdots, \reg_k, \reg, \cdots, \reg]$, where we add $B - k$ copies of $\reg$, our own registration info. Sample $\reg_s$ uniformly at random from $S$.
+    \item Sample $\msg$ uniformly random from $\outb[\reg_s]$. If $\outb[\reg_s]$ is empty, let $\msg = 0^{L_{\msg}}$.
+    \item $sk \leftarrow \frienddb[\reg_s]$.
+    \item 
+\end{enumerate}
+
+\end{definition}
+\end{framed}
+\end{figure}

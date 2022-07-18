@@ -1,0 +1,30 @@
+\documentclass[sigconf, nonacm, balance=false, natbib=false, screen]{acmart}
+% \documentclass[10pt]{article}
+
+\input{preamble}
+
+\title{Formal Security Definition of Anysphere}
+
+%\setshortauthors{Arvid Lunnemark, Shengtong Zhang, Sualeh Asif}
+%\setshorttitle{Anysphere: Private Communication in Practice}
+
+\makeatletter
+\patchcmd{\@maketitle}{\begin{center}}{\begin{adjustwidth}{-0.5in}{-0.5in}\begin{center}}{}{}
+\patchcmd{\@maketitle}{\end{center}}{\end{center}\end{adjustwidth}}{}{}
+\makeatother
+
+\begin{document}
+
+\maketitle
+
+%\tableofcontents
+
+\input{research/archive/security-definition/purpose}
+\input{research/archive/security-definition/general_definition}
+\input{research/archive/security-definition/asphr_definition}
+
+
+\printbibliography
+
+
+\end{document}

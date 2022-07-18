@@ -1,0 +1,181 @@
+\section{General Definitions}
+\todo{User = person using the application. Client = the application the user is using}
+
+In this section, we attempt to design a security definition for a messaging application that is as general as possible, then outline some properties that we expect a satisfactory metadata-private messaging app to achieve. We start from the following basic assumptions.
+\begin{enumerate}
+    \item The messaging app has a centralized server in charge of storing and routing messages.
+    \item The messaging app has a large number of users, interacting with client machines. The client machine should allow the user to register, add friends, and send messages. It should display received messages to the user.
+    \item To achieve metadata privacy, the messaging application should hide metadata of conversations between honest users from a powerful adversary that controls the server and a subset of clients. 
+\end{enumerate}
+\begin{definition}
+In this document, we divide our execution into discrete \textbf{timesteps}. In reality, each timestep might be a small unit of time, like 100ms. This is different from ``rounds" used in most MPM security definitions, since clients do not necessarily transmit real or fake messages at every timestep.
+\end{definition}
+\begin{definition}
+The \textbf{view} of a client is a tuple consisting of
+
+1. A list of friends $\cF$ of the client.
+
+2. A list of messages $\cM$ received by the client, including the sender, timestep and content of the messages. \todo{Do we reveal whether the message have been received?}
+\end{definition}
+\begin{definition}
+A \textbf{user input} is a command the user can issue to the client. It can take one of the following values.
+
+$\emptyset$: noop.
+
+$\trust(\reg)$: Add the user identified by $\reg$ as a friend, and enable the two parties to start a conversation.
+
+$\send(\reg, \msg)$: Send the message $\msg$ to the client identified by $\reg$. We assume that the messages have a fixed length $L_{\msg}$ polynomial in $\lambda$.
+
+Without loss of generality, we assume the client issues one input per timestep.
+\end{definition}
+\textbf{Remark}:  To support variable length messages, we simply pad short messages, and split long messages into chunks of length $L_{\msg}$. This does not affect our security definition below.
+\begin{definition}
+\label{def:messaging-scheme}
+A \textbf{Messaging Scheme/Application/App} consists of the following polynomial time methods on stated Turing machines.
+
+Client Side Algorithms for client $C$.
+\begin{itemize}
+    \item $C.\mathsf{Register}(1^{\lambda}, i) \to \reg$, takes in a security parameter $\lambda$, the index $i$ of the client, and outputs a public registration info $\reg$ and initializes the client database $D_C$.
+    
+    \item $C.\mathsf{Input}(t, \cI) \to \req$, takes in a user input $\cI$, updates the local storage to reflect that, and issues a request $\req$ to the server. The request can be empty, which means the client doesn't request the server on that timestep.
+    
+    \item $C.\mathsf{ServerRPC}(t, \resp)\to \lambda$, updates the database given the server response $\resp$.
+    
+    \item $C.\mathsf{GetView}() \to V$, outputs the view of the client.
+\end{itemize}
+
+Server Side Algorithms for server $S$.
+
+\begin{itemize}
+    \item $S.\mathsf{InitServer}(1^{\lambda}, N)$, takes in the security parameter $\lambda$, number of clients $N$, and initializes the server side database $D_S$.
+    \item $S.\mathsf{ClientRPC}(t, \{\req_i\}_{i = 1}^N) \to \{\resp_i\}_{i = 1}^N$, responds to all client requests of the timestep.
+\end{itemize}
+\end{definition}
+We now define how the algorithm will be executed, and correctness.
+\begin{figure}[h!]
+\begin{framed}
+\begin{definition}[Honest Server Experiment]  \hfill\\
+    
+\textbf{Parameters}: \begin{enumerate}
+    \item $\lambda$, the security parameter.
+    \item $N$, the number of clients, bounded above by a polynomial function $N(\lambda)$ of $\lambda$.
+    \item $T$, the number of timesteps, bounded above by a polynomial function $T(\lambda)$ of $\lambda$.
+    \item For each client $i$ and timestep $t$, a set of user inputs $\cI_{i, t}$, whose length is bounded by a constant.
+\end{enumerate}
+
+Let $S$ denote the server machine, let $\{C_i\}_{i = 1}^N$ denote the client machines.
+
+\textbf{Execution}:
+\begin{enumerate}
+\item $S.\mathsf{InitServer}(1^{\lambda}, N)$. 
+\item For each $i \in [N]$, $\reg_i \leftarrow C_i.\mathsf{Register}(1^{\lambda}, i)$. 
+\item For $t$ from $1$ to $T$:
+    \begin{enumerate}
+    \item For each $i \in [N]$, $\req_i \leftarrow C_i.\mathsf{Input}(t, \cI)$.
+    
+    \item $\{\resp_i\} \leftarrow S.\mathsf{ClientRPC}(t, \{\req_i\})$.
+    
+    \item For each $i \in [N]$, $C_i.\mathsf{ServerRPC}(t, \resp_i)$.
+    \end{enumerate}
+\end{enumerate}
+\end{definition}
+\end{framed}
+\end{figure}
+
+
+The definition of correctness is a bit tricky: we do not immediately read all messages sent by our friends. Instead, we settle for a pair of weaker consistency models defined in 6.033. %https://www.microsoft.com/en-us/research/wp-content/uploads/2011/10/ConsistencyAndBaseballReport.pdf
+\begin{definition}
+We define the ``correct" view given user inputs. Informally speaking, the correct view should satisfy
+\begin{enumerate}
+    \item The list of friends should contain the friends we called $\trust$ on.         
+    \item Messages from a client with established trust should be present and timestamped correctly.  
+    \item No other friends or messages should be present. 
+\end{enumerate}
+More formally, given a set of clients identified by $\{\reg_i\}_{i \in [N]}$, and user inputs $\{\cI_{i, t}\}_{i \in [N], t \in [T]}$, a view $(\cF, \cM)$ of client $j$ is said to be \textbf{correct} if it satisfies
+\begin{multline*}
+\cF \cap \{\reg_i: i \in [N]\} = 
+ \\ \{\reg_k: \exists t \in [T], \trust(\reg_k) = \cI_{j, t}\},    
+\end{multline*}
+and
+\begin{multline*}
+ \cM = \{(\reg_k, t, \msg): \send(\reg_j, \msg) = \cI_{k, t} \land \\
+ \exists t' < t, \trust(\reg_j) = \cI_{k, t'}\} \land \\
+ \exists t'', \trust(\reg_k) = \cI_{j, t''}\} .   
+\end{multline*}
+\end{definition}
+\textbf{Remark}: Note that we allow $\cF$ to contain friends that are non-existent. This is because we need a trusted PKI to verify the identity of the client, which we do not have. I do not think having these non-existent friends would cause any harm...
+
+Of course, we have a handshake protocol to verify the validity of friends, but this is a preliminary draft, so I don't know if it is appropriate to go so far right now...
+
+Also note that $k$ might be broadcasting the message before $j$ adds $k$ as a friend. Our system is actually capable of receiving such messages.
+\todo{Another solution is the ACK system we introduced. However, this would make the security proof much longer...}
+\begin{definition}[Correctness]
+ We say a messaging scheme is \textbf{correct} if the following consistency model is satisfied. 
+ 
+ Take any choice of parameters of the honest world experiment, any index $i \in [N]$, and any time $T_0$. Let $V_j \leftarrow C_j.\mathsf{GetView}()$ be the view of client $j$ after timestep $T_0$ of the Honest World Experiment. Then we want
+
+1) \textbf{Consistent Prefix}: $V$ is identical to the correct view of the client $j$ if a prefix of user inputs have been executed on each machine. More formally, for any $j \in [N]$, there exists a map $t: [N] \to [T]$ such that  $V$ is a correct view of client $j$ under inputs $(\{\reg_i\}_{i \in [N]}, \{\cI'_{i, t}\})$
+where we define
+$$\cI'_{i, t} = \begin{cases}
+\cI_{i, t}, t \leq t(i) \\
+\emptyset, t > t(i)
+\end{cases}.$$
+2) \textbf{Eventual Consistency}: For any $T_1$, there is a polynomial function $T_{cons}$ in $N, T_1$ such that if $T_0 \geq T_{cons}$, then we can take $t(i) \geq T_1$ for every $i$.
+\end{definition}
+We now turn to security definitions. We use the real world-ideal world definition of metadata privacy.
+\begin{figure}[h!]
+\begin{framed}
+\begin{definition}[Real world Experiment] \hfill\\
+Same notation as above. Let $\cA$ be a stateful adversary. Let $\cK, \cH$ denote the set of compromised/honest clients. The real-world experiment $\mathsf{Real}^{\cA}(1^{\lambda})$ is described below.
+\begin{enumerate}
+\item For each $i \in \cH$, $\reg_i \leftarrow C_i.\mathsf{Register}(1^{\lambda}, i)$. 
+\item $N, T, \cK, \cH, \{\cI_{i, 1}\} \leftarrow \cA(1^{\lambda}, \{\reg_i\}_{i \in \cH})$.
+\item For $t$ from $1$ to $T$:
+    \begin{enumerate}
+    \item For each $i \in H$, $\req_i \leftarrow C_i.\mathsf{Input}(t, \cI_{i, t})$.
+    
+    \item $\{\resp_i\}_{i \in \cH}, \{\cI_{i, t + 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\req_i\}_{i \in \cH})$.
+    
+    \item For each $i \in \cH$, $C_i.\mathsf{ServerRPC}(t, \resp_i)$.
+    \end{enumerate}
+\end{enumerate}
+\end{definition}
+\end{framed}
+\end{figure}
+
+\begin{definition}[Leakage]
+Let $\cK$ be compromised clients, and let $H = [N] - \cK$ be honest clients. Let $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ be the input from honest clients. We define the \textbf{Leakage} $\mathsf{Leak}(\{\cI_{i, t}\}, \cK)$ as the set of informations known to compromised clients if the user inputs are executed by a trusted third party. Informally, it contains the time and contents of
+\begin{enumerate}
+    \item Trust establishment with compromised clients.
+    \item Messages sent to the compromised clients.
+\end{enumerate}
+More formally, we define
+$$\mathsf{Leak}(\{\cI_{i, t}\}, \cK) = (\cF, \cM)$$
+where
+$$\cF = \{(i, \reg_j, t): j \in \cK, \trust(\reg_j) = \cI_{i, t}\}.$$
+$$\cM = \{(i, \reg_j, \msg, t): j \in \cK, \mathsf{SendMessage}(\reg_j, \msg) = \cI_{i, t}\}.$$
+\end{definition}
+\begin{figure}[h!]
+\begin{framed}
+\begin{definition}[Ideal World Experiment]
+Same notations as above. Let $\Sim$ be a stateful simulator. The ideal-world experiment $\mathsf{Ideal}^{\cA, \Sim}(1^{\lambda})$ is described below.
+\begin{enumerate}
+\item $\{\reg_i\}_{i \in \cH} \leftarrow \Sim(1^{\lambda}, N, T, \cK)$. 
+\item $N, T, \cK, \cH, \{\cI_{i, 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\reg_i\}_{i \in \cH})$.
+\item $\cA(\{\reg_i\}_{i \in \cH})$.
+\item $\Sim(1, \mathsf{Leak}(\{\cI_{i, 1}\}, \cK))$
+\item For $t$ from $1$ to $T$:
+    \begin{enumerate}
+    \item For each $i \in \cH$, $\req_i \leftarrow \Sim(t, i)$.
+    
+    \item $\{\resp_i\}_{i \in \cH}, \{\cI_{i, t + 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\req_i\}_{i \in \cH})$.
+    
+    \item $\Sim(t, \{\resp_i\}_{i \in \cH}, \mathsf{Leak}(\{\cI_{i, t + 1}\}, \cK))$.
+    \end{enumerate}
+\end{enumerate}
+\end{definition}
+\end{framed}
+\end{figure}
+\begin{definition}[Simulation Security]
+We say a messaging scheme is SIM-secure iff for  any polynomial upper bounds on $N$ and $T$, there exists a p.p.t simulator $\Sim$ such that for any p.p.t adversary $\cA$, the view of $\cA$ is indistinguishable in $\mathsf{Real}^{\cA}(1^{\lambda})$ and $\mathsf{Ideal}^{\cA, \mathsf{\Sim}}(1^{\lambda})$.
+\end{definition}
