@@ -5,7 +5,6 @@
 
 import * as daemon_pb from "daemon/schema/daemon_pb";
 import * as React from "react";
-<<<<<<< Updated upstream:gui/src/renderer/components/Compose/Write.tsx
 import { Friend } from "../../../types";
 import { StatusProps } from "../Status";
 import { useSearch, useFocus, classNames } from "../../utils";
@@ -15,12 +14,6 @@ import { $getRoot, EditorState } from "lexical";
 
 const DEBUG_COLORS = false;
 // const DEBUG_COLORS = true;
-=======
-import { Friend } from "../../types";
-import { StatusProps } from "../Status";
-import { useSearch, useFocus, classNames } from "../utils";
-import { SelectableList, ListItem } from "./SelectableList";
->>>>>>> Stashed changes:gui/src/renderer/components/Write.tsx
 
 export type WriteFriend = {
   uniqueName: string;
@@ -257,23 +250,9 @@ function Write({
   }, []);
 
   const send = React.useCallback(() => {
-<<<<<<< Updated upstream:gui/src/renderer/components/Compose/Write.tsx
     if (data.multiSelectState.text.length > 0) {
       setStatus({
         message: `Unknown contact: ${data.multiSelectState.text}.`,
-=======
-    if (props.data.multiSelectState.text.length > 0) {
-      props.setStatus({
-        message: `Unknown contact: ${props.data.multiSelectState.text}`,
-        action: () => {},
-        actionName: null,
-      });
-      return;
-    }
-    if (props.data.multiSelectState.friends.length === 0) {
-      props.setStatus({
-        message: `No contacts selected.`,
->>>>>>> Stashed changes:gui/src/renderer/components/Write.tsx
         action: () => {},
         actionName: null,
       });
