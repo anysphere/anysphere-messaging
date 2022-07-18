@@ -1,3 +1,13 @@
+\newcommand{\frienddb}{\mathsf{frdb}}
+\newcommand{\seqs}{\mathsf{seqstart}}
+\newcommand{\seqe}{\mathsf{seqend}}
+\newcommand{\seqr}{\mathsf{seqreceived}}
+\newcommand{\inb}{\mathsf{in}}
+\newcommand{\outb}{\mathsf{out}}
+\newcommand{\msgdb}{\mathsf{msgdb}}
+\newcommand{\trans}{\mathsf{trans}}
+\newcommand{\ACK}{\mathsf{ACK}}
+\newcommand{\ack}{\mathsf{ack}}
 
 
 \section{Definition of Anysphere}
@@ -22,8 +32,8 @@ Currently we have $B = 2$.
 We now explain the construction of Anysphere. 
 \subsection{Cryptography Primitives}
 \todo{Are there existing definition of these schemes?}
-Anysphere relies on two crypto primitives: a symmetric key encryption scheme, and a PIR scheme. We outline formal simulator-based definition of the two.
-\subsubsection{Key Private IND-CPA symmetric key encryption}
+Anysphere relies on two crypto primitives: a symmetric key AE, and a PIR scheme. We outline formal simulator-based definition of the two.
+\subsubsection{Key Private IND-CPA symmetric key AE}
 A key-private IND-CPA symmetric key encryption scheme is a quadruple of algorithms $(\gen, \mathsf{KX}, \enc, \dec)$ with specifications
 \begin{itemize}
     \item $\gen(1^{\lambda}) \to (kx^P, kx^S)$,
@@ -93,7 +103,7 @@ For any database $DB$ of length $n$ with int64 entries, and any message $ct$ of 
 then $x_i = DB[i]$.
 \end{definition}
 \begin{definition}[Privacy]
-for any $\lambda, n$, consider the following two experiments. Then we say the PIR scheme is  if there exists a p.p.t simulator $\Sim$ such that for any p.p.t adversary $\cA$, the view of $\cA$ under the real world experiment and the ideal world experiment are computationally indistinguishable. The view of $\cA$ is defined as the input, output, and random coins of $\cA$, plus the query $ct^b$.
+for any $\lambda, n$, consider the following two experiments. Then we say the PIR scheme is \textbf{secure} if there exists a p.p.t simulator $\Sim$ such that for any p.p.t adversary $\cA$, the view of $\cA$ under the real world experiment and the ideal world experiment are computationally indistinguishable. The view of $\cA$ is defined as the input, output, and random coins of $\cA$, plus the query $ct^b$.
 \begin{figure}[h!]
 \begin{framed}
 \textbf{Real World Experiment}
@@ -112,11 +122,10 @@ for any $\lambda, n$, consider the following two experiments. Then we say the PI
 \end{figure}
 \end{definition}
 For our implementation, we use libsodium's key exchange functionality for the $\mathsf{KX}$ function, then libsodium's secret key AEAD for the $\enc$ and $\dec$ functions. This provides a Key Private IND-CPA symmetric key encryption scheme. We use Addra as the PIR protocol.
-\newcommand{\ACK}{\mathsf{ACK}}
 \subsection{Sequence numbers and ACK}
-To guarantee the consistent prefix property, each client $i$ labels all messages to be sent to another client $j$ with a sequence number. In the order user $i$ received
+To guarantee the consistent prefix property, each client $i$ labels all messages to be sent to another client $j$ with a sequence number. In the order client $i$ receives $\send$ instructions to client $j$, client $i$ label the messages with sequence number $1,2,\cdots$.
 
-Critical to both consistent prefix and eventual consistency is the ACK messages. An ACK message is a special type of messages denoted $\ACK(k)$.\todo{In the whitepaper an additional chunk number is used. Since this definition does not use chunking, I'll ignore it}. When client $j$ sends $\ACK(k)$ to client $i$, it simply means ``I have read all messages up to message $k$ from you". As we will soon define rigorously, user $i$ will keep broadcasting message $k$
+Critical to both consistent prefix and eventual consistency is the ACK messages. An ACK message is a special type of messages denoted $\ACK(k)$.\todo{In the whitepaper an additional chunk number is used. Since this definition does not use chunking, I'll ignore it}. When client $j$ sends $\ACK(k)$ to client $i$, it means ``I have read all messages up to message $k$ from you". As we will soon define rigorously, user $i$ will keep broadcasting message $k$ until user $j$ sends $\ACK(k)$, in which case they begin broadcasting message $k + 1$.
 \subsection{The Anysphere Core Protocol}
 \todo{I'm going to stick to our actual implementation as closely as possible.}
 Let's first recap and summarize what we have defined so far. Recall that
@@ -129,12 +138,6 @@ Let's first recap and summarize what we have defined so far. Recall that
     \item We use a PIR protocol $\Pi_{\pir}$.
 \end{enumerate}
 We can now formally define Anysphere's core protocol.
-\newcommand{\frienddb}{\mathsf{frdb}}
-\newcommand{\inb}{\mathsf{in}}
-\newcommand{\outb}{\mathsf{out}}
-\newcommand{\msgdb}{\mathsf{msgdb}}
-\newcommand{\trans}{\mathsf{trans}}
-We first describe the behavior of an honest server. The server implementation is very simple, only consisting of two databases and a PIR query handler.
 \begin{figure}[h!]
 \begin{framed}
 \begin{definition}[The Anysphere Core Protocol]
@@ -146,13 +149,20 @@ $\mathbf{\Pi_{\asphr}.C.\mathsf{Register}}(1^{\lambda}, i)$
 \hrule
 \vspace{5pt}
 \begin{enumerate}
-    \item Initialize map $\frienddb$. The map take registration info as keys, and secret key as values.
+    \item Initialize map $\frienddb$. The map take registration info as keys, and the following fields as values.
+    \begin{itemize}
+        \item $\mathsf{sk}$, the secret key.
+        \item $\seqs$, the sequence number of the message last sent to the friend.
+        \item $\seqe$, the highest sequence number ever assigned to the friend.
+        \item $\seqr$, the highest sequence number received from the friends.
+    \end{itemize}
+    \todo{These fields are currently implicit. Included for simplicity}
     \item Initialize maps $\inb, \outb$. The maps take registration info as keys, and arrays of messages as values.\footnote{They are named Friend, Inbox, Outbox in our code. Our code is slightly more complicated to support features like sending to multiple friends and chunking.}
     \item Set a transmission schedule $T_{\trans}$. The user can customize this parameter.
     \item $(kx^P, kx^S) \leftarrow \gen(1^{\lambda})$. 
     \item Return $\reg \leftarrow (i, kx^P)$.
 \end{enumerate}
-
+\vspace{10pt}
 $\mathbf{\Pi_{\asphr}.C.\mathsf{Input}}(t, \cI)$
 \vspace{5pt}
 \hrule
@@ -167,6 +177,7 @@ If $\cI = \send(\reg, \msg)$,
 
 \begin{enumerate}
     \item Check if $\reg$ is in $\frienddb$. If not, break.
+    \item Add $1$ to $\frienddb[\reg].\seqe$. Label $\msg$ with the sequence number $\frienddb[\reg].\seqe$.
     \item Push $\msg$ to $\outb[\reg]$.
 \end{enumerate}
 
@@ -175,16 +186,24 @@ If $\cI = \trust(\reg)$.
     \item Check if $\reg$ is in $\frienddb$. If so, break.
     \item $(i, kx_f^P) \leftarrow \reg$.
     \item $sk \leftarrow \Pi_{\sym}.\mathsf{KX}(1^{\lambda}, kx_f^P, kx^S).$
-    \item $\frienddb[\reg] \leftarrow sk$.
+    \item $\frienddb[\reg] \leftarrow \{\sk: sk,  \seqs: 1, \seqe: 0, \seqr: 0\}$.
 \end{enumerate}
 
 Phase 2:
 \begin{enumerate}
+    \item If $t$ is not divisible by $T_{\trans}$, return $\emptyset$.
     \item Let $\{\reg_1, \cdots, \reg_k\}$ be the keys of $\frienddb$, with $k\leq B$. Construct $S = [\reg_1,\cdots, \reg_k, \reg, \cdots, \reg]$, where we add $B - k$ copies of $\reg$, our own registration info. Sample $\reg_s$ uniformly at random from $S$.
-    \item Sample $\msg$ uniformly random from $\outb[\reg_s]$. If $\outb[\reg_s]$ is empty, let $\msg = 0^{L_{\msg}}$.
-    \item $sk \leftarrow \frienddb[\reg_s]$.
-    \item 
+    \item Let $\msg$ be the message with sequence number $\frienddb[\reg_s].\seqs$ in $\outb[\reg_s]$. If $\outb[\reg_s]$ is empty, let $\msg = 0^{L_{\msg}}$.
+    \item $\sk \leftarrow \frienddb[\reg_s].\sk$.
+    \item $\seqr \leftarrow \frienddb[\reg_s].\seqr$.
+    \item Encrypt Messages with $\sk$.
+    \begin{itemize}
+        \item $\ct_{\msg} = \Pi_{\sym}.\enc(\sk, \msg).$
+        \item $\ct_{\ack} = \Pi_{\sym}.\enc(\sk, \ACK(\seqr))$.
+    \end{itemize}
+    \item return $(\reg_s, \ct_{\msg}, \ct_{\ack})$.
 \end{enumerate}
+\vspace{10pt}
 
 \end{definition}
 \end{framed}
