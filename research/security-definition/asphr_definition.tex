@@ -15,6 +15,9 @@
 In this section, we define the Anysphere core protocol described in our whitepaper. We rigorously define how our core protocol is able to handle multiple contacts, run asynchronous rounds. In the next section, we will prove that our core protocol maintains correctness and security.
 \subsection{A weaker Security Definition}
 Unfortunately, Anysphere does not support the strongest security notion described above, due to CF attacks. For the threat model in our whitepaper, we assume that no friends are compromised. We now define a weaker security notion with this additional hypothesis.
+
+\arvid{Another path to explore here would be to create a new leak function, say LeakCF, which contains the exact information leaked for the CF attack. For example, one potentially useful leak function would be one that contains the current number of friends, or perhaps the number of friends but rounded to the nearest 10. In the worst case (such as our current prioritization case), we would leak the timing that a message actually gets sent to the server, which might be very hard to model here... Hmmmm}
+
 \begin{definition}[SIM-secure with no compromised friends and bounded friends]
 We say that a set of input $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ satisfy \textbf{no compromised friends} if for any $i \in \cH, j \in \cK$ and $t \in [T]$, we have
 $$\trust(\reg_j) \neq \cI_{i, t}.$$
@@ -35,6 +38,7 @@ We now explain the construction of Anysphere.
 \todo{Are there existing definition of these schemes?}
 Anysphere relies on two crypto primitives: a symmetric key AE, and a PIR scheme. We outline formal simulator-based definition of the two.
 \subsubsection{Key Private IND-CPA symmetric key AE}
+\arvid{we probably want IND-CCA to guarantee integrity?}
 A key-private IND-CPA symmetric key encryption scheme is a quadruple of algorithms $(\gen, \mathsf{KX}, \enc, \dec)$ with specifications
 \begin{itemize}
     \item $\gen(1^{\lambda}) \to (kx^P, kx^S)$,
@@ -92,7 +96,14 @@ Central to our application is the Private Information Retrieval(PIR) Protocol. I
     \item $\answer^{DB}(1^{\lambda}, pk, ct) \to a$.
     \item $\dec(1^{\lambda}, sk, a) \to x_i$.
 \end{itemize}
-where $DB$ is a length $n$ database with int64 entries, and $n$ is upper bounded by some polynomial $n(\lambda)$. It must satisfy
+% \arvid{Another PIR syntax, which I believe might be more standard?}
+% \begin{itemize}
+%     \item $\query_n(1^{\lambda}, i) \to (q, \mathsf{st})$.
+%     \item $\answer_n(1^{\lambda}, D, q) \to a$.
+%     \item $\dec_n(1^{\lambda}, \mathsf{st}, a) \to d$.
+% \end{itemize}
+% Nevermind! We are recycling the secret key for the PIR queries, because generating the keys is computationally expensive, and it does not affect security (it just becomes slightly less clean)
+where $D$ is a length $n$ database with int64 entries, and $n$ is upper bounded by some polynomial $n(\lambda)$. It must satisfy
 \begin{definition}[Correctness]
 For any database $DB$ of length $n$ with int64 entries, and any message $ct$ of length $L_{\msg}$, if we run
 \begin{enumerate}
@@ -159,9 +170,11 @@ $\mathbf{\Pi_{\asphr}.C.\mathsf{Register}}(1^{\lambda}, i, N)$
         \item $\seqr$, the highest sequence number received from the friends.
     \end{itemize}
     \todo{These fields are currently implicit. Included for simplicity}
+    \arvid{a bit confused between seqend and seqstart...}
     \item Initialize maps $\inb, \outb$. The maps take registration info as keys, and arrays of messages as values.\footnote{They are named Friend, Inbox, Outbox in our code. Our code is slightly more complicated to support features like sending to multiple friends and chunking.}
     \item Set a transmission schedule $T_{\trans}$. The user can customize this parameter.
     \item $(kx^P, kx^S) \leftarrow \gen(1^{\lambda})$. 
+    \item Initialize PIR Keys. $(\pk_{\pir}, \sk_{\pir}) \leftarrow \Pi_{\pir}.\gen(1^{\lambda}, N).$
     \item Return $\reg \leftarrow (i, kx^P)$.
 \end{enumerate}
 \vspace{10pt}
@@ -212,11 +225,10 @@ Phase 2:
     \end{itemize}
     \item Let $\reg_r = (r, \_)$. Formulate a PIR request for index $r$.
     \begin{itemize}
-        \item $(\pk_{\pir}, \sk_{\pir}) \leftarrow \Pi_{\pir}.\gen(1^{\lambda}, N).$
         \item $\ct_{\query} \leftarrow \Pi_{\pir}.\query(1^{\lambda}, \sk_{\pir}, r).$
     \end{itemize}
     \item return $\req = (\ct_{\msg}, \ct_{\ack}, \pk_{\pir}, \ct_{\query})$.
-    \item Remember $\reg_r, \sk_{\pir}$.
+    \item Remember $\reg_r$.
 \end{enumerate}
 \vspace{10pt}
 $\mathbf{\Pi_{\asphr}.S.\mathsf{ClientRPC}}(t, \{\req_i\}_{i = 1}^N)$

@@ -68,7 +68,7 @@ Let $S$ denote the server machine, let $\{C_i\}_{i = 1}^N$ denote the client mac
 \textbf{Execution}:
 \begin{enumerate}
 \item $S.\mathsf{InitServer}(1^{\lambda}, N)$. 
-\item For each $i \in [N]$, $\reg_i \leftarrow C_i.\mathsf{Register}(1^{\lambda}, i)$. 
+\item For each $i \in [N]$, $\reg_i \leftarrow C_i.\mathsf{Register}(1^{\lambda}, i, N)$. 
 \item For $t$ from $1$ to $T$:
     \begin{enumerate}
     \item For each $i \in [N]$, $\req_i \leftarrow C_i.\mathsf{Input}(t, \cI)$.
@@ -126,10 +126,12 @@ We now turn to security definitions. We use the real world-ideal world definitio
 \begin{figure}[h!]
 \begin{framed}
 \begin{definition}[Real world Experiment] \hfill\\
-Same notation as above. Let $\cA$ be a stateful adversary. Let $\cK, \cH$ denote the set of compromised/honest clients. The real-world experiment $\mathsf{Real}^{\cA}(1^{\lambda})$ is described below.
+\label{defn:real-world}
+Same notation as above. Let $\cA$ be a \textbf{stateful} adversary. Let $\cK, \cH$ denote the set of compromised/honest clients. The real-world experiment $\mathsf{Real}^{\cA}(1^{\lambda})$ is described below.
 \begin{enumerate}
+\item $N, T, \cK, \cH \leftarrow \cA(1^{\lambda})$.
 \item For each $i \in \cH$, $\reg_i \leftarrow C_i.\mathsf{Register}(1^{\lambda}, i, N)$. 
-\item $N, T, \cK, \cH, \{\cI_{i, 1}\} \leftarrow \cA(1^{\lambda}, \{\reg_i\}_{i \in \cH})$.
+\item $\{\cI_{i, 1}\} \leftarrow \cA(1^{\lambda}, \{\reg_i\}_{i \in \cH})$.
 \item For $t$ from $1$ to $T$:
     \begin{enumerate}
     \item For each $i \in H$, $\req_i \leftarrow C_i.\mathsf{Input}(t, \cI_{i, t})$.
@@ -150,18 +152,20 @@ Let $\cK$ be compromised clients, and let $H = [N] - \cK$ be honest clients. Let
     \item Messages sent to the compromised clients.
 \end{enumerate}
 More formally, we define
-$$\mathsf{Leak}(\{\cI_{i, t}\}, \cK) = (\cF, \cM)$$
+$$\mathsf{Leak}(\{\cI_{i, t}\}, \cK) = (L_f, L_m)$$
 where
-$$\cF = \{(i, \reg_j, t): j \in \cK, \trust(\reg_j) = \cI_{i, t}\}.$$
-$$\cM = \{(i, \reg_j, \msg, t): j \in \cK, \mathsf{SendMessage}(\reg_j, \msg) = \cI_{i, t}\}.$$
+$$L_f = \{(i, \reg_j, t): j \in \cK, \trust(\reg_j) = \cI_{i, t}\}.$$
+$$L_m = \{(i, \reg_j, \msg, t): j \in \cK, \mathsf{SendMessage}(\reg_j, \msg) = \cI_{i, t}\}.$$
 \end{definition}
+\arvid{let's use other symbols than $\cF$ and $\cM$ because we use them for the view of a single client already and this is similar but not the same}
 \begin{figure}[h!]
 \begin{framed}
 \begin{definition}[Ideal World Experiment]
 Same notations as above. Let $\Sim$ be a stateful simulator. The ideal-world experiment $\mathsf{Ideal}^{\cA, \Sim}(1^{\lambda})$ is described below.
 \begin{enumerate}
+\item $N, T, \cK, \cH \leftarrow \cA(1^{\lambda})$.
 \item $\{\reg_i\}_{i \in \cH} \leftarrow \Sim(1^{\lambda}, N, T, \cK)$. 
-\item $N, T, \cK, \cH, \{\cI_{i, 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\reg_i\}_{i \in \cH})$.
+\item $\{\cI_{i, 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\reg_i\}_{i \in \cH})$.
 \item $\cA(\{\reg_i\}_{i \in \cH})$.
 \item $\Sim(1, \mathsf{Leak}(\{\cI_{i, 1}\}, \cK))$
 \item For $t$ from $1$ to $T$:
@@ -178,4 +182,12 @@ Same notations as above. Let $\Sim$ be a stateful simulator. The ideal-world exp
 \end{figure}
 \begin{definition}[Simulation Security]
 We say a messaging scheme is SIM-secure iff for  any polynomial upper bounds on $N$ and $T$, there exists a p.p.t simulator $\Sim$ such that for any p.p.t adversary $\cA$, the view of $\cA$ is indistinguishable in $\mathsf{Real}^{\cA}(1^{\lambda})$ and $\mathsf{Ideal}^{\cA, \mathsf{\Sim}}(1^{\lambda})$.
+\end{definition}
+
+Finally, we require the messaging scheme to satisfy Integrity: while a malicious server can drop messages between users, it shouldn't be able to forge messages between honest users. We define the notion of integrity rigorously.
+\begin{definition}[Integrity]
+Same notation as before. Consider the real world experiment described in \cref{defn:real-world}. Take any pair of honest users $i, j \in \cH$, and consider the view of $j$ at the end of the experiment obtained by calling $V_j = (\cF, \cM) \leftarrow C_j.\mathsf{GetView}()$.  Then we say the messaging scheme guarantees Integrity if 
+\begin{multline*}
+ \{\msg : (\reg_i, \msg) \subset \cM\} \subset \{\msg : \exists i, \send(\reg_j, \msg) = \cI_{i, t}\}.   
+\end{multline*}
 \end{definition}

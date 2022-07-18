@@ -1,5 +1,7 @@
 \section{Purpose}
-Previous MPM papers have focused on the security of a single round MPM where each client sends and receives exactly one message, and asserts that the privacy of the entire messaging system is a corollary of single-round privacy. This is not true for three reasons: 1) Single round security does not imply multi-round security at all. CF attacks have shown how a carelessly designed multi-round protocol can leak metadata even if it uses secure single-round primitives. 2) As clients have different level of resources, running synchronous rounds is not economical. For example, big companies might wish rounds run faster to receive timely updates, while individual clients might not want to participate in each round to preserve bandwidth. 3) Practical messaging apps need many more components beyond sending and receiving messages, such as trust establishment, etc. 
+Previous MPM papers have focused on the security of a multi-round MPM where each client sends and receives exactly one message per round. This is not true for two reasons 1) As clients have different level of resources, running synchronous rounds is not economical. For example, big companies might wish rounds run faster to receive timely updates, while individual clients might not want to participate in each round to preserve bandwidth. 3) Practical messaging apps need many more components beyond sending and receiving messages, such as trust establishment, etc. 
+
+\arvid{Pung and Talek both kinda handle multiple rounds no?}
 
 We design a formal security definition for a multi-round real-time messaging scheme. This draft is more based on the security definition presented in NIAR. 
 
