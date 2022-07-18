@@ -35,7 +35,7 @@ A \textbf{Messaging Scheme/Application/App} consists of the following polynomial
 
 Client Side Algorithms for client $C$.
 \begin{itemize}
-    \item $C.\mathsf{Register}(1^{\lambda}, i) \to \reg$, takes in a security parameter $\lambda$, the index $i$ of the client, and outputs a public registration info $\reg$ and initializes the client database $D_C$.
+    \item $C.\mathsf{Register}(1^{\lambda}, i, N) \to \reg$, takes in a security parameter $\lambda$, the index $i$ of the client, the total number of users $N$, and outputs a public registration info $\reg$ and initializes the client database $D_C$.
     
     \item $C.\mathsf{Input}(t, \cI) \to \req$, takes in a user input $\cI$, updates the local storage to reflect that, and issues a request $\req$ to the server. The request can be empty, which means the client doesn't request the server on that timestep.
     
@@ -98,8 +98,8 @@ More formally, given a set of clients identified by $\{\reg_i\}_{i \in [N]}$, an
 \end{multline*}
 and
 \begin{multline*}
- \cM = \{(\reg_k, t, \msg): \send(\reg_j, \msg) = \cI_{k, t} \land \\
- \exists t' < t, \trust(\reg_j) = \cI_{k, t'}\} \land \\
+ \cM = \{(\reg_k, \msg): \exists t, \send(\reg_j, \msg) = \cI_{k, t} \land \\
+ \exists t' < t, \trust(\reg_j) = \cI_{k, t'} \land \\
  \exists t'', \trust(\reg_k) = \cI_{j, t''}\} .   
 \end{multline*}
 \end{definition}
@@ -128,7 +128,7 @@ We now turn to security definitions. We use the real world-ideal world definitio
 \begin{definition}[Real world Experiment] \hfill\\
 Same notation as above. Let $\cA$ be a stateful adversary. Let $\cK, \cH$ denote the set of compromised/honest clients. The real-world experiment $\mathsf{Real}^{\cA}(1^{\lambda})$ is described below.
 \begin{enumerate}
-\item For each $i \in \cH$, $\reg_i \leftarrow C_i.\mathsf{Register}(1^{\lambda}, i)$. 
+\item For each $i \in \cH$, $\reg_i \leftarrow C_i.\mathsf{Register}(1^{\lambda}, i, N)$. 
 \item $N, T, \cK, \cH, \{\cI_{i, 1}\} \leftarrow \cA(1^{\lambda}, \{\reg_i\}_{i \in \cH})$.
 \item For $t$ from $1$ to $T$:
     \begin{enumerate}

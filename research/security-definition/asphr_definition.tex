@@ -5,6 +5,7 @@
 \newcommand{\inb}{\mathsf{in}}
 \newcommand{\outb}{\mathsf{out}}
 \newcommand{\msgdb}{\mathsf{msgdb}}
+\newcommand{\ackdb}{\mathsf{ackdb}}
 \newcommand{\trans}{\mathsf{trans}}
 \newcommand{\ACK}{\mathsf{ACK}}
 \newcommand{\ack}{\mathsf{ack}}
@@ -122,10 +123,13 @@ for any $\lambda, n$, consider the following two experiments. Then we say the PI
 \end{figure}
 \end{definition}
 For our implementation, we use libsodium's key exchange functionality for the $\mathsf{KX}$ function, then libsodium's secret key AEAD for the $\enc$ and $\dec$ functions. This provides a Key Private IND-CPA symmetric key encryption scheme. We use Addra as the PIR protocol.
-\subsection{Sequence numbers and ACK}
+\subsection{Messages, Sequence numbers, ACK}
 To guarantee the consistent prefix property, each client $i$ labels all messages to be sent to another client $j$ with a sequence number. In the order client $i$ receives $\send$ instructions to client $j$, client $i$ label the messages with sequence number $1,2,\cdots$.
 
 Critical to both consistent prefix and eventual consistency is the ACK messages. An ACK message is a special type of messages denoted $\ACK(k)$.\todo{In the whitepaper an additional chunk number is used. Since this definition does not use chunking, I'll ignore it}. When client $j$ sends $\ACK(k)$ to client $i$, it means ``I have read all messages up to message $k$ from you". As we will soon define rigorously, user $i$ will keep broadcasting message $k$ until user $j$ sends $\ACK(k)$, in which case they begin broadcasting message $k + 1$.
+
+Because the client need to keep track of these metadatas, the client labels each message the user inputs with the time and the sequence number. If the user inputs a message $\msg$ of length $L_{\msg}$, the client will transmit the labeled message\footnote{Called chunk in the code.} $\msg^{lb} = (k, \msg)$, where $k$ is the sequence number and $\msg$ is the actual message.
+\todo{Do something about the length parameter here. Now we have the actual length of the message, the length of the ``chunk" , and the }
 \subsection{The Anysphere Core Protocol}
 \todo{I'm going to stick to our actual implementation as closely as possible.}
 Let's first recap and summarize what we have defined so far. Recall that
@@ -138,13 +142,11 @@ Let's first recap and summarize what we have defined so far. Recall that
     \item We use a PIR protocol $\Pi_{\pir}$.
 \end{enumerate}
 We can now formally define Anysphere's core protocol.
-\begin{figure}[h!]
-\begin{framed}
 \begin{definition}[The Anysphere Core Protocol]
 Our protocol, $\Pi_{\asphr}$, implements the methods of \cref{def:messaging-scheme} as below. In each method, the caller stores all inputs for future use.
 \vspace{10pt}
 
-$\mathbf{\Pi_{\asphr}.C.\mathsf{Register}}(1^{\lambda}, i)$
+$\mathbf{\Pi_{\asphr}.C.\mathsf{Register}}(1^{\lambda}, i, N)$
 \vspace{5pt}
 \hrule
 \vspace{5pt}
@@ -163,6 +165,13 @@ $\mathbf{\Pi_{\asphr}.C.\mathsf{Register}}(1^{\lambda}, i)$
     \item Return $\reg \leftarrow (i, kx^P)$.
 \end{enumerate}
 \vspace{10pt}
+$\mathbf{\Pi_{\asphr}.S.\mathsf{InitServer}}(1^{\lambda}, N)$.
+\vspace{5pt}
+\hrule
+\vspace{5pt}
+Initialize arrays $\msgdb, \ackdb$ of length $N$. Fill them with random strings.
+
+\vspace{10pt}
 $\mathbf{\Pi_{\asphr}.C.\mathsf{Input}}(t, \cI)$
 \vspace{5pt}
 \hrule
@@ -177,8 +186,8 @@ If $\cI = \send(\reg, \msg)$,
 
 \begin{enumerate}
     \item Check if $\reg$ is in $\frienddb$. If not, break.
-    \item Add $1$ to $\frienddb[\reg].\seqe$. Label $\msg$ with the sequence number $\frienddb[\reg].\seqe$.
-    \item Push $\msg$ to $\outb[\reg]$.
+    \item Add $1$ to $\frienddb[\reg].\seqe$. 
+    \item Push $(\frienddb[\reg].\seqe, t, \msg)$ to $\outb[\reg]$.
 \end{enumerate}
 
 If $\cI = \trust(\reg)$.
@@ -192,7 +201,7 @@ If $\cI = \trust(\reg)$.
 Phase 2:
 \begin{enumerate}
     \item If $t$ is not divisible by $T_{\trans}$, return $\emptyset$.
-    \item Let $\{\reg_1, \cdots, \reg_k\}$ be the keys of $\frienddb$, with $k\leq B$. Construct $S = [\reg_1,\cdots, \reg_k, \reg, \cdots, \reg]$, where we add $B - k$ copies of $\reg$, our own registration info. Sample $\reg_s$ uniformly at random from $S$.
+    \item Let $\{\reg_1, \cdots, \reg_k\}$ be the keys of $\frienddb$, with $k\leq B$. Construct $S = [\reg_1,\cdots, \reg_k, \reg, \cdots, \reg]$, where we add $B - k$ copies of $\reg$, our own registration info. Sample $\reg_s, \reg_r$ uniformly and independently at random from $S$.
     \item Let $\msg$ be the message with sequence number $\frienddb[\reg_s].\seqs$ in $\outb[\reg_s]$. If $\outb[\reg_s]$ is empty, let $\msg = 0^{L_{\msg}}$.
     \item $\sk \leftarrow \frienddb[\reg_s].\sk$.
     \item $\seqr \leftarrow \frienddb[\reg_s].\seqr$.
@@ -201,10 +210,57 @@ Phase 2:
         \item $\ct_{\msg} = \Pi_{\sym}.\enc(\sk, \msg).$
         \item $\ct_{\ack} = \Pi_{\sym}.\enc(\sk, \ACK(\seqr))$.
     \end{itemize}
-    \item return $(\reg_s, \ct_{\msg}, \ct_{\ack})$.
+    \item Let $\reg_r = (r, \_)$. Formulate a PIR request for index $r$.
+    \begin{itemize}
+        \item $(\pk_{\pir}, \sk_{\pir}) \leftarrow \Pi_{\pir}.\gen(1^{\lambda}, N).$
+        \item $\ct_{\query} \leftarrow \Pi_{\pir}.\query(1^{\lambda}, \sk_{\pir}, r).$
+    \end{itemize}
+    \item return $\req = (\ct_{\msg}, \ct_{\ack}, \pk_{\pir}, \ct_{\query})$.
+    \item Remember $\reg_r, \sk_{\pir}$.
 \end{enumerate}
 \vspace{10pt}
+$\mathbf{\Pi_{\asphr}.S.\mathsf{ClientRPC}}(t, \{\req_i\}_{i = 1}^N)$
+\vspace{5pt}
+\hrule
+\vspace{5pt}
+\item for $i$ from $1$ to $N$
+\begin{enumerate}
+    \item If $\req_i = \emptyset$, continue. Parse $\req_i = (\ct_{\msg}, \ct_{\ack}, \pk_{\pir}, \ct_{\query})$.
+    \item $\msgdb[i] \leftarrow \ct_{\msg}, \ackdb[i] \leftarrow \ct_{\ack}$.
+    \item $a_{\msg} \leftarrow \Pi_{\pir}.\answer^{\msgdb}(1^{\lambda}, \pk_{\pir}, \ct_{\query}).$
+    \item $a_{\ack} \leftarrow \Pi_{\pir}.\answer^{\ackdb}(1^{\lambda}, \pk_{\pir}, \ct_{\query}).$
+    \item $\resp_i \leftarrow (a_{\msg}, a_{\ack}).$
+\end{enumerate}
+\vspace{10pt}
+$\mathbf{\Pi_{\asphr}.C.\mathsf{ServerRPC}}(t, \resp)$
+\vspace{5pt}
+\hrule
+\vspace{5pt}
+\begin{enumerate}
+    \item Parse $\resp = (a_{\msg}, a_{\ack})$. Let $\reg_r, r, \sk_{\pir}$ be defined in the last call to $\Pi_{\asphr}.C.\mathsf{Input}$.
+    \item $\ct_{\msg} \leftarrow \Pi_{\pir}.\Dec(1^{\lambda}, \sk_{\pir}, a_{\msg}).$
+    \item $\ct_{\ack} \leftarrow \Pi_{\pir}.\Dec(1^{\lambda}, \sk_{\pir}, a_{\ack}).$
+    \item $\sk \leftarrow \frienddb[\reg_r].\sk$.
+    \item Decipher the message.
+    \begin{enumerate}
+        \item $\msg^{lb} \leftarrow \Pi_{\sym}.\Dec(1^{\lambda}, \sk, \ct_{\msg})$.
+        \item If $\msg^{lb} = \bot$ or $\msg^{lb}[0]$ is not $\frienddb[\reg_r].\seqr + 1$, ignore the message.
+        \item Add $1$ to $\frienddb[\reg_r].\seqr$. 
+        \item Let $\msg$ be $\msg^{lb}[1]$. Push $\msg$ to $\inb[\reg_r]$.
+    \end{enumerate}
+    \item Decipher the ACK.
+    \begin{enumerate}
+        \item $\ack \leftarrow \Pi_{\sym}.\Dec(1^{\lambda}, \sk, \ct_{\ack})$.
+        \item If $\ack = \bot$ or $\ack$ is not the form $\ACK(k)$ for some $k$, ignore the ack.
+        \item Let $\ack = \ACK(k)$. If $k < \frienddb[\reg_r].\seqs$, ignore the ack.
+        \item $\frienddb[\reg_r].\seqs \leftarrow k + 1$.
+    \end{enumerate}
+\end{enumerate}
+\vspace{10pt}
+$\mathbf{\Pi_{\asphr}.C.\mathsf{GetView}}()$
+\vspace{5pt}
+\hrule
+\vspace{5pt}
+Let $\cF$ be the set of keys in $\frienddb$. Let $\cM$ be the set $\{(\reg_r, \msg): \msg \in \inb[\reg_r]\}$. Return $(\cF, \cM)$.
 
 \end{definition}
-\end{framed}
-\end{figure}
