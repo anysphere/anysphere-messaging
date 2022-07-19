@@ -211,6 +211,7 @@ If $\cI = \send(\reg, \msg)$,
 \begin{enumerate}
     \item Check that $\msg$ has length $L_{\msg}$. If not, skip to Phase 2.
     \item Check that $\reg$ is in $\frienddb$. If not, skip to Phase 2.
+    \item If $\reg$ is the registration of $C_i$ itself, append $\msg$ to $\inb[\reg]$, and skip to Phase 2. \footnote{Skipping this step breaks consistent prefix.}
     \item Add $1$ to $\frienddb[\reg].\seqe$. 
     \item Push $\msg^{lb} = (\frienddb[\reg].\seqe, \msg)$ to $\outb[\reg]$.
 \end{enumerate}
@@ -228,7 +229,7 @@ Phase 2:
     \item If $t$ is not divisible by $T_{\trans}$, return $\emptyset$.
     \item Let $\{\reg_1, \cdots, \reg_k\}$ be the keys of $\frienddb$, with $k\leq B$. Construct $S = [\reg_1,\cdots, \reg_k, \reg, \cdots, \reg]$, where we add $B - k$ copies of $\reg$, our own registration info. Sample $\reg_s, \reg_r$ uniformly and independently at random from $S$. \arvid{this is not what we currently do. maybe we should. we should make a decision on the CF attack here and what is acceptable. i think my favorite idea is leaking a rounded version of the number of friends, or something like that. however, the way the code works now where we pick a random friend among the friends that we have outgoing messages to is quite nice because it means that messages will get delivered much faster (especially once we implement PIR batch retrieval)...}
     \item Let $\msg$ be the message with sequence number $\frienddb[\reg_s].\seqs$ in $\outb[\reg_s]$. If $\outb[\reg_s]$ is empty, let $\msg = (-1, 0^{L_{\msg}})$.
-    \item $\sk \leftarrow \frienddb[\reg_s].\sk$.
+    \item $\sk \leftarrow \frienddb[\reg_s].\sk$. If $\reg_s$ does not exist in $\frienddb$, randomly generate a new $\sk \leftarrow \Pi_{}$
     \item $\seqr \leftarrow \frienddb[\reg_s].\seqr$.
     \item Encrypt Messages with $\sk$.
     \begin{itemize}

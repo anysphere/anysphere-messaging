@@ -17,7 +17,9 @@ and let $\msg_{ij}(\ell)$ be the $\ell$-th message in $\MSGS(t_0, i, j)$, sorted
 \textbf{Consistent Prefix}: We establish the following property by induction.
 \begin{lemma}
 \label{lem:correctness-main}
-In the honest server experiment \cref{defn:honest-server-experiment}. Let $i \neq j$ be any pair of users, and $t \leq T$. Then with probability $1 - \negl(\lambda)$, at the end of timestep $t$ one of the following hold.
+In the honest server experiment \cref{defn:honest-server-experiment}. Let $i \neq j$ be any pair of users, and $t \leq T$. Then with probability $1 - \negl(\lambda)$, at the end of timestep $t$ the proposition below holds.
+
+\textbf{Proposition: }One of the following holds.
 
 1) $\reg_j \notin C_i.\frienddb$, and $C_i.\outb[\reg_j] = C_j.\inb[\reg_i] = \emptyset$.
 
@@ -95,12 +97,16 @@ We can now prove Consistent Prefix as defined in \cref{defn:correctness}. We use
  \begin{multline*}
  C_j.\inb[\reg_i] = \{\msg: \exists t \leq t(i), \send(\reg_j, \msg) = \cI_{i, t} \land \\
  \exists t' < t, \trust(\reg_j) = \cI_{i, t'} \land \\
- \exists t'', \trust(\reg_i) = \cI_{j, t''}\}.   
+ \exists t'' \leq T_0, \trust(\reg_i) = \cI_{j, t''}\}.   
  \end{multline*} 
  That a) holds is easy to see, since by the protocol definition, $\reg_i$ is inserted into $C_j.\frienddb$ during timestep $t$ if and only if $\trust(\reg_i) = \cI_{j, t}$, and it is never removed. 
  
- We next verify (b). We show that the $t(i)$ exists as long as \cref{lem:correctness-main} holds. We consider which scenario in the lemma holds. 
+ We next verify (b). If $i = j$, then the equation holds for $t(j) = T_0$ since messages to oneselve are deposited to $C_j.\inb$ immediately by protocol. Now assume $i \neq j.$ 
  
- If 1) holds, we let $t(i) = 0$. In this case
+ We show that $t(i)$ exists as long as \cref{lem:correctness-main} holds at the current timestep $T_0$. We consider which scenario in the lemma holds. 
  
- If 2) holds, we let $t(i) = 0$ if $\reg_i \notin C_j.\frienddb$ at the current timestep, otherwise let $t(i)$ be the timestep before $C_i.\send(\reg_j, \msg_{ij}(R_{t} + 1))$ is called(or the current timestep if $\msg_{ij}(R_{t} + 1)$ does not exist). If $\reg_i \notin C_j.\frienddb$, we have $R_t = 0$, so both sides of the equation are empty sets. Otherwise, by the definition of $\msg_{ij}(\ell)$, both sides of the equation are equal to $\{\msg_{ij}(1),\cdots, \msg_{ij}(R_t)\}$. So we have shown the Consistent Prefix property in all cases.
+ If 1) holds, we let $t(i) = T_0$. In this case, both sides of the equation are emptysets.
+ 
+ If 2) holds, we let $t(i) = T_0$ if $\reg_i \notin C_j.\frienddb$ at the current timestep, otherwise let $t(i)$ be the timestep before $C_i.\send(\reg_j, \msg_{ij}(R_{t} + 1))$ is called(or the current timestep if $\msg_{ij}(R_{t} + 1)$ does not exist). If $\reg_i \notin C_j.\frienddb$, we have $R_t = 0$, so both sides of the equation are empty sets. Otherwise, by the definition of $\msg_{ij}(\ell)$, both sides of the equation are equal to $\{\msg_{ij}(1),\cdots, \msg_{ij}(R_t)\}$. So we have shown the Consistent Prefix property in all cases where the proposition in \cref{lem:correctness-main} holds for all users $i \neq j$, thus with probability $1 - \negl(\lambda)$.
+ 
+ \textbf{Eventual Consistency}: 
