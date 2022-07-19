@@ -1,3 +1,4 @@
+\newcommand{\Leak}{\mathsf{Leak}}
 \section{General Definitions}
 \todo{User = person using the application. Client = the application the user is using}
 
@@ -88,7 +89,7 @@ The definition of correctness is a bit tricky: we do not immediately read all me
 We define the ``correct" view given user inputs. Informally speaking, the correct view should satisfy
 \begin{enumerate}
     \item The list of friends should contain the friends we called $\trust$ on.         
-    \item Messages from a client with established trust should be present and timestamped correctly.  
+    \item Messages from a client with established trust should be present.  
     \item No other friends or messages should be present. 
 \end{enumerate}
 More formally, given a set of clients identified by $\{\reg_i\}_{i \in [N]}$, and user inputs $\{\cI_{i, t}\}_{i \in [N], t \in [T]}$, a view $(\cF, \cM)$ of client $j$ is said to be \textbf{correct} if it satisfies
@@ -109,6 +110,7 @@ Of course, we have a handshake protocol to verify the validity of friends, but t
 
 Also note that $k$ might be broadcasting the message before $j$ adds $k$ as a friend. Our system is actually capable of receiving such messages.
 \begin{definition}[Correctness]
+\label{defn:correctness}
  We say a messaging scheme is \textbf{correct} if the following consistency model is satisfied. 
  
  Take any choice of parameters of the honest world experiment, any index $i \in [N]$, and any time $T_0$. Let $V_j \leftarrow C_j.\mathsf{GetView}()$ be the view of client $j$ after timestep $T_0$ of the Honest World Experiment. Then we want
@@ -151,10 +153,10 @@ Let $\cK$ be compromised clients, and let $H = [N] - \cK$ be honest clients. Let
     \item Messages sent to the compromised clients.
 \end{enumerate}
 More formally, we define
-$$\mathsf{Leak}(\{\cI_{i, t}\}, \cK) = (L_f, L_m)$$
+$$\Leak(\{\cI_{i, t}\}, \cK) = (\Leak_f, \Leak_m)$$
 where
-$$L_f = \{(i, \reg_j, t): j \in \cK, \trust(\reg_j) = \cI_{i, t}\}.$$
-$$L_m = \{(i, \reg_j, \msg, t): j \in \cK, \mathsf{SendMessage}(\reg_j, \msg) = \cI_{i, t}\}.$$
+$$\Leak_f = \{(i, \reg_j, t): j \in \cK, \trust(\reg_j) = \cI_{i, t}\}.$$
+$$\Leak_m = \{(i, \reg_j, \msg, t): j \in \cK, \mathsf{SendMessage}(\reg_j, \msg) = \cI_{i, t}\}.$$
 \end{definition}
 % \arvid{let's use other symbols than $\cF$ and $\cM$ because we use them for the view of a single client already and this is similar but not the same}
 % \stzh{Resolved.}
@@ -181,13 +183,18 @@ Same notations as above. Let $\Sim$ be a stateful simulator. The ideal-world exp
 \end{framed}
 \end{figure}
 \begin{definition}[Simulation Security]
+\label{defn:SIM-secure}
 We say a messaging scheme is SIM-secure iff for  any polynomial upper bounds on $N$ and $T$, there exists a p.p.t simulator $\Sim$ such that for any p.p.t adversary $\cA$, the view of $\cA$ is indistinguishable in $\mathsf{Real}^{\cA}(1^{\lambda})$ and $\mathsf{Ideal}^{\cA, \mathsf{\Sim}}(1^{\lambda})$.
 \end{definition}
 
-Finally, we require the messaging scheme to satisfy Integrity: while a malicious server can drop messages between users, it shouldn't be able to forge messages between honest users. We define the notion of integrity rigorously.
+Finally, we require the messaging scheme to satisfy Integrity: while a malicious server can DoS users, it shouldn't be able to forge messages between honest users, or selectively drop messages between users. In other words, consistent prefix must still be satisfied even though we cannot guarantee eventual consistency. We define the notion of integrity rigorously.
 \begin{definition}[Integrity]
-Same notation as before. Consider the real world experiment described in \cref{defn:real-world}. Take any pair of honest users $i, j \in \cH$, and consider the view of $j$ at the end of the experiment given by $V_j = (\cF, \cM) \leftarrow C_j.\mathsf{GetView}()$.  Then we say the messaging scheme guarantees Integrity if with probability $1 - \negl(\lambda)$, we have
+\label{defn:integrity}
+Same notation as before. Consider the real world experiment described in \cref{defn:real-world}. Take any pair of honest users $i, j \in \cH$, and consider the view of $j$ at the end of the experiment given by $V_j = (\cF, \cM) \leftarrow C_j.\mathsf{GetView}()$.  Then we say the messaging scheme guarantees Integrity if with probability $1 - \negl(\lambda)$, there exists a $t(i)$ such that
 \begin{multline*}
- \{\msg : (\reg_i, \msg) \subset \cM\} \subset \{\msg : \exists i, \send(\reg_j, \msg) = \cI_{i, t}\}.   
+     \{\msg : (\reg_i, \msg) \subset \cM\} \\
+      = \{(\reg_k, \msg): \exists t \leq t(i), \send(\reg_j, \msg) = \cI_{k, t} \land \\
+             \exists t' < t, \trust(\reg_j) = \cI_{k, t'} \land \\
+             \exists t'', \trust(\reg_k) = \cI_{j, t''}\}. \\   
 \end{multline*}
 \end{definition}
