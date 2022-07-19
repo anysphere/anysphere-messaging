@@ -87,7 +87,7 @@ In the first case the message is ignored. In the second case the message is also
 $$C_i.\outb[\reg_j] = \{\msg^{lb}_{ij}(1), \cdots, \msg^{lb}_{ij}(S_{t - 1})\}.$$
 Thus, the desired properties still hold.
 
-We have proved that the desired properties hold at the end of timestep $t$ with probability $1 - \negl(\lambda)$, as desired.
+We have proven that the desired properties hold at the end of timestep $t$ with probability $1 - \negl(\lambda)$.
 \end{proof}
 We can now prove Consistent Prefix as defined in \cref{defn:correctness}. We use the notation of \cref{lem:correctness-main}. Let $(\cF, \cM) = C_j.\mathsf{GetView}()$. We take $t(j) = T_0$. Unpacking the definition of $\cF$ and $\cM$, we need to verify that for each $i \in [N]$, with probability $1 - \negl(\lambda)$ there exists a $t(i) \leq T_0$ such that
  
@@ -109,4 +109,16 @@ We can now prove Consistent Prefix as defined in \cref{defn:correctness}. We use
  
  If 2) holds, we let $t(i) = T_0$ if $\reg_i \notin C_j.\frienddb$ at the current timestep, otherwise let $t(i)$ be the timestep before $C_i.\send(\reg_j, \msg_{ij}(R_{t} + 1))$ is called(or the current timestep if $\msg_{ij}(R_{t} + 1)$ does not exist). If $\reg_i \notin C_j.\frienddb$, we have $R_t = 0$, so both sides of the equation are empty sets. Otherwise, by the definition of $\msg_{ij}(\ell)$, both sides of the equation are equal to $\{\msg_{ij}(1),\cdots, \msg_{ij}(R_t)\}$. So we have shown the Consistent Prefix property in all cases where the proposition in \cref{lem:correctness-main} holds for all users $i \neq j$, thus with probability $1 - \negl(\lambda)$.
  
- \textbf{Eventual Consistency}: 
+ \textbf{Eventual Consistency}: We use the same choice of $t(i)$. Let $T_{cons} = 2\lambda B^2 T^U_{\mathsf{trans}} \cdot T_1 + T_1.$ We show that this $T_{cons}$ satisfies the desired property. 
+ 
+ We wish to show that if $T_0 \geq T_{cons}$, then with probability $1 - \negl(\lambda)$ we have $t(i) \geq T_1$. Let $E = \abs{\MSGS(T_1, i, j)}$(Note $E$ is independent of the protocol execution). If $R_{T_1} \geq E$, then by casework on the definition we always have $t(i) \geq T_1$. So it suffice to show that $R_{T_1} < R$ with negligible probability. 
+ 
+ We use the same notation as \cref{lem:correctness-main}. For each $k \leq E$, let $X_k$ be the random variable denoting the first $t$ such that $R_t \geq k$, with $X_0 = 0$. Let $Y_k$ denote the first $t$ such that $S_{t} > k$. It suffices to show that for any $k \leq E$, we have
+ $$Y_k - X_k > \lambda B^2 T^U_{\mathsf{trans}}$$
+ or
+ $$X_{k} - \max(Y_{k - 1}, T_1) > \lambda B^2 T^U_{\mathsf{trans}}$$
+ with negligible probability. To see the former possibility, for each timestep $t$ between $X_k$ and $X_{k + 1}$ such that $t$ divides $C_i.T_{\mathsf{trans}}$, let $j_t$ be the $i_r$ that $C_i$ chooses, and let $i_t$ be the $i_s$ that $C_j$ chooses for their last non-empty request to the server before timestep $t + 1$. If $(i_t, j_t) = (i, j)$, we must have $S_{t} \geq k + 1$ by the protocol definition. Furthermore, if we let $K = \ceil{T^U_{\mathsf{trans}} / C_i.T_{\mathsf{trans}}}C_i.T_{\mathsf{trans}}$, then the random variables
+ $$(i_t, j_t), (i_{t + K}, j_{t + K}), \cdots$$
+are independent of each other, since both $i$ and $j$ must have both made a non-empty request to the server between timestep $(t, t + K]$. Therefore, the probability that $Y_k - X_k > \lambda B^2 T^U_{\mathsf{trans}}$ is at most
+$$(1 - B^{-2})^{\lambda B^2 T^U_{\mathsf{trans}} / K} = \negl(\lambda)$$
+as desired. The proof for the latter possibility is analogous. Thus, we have demonstrated evnetual consistency for the Anysphere protocol.

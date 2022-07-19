@@ -119,13 +119,13 @@ Also note that $k$ might be broadcasting the message before $j$ adds $k$ as a fr
  
  Take any choice of parameters of the honest world experiment, any index $i \in [N]$, and any time $T_0$. Let $V_j \leftarrow C_j.\mathsf{GetView}()$ be the view of client $j$ after timestep $T_0$ of the Honest World Experiment. Then we want
 
-1) \textbf{Consistent Prefix}: $V$ is identical to the correct view of the client $j$ if a prefix of user inputs have been executed on each machine. More formally, for any $j \in [N]$, there exists a map $t: [N] \to [T]$ such that  $V$ is a correct view of client $j$ under inputs $(\{\reg_i\}_{i \in [N]}, \{\cI'_{i, t}\})$
+1) \textbf{Consistent Prefix}: $V$ is identical to the correct view of the client $j$ if a prefix of user inputs have been executed on each machine. More formally, with probability $1 - \negl(\lambda)$, for any $j \in [N]$, there exists a map $t: [N] \to [T]$ such that  $V$ is a correct view of client $j$ under inputs $(\{\reg_i\}_{i \in [N]}, \{\cI'_{i, t}\})$
 where we define
 $$\cI'_{i, t} = \begin{cases}
 \cI_{i, t}, t \leq t(i) \\
 \emptyset, t > t(i)
 \end{cases}.$$
-2) \textbf{Eventual Consistency}: For any $T_1$, there is a polynomial function $T_{cons}$ in $N, T_1$ such that if $T_0 \geq T_{cons}$, then we can take $t(i) \geq T_1$ for every $i$.
+2) \textbf{Eventual Consistency}: For any $T_1$, there is a polynomial function $T_{cons}$ in $N, T_1$ such that if $T_0 \geq T_{cons}$, then we can additionally take $t(i) \geq T_1$ for every $i$ with probability $1 - \negl(\lambda)$.
 \end{definition}
 We now turn to security definitions. We use the real world-ideal world definition of metadata privacy.
 \begin{figure}[h!]
