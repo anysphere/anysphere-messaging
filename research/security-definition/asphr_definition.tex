@@ -181,6 +181,7 @@ $\mathbf{\Pi_{\asphr}.C.\mathsf{Register}}(1^{\lambda}, i, N)$
     \end{itemize}
     \todo{These fields are currently implicit. Included for simplicity}
     \arvid{a bit confused between seqend and seqstart...}
+    \stzh{in other words, the inbox contains messages in [seqstart, seqend].}
     \item Initialize maps $\inb, \outb$. The maps take registration info as keys, and arrays of messages as values.\footnote{They are named Friend, Inbox, Outbox in our code. Our code is slightly more complicated to support features like sending to multiple friends and chunking.}
     \item Set a transmission schedule $T_{\trans}$. The user can customize this parameter.
     \item $(kx^P, kx^S) \leftarrow \gen(1^{\lambda})$. 
