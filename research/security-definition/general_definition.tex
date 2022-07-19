@@ -27,6 +27,8 @@ $\trust(\reg)$: Add the user identified by $\reg$ as a friend, and enable the tw
 
 $\send(\reg, \msg)$: Send the message $\msg$ to the client identified by $\reg$. We assume that the messages have a fixed length $L_{\msg}$ polynomial in $\lambda$.
 
+\todo{We could do a ``setparameter" method here to allow clients to customize their transmission schedule, etc.}
+
 Without loss of generality, we assume the client issues one input per timestep.
 \end{definition}
 \textbf{Remark}:  To support variable length messages, we simply pad short messages, and split long messages into chunks of length $L_{\msg}$. This does not affect our security definition below.
@@ -56,7 +58,7 @@ We now define how the algorithm will be executed, and correctness.
 \begin{figure}[h!]
 \begin{framed}
 \begin{definition}[Honest Server Experiment]  \hfill\\
-    
+\label{defn:honest-server-experiment}
 \textbf{Parameters}: \begin{enumerate}
     \item $\lambda$, the security parameter.
     \item $N$, the number of clients, bounded above by a polynomial function $N(\lambda)$ of $\lambda$.
@@ -82,7 +84,9 @@ Let $S$ denote the server machine, let $\{C_i\}_{i = 1}^N$ denote the client mac
 \end{definition}
 \end{framed}
 \end{figure}
+
 \arvid{Do we want an adversary to be able to control some of the clients? Ideally I think we would want to, because we want to guarantee resistance against denial of service attacks from clients}
+\stzh{Good idea. I'll come back to this after I finish the security proof in the current iteration.}
 
 The definition of correctness is a bit tricky: we do not immediately read all messages sent by our friends. Instead, we settle for a pair of weaker consistency models defined in 6.033. %https://www.microsoft.com/en-us/research/wp-content/uploads/2011/10/ConsistencyAndBaseballReport.pdf
 \begin{definition}
@@ -111,7 +115,7 @@ Of course, we have a handshake protocol to verify the validity of friends, but t
 Also note that $k$ might be broadcasting the message before $j$ adds $k$ as a friend. Our system is actually capable of receiving such messages.
 \begin{definition}[Correctness]
 \label{defn:correctness}
- We say a messaging scheme is \textbf{correct} if the following consistency model is satisfied. 
+ We say a messaging scheme is \textbf{correct} if the following consistency model is satisfied with probability $1 - \negl(\lambda)$.
  
  Take any choice of parameters of the honest world experiment, any index $i \in [N]$, and any time $T_0$. Let $V_j \leftarrow C_j.\mathsf{GetView}()$ be the view of client $j$ after timestep $T_0$ of the Honest World Experiment. Then we want
 

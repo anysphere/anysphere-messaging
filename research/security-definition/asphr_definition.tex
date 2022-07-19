@@ -172,7 +172,7 @@ $\mathbf{\Pi_{\asphr}.C.\mathsf{Register}}(1^{\lambda}, i, N)$
 \hrule
 \vspace{5pt}
 \begin{enumerate}
-    \item Initialize map $\frienddb$. The map take registration info as keys, and the following fields as values.
+    \item Initialize empty map $\frienddb$. The map take registration info as keys, and the following fields as values.
     \begin{itemize}
         \item $\mathsf{sk}$, the secret key.
         \item $\seqs$, the sequence number of the current message being broadcasted to the friend.
@@ -182,7 +182,7 @@ $\mathbf{\Pi_{\asphr}.C.\mathsf{Register}}(1^{\lambda}, i, N)$
     \todo{These fields are currently implicit. Included for simplicity}
     \arvid{a bit confused between seqend and seqstart...}
     \stzh{in other words, the inbox contains messages in [seqstart, seqend].}
-    \item Initialize maps $\inb, \outb$. The maps take registration info as keys, and arrays of messages as values.\footnote{They are named Friend, Inbox, Outbox in our code. Our code is slightly more complicated to support features like sending to multiple friends and chunking.}
+    \item Initialize empty maps $\inb, \outb$. The maps take registration info as keys, and arrays of messages as values.\footnote{They are named Friend, Inbox, Outbox in our code. Our code is slightly more complicated to support features like sending to multiple friends and chunking.}
     \item Set a transmission schedule $T_{\trans}$. The user can customize this parameter.
     \item $(kx^P, kx^S) \leftarrow \gen(1^{\lambda})$. 
     \item Initialize PIR Keys. $(\pk_{\pir}, \sk_{\pir}) \leftarrow \Pi_{\pir}.\gen(1^{\lambda}, N).$
@@ -212,7 +212,7 @@ If $\cI = \send(\reg, \msg)$,
     \item Check that $\msg$ has length $L_{\msg}$. If not, skip to Phase 2.
     \item Check that $\reg$ is in $\frienddb$. If not, skip to Phase 2.
     \item Add $1$ to $\frienddb[\reg].\seqe$. 
-    \item Push $(\frienddb[\reg].\seqe, t, \msg)$ to $\outb[\reg]$.
+    \item Push $\msg^{lb} = (\frienddb[\reg].\seqe, \msg)$ to $\outb[\reg]$.
 \end{enumerate}
 
 If $\cI = \trust(\reg)$.
@@ -227,7 +227,7 @@ Phase 2:
 \begin{enumerate}
     \item If $t$ is not divisible by $T_{\trans}$, return $\emptyset$.
     \item Let $\{\reg_1, \cdots, \reg_k\}$ be the keys of $\frienddb$, with $k\leq B$. Construct $S = [\reg_1,\cdots, \reg_k, \reg, \cdots, \reg]$, where we add $B - k$ copies of $\reg$, our own registration info. Sample $\reg_s, \reg_r$ uniformly and independently at random from $S$. \arvid{this is not what we currently do. maybe we should. we should make a decision on the CF attack here and what is acceptable. i think my favorite idea is leaking a rounded version of the number of friends, or something like that. however, the way the code works now where we pick a random friend among the friends that we have outgoing messages to is quite nice because it means that messages will get delivered much faster (especially once we implement PIR batch retrieval)...}
-    \item Let $\msg$ be the message with sequence number $\frienddb[\reg_s].\seqs$ in $\outb[\reg_s]$. If $\outb[\reg_s]$ is empty, let $\msg = 0^{L_{\msg}}$.
+    \item Let $\msg$ be the message with sequence number $\frienddb[\reg_s].\seqs$ in $\outb[\reg_s]$. If $\outb[\reg_s]$ is empty, let $\msg = (-1, 0^{L_{\msg}})$.
     \item $\sk \leftarrow \frienddb[\reg_s].\sk$.
     \item $\seqr \leftarrow \frienddb[\reg_s].\seqr$.
     \item Encrypt Messages with $\sk$.
@@ -251,7 +251,8 @@ $\mathbf{\Pi_{\asphr}.S.\mathsf{ClientRPC}}(t, \{\req_i\}_{i = 1}^N)$
 \arvid{do we want to deal with authentication tokens here? only if we modify the security definition to include potentially malicious clients, which I'm not sure is worth the trouble...}
 \stzh{I vote for no Authentication token for now.}
 \begin{enumerate}
-    \item If $\req_i = \emptyset$, continue. Parse $\req_i = (\ct_{\msg}, \ct_{\ack}, \pk_{\pir}, \ct_{\query})$.
+    \item If $\req_i = \emptyset$, let $\resp_i = \emptyset$, and continue to next $i$. 
+    \item Parse $\req_i = (\ct_{\msg}, \ct_{\ack}, \pk_{\pir}, \ct_{\query})$.
     \item $\msgdb[i] \leftarrow \ct_{\msg}, \ackdb[i] \leftarrow \ct_{\ack}$.
     \item $a_{\msg} \leftarrow \Pi_{\pir}.\answer^{\msgdb}(1^{\lambda}, \pk_{\pir}, \ct_{\query}).$
     \item $a_{\ack} \leftarrow \Pi_{\pir}.\answer^{\ackdb}(1^{\lambda}, \pk_{\pir}, \ct_{\query}).$
@@ -263,6 +264,7 @@ $\mathbf{\Pi_{\asphr}.C.\mathsf{ServerRPC}}(t, \resp)$
 \hrule
 \vspace{5pt}
 \begin{enumerate}
+    \item If $\resp = \emptyset$, ignore.
     \item Parse $\resp = (a_{\msg}, a_{\ack})$. Let $\reg_r, \sk_{\pir}$ be defined in the last call to $\Pi_{\asphr}.C.\mathsf{Input}$.
     \item $\ct_{\msg} \leftarrow \Pi_{\pir}.\Dec(1^{\lambda}, \sk_{\pir}, a_{\msg}).$
     \item $\ct_{\ack} \leftarrow \Pi_{\pir}.\Dec(1^{\lambda}, \sk_{\pir}, a_{\ack}).$
@@ -279,7 +281,7 @@ $\mathbf{\Pi_{\asphr}.C.\mathsf{ServerRPC}}(t, \resp)$
         \item $\ack \leftarrow \Pi_{\sym}.\Dec(1^{\lambda}, \sk, \ct_{\ack})$.
         \item If $\ack = \bot$ or $\ack$ is not the form $\ACK(k)$ for some $k$, ignore the ack.
         \item Let $\ack = \ACK(k)$. If $k < \frienddb[\reg_r].\seqs$, ignore the ack.
-        \item $\frienddb[\reg_r].\seqs \leftarrow k + 1$.
+        \item $\frienddb[\reg_r].\seqs \leftarrow k + 1$. Remove the message with sequence number $k$ from $\outb[\reg_r]$.
     \end{enumerate}
 \end{enumerate}
 \vspace{10pt}

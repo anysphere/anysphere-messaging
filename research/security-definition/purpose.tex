@@ -2,8 +2,8 @@
 Previous MPM papers have focused on the security of a multi-round MPM where each client sends and receives exactly one message per round. This is not sufficient for several reasons.
 \begin{itemize}
     \item Addra, the scheme we are basing on, is only proven secure when users hold exactly one conversation at a time. In our application, Clients may hold many different conversations at the same time. If not dealt with carefully, this can cause serious security problems, e.g. CF attacks. 
-    \item As clients have different level of resources, running synchronous rounds is not economical. For example, big companies might wish rounds run faster to receive timely updates, while individual clients might not want to participate in each round to preserve bandwidth. 
-    \item Practical messaging apps need many more components beyond sending and receiving messages, such as trust establishment, etc. 
+    \item As clients have different level of resources, running synchronous rounds is not economical. For example, big companies might wish rounds run faster to receive timely updates, while individual clients might not want to participate in each round to preserve bandwidth. We need to make sure security holds even if different users customize their apps for different settings.
+    \item Practical messaging apps need many more components beyond sending and receiving messages, such as trust establishment, etc. These components will be constantly updated. It is important that the security of the MPM system is preserved by these components.
 \end{itemize}
 
 \arvid{Pung and Talek both kinda handle multiple rounds no?}

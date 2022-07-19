@@ -1,4 +1,106 @@
+\newcommand{\MSGS}{\text{MSGSent}}
+\newcommand{\msgs}{\text{msgsent}}
+\newcommand{\MSGR}{\text{MSGRecv}}
+
 \section{Proofs}
 In this section, we prove that our messaging scheme satisfies \cref{defn:correctness}, \cref{defn:SIM-secure}, and \cref{defn:integrity}. These definitions establish correctness, security, and integrity respectively.
 \subsection{Proof of Correctness}
 To show \cref{defn:correctness}, we need to show our two consistency models: Consistent Prefix and Eventual Consistency.
+
+We first introduce some notations for convenience. Define
+\begin{multline*}
+    \MSGS(t_0, i, j) = \{(t, \msg): \send(\reg_j, \msg) = \cI_{i, t} \land \\
+             \exists t' < t, \trust(\reg_j) = \cI_{i, t'}\}
+\end{multline*}
+and let $\msg_{ij}(\ell)$ be the $\ell$-th message in $\MSGS(t_0, i, j)$, sorted by time $t$. Let $\msg_{ij}^{lb}(\ell) = (\ell, \msg_{ij}(\ell)).$
+
+\textbf{Consistent Prefix}: We establish the following property by induction.
+\begin{lemma}
+\label{lem:correctness-main}
+In the honest server experiment \cref{defn:honest-server-experiment}. Let $i \neq j$ be any pair of users, and $t \leq T$. Then with probability $1 - \negl(\lambda)$, at the end of timestep $t$ one of the following hold.
+
+1) $\reg_j \notin C_i.\frienddb$, and $C_i.\outb[\reg_j] = C_j.\inb[\reg_i] = \emptyset$.
+
+2) $\reg_j \in C_i.\frienddb$. Then $\msg_{ij}(\ell)$ is labeled with sequence number $\ell$ for any $\ell$. Furthermore, we let
+\begin{align*}
+S_t &= C_i.\frienddb[\reg_j].\seqs, \\
+E_t &= C_i.\frienddb[\reg_j].\seqe, \\
+R_t &= C_j.\frienddb[\reg_i].\seqr,
+\end{align*}
+(we define $R_t = 0$ if $\reg_i \notin C_j.\frienddb$). Then we have $S_t \in \{R_t, R_t + 1\}$, and
+$$\abs{\MSGS(t, i, j)} = E_t,$$
+$$C_i.\outb[\reg_j] = \{\msg^{lb}_{ij}(S_t), \cdots, \msg^{lb}_{ij}(E_t)\},$$
+$$C_j.\inb[\reg_i] = \{\msg_{ij}(1), \cdots, \msg_{ij}(R_t)\}.$$
+\end{lemma}
+\begin{proof}
+When $t = 0$, 1) is satisfied since $C_i.\frienddb$ is initialized as empty. We now show if these properties hold for all timesteps before $t$, then they will hold at the end of timestep $t$ with probability $1 - \negl(\lambda)$.
+
+The relevant variables are only modified in Phase 1 of $C_i.\mathsf{UserInput}$, in $C_i.\mathsf{ServerRPC}$ and in $C_j.\mathsf{ServerRPC}$. We show that the lemma is satisfied after each of these methods(no matter which order they execute).
+
+Phase 1 of $C_i.\mathsf{UserInput}$
+\hrule
+If 1) holds before timestep $t$ starts, then unless 
+$$\cI = \trust(\reg_j),$$
+none of the variable will be changed. Otherwise, we will have $S_t = 1, E_t = E_t = 0$, and both $C_i.\outb[\reg_j] = C_j.\inb[\reg_i] = \emptyset$, which satisfies 2).
+
+If 2) holds before timestep $t$ starts, then unless $\cI = \send(\reg_j, \msg)$ none of the variable will be changed. Otherwise, $E_t = E_{t - 1} + 1$. We can check that
+$\MSGS(t, i, j) = \MSGS(t, i, j) + (t, \msg).$
+Thus we have
+$$\abs{\MSGS(t, i, j)} = \abs{\MSGS(t - 1, i, j)} + 1 = E_t.$$
+Furthermore, we have $\msg = \msg_{ij}(E_t)$, and it will be labeled with sequence number $E_t$ by step (3). Thus $\msg^{lb} = \msg^{lb}_{ij}(E_t)$, so the equality with $C_i.\outb[\reg_j]$ is maintained. All the other variables remain unchanged, thus all the desired properties remain true.
+
+\vspace{10pt}
+$C_i.\mathsf{ServerRPC}$
+\hrule
+The relevant variables will be changed only during ACK decipher when a request is sent during Phase 2 of $C_i.\mathsf{UserInput}$. Let $j' = i_r$ be the PIR index chosen in that phase. No relevant variable changes if $j' \neq j$, so assume $j' = j$. Then by the correctness of $\Pi_{\pir}$, we have
+\begin{align*}
+ \ct_{\ack} &= \Pi_{\pir}.\Dec(1^{\lambda}, \sk_{\pir}, a_{\ack})   \\
+ &= \Pi_{\pir}.\Dec(1^{\lambda}, \sk_{\pir}, \Pi_{\pir}.\answer^{\ackdb}(1^{\lambda}, \pk_{\pir}, \ct_{\query})) \\
+ &= \ackdb[j'].
+\end{align*}
+Let $t'$ be the last time user $j$ sends a nonempty request the server, and suppose they chose $\reg_s = (i', \_)$ that time. Then
+$$\ct_{\ack} = \Pi_{\sym}.\Enc(sk_{ji'}, a)$$
+where $\sk_{ji'} = \Pi_{\sym}.\mathsf{KX}(kx_{i'}^P, kx_{j}^S)$, and $a$ is the ACK message. Thus, in step (1) of ACK decipher, we have
+$$\ack = \Pi_{\sym}.\Dec(sk_{ij}, \Pi_{\sym}.\Enc(sk_{ji'}, a)).$$
+If $i' \neq i$, we have $sk_{ij} \neq sk_{ji'}$ with probability $1 - \negl(\lambda)$ by the security of $\Pi_{\sym}$. In this case, $\ack = \bot$ by the correctness of $\Pi_{\sym}$, so no relevant variable is changed. 
+
+If $i' = i$, by the correctness of $\Pi_{\sym}$ we have $\ack = a$. By the protocol definition, we conclude that
+$$\ack = \ACK(R_{t' - 1}).$$
+In step (7.c), we have $C_i.\frienddb[\reg_j].\seqs = S_{t - 1}$. By the induction hypothesis, we have
+$$S_{t - 1} \geq R_{t - 1} \geq R_{t' - 1}.$$
+So no variable is changed unless $S_{t - 1} = R_{t - 1} = R_{t' - 1}$, in which case $S_t = R_{t - 1} + 1$, and after popping $\msg^{lb}_{ij}(S_{t - 1})$ we get
+$$C_i.\outb[\reg_j] = \{\msg^{lb}_{ij}(S_{t - 1} + 1), \cdots, \msg^{lb}_{ij}(E_t)\}.$$
+Thus, the desired properties still hold.
+
+\vspace{10pt}
+$C_j.\mathsf{ServerRPC}$
+\hrule
+The relevant variables will be changed only during message decipher when a request is sent during Phase 2 of $C_j.\mathsf{UserInput}$. Let $i' = i_r$ be the PIR index chosen in that phase. No relevant variable changes if $i' \neq i$, so assume $i' = i$. Analogous to the previous analysis, let $t'$ be the last time user $i$ sends a nonempty request the server, and suppose they chose $\reg_s = (j', \_)$ that time. Then
+if $j' \neq j$, we have $\msg^{lb} = \bot$ with probability $1 - \negl(\lambda)$, and no relevant variable will be changed. If $j' = j$, we have
+$$\msg^{lb} = \begin{cases}
+(-1, 0^{L_{\msg}}), S_{t' - 1} > E_t'. \\
+\msg_{ij}^{lb}(S_{t' - 1}), S_{t' - 1} \leq E_{t'}. 
+\end{cases}$$
+In the first case the message is ignored. In the second case the message is also ignored unless $S_{t' - 1} = R_{t - 1} + 1$. By the induction hypothesis, this is possible only if $S_{t - 1} = S_{t' - 1} = R_{t - 1} + 1$. In this case, we have $R_t = R_{t - 1} + 1 = S_{t - 1}$, , and after popping $\msg_{ij}(S_{t - 1})$ we get
+$$C_i.\outb[\reg_j] = \{\msg^{lb}_{ij}(1), \cdots, \msg^{lb}_{ij}(S_{t - 1})\}.$$
+Thus, the desired properties still hold.
+
+We have proved that the desired properties hold at the end of timestep $t$ with probability $1 - \negl(\lambda)$, as desired.
+\end{proof}
+We can now prove Consistent Prefix as defined in \cref{defn:correctness}. We use the notation of \cref{lem:correctness-main}. Let $(\cF, \cM) = C_j.\mathsf{GetView}()$. We take $t(j) = T_0$. Unpacking the definition of $\cF$ and $\cM$, we need to verify that for each $i \in [N]$, with probability $1 - \negl(\lambda)$ there exists a $t(i) \leq T_0$ such that
+ 
+ a) $\reg_i \in C_j.\frienddb$ if and only if there exists a $t \leq T_0$ such that 
+ $$\trust(\reg_i) = \cI_{j, t}.$$
+ b) We have
+ \begin{multline*}
+ C_j.\inb[\reg_i] = \{\msg: \exists t \leq t(i), \send(\reg_j, \msg) = \cI_{i, t} \land \\
+ \exists t' < t, \trust(\reg_j) = \cI_{i, t'} \land \\
+ \exists t'', \trust(\reg_i) = \cI_{j, t''}\}.   
+ \end{multline*} 
+ That a) holds is easy to see, since by the protocol definition, $\reg_i$ is inserted into $C_j.\frienddb$ during timestep $t$ if and only if $\trust(\reg_i) = \cI_{j, t}$, and it is never removed. 
+ 
+ We next verify (b). We show that the $t(i)$ exists as long as \cref{lem:correctness-main} holds. We consider which scenario in the lemma holds. 
+ 
+ If 1) holds, we let $t(i) = 0$. In this case
+ 
+ If 2) holds, we let $t(i) = 0$ if $\reg_i \notin C_j.\frienddb$ at the current timestep, otherwise let $t(i)$ be the timestep before $C_i.\send(\reg_j, \msg_{ij}(R_{t} + 1))$ is called(or the current timestep if $\msg_{ij}(R_{t} + 1)$ does not exist). If $\reg_i \notin C_j.\frienddb$, we have $R_t = 0$, so both sides of the equation are empty sets. Otherwise, by the definition of $\msg_{ij}(\ell)$, both sides of the equation are equal to $\{\msg_{ij}(1),\cdots, \msg_{ij}(R_t)\}$. So we have shown the Consistent Prefix property in all cases.
