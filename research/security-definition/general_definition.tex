@@ -151,16 +151,16 @@ Same notation as above. Let $\cA$ be a \textbf{stateful} adversary. Let $\cK, \c
 \end{figure}
 
 \begin{definition}[Leakage]
-Let $\cK$ be compromised clients, and let $H = [N] - \cK$ be honest clients. Let $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ be the input from honest clients. We define the \textbf{Leakage} $\mathsf{Leak}(\{\cI_{i, t}\}, \cK)$ as the set of informations known to compromised clients if the user inputs are executed by a trusted third party. Informally, it contains the time and contents of
+Let $\cK$ be compromised clients, and let $\cH = [N] - \cK$ be honest clients. Let $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ be the input from honest clients. We define the \textbf{Leakage} $\mathsf{Leak}(\{\cI_{i, t}\}, \cK)$ as the set of informations known to compromised clients if the user inputs are executed by a trusted third party. Informally, it contains the time and contents of
 \begin{enumerate}
     \item Trust establishment with compromised clients.
     \item Messages sent to the compromised clients.
 \end{enumerate}
-More formally, we define
-$$\Leak(\{\cI_{i, t}\}, \cK) = (\Leak_f, \Leak_m)$$
+More formally, given a set $\reg_\cH = \{\reg_{i}\}_{i \in \cH}$ of honest user registration, we define
+$$\Leak(\{\cI_{i, t}\}, \reg_\cH) = (\Leak_f, \Leak_m)$$
 where
-$$\Leak_f = \{(i, \reg_j, t): j \in \cK, \trust(\reg_j) = \cI_{i, t}\}.$$
-$$\Leak_m = \{(i, \reg_j, \msg, t): j \in \cK, \mathsf{SendMessage}(\reg_j, \msg) = \cI_{i, t}\}.$$
+$$\Leak_f = \{(i, \reg, t): \reg \notin \reg_{\cH}, \trust(\reg) = \cI_{i, t}\}.$$
+$$\Leak_m = \{(i, \reg, \msg, t): \reg \notin \reg_{\cH}, \mathsf{SendMessage}(\reg, \msg) = \cI_{i, t}\}.$$
 \end{definition}
 % \arvid{let's use other symbols than $\cF$ and $\cM$ because we use them for the view of a single client already and this is similar but not the same}
 % \stzh{Resolved.}
@@ -180,7 +180,7 @@ Same notations as above. Let $\Sim$ be a stateful simulator. The ideal-world exp
     
     \item $\{\resp_i\}_{i \in \cH}, \{\cI_{i, t + 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\req_i\}_{i \in \cH})$.
     
-    \item $\Sim(t, \{\resp_i\}_{i \in \cH}, \mathsf{Leak}(\{\cI_{i, t + 1}\}, \cK))$.
+    \item $\Sim(t, \{\resp_i\}_{i \in \cH}, \mathsf{Leak}(\{\cI_{i, t + 1}\}, \{\reg_i\}_{i \in \cH}))$.
     \end{enumerate}
 \end{enumerate}
 \end{definition}
