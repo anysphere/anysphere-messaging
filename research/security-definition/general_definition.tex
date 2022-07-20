@@ -151,7 +151,7 @@ Same notations as above. Let $\cA$ be a \textbf{stateful} adversary. Let $\cH$ d
 \end{figure}
 
 \begin{definition}[Leakage]
-Let $\cH \subset [n]$ be a set of honest clients. Let $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ be the input from honest clients. We define the \textbf{Leakage} $\mathsf{Leak}(\{\cI_{i, t}\}, \cK)$ as the set of informations known to compromised clients if the user inputs are executed by a trusted third party. Informally, it contains the time and contents of
+Let $\cH \subset [n]$ be a set of honest clients. Let $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ be the input from honest clients. We define the \textbf{Leakage} $\mathsf{Leak}(\{\cI_{i, t}\}, \{\reg_{i}\}_{i \in \cH})$ as the set of informations known to compromised clients if the user inputs are executed by a trusted third party. Informally, it contains the time and contents of
 \begin{enumerate}
     \item Trust establishment with compromised clients.
     \item Messages sent to the compromised clients.
@@ -169,18 +169,16 @@ $$\Leak_m = \{(i, \reg, \msg, t): \reg \notin \reg_{\cH}, \mathsf{SendMessage}(\
 \begin{definition}[Ideal World Experiment]
 Same notations as above. Let $\Sim$ be a stateful simulator. The ideal-world experiment $\mathsf{Ideal}^{\cA, \Sim}(1^{\lambda})$ is described below.
 \begin{enumerate}
-\item $N, T, \cK, \cH \leftarrow \cA(1^{\lambda})$.
-\item $\{\reg_i\}_{i \in \cH} \leftarrow \Sim(1^{\lambda}, N, T, \cK)$. 
+\item $N, T, \cH \leftarrow \cA(1^{\lambda})$.
+\item $\{\reg_i\}_{i \in \cH} \leftarrow \Sim(1^{\lambda}, N, T)$. 
 \item $\{\cI_{i, 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\reg_i\}_{i \in \cH})$.
-\item $\cA(\{\reg_i\}_{i \in \cH})$.
-\item $\Sim(1, \mathsf{Leak}(\{\cI_{i, 1}\}, \cK))$
 \item For $t$ from $1$ to $T$:
     \begin{enumerate}
-    \item For each $i \in \cH$, $\req_i \leftarrow \Sim(t, i)$.
+    \item For each $i \in \cH$, $\req_i \leftarrow \Sim(t, i, \mathsf{Leak}(\{\cI_{i, t}\}, \{\reg_i\}_{i \in \cH}))$.
     
     \item $\{\resp_i\}_{i \in \cH}, \{\cI_{i, t + 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\req_i\}_{i \in \cH})$.
     
-    \item $\Sim(t, \{\resp_i\}_{i \in \cH}, \mathsf{Leak}(\{\cI_{i, t + 1}\}, \{\reg_i\}_{i \in \cH}))$.
+    \item $\Sim(t, \{\resp_i\}_{i \in \cH})$.
     \end{enumerate}
 \end{enumerate}
 \end{definition}
@@ -199,7 +197,7 @@ We say a messaging scheme is SIM-secure iff for  any polynomial upper bounds on 
 \label{defn:real-world}
 Same notations as above. The real-world IND-experiment with adversary $\mathsf{Real-IND}^{\cA}(1^{\lambda})$ is described below, parametrized by bit $b \in \{0, 1\}$.
 \begin{enumerate}
-\item $N, T, \cK, \cH \leftarrow \cA(1^{\lambda})$.
+\item $N, T, \cH \leftarrow \cA(1^{\lambda})$.
 \item For each $i \in \cH$, $\reg_i \leftarrow C_i.\mathsf{Register}(1^{\lambda}, i, N)$. 
 \item $\{\cI^{0}_{i, 1}\}, \{\cI^{1}_{i, 1}\} \leftarrow \cA(1^{\lambda}, \{\reg_i\}_{i \in \cH})$.
 \item For $t$ from $1$ to $T$:

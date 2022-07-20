@@ -123,4 +123,6 @@ are independent of each other, since both $i$ and $j$ must have both made a non-
 $$(1 - B^{-2})^{\lambda B^2 T^U_{\mathsf{trans}} / K} = \negl(\lambda)$$
 as desired. The proof for the latter possibility is analogous. Thus, we have demonstrated eventual consistency for the Anysphere protocol.
 \subsection{Proof of Security}
-The security of our system is guaranteed by the IND-CPA security of the underlying symmetric key protocol $\Pi_{\sym}$ and the simulation based 
+In this section we show that our scheme is SIM secure. The security of our system is essentially implied by the IND-CPA security of the underlying symmetric key protocol $\Pi_{\sym}$ and the SIM security of the pir protocol $\Pi_{\pir}$. We now justify this by constructing a simulator $\Sim_{\asphr}$ that satisfied \cref{defn:SIM-secure}.
+
+Let $N$ be the number of clients, and take $R = 2T$. Let $\Sim_{\sym}$ and $\Sim_{\pir}$ be the simulators defined in \cref{defn:sym-security} and \cref{defn:pir-security} respectively. Our $\Pi_{\pir}$ will run modified versions

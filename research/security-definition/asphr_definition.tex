@@ -127,10 +127,10 @@ For any database $DB$ of length $n$ with int64 entries, and any message $ct$ of 
 \end{enumerate}
 then $x_i = DB[i]$.
 \end{definition}
-\begin{definition}[Privacy]
+\begin{definition}[SIM Security]
 \label{defn:pir-security}
 Let $n, R$ be polynomially bounded in $\lambda$.  onsider the following two experiments. Then we say the PIR scheme is \textbf{secure} if there exists a p.p.t simulator $\Sim$ such that stated p.p.t adversary $\cA$, the view of $\cA$ under the real world experiment and the ideal world experiment are computationally indistinguishable. The view of $\cA$ is defined as the input, output, and random coins of $\cA$, plus the queries $ct_r^b$.
-\todo{This definition is equivalent to https://eprint.iacr.org/2022/081.pdf, Experiment 2.2}
+\todo{This definition is equivalent to https://eprint.iacr.org/2022/081.pdf, Experiment 2.2. The definition over there is IND. May want to add a note here.}
 \begin{figure}[h!]
 \begin{framed}
 \textbf{Real World Experiment}
