@@ -39,6 +39,7 @@ We now explain the construction of Anysphere.
 Anysphere relies on two crypto primitives: a symmetric key AE, and a PIR scheme. We outline formal simulator-based definition of the two.
 \subsubsection{Key Private IND-CPA symmetric key AE scheme}
 \arvid{we probably want IND-CCA to guarantee integrity?}
+\stzh{Resolved, adds EUF-CMA assumption below.}
 A key-private IND-CPA symmetric key AE(Authenticated Encryption) scheme is a quadruple of algorithms $(\gen, \mathsf{KX}, \enc, \dec)$ with specifications
 \begin{itemize}
     \item $\gen(1^{\lambda}) \to (kx^P, kx^S)$,
@@ -148,7 +149,7 @@ Let $n, R$ be polynomially bounded in $\lambda$.  onsider the following two expe
     \item for $r$ from $1$ to $R$
     \begin{enumerate}
         \item $i \leftarrow \cA(1^{\lambda}, n, pk, \{ct_s^1\}_{s < r}))$.
-        \item $ct_r^1 \leftarrow \Sim(1^{\lambda}, n, pk)$.
+        \item $ct_r^1 \leftarrow \Sim(1^{\lambda}, sk, n)$.
     \end{enumerate}
 \end{enumerate}
 \end{framed}
@@ -240,13 +241,13 @@ Phase 2:
 \begin{enumerate}
     \item If $t$ is not divisible by $T_{\trans}$, return $\emptyset$.
     \item Let $\{\reg_1, \cdots, \reg_k\}$ be the keys of $\frienddb$, with $k\leq B$. Construct $S = [\reg_1,\cdots, \reg_k, \reg, \cdots, \reg]$, where we add $B - k$ copies of $\reg$, our own registration info. Sample $\reg_s, \reg_r$ uniformly and independently at random from $S$. \arvid{this is not what we currently do. maybe we should. we should make a decision on the CF attack here and what is acceptable. i think my favorite idea is leaking a rounded version of the number of friends, or something like that. however, the way the code works now where we pick a random friend among the friends that we have outgoing messages to is quite nice because it means that messages will get delivered much faster (especially once we implement PIR batch retrieval)...}
-    \item Let $\msg$ be the (labeled) message with sequence number $\frienddb[\reg_s].\seqs$ in $\outb[\reg_s]$. If $\outb[\reg_s]$ is empty, let $\msg = (-1, 0^{L_{\msg}})$.
+    \item Let $\msg$ be the (labeled) message with sequence number $\frienddb[\reg_s].\seqs$ in $\outb[\reg_s]$. If $\outb[\reg_s]$ is empty, let $\msg \leftarrow (-1, 0^{L_{\msg}})$.
     \item $\sk \leftarrow \frienddb[\reg_s].\sk$. If $\reg_s$ does not exist in $\frienddb$, randomly generate a secret key $\_, \sk \leftarrow \Pi_{\sym}.\gen(1^{\lambda}).$
     \item $\seqr \leftarrow \frienddb[\reg_s].\seqr$.
     \item Encrypt Messages with $\sk$.
     \begin{itemize}
-        \item $\ct_{\msg} = \Pi_{\sym}.\enc(\sk, \msg).$
-        \item $\ct_{\ack} = \Pi_{\sym}.\enc(\sk, \ACK(\seqr))$. \arvid{should we talk about the ACK db here, and the fact that we always send all ACKs to everyone? maybe we shouldn't do that anymore... it was necessary for prioritization, but if we don't want to do prioritization then maybe we shouldn't do it anymore}
+        \item $\ct_{\msg} \leftarrow \Pi_{\sym}.\enc(\sk, \msg).$
+        \item $\ct_{\ack} \leftarrow \Pi_{\sym}.\enc(\sk, \ACK(\seqr))$. \arvid{should we talk about the ACK db here, and the fact that we always send all ACKs to everyone? maybe we shouldn't do that anymore... it was necessary for prioritization, but if we don't want to do prioritization then maybe we shouldn't do it anymore}
     \end{itemize}
     \item Let $\reg_r = (i_r, \_)$. Formulate a PIR request for index $i_r$. %\arvid{this $r$ is not the same as the $r$ in $\reg_r$? maybe this should be $i_r$ or something}
     \begin{itemize}

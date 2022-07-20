@@ -167,6 +167,7 @@ $$\Leak_m = \{(i, \reg, \msg, t): \reg \notin \reg_{\cH}, \mathsf{SendMessage}(\
 \begin{figure}[h!]
 \begin{framed}
 \begin{definition}[Ideal World Experiment]
+\label{defn:ideal-world}
 Same notations as above. Let $\Sim$ be a stateful simulator. The ideal-world experiment $\mathsf{Ideal}^{\cA, \Sim}(1^{\lambda})$ is described below.
 \begin{enumerate}
 \item $N, T, \cH \leftarrow \cA(1^{\lambda})$.
@@ -174,7 +175,7 @@ Same notations as above. Let $\Sim$ be a stateful simulator. The ideal-world exp
 \item $\{\cI_{i, 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\reg_i\}_{i \in \cH})$.
 \item For $t$ from $1$ to $T$:
     \begin{enumerate}
-    \item For each $i \in \cH$, $\req_i \leftarrow \Sim(t, i, \mathsf{Leak}(\{\cI_{i, t}\}, \{\reg_i\}_{i \in \cH}))$.
+    \item  $\{\req_i\}_{i \in \cH} \leftarrow \Sim(t, \mathsf{Leak}(\{\cI_{i, t}\}, \{\reg_i\}_{i \in \cH}))$.
     
     \item $\{\resp_i\}_{i \in \cH}, \{\cI_{i, t + 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\req_i\}_{i \in \cH})$.
     
@@ -194,7 +195,7 @@ We say a messaging scheme is SIM-secure iff for  any polynomial upper bounds on 
 \begin{figure}
 \begin{framed}
 \begin{definition}[Real world IND Experiment] \hfill\\
-\label{defn:real-world}
+\label{defn:ind-real-world}
 Same notations as above. The real-world IND-experiment with adversary $\mathsf{Real-IND}^{\cA}(1^{\lambda})$ is described below, parametrized by bit $b \in \{0, 1\}$.
 \begin{enumerate}
 \item $N, T, \cH \leftarrow \cA(1^{\lambda})$.

@@ -125,4 +125,93 @@ as desired. The proof for the latter possibility is analogous. Thus, we have dem
 \subsection{Proof of Security}
 In this section we show that our scheme is SIM secure. The security of our system is essentially implied by the IND-CPA security of the underlying symmetric key protocol $\Pi_{\sym}$ and the SIM security of the pir protocol $\Pi_{\pir}$. We now justify this by constructing a simulator $\Sim_{\asphr}$ that satisfied \cref{defn:SIM-secure}.
 
-Let $N$ be the number of clients, and take $R = 2T$. Let $\Sim_{\sym}$ and $\Sim_{\pir}$ be the simulators defined in \cref{defn:sym-security} and \cref{defn:pir-security} respectively. Our $\Pi_{\pir}$ will run modified versions
+Let $N$ be the number of clients, and take $R = 2NT$. Let $\Sim_{\sym}$ and $\Sim_{\pir}$ be the simulators defined in \cref{defn:sym-security} and \cref{defn:pir-security} respectively. At step (2), (4.a), and (4.c) of \cref{defn:ideal-world}, our simulator will run modified versions of the corresponding client methods in the respective steps of \cref{defn:real-world} for each $i \in \cH$. The important modifications involve replacing all lines that involve unleaked information.
+
+We now describe the modified client methods. Changes are marked in red.
+\todo{Hard-coded. Please modify if the $\Pi_{\asphr}$ methods get changed.}
+
+\vspace{10pt}
+
+$\mathbf{\Sim_{\asphr}.\mathsf{Register}}(1^{\lambda}, i, N)$
+\vspace{5pt}
+\hrule
+\vspace{5pt}
+No modification. For each $i$, let $kx^P_i$ be $\reg[1]$ for client $i$.
+\vspace{10pt}
+
+$\mathbf{\Sim_{\asphr}.\mathsf{Input}}(t, i, \Leak)$
+\vspace{5pt}
+\hrule
+\vspace{5pt}
+Phase 1: 
+
+{
+
+\color{red} 
+Initialize $\cI$.
+
+\begin{enumerate}
+    \item If $(i, \reg, t) \in \Leak_f$, $\cI \leftarrow \trust(\reg)$.
+    \item If $(i, \reg, \msg, t) \in \Leak_m$, $\cI \leftarrow \send(\reg, \msg)$.
+    \item Else, $\cI \leftarrow \emptyset$.
+\end{enumerate}
+
+}
+
+If $\cI = \emptyset$, do nothing. 
+
+If $\cI = \send(\reg, \msg)$, 
+
+\begin{enumerate}
+    \item Check that $\msg$ has length $L_{\msg}$. If not, skip to Phase 2.
+    \item Check that $\reg$ is in $\frienddb$. If not, skip to Phase 2.
+    \item If $\reg$ is the registration of $C_i$ itself, append $\msg$ to $\inb[\reg]$, and skip to Phase 2. \footnote{Skipping this step breaks consistent prefix.}
+    \item Add $1$ to $\frienddb[\reg].\seqe$. 
+    \item Push $\msg^{lb} = (\frienddb[\reg].\seqe, \msg)$ to $\outb[\reg]$.
+\end{enumerate}
+
+If $\cI = \trust(\reg)$.
+\begin{enumerate}
+    \item Check if $\reg$ is in $\frienddb$. If so, skip to Phase 2.
+    \item $(i, kx_f^P) \leftarrow \reg$.
+    \item $sk \leftarrow \Pi_{\sym}.\mathsf{KX}(1^{\lambda}, kx_f^P, kx^S).$
+    \item $\frienddb[\reg] \leftarrow \{\sk: sk,  \seqs: 1, \seqe: 0, \seqr: 0\}$.
+\end{enumerate}
+
+Phase 2:
+\begin{enumerate}
+    \item If $t$ is not divisible by $T_{\trans}$, return $\emptyset$.
+    \item Let $\{\reg_1, \cdots, \reg_k\}$ be the keys of $\frienddb$, with $k\leq B$. Construct $S = [\reg_1,\cdots, \reg_k, \reg, \cdots, \reg]$, where we add $B - k$ copies of $\reg$, our own registration info. Sample $\reg_s, \reg_r$ uniformly and independently at random from $S$. 
+    \item Let $\msg$ be the (labeled) message with sequence number $\frienddb[\reg_s].\seqs$ in $\outb[\reg_s]$. If $\outb[\reg_s]$ is empty, let $\msg = (-1, 0^{L_{\msg}})$.
+    \item $\sk \leftarrow \frienddb[\reg_s].\sk$. If $\reg_s$ does not exist in $\frienddb$, randomly generate a secret key $\_, \sk \leftarrow \Pi_{\sym}.\gen(1^{\lambda}).$
+    \item $\seqr \leftarrow \frienddb[\reg_s].\seqr$.
+    \item Encrypt Messages with $\sk$.
+    
+    {\color{red} If $\reg_s = \reg$, 
+    \begin{itemize}
+        \item $\ct_{\msg} \leftarrow \Sim_{\sym}(\{kx_i^P\}_{i \in \cH}),$
+        \item $\ct_{\ack} \leftarrow \Sim_{\sym}(\{kx_i^P\}_{i \in \cH}),$
+    \end{itemize}
+    Else, 
+    }
+    
+    
+    \begin{itemize}
+        \item $\ct_{\msg} = \Pi_{\sym}.\enc(\sk, \msg).$
+        \item $\ct_{\ack} = \Pi_{\sym}.\enc(\sk, \ACK(\seqr))$.
+    \end{itemize}
+    \item Let $\reg_r = (i_r, \_)$. Formulate a PIR request for index $i_r$. 
+    
+     {\color{red} If $\reg_s = \reg$, 
+    \begin{itemize}
+        \item $\ct_{\query} \leftarrow \Sim_{\pir}(1^{\lambda}, n, \sk_{\pir}).$
+    \end{itemize}
+    Else, 
+    }
+    \begin{itemize}
+        \item $\ct_{\query} \leftarrow \Pi_{\pir}.\query(1^{\lambda}, \pk_{\pir}, i_r).$
+    \end{itemize}
+    \item return $\req = (\ct_{\msg}, \ct_{\ack}, \pk_{\pir}, \ct_{\query})$.
+    \item Remember $\reg_r$.
+\end{enumerate}
+\vspace{10pt}
