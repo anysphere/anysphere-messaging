@@ -191,6 +191,39 @@ Same notations as above. Let $\Sim$ be a stateful simulator. The ideal-world exp
 We say a messaging scheme is SIM-secure iff for  any polynomial upper bounds on $N$ and $T$, there exists a p.p.t simulator $\Sim$ such that for any p.p.t adversary $\cA$, the view of $\cA$ is indistinguishable in $\mathsf{Real}^{\cA}(1^{\lambda})$ and $\mathsf{Ideal}^{\cA, \mathsf{\Sim}}(1^{\lambda})$.
 \end{definition}
 
+\todo{SIM-security is a relatively novel form of security defined in NIAR. Because it is relatively unusual, I'm defining a IND-security below.}
+
+\begin{figure}
+\begin{framed}
+\begin{definition}[Real world IND Experiment] \hfill\\
+\label{defn:real-world}
+Same notation as above. The real-world IND-experiment with adversary $\mathsf{Real-IND}^{\cA}(1^{\lambda})$ is described below, parametrized by bit $b \in \{0, 1\}$.
+\begin{enumerate}
+\item $N, T, \cK, \cH \leftarrow \cA(1^{\lambda})$.
+\item For each $i \in \cH$, $\reg_i \leftarrow C_i.\mathsf{Register}(1^{\lambda}, i, N)$. 
+\item $\{\cI^{0}_{i, 1}\}, \{\cI^{1}_{i, 1}\} \leftarrow \cA(1^{\lambda}, \{\reg_i\}_{i \in \cH})$.
+\item For $t$ from $1$ to $T$:
+    \begin{enumerate}
+    \item For each $i \in H$, $\req_i \leftarrow C_i.\mathsf{Input}(t, \cI^{b}_{i, t})$.
+    
+    \item for $b'\in \{0, 1\}$, $\{\resp^{b'}_i\}_{i \in \cH},\{\cI^{b'}_{i, t + 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\req_i\}_{i \in \cH})$.
+    
+    \item For each $i \in \cH$, $C_i.\mathsf{ServerRPC}(t, \resp^{b}_i)$.
+    \end{enumerate}
+\end{enumerate}
+We say an adversary $\cA$ is admissible if with probability $1$, after running the experiment above, we have
+\begin{align*}
+\Leak(\{\cI^{0}_{i, t}\}_{i \in \cH, t \in [T]}, \{\reg_i\}_{i \in \cH}) \\
+= \Leak(\{\cI^{1}_{i, t}\}_{i \in \cH, t \in [T]}, \{\reg_i\}_{i \in \cH}).    
+\end{align*}
+\end{definition}
+\end{framed}
+\end{figure}
+\begin{definition}[IND Security]
+We say a messaging scheme is IND-secure iff for any polynomial upper bounds on $N$ and $T$ and any admissible adversary $\cA$, its view in the real world IND-experiment for $b = 0$ and $b = 1$ are indistinguishable.
+
+\end{definition}
+
 Finally, we require the messaging scheme to satisfy Integrity: while a malicious server can DoS users, it shouldn't be able to forge messages between honest users, or selectively drop messages between users. In other words, consistent prefix must still be satisfied even though we cannot guarantee eventual consistency. We define the notion of integrity rigorously.
 \begin{definition}[Integrity]
 \label{defn:integrity}

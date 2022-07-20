@@ -121,4 +121,6 @@ We can now prove Consistent Prefix as defined in \cref{defn:correctness}. We use
  $$(i_t, j_t), (i_{t + K}, j_{t + K}), \cdots$$
 are independent of each other, since both $i$ and $j$ must have both made a non-empty request to the server between timestep $(t, t + K]$. Therefore, the probability that $Y_k - X_k > \lambda B^2 T^U_{\mathsf{trans}}$ is at most
 $$(1 - B^{-2})^{\lambda B^2 T^U_{\mathsf{trans}} / K} = \negl(\lambda)$$
-as desired. The proof for the latter possibility is analogous. Thus, we have demonstrated evnetual consistency for the Anysphere protocol.
+as desired. The proof for the latter possibility is analogous. Thus, we have demonstrated eventual consistency for the Anysphere protocol.
+\subsection{Proof of Security}
+The security of our system is guaranteed by the IND-CPA security of the underlying symmetric key protocol $\Pi_{\sym}$ and the simulation based 

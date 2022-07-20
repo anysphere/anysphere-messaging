@@ -56,11 +56,16 @@ If we let
 \end{enumerate}
 then for any plaintext $m$, we have
 $$\dec(sk_{BA}, \enc(sk_{AB}, m)) = m.$$
+\todo{I think there is a subtlety here: The line below is not covered by EUF-CMA.}
 Furthermore, for any secret key $sk' \neq sk_{AB}$, we have
 $$\dec(sk_{BA}, \enc(sk', m)) = \bot.$$
-\todo{negligible probability here?}
+
 \end{definition}
+\todo{The following definition has not existed in literature(as communicated by Prof. Angel). Do we want a proof?}
+
+\todo{The "Private Signaling" paper seems to contain a related definition?}
 \begin{definition}[Key private IND-CPA]
+\label{defn:sym-security}
 Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
 \begin{figure}[h!]
 \begin{framed}
@@ -123,20 +128,28 @@ For any database $DB$ of length $n$ with int64 entries, and any message $ct$ of 
 then $x_i = DB[i]$.
 \end{definition}
 \begin{definition}[Privacy]
-for any $\lambda, n$, consider the following two experiments. Then we say the PIR scheme is \textbf{secure} if there exists a p.p.t simulator $\Sim$ such that for any p.p.t adversary $\cA$, the view of $\cA$ under the real world experiment and the ideal world experiment are computationally indistinguishable. The view of $\cA$ is defined as the input, output, and random coins of $\cA$, plus the query $ct^b$.
+\label{defn:pir-security}
+Let $n, R$ be polynomially bounded in $\lambda$.  onsider the following two experiments. Then we say the PIR scheme is \textbf{secure} if there exists a p.p.t simulator $\Sim$ such that stated p.p.t adversary $\cA$, the view of $\cA$ under the real world experiment and the ideal world experiment are computationally indistinguishable. The view of $\cA$ is defined as the input, output, and random coins of $\cA$, plus the queries $ct_r^b$.
+\todo{This definition is equivalent to https://eprint.iacr.org/2022/081.pdf, Experiment 2.2}
 \begin{figure}[h!]
 \begin{framed}
 \textbf{Real World Experiment}
 \begin{enumerate}
     \item $(pk, sk) \leftarrow \gen(1^{\lambda}, n).$
-    \item $i \leftarrow \cA(1^{\lambda}, n, pk)$.
-    \item $ct^0 \leftarrow \query(1^{\lambda}, sk, i)$.
+    \item for $r$ from $1$ to $R$
+    \begin{enumerate}
+        \item $i \leftarrow \cA(1^{\lambda}, n, pk, \{ct_s^0\}_{s < r})$.
+        \item $ct_r^0 \leftarrow \query(1^{\lambda}, sk, i)$.
+    \end{enumerate}
 \end{enumerate}
 \textbf{Ideal World Experiment}
 \begin{enumerate}
-    \item $(pk, sk) \leftarrow \gen(1^{\lambda}).$
-    \item $i \leftarrow \cA(1^{\lambda}, n, pk)$.
-    \item $ct^1 \leftarrow \Sim(1^{\lambda}, n, pk)$.
+    \item $(pk, sk) \leftarrow \gen(1^{\lambda}, n).$
+    \item for $r$ from $1$ to $R$
+    \begin{enumerate}
+        \item $i \leftarrow \cA(1^{\lambda}, n, pk, \{ct_s^1\}_{s < r}))$.
+        \item $ct_r^1 \leftarrow \Sim(1^{\lambda}, n, pk)$.
+    \end{enumerate}
 \end{enumerate}
 \end{framed}
 \end{figure}
