@@ -10,7 +10,8 @@
 \newcommand{\trans}{\mathsf{trans}}
 \newcommand{\ACK}{\mathsf{ACK}}
 \newcommand{\ack}{\mathsf{ack}}
-
+\newcommand{\KXM}{\mathsf{KXM}}
+\newcommand{\KX}{\mathsf{KX}}
 \section{Definition of Anysphere}
 In this section, we define the Anysphere core protocol described in our whitepaper. We rigorously define how our core protocol is able to handle multiple contacts, run asynchronous rounds. In the next section, we will prove that our core protocol maintains correctness and security.
 \subsection{A weaker Security Definition}
@@ -40,10 +41,10 @@ Anysphere relies on two crypto primitives: a symmetric key AE, and a PIR scheme.
 \subsubsection{Key Private IND-CPA symmetric key AE scheme}
 \arvid{we probably want IND-CCA to guarantee integrity?}
 \stzh{Resolved, adds EUF-CMA assumption below.}
-A key-private IND-CPA symmetric key AE(Authenticated Encryption) scheme is a quadruple of algorithms $(\gen, \mathsf{KX}, \enc, \dec)$ with specifications
+A key-private IND-CPA symmetric key AE(Authenticated Encryption) scheme is a quadruple of algorithms $(\gen, \KX, \enc, \dec)$ with specifications
 \begin{itemize}
     \item $\gen(1^{\lambda}) \to (kx^P, kx^S)$,
-    \item $\mathsf{KX}(1^{\lambda}, kx_A^P, kx_B^S) \to sk_{AB},$
+    \item $\KX(1^{\lambda}, kx_A^P, kx_B^S) \to sk_{AB},$
     \item $\enc(sk_{AB}, m) \to ct,$
     \item $\dec(sk_{BA}, ct) \to m.$
 \end{itemize}
@@ -53,18 +54,26 @@ such that
 If we let
 \begin{enumerate}
     \item $(kx^P_A, kx_A^S), (kx^P_B, kx_B^S)  \leftarrow \gen(1^{\lambda}).$
-    \item $sk_{AB} \leftarrow \mathsf{KX}(1^{\lambda}, kx_A^P, kx_B^S), sk_{BA} \leftarrow \mathsf{KX}(1^{\lambda}, kx_B^P, kx_A^S)$
+    \item $sk_{AB} \leftarrow \KX(1^{\lambda}, kx_A^P, kx_B^S), sk_{BA} \leftarrow \KX(1^{\lambda}, kx_B^P, kx_A^S)$
 \end{enumerate}
-then for any plaintext $m$, we have
+then $sk_{AB} = sk_{BA}$ with probability $1$. \todo{This simplifies the security definition below. Otherwise, we need to give adversary power to call $\Enc$ on $\sk_{ij}$, where $h$ is uncompromised.} For any plaintext $m$, we have
 $$\dec(sk_{BA}, \enc(sk_{AB}, m)) = m.$$
 \todo{I think there is a subtlety here: The line below is not covered by EUF-CMA.}
 Furthermore, for any secret key $sk' \neq sk_{AB}$, we have
 $$\dec(sk_{BA}, \enc(sk', m)) = \bot.$$
 
 \end{definition}
-\todo{The following definition has not existed in literature(as communicated by Prof. Angel). Do we want a proof?}
+\todo{The following definitions about security has not existed in literature(as communicated by Prof. Angel). Do we want a proof that libsodium satisfies this? The "Private Signaling" paper seems to contain a related definition?}
 
-\todo{The "Private Signaling" paper seems to contain a related definition?}
+\todo{I need to find a ``no backdoor" guarantee here for the KX algorithm. Basically, an adversary should be able to challenge KX with arbitrary public key(not necessarily coming from Gen()), and not leak information. the key exchange oracle is my take on this. Another approach involves ZK proofs, but might be expensive to implement.}
+\begin{definition}[KXM Oracle]
+Given a key exchange secret key $kx^S$, the KXM(key exchange and message) oracle $\KXM(kx^S, \cdot)$ takes as input a ``fake key" $k$ and a message $m$, computes
+$$sk \leftarrow \KX(1^{\lambda}, k, kx^S)$$
+and outputs $\enc(sk, m)$.
+
+Given a series of secret keys $\{kx_i^S\}_i$, let $\KXM(\{kx_i^S\}, \cdot)$ output $\{\KXM(kx_i^S, \cdot)\}_i$.
+\end{definition}
+
 \begin{definition}[Key private IND-CPA]
 \label{defn:sym-security}
 Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
@@ -73,26 +82,31 @@ Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
 \textbf{Real World Experiment}
 \begin{enumerate}
     \item For $i$ from $1$ to $N$, $(kx_i^P, kx_i^S) \leftarrow \gen(1^{\lambda}).$
-    \item For $(i, j)$ in $[N]^2$, $sk_{ij} \leftarrow \mathsf{KX}(1^{\lambda}, kx_i^P, kx_j^S)$.
+    \item For $(i, j)$ in $[N]^2$, $sk_{ij} \leftarrow \KX(1^{\lambda}, kx_i^P, kx_j^S)$.
+    \item $\cA$ stores $1^{\lambda}, r, \{kx_i^P\}_{i \in [N]})$.
     \item For $r$ from $1$ to $R$
     \begin{enumerate}
-        \item $i, j, m \leftarrow \cA(1^{\lambda}, r, \{kx_i^P\}_{i \in [N]}, \{ct_{s}^0\}_{s < r}\})$
+        \item $i, j, m \leftarrow \cA^{\KXM(\{kx_i^S\}, \cdot)}().$
         \item $ct^{0}_r \leftarrow \enc(sk_{ij}, m)$.
+        \item $\cA$ stores $ct^{0}_r$.
     \end{enumerate}
 \end{enumerate}
 \textbf{Ideal World Experiment}
 \begin{enumerate}
     \item For $i$ from $1$ to $N$, $(kx_i^P, kx_i^S) \leftarrow \gen(1^{\lambda}).$
-    \item For $(i, j)$ in $[N]^2$, $sk_{ij} \leftarrow \mathsf{KX}(1^{\lambda}, kx_i^P, kx_j^S)$.
+    \item For $(i, j)$ in $[N]^2$, $sk_{ij} \leftarrow \KX(1^{\lambda}, kx_i^P, kx_j^S)$.
+    \item $\cA$ remembers $1^{\lambda}, r, \{kx_i^P\}_{i \in [N]})$.
     \item For $r$ from $1$ to $R$
     \begin{enumerate}
-        \item $i, j, m \leftarrow \cA(1^{\lambda}, r, \{kx_i^P\}_{i \in [N]})$.
-        \item $ct^1_r \leftarrow \Sim(1^{\lambda}, \{kx_i^P\}_{i \in [N]})$.
+        \item $i, j, m \leftarrow \cA^{\KXM(\{kx_i^S\}, \cdot)}()$.
+        \item $ct^1_r \leftarrow \Sim(1^{\lambda}, \{(kx_i^P, kx_i^S)\}_{i \in [N]})$.
+        \item $\cA$ stores $ct^{1}_r$.
     \end{enumerate}
 \end{enumerate}
 \end{framed}
 \end{figure}
-Then we say the encryption scheme is key-private IND-CPA if there exists a p.p.t simulator $\Sim$ such that for any p.p.t adversary $\cA$, the view of $\cA$ under the real world experiment and the ideal world experiment are computationally indistinguishable. The view of $\cA$ is defined as the input, output, and random coins of $\cA$, plus the array $\{ct_r\}_{r \in [R]}$.
+
+Then we say the encryption scheme is key-private IND-CPA if there exists a p.p.t simulator $\Sim$ such that for any p.p.t adversary with oracle $\cA^O$, the view of $\cA$ under the real world experiment and the ideal world experiment are computationally indistinguishable. The view of $\cA$ is defined as the input, output, and random coins of $\cA$, plus the array $\{ct_r\}_{r \in [R]}$.
 \end{definition}
 \begin{definition}[EUF-CMA Authentication]
 Let $kx^P_A, kx^P_B, \sk_{AB}, \sk_{BA}$ be the same as \cref{defn:KX-Correctness}. For any p.p.t. adversary $\cA^O$ with access to oracle $O$, if
@@ -155,7 +169,7 @@ Let $n, R$ be polynomially bounded in $\lambda$.  onsider the following two expe
 \end{framed}
 \end{figure}
 \end{definition}
-For our implementation, we use libsodium's key exchange functionality for the $\mathsf{KX}$ function, then libsodium's secret key AEAD for the $\enc$ and $\dec$ functions. This provides a Key Private IND-CPA symmetric key encryption scheme. We use Addra as the PIR protocol.
+For our implementation, we use libsodium's key exchange functionality for the $\KX$ function, then libsodium's secret key AEAD for the $\enc$ and $\dec$ functions. This provides a Key Private IND-CPA symmetric key encryption scheme. We use Addra as the PIR protocol.
 \subsection{Messages, Sequence numbers, ACK}
 To guarantee the consistent prefix property, each client $i$ labels all messages to be sent to another client $j$ with a sequence number. In the order client $i$ receives $\send$ inputs to client $j$, client $i$ label the messages with sequence number $1,2,\cdots$. The client will transmit the labeled message\footnote{Called chunk in the code.} $\msg^{lb} = (k, \msg)$, where $k$ is the sequence number and $\msg$ is the actual message. 
 
@@ -233,7 +247,7 @@ If $\cI = \trust(\reg)$.
 \begin{enumerate}
     \item Check if $\reg$ is in $\frienddb$. If so, skip to Phase 2.
     \item $(i, kx_f^P) \leftarrow \reg$.
-    \item $sk \leftarrow \Pi_{\sym}.\mathsf{KX}(1^{\lambda}, kx_f^P, kx^S).$
+    \item $sk \leftarrow \Pi_{\sym}.\KX(1^{\lambda}, kx_f^P, kx^S).$
     \item $\frienddb[\reg] \leftarrow \{\sk: sk,  \seqs: 1, \seqe: 0, \seqr: 0\}$.
 \end{enumerate}
 
