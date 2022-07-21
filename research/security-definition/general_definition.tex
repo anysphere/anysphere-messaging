@@ -132,11 +132,11 @@ We now turn to security definitions. We use the real world-ideal world definitio
 \begin{framed}
 \begin{definition}[Real world Experiment] \hfill\\
 \label{defn:real-world}
-Same notations as above. Let $\cA$ be a \textbf{stateful} adversary. Let $\cH$ denote the set of honest clients. The real-world experiment $\mathsf{Real}^{\cA}(1^{\lambda})$ is described below.
+Same notations as above. Let $\cA$ be a \textbf{stateful} adversary. Let $\cH$ denote the set of honest clients. For convenience, we denote $\reg_{\cH} = \{\reg_i\}_{i \in\cH}$ to be their registration info. The real-world experiment $\mathsf{Real}^{\cA}(1^{\lambda})$ is described below.
 \begin{enumerate}
 \item $N, T, \cH \leftarrow \cA(1^{\lambda})$.
 \item For each $i \in \cH$, $\reg_i \leftarrow C_i.\mathsf{Register}(1^{\lambda}, i, N)$. 
-\item $\{\cI_{i, 1}\} \leftarrow \cA(1^{\lambda}, \{\reg_i\}_{i \in \cH})$.
+\item $\{\cI_{i, 1}\} \leftarrow \cA(1^{\lambda}, \reg_{\cH})$.
 \item For $t$ from $1$ to $T$:
     \begin{enumerate}
     \item For each $i \in H$, $\req_i \leftarrow C_i.\mathsf{Input}(t, \cI_{i, t})$.
@@ -171,13 +171,13 @@ $$\Leak_m = \{(i, \reg, \msg, t): \reg \notin \reg_{\cH}, \mathsf{SendMessage}(\
 Same notations as above. Let $\Sim$ be a stateful simulator. The ideal-world experiment $\mathsf{Ideal}^{\cA, \Sim}(1^{\lambda})$ is described below.
 \begin{enumerate}
 \item $N, T, \cH \leftarrow \cA(1^{\lambda})$.
-\item $\{\reg_i\}_{i \in \cH} \leftarrow \Sim(1^{\lambda}, N, T)$. 
-\item $\{\cI_{i, 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\reg_i\}_{i \in \cH})$.
+\item $\reg_{\cH} = \{\reg_i\}_{i \in \cH} \leftarrow \Sim(1^{\lambda}, N, T)$. 
+\item $\{\cI_{i, 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \reg_{\cH})$.
 \item For $t$ from $1$ to $T$:
     \begin{enumerate}
-    \item  $\{\req_i\}_{i \in \cH} \leftarrow \Sim(t, \mathsf{Leak}(\{\cI_{i, t}\}, \{\reg_i\}_{i \in \cH}))$.
+    \item  $\{\req_i\}_{i \in \cH} \leftarrow \Sim(t, \mathsf{Leak}(\{\cI_{i, t}\}, \reg_{\cH}))$.
     
-    \item $\{\resp_i\}_{i \in \cH}, \{\cI_{i, t + 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\req_i\}_{i \in \cH})$.
+    \item $\{\resp_i\}_{i \in \cH}, \{\cI_{i, t + 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \reg_{\cH})$.
     
     \item $\Sim(t, \{\resp_i\}_{i \in \cH})$.
     \end{enumerate}

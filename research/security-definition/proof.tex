@@ -146,8 +146,10 @@ $\mathbf{\Sim_{\asphr}.\mathsf{Input}}(t, i, \Leak)$
 Phase 1: 
 
 {
-
 \color{red} 
+
+\textbf{Hybrid 3}:
+
 Initialize $\cI$.
 
 \begin{enumerate}
@@ -187,7 +189,10 @@ Phase 2:
     \item $\seqr \leftarrow \frienddb[\reg_s].\seqr$.
     \item Encrypt Messages with $\sk$.
     
-    {\color{red} If $\reg_s = \reg$, 
+    {\color{red} 
+    \textbf{Hybird 1}:
+    
+    If $\reg_s \in \reg_\cH$, 
     \begin{itemize}
         \item $\ct_{\msg} \leftarrow \Sim_{\sym}(\{kx_i^P\}_{i \in \cH}),$
         \item $\ct_{\ack} \leftarrow \Sim_{\sym}(\{kx_i^P\}_{i \in \cH}),$
@@ -202,7 +207,12 @@ Phase 2:
     \end{itemize}
     \item Let $\reg_r = (i_r, \_)$. Formulate a PIR request for index $i_r$. 
     
-     {\color{red} If $\reg_s = \reg$, 
+     {
+     \color{red}
+          
+     \textbf{Hybird 2}:
+         
+     If $\reg_s \in \reg_{\cH}$, 
     \begin{itemize}
         \item $\ct_{\query} \leftarrow \Sim_{\pir}(1^{\lambda}, n, \sk_{\pir}).$
     \end{itemize}
