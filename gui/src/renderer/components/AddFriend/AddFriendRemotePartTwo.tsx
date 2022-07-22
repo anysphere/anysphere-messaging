@@ -135,6 +135,28 @@ export default function AddFriendRemotePartTwo({
                 />
               </div>
               <div></div>
+              {/* <input
+                type="text"
+                autoFocus={true}
+                className="
+          m-0
+          block
+          h-fit
+          w-full
+          border-0
+          border-b-2
+          border-asbrown-100
+          p-2 text-center
+          text-sm placeholder-asbrown-300
+          focus:border-asbrown-300
+          focus:ring-0
+          "
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                }}
+                value={message}
+                placeholder="Message"
+              /> */}
               <div></div>
             </div>
           </div>
@@ -147,7 +169,7 @@ export default function AddFriendRemotePartTwo({
                 finish();
               }}
             >
-              Send invitation
+              Next
             </button>
           </div>
         </>

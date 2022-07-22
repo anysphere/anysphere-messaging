@@ -28,17 +28,11 @@ export function IDAnimation({ seed }: { seed: string }): JSX.Element {
       });
   }, [seed]);
 
-  const rng = useMemo(() => seedrandom(shaseed), [shaseed]);
-
-  console.log("seed", seed);
-  console.log("seed length", seed.length);
-  console.log("shaseed", shaseed);
-
   // create circles (position, size, color)
 
-  const n = randint(rng, 8, 12);
-
   const [circles, background, border] = useMemo(() => {
+    const rng = seedrandom(shaseed);
+    const n = randint(rng, 8, 12);
     function getColor(hue: number): string[] {
       const saturation = randint(rng, 85, 95);
       const lightness = randint(rng, 50, 70);
@@ -78,7 +72,7 @@ export function IDAnimation({ seed }: { seed: string }): JSX.Element {
         };
       });
     return [circles, getBgColor(hue), getBorderColor(hue)];
-  }, [rng, n]);
+  }, [shaseed]);
 
   return (
     <div
