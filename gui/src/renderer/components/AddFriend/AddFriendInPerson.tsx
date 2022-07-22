@@ -3,7 +3,11 @@ import { classNames } from "../../utils";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import seedrandom from "seedrandom";
 import { motion } from "framer-motion";
-import { generateUniqueNameFromDisplayName } from "./utils";
+import {
+  generateUniqueNameFromDisplayName,
+  sha256string,
+  randint,
+} from "./utils";
 import spellCheck from "./SpellCheck";
 
 const DEBUG_COLORS = false;
@@ -106,25 +110,6 @@ export function StoryForm({
       ))}
     </div>
   );
-}
-
-async function sha256(s: string): Promise<ArrayBuffer> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(s);
-  const hash = await crypto.subtle.digest("SHA-256", data);
-  return hash;
-}
-async function sha256string(s: string): Promise<string> {
-  const hashBuffer = await sha256(s);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  return hashHex;
-}
-
-function randint(rng: any, min: number, max: number): number {
-  return Math.floor(rng() * (max - min + 1)) + min;
 }
 
 // StoryAnimationSmall is a variant of StoryAnimation that is used

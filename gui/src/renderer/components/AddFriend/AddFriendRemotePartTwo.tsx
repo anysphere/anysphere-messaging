@@ -2,6 +2,7 @@ import { StatusProps } from "../Status";
 import { classNames } from "../../utils";
 import { useState, useCallback } from "react";
 import { generateUniqueNameFromDisplayName } from "./utils";
+import { IDAnimation } from "./IDAnimation";
 
 const DEBUG_COLORS = false;
 // const DEBUG_COLORS = true;
@@ -27,7 +28,6 @@ export default function AddFriendRemotePartTwo({
     if (displayName.length == 0) {
       setStatus({
         message: "Please enter a name.",
-        action: () => {},
         actionName: null,
       });
       return;
@@ -82,7 +82,9 @@ export default function AddFriendRemotePartTwo({
             )}
           >
             <div className="grid h-full w-full grid-cols-1 justify-center justify-items-center">
-              <div></div>
+              <div>
+                <IDAnimation seed={theirId} />
+              </div>
               <div className="relative h-32 w-32">
                 {/* <StoryAnimationSmall
               seed={computeSeedFromStories(story, theirstorylist)}

@@ -1,6 +1,7 @@
 import { StatusProps } from "../Status";
 import { classNames } from "../../utils";
 import { useEffect, useState } from "react";
+import { IDAnimation } from "./IDAnimation";
 
 const DEBUG_COLORS = false;
 // const DEBUG_COLORS = true;
@@ -55,12 +56,26 @@ export default function AddFriendRemote({
           Your ID is not secret. Put it in your Twitter profile, on your
           website, or anywhere else. Others can use it to add you.
         </h6>
-        <h2
-          className="absolute left-1/2 top-1/2 -translate-y-1/2 -translate-x-1/2 pb-2 text-base"
-          style={{ userSelect: "text" }}
+        <div
+          className={classNames(
+            "absolute bottom-20 top-36 left-0 right-0",
+            DEBUG_COLORS ? "bg-purple-100" : ""
+          )}
         >
-          anysphere.id/#{publicId}
-        </h2>
+          <div className="grid h-full w-full grid-cols-1 justify-center justify-items-center">
+            <div></div>
+            <div className="relative h-48 w-48">
+              <IDAnimation seed={publicId} />
+            </div>
+            <div></div>
+            <h2 className="text-sm" style={{ userSelect: "text" }}>
+              anysphere.id/#{publicId}
+            </h2>
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
+        </div>
         <h6 className="absolute bottom-24 left-0 right-0 text-center text-sm text-asbrown-light">
           To add a contact, click their ID link or paste it below.
         </h6>
