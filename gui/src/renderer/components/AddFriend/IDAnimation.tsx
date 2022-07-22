@@ -16,16 +16,16 @@ const DEBUG_COLORS = false;
 // It should not be dependent on the current time. The duration for the entire animation should be < 1 second.
 export function IDAnimation({ seed }: { seed: string }): JSX.Element {
   // see StoryAnimation for detailed information here
-  const DURATION = 3000;
   const [shaseed, setShaseed] = useState("");
-  const [keyframe, setKeyframe] = useState(0);
-  const [initialkeyframe, setInitialKeyframe] = useState(0);
-  const [roundtrips, setRoundtrips] = useState(0);
 
   useEffect(() => {
-    sha256string(seed).then((hash) => {
-      setShaseed(hash);
-    });
+    sha256string(seed)
+      .then((hash) => {
+        setShaseed(hash);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   }, [seed]);
 
   const rng = useMemo(() => seedrandom(shaseed), [shaseed]);

@@ -82,13 +82,9 @@ export default function AddFriendRemotePartTwo({
             )}
           >
             <div className="grid h-full w-full grid-cols-1 justify-center justify-items-center">
-              <div>
+              <div></div>
+              <div className="relative h-48 w-48">
                 <IDAnimation seed={theirId} />
-              </div>
-              <div className="relative h-32 w-32">
-                {/* <StoryAnimationSmall
-              seed={computeSeedFromStories(story, theirstorylist)}
-            />{" "} */}
               </div>
               <div></div>
               <div className="grid h-fit grid-cols-1 gap-4">
