@@ -30,9 +30,13 @@ export function IDAnimation({ seed }: { seed: string }): JSX.Element {
 
   const rng = useMemo(() => seedrandom(shaseed), [shaseed]);
 
+  console.log("seed", seed);
+  console.log("seed length", seed.length);
+  console.log("shaseed", shaseed);
+
   // create circles (position, size, color)
 
-  const n = 10;
+  const n = randint(rng, 8, 12);
 
   const [circles, background, border] = useMemo(() => {
     function getColor(hue: number): string[] {

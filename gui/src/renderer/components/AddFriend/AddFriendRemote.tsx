@@ -21,7 +21,7 @@ export default function AddFriendRemote({
 
   useEffect(() => {
     // strip whitespace
-    let id = theirId.replace(/\s/g, "").toLowerCase();
+    let id = theirId.replace(/\s/g, "");
     // remove http(s)://
     id = id.replace(/^https?:\/\//, "");
     if (id.startsWith("anysphere.id/#")) {
