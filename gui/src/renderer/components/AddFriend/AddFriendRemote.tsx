@@ -1,6 +1,6 @@
 import { StatusProps } from "../Status";
 import { classNames } from "../../utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const DEBUG_COLORS = false;
 // const DEBUG_COLORS = true;
@@ -9,12 +9,31 @@ export default function AddFriendRemote({
   onClose,
   setStatus,
   publicId,
+  onPastePublicId,
 }: {
   onClose: () => void;
   setStatus: (status: StatusProps) => void;
   publicId: string;
+  onPastePublicId: (publicId: string) => void;
 }): JSX.Element {
   const [theirId, setTheirId] = useState<string>("");
+
+  useEffect(() => {
+    // strip whitespace
+    let id = theirId.replace(/\s/g, "").toLowerCase();
+    // remove http(s)://
+    id = id.replace(/^https?:\/\//, "");
+    if (id.startsWith("anysphere.id/#")) {
+      id = id.substring("anysphere.id/#".length);
+    }
+    // check if id is valid
+    // unsure how to check this... there is a checksum, but I'm not sure how to check it
+    // TODO: check the checksum. for now we just check length > 40
+    if (id.length <= 40) {
+      return;
+    }
+    onPastePublicId(id);
+  }, [theirId, onPastePublicId]);
 
   return (
     <div className="grid h-full w-full items-center">

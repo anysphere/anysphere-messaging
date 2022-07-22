@@ -7,7 +7,7 @@ import * as React from "react";
 
 export interface StatusProps {
   message: string;
-  action: () => void;
+  action?: () => void;
   actionName: string | null;
 }
 
@@ -44,7 +44,6 @@ export function Status(props: { status: StatusProps; onClose: () => void }) {
 export function StatusHandler(props: { children: React.ReactNode }) {
   const [status, setStatus] = React.useState<StatusProps>({
     message: "",
-    action: () => {},
     actionName: null,
   });
 

@@ -3,6 +3,7 @@ import { classNames } from "../../utils";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import seedrandom from "seedrandom";
 import { motion } from "framer-motion";
+import { generateUniqueNameFromDisplayName } from "./utils";
 import spellCheck from "./SpellCheck";
 
 const DEBUG_COLORS = false;
@@ -32,12 +33,6 @@ function ProgressBar({ progress }: { progress: number }): JSX.Element {
       </div>
     </div>
   );
-}
-
-function generateUniqueNameFromDisplayName(displayName: string): string {
-  // make lowercase, replace space by dash
-  const name = displayName.toLowerCase().replace(/ /g, "-");
-  return name;
 }
 
 // compute a deterministic seed that will be the same for both people
