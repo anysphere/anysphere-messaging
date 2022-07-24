@@ -165,6 +165,16 @@ export function SideBar(props: SideBarProps) {
         name: "Add Friend",
       },
     },
+    {
+      id: "invitations",
+      action: () => {
+        props.sideBarCallback(SideBarButton.INVITATIONS);
+      },
+      data: {
+        type: "item",
+        name: "Invitations",
+      },
+    },
   ];
 
   return (

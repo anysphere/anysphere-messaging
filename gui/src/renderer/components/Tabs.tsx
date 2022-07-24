@@ -21,6 +21,7 @@ export enum TabType {
   Write = "write",
   Outbox = "outbox",
   Sent = "sent",
+  Invitations = "invitations",
 }
 
 export function TabElem({

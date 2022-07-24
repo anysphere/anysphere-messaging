@@ -9,6 +9,12 @@ import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/t
 export type IncomingMessage = daemon_pb.IncomingMessage.AsObject;
 export type OutgoingMessage = daemon_pb.OutgoingMessage.AsObject;
 export type Friend = daemon_pb.FriendInfo.AsObject;
+export type OutgoingAsyncInvitation =
+  daemon_pb.GetOutgoingAsyncInvitationsResponse.OutgoingAsyncInvitationInfo.AsObject;
+export type IncomingAsyncInvitation =
+  daemon_pb.GetIncomingAsyncInvitationsResponse.IncomingAsyncInvitationInfo.AsObject;
+export type OutgoingSyncInvitation =
+  daemon_pb.GetOutgoingSyncInvitationsResponse.OutgoingSyncInvitationInfo.AsObject;
 
 // TODO(sualeh): move these to utils
 export function protobufDateToDate(
