@@ -72,7 +72,9 @@ export function SmallEditor({
     <div className="relative">
       <LexicalComposer initialConfig={initialConfig}>
         <PlainTextPlugin
-          contentEditable={<ContentEditable className="text-sm outline-none" />}
+          contentEditable={
+            <ContentEditable className="min-h-[50px] text-sm outline-none" />
+          }
           placeholder={
             <div className="absolute top-0 left-0 text-sm text-asbrown-300">
               {placeholder}

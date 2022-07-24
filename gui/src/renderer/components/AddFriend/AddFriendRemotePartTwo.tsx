@@ -191,7 +191,6 @@ export default function AddFriendRemotePartTwo({
           )}
         >
           <div className="grid h-full w-full grid-cols-1 justify-center justify-items-center">
-            <div></div>
             <div className="align-items-center grid grid-cols-1 place-content-center items-center gap-8">
               <div className="flex w-fit flex-row items-center gap-2 justify-self-center">
                 <div className="relative h-12 w-12">
