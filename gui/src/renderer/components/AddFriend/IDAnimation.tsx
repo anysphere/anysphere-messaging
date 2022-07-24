@@ -14,7 +14,13 @@ const DEBUG_COLORS = false;
 // 3. It is easy to see if two pictures are the same.
 // 4. There is both a still image version and an animation version, where the two are oblviously related.
 // It should not be dependent on the current time. The duration for the entire animation should be < 1 second.
-export function IDAnimation({ seed }: { seed: string }): JSX.Element {
+export function IDAnimation({
+  seed,
+  bordersize,
+}: {
+  seed: string;
+  bordersize: number;
+}): JSX.Element {
   // see StoryAnimation for detailed information here
   const [shaseed, setShaseed] = useState("");
 
@@ -75,34 +81,37 @@ export function IDAnimation({ seed }: { seed: string }): JSX.Element {
   }, [shaseed]);
 
   return (
-    <div
-      className={classNames(
-        "relative h-full w-full overflow-clip rounded-full border-4 ",
-        DEBUG_COLORS ? "bg-green-100" : ""
-      )}
-      style={{
-        backgroundColor: background,
-        willChange: "opacity",
-        borderColor: border,
-      }}
-    >
-      {circles.map((circle, i) => {
-        return (
-          <div
-            style={{
-              position: "absolute",
-              top: `${circle.position.y - circle.size / 2}%`,
-              left: `${circle.position.x - circle.size / 2}%`,
-              height: `${circle.size}%`,
-              width: `${circle.size}%`,
-              background: `linear-gradient(30deg, ${circle.colors[0]}, ${circle.colors[1]})`,
-              opacity: 0.5,
-            }}
-            className={`rounded-full mix-blend-multiply`}
-            key={i}
-          ></div>
-        );
-      })}
-    </div>
+    <>
+      <div
+        className={classNames(
+          "absolute h-full w-full overflow-clip rounded-full",
+          DEBUG_COLORS ? "bg-green-100" : ""
+        )}
+        style={{
+          backgroundColor: background,
+          willChange: "opacity",
+          borderColor: border,
+          borderWidth: bordersize + "px",
+        }}
+      >
+        {circles.map((circle, i) => {
+          return (
+            <div
+              style={{
+                position: "absolute",
+                top: `${circle.position.y - circle.size / 2}%`,
+                left: `${circle.position.x - circle.size / 2}%`,
+                height: `${circle.size}%`,
+                width: `${circle.size}%`,
+                background: `linear-gradient(30deg, ${circle.colors[0]}, ${circle.colors[1]})`,
+                opacity: 0.5,
+              }}
+              className={`rounded-full mix-blend-multiply`}
+              key={i}
+            ></div>
+          );
+        })}
+      </div>
+    </>
   );
 }

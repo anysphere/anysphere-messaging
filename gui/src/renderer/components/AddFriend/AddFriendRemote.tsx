@@ -65,7 +65,7 @@ export default function AddFriendRemote({
           <div className="grid h-full w-full grid-cols-1 justify-center justify-items-center">
             <div></div>
             <div className="relative h-48 w-48">
-              <IDAnimation seed={publicId} />
+              <IDAnimation seed={publicId} bordersize={4} />
             </div>
             <div></div>
             <h2 className="text-sm" style={{ userSelect: "text" }}>
