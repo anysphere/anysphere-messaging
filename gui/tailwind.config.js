@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 //
 // Copyright 2022 Anysphere, Inc.
 // SPDX-License-Identifier: GPL-3.0-only
@@ -6,7 +7,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   purge: ["./src/**/*.{js,jsx,ts,tsx}"],
-  plugins: [require("@tailwindcss/forms")],
+  plugins: [require("@tailwindcss/forms"), require('@tailwindcss/typography')],
   theme: {
     extend: {
       colors: {

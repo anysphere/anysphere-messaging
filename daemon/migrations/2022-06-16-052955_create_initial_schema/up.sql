@@ -104,6 +104,8 @@ CREATE TABLE transmission (
 CREATE TABLE message (
     uid integer PRIMARY KEY NOT NULL,
     content text NOT NULL -- the payload!
+    -- hash_digest blob NOT NULL, -- the hash of the payload mod 2^64.
+    -- reply_to_msg blob NOT NULL, -- the message that this message is a reply to.
 );
 
 CREATE TABLE draft (

@@ -319,7 +319,7 @@ function Write({
         event.preventDefault();
         edit({
           ...data,
-          focus: data.focus === "content" ? "to" : "content",
+          focus: data.focus === "to" ? "content": "content",
         });
       } else if (event.metaKey && event.key === "Enter") {
         event.preventDefault();
