@@ -193,7 +193,14 @@ function Main(): JSX.Element {
       break;
     case TabType.Invitations:
       console.log("hey");
-      selectedComponent = <Invitations />;
+      selectedComponent = (
+        <Invitations
+          setStatus={(x) => {
+            statusState.setStatus(x);
+            statusState.setVisible();
+          }}
+        />
+      );
       break;
     default:
       selectedComponent = <div>Unknown tab</div>;

@@ -101,6 +101,10 @@ export interface Daemon {
     rejectAsyncInvitationRequest: daemon_pb.RejectAsyncInvitationRequest.AsObject
   ): Promise<daemon_pb.RejectAsyncInvitationResponse.AsObject>;
 
+  cancelAsyncInvitation(
+    cancelAsyncInvitationRequest: daemon_pb.CancelAsyncInvitationRequest.AsObject
+  ): Promise<daemon_pb.CancelAsyncInvitationResponse.AsObject>;
+
   sendMessage(
     sendMessageRequest: daemon_pb.SendMessageRequest.AsObject
   ): Promise<daemon_pb.SendMessageResponse.AsObject>;
@@ -898,6 +902,34 @@ export class DaemonImpl implements Daemon {
 
     if (response === undefined) {
       throw new Error("rejectAsyncInvitation returned undefined");
+    }
+
+    return response.toObject();
+  }
+
+  public async cancelAsyncInvitation(
+    cancelAsyncInvitationRequest: daemon_pb.CancelAsyncInvitationRequest.AsObject
+  ): Promise<daemon_pb.CancelAsyncInvitationResponse.AsObject> {
+    if (FAKE_DATA) {
+      return {};
+    }
+
+    const request = new daemon_pb.CancelAsyncInvitationRequest();
+    request.setPublicId(cancelAsyncInvitationRequest.publicId);
+
+    const boundCancelAsyncInvitation: (
+      argument: daemon_pb.CancelAsyncInvitationRequest,
+      callback: grpc.requestCallback<daemon_pb.CancelAsyncInvitationResponse>
+    ) => grpc.ClientUnaryCall = this.client.cancelAsyncInvitation.bind(
+      this.client
+    );
+    const promisifiedCancelAsyncInvitation = promisify(
+      boundCancelAsyncInvitation
+    );
+    const response = await promisifiedCancelAsyncInvitation(request);
+
+    if (response === undefined) {
+      throw new Error("cancelAsyncInvitation returned undefined");
     }
 
     return response.toObject();
