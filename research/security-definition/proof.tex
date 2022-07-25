@@ -140,7 +140,7 @@ $\mathbf{\Sim_{\asphr}.\mathsf{Register}}(1^{\lambda}, i, N)$
 No modification. For each $i$, let $kx^P_i$ be $\reg[1]$ for client $i$.
 \vspace{10pt}
 
-$\mathbf{\Sim_{\asphr}.\mathsf{Input}}(t, i, {\color{red} \textbf{Hybrid 3:} \Leak})$
+$\mathbf{\Sim_{\asphr}.\mathsf{Input}}(t, i, {\color{red} \textbf{Hybrid 3:} \text{replace $\cI$ with $\Leak$}})$
 \vspace{5pt}
 \hrule
 \vspace{5pt}
@@ -195,8 +195,8 @@ Phase 2:
     
     If $\reg_s \in \reg_\cH$, 
     \begin{itemize}
-        \item $\ct_{\msg} \leftarrow \Sim_{\sym}(\{kx_i^P\}_{i \in \cH}),$
-        \item $\ct_{\ack} \leftarrow \Sim_{\sym}(\{kx_i^P\}_{i \in \cH}),$
+        \item $\ct_{\msg} \leftarrow \Sim_{\sym}(1^{\lambda},\{(kx_i^P, kx_i^S)\}_{i \in \cH}),$
+        \item $\ct_{\ack} \leftarrow \Sim_{\sym}(1^{\lambda},\{(kx_i^P, kx_i^S)\}_{i \in \cH}),$
     \end{itemize}
     Else, 
     }
@@ -253,12 +253,17 @@ $\mathbf{\Pi_{\asphr}.C.\mathsf{ServerRPC}}(t, \resp)$
     \end{enumerate}
 \end{enumerate}
 
-We use a hybrid argument to show that the two views are indistinguishable. We start from the original implementation of the client methods $\Pi_{\asphr}.C$, and transform it into the simulator methods $\Sim_{\asphr}$ while preserving indistinguishability of the view in the Real World Experiment.
+We use a hybrid argument to show that the two views are indistinguishable. We start from the original implementation of the client methods $\Pi_{\asphr}.C$, and transform it into the simulator methods $\Sim_{\asphr}$ while preserving the indistinguishability of the view in the Real World Experiment.
 
-Experiment $\mathsf{Hyb}_1$: We add the statements marked Hybrid 1. To argue this preserves indistinguishability, suppose on the contrary that an adversary $\cA$ and a distinguisher $\cD$ can distinguish the view before and after the modification. Then we can build an adversary $\cA'$ and a distinguisher $\cD'$ breaking \cref{defn:sym-security}. The adversary $\cA'$ simulates the clients \cref{defn:real-world} as follows.
+Experiment $\mathsf{Hyb}_1$: We add the statements marked Hybrid 1. To argue this preserves indistinguishability, suppose on the contrary that an adversary $\cA$ and a distinguisher $\cD$ can distinguish the view before and after the modification. Then we can build an adversary $\cA_1^O$ and a distinguisher $\cD'$ breaking \cref{defn:sym-security}. The adversary $\cA_1^O$ simulates the experiment in \cref{defn:real-world} as follows.
 \begin{itemize}
     \item Simulate $\cA$ in step (1), (3), (4.b).
     \item On step (2), $\reg_i \leftarrow (i, kx_i^{P})$ for each $i \in \cH$.
-    \item On step (3), simulate client action without the 
+    \item On step (4.a), simulate client action verbatim until Phase 2 Step (6). In Step (6), if $\reg_s \notin \reg_{\cH}$, parse $\reg_s = (i_s, kx^P_s)$, then call the $\KXM$ oracle to compute
+    $$\ct_{\msg} = \KXM(kx^S_i, (kx^P_s, \msg)).$$
+    and
+    $$\ct_{\ack} = \KXM(kx^S_i, (kx^S_i, \ACK(\seqr))).$$
+    If $\reg_s \in \reg_{\cH}$, assume $\reg_s = \reg_j$. Output $(i, j, \msg)$, and move to line (4.b) in \cref{defn:ind-real-world}. Let $\ct_{\msg} = \ct^b_r$, the output of line (4.b). Repeat this for output $(i,j,ACK(\seqr))$.
+    \item On step 
 \end{itemize}
 

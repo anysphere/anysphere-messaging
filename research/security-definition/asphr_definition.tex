@@ -10,7 +10,7 @@
 \newcommand{\trans}{\mathsf{trans}}
 \newcommand{\ACK}{\mathsf{ACK}}
 \newcommand{\ack}{\mathsf{ack}}
-\newcommand{\KXM}{\mathsf{KXM}}
+\newcommand{\KXE}{\mathsf{KXE}}
 \newcommand{\KX}{\mathsf{KX}}
 \section{Definition of Anysphere}
 In this section, we define the Anysphere core protocol described in our whitepaper. We rigorously define how our core protocol is able to handle multiple contacts, run asynchronous rounds. In the next section, we will prove that our core protocol maintains correctness and security.
@@ -56,7 +56,7 @@ If we let
     \item $(kx^P_A, kx_A^S), (kx^P_B, kx_B^S)  \leftarrow \gen(1^{\lambda}).$
     \item $sk_{AB} \leftarrow \KX(1^{\lambda}, kx_A^P, kx_B^S), sk_{BA} \leftarrow \KX(1^{\lambda}, kx_B^P, kx_A^S)$
 \end{enumerate}
-then $sk_{AB} = sk_{BA}$ with probability $1$. \todo{This simplifies the security definition below. Otherwise, we need to give adversary power to call $\Enc$ on $\sk_{ij}$, where $h$ is uncompromised.} For any plaintext $m$, we have
+then $sk_{AB} = sk_{BA}$ with probability $1$. \todo{This simplifies the security definition below. Otherwise, we need to give adversary power to call $\Enc$ on $\sk_{ij}$, where $h$ is uncompromised.} For any plaintext $m$ of a fixed length $L$, we have
 $$\dec(sk_{BA}, \enc(sk_{AB}, m)) = m.$$
 \todo{I think there is a subtlety here: The line below is not covered by EUF-CMA.}
 Furthermore, for any secret key $sk' \neq sk_{AB}$, we have
@@ -66,15 +66,25 @@ $$\dec(sk_{BA}, \enc(sk', m)) = \bot.$$
 \todo{The following definitions about security has not existed in literature(as communicated by Prof. Angel). Do we want a proof that libsodium satisfies this? The "Private Signaling" paper seems to contain a related definition?}
 
 \todo{I need to find a ``no backdoor" guarantee here for the KX algorithm. Basically, an adversary should be able to challenge KX with arbitrary public key(not necessarily coming from Gen()), and not leak information. the key exchange oracle is my take on this. Another approach involves ZK proofs, but might be expensive to implement.}
-\begin{definition}[KXM Oracle]
-Given a key exchange secret key $kx^S$, the KXM(key exchange and message) oracle $\KXM(kx^S, \cdot)$ takes as input a ``fake key" $k$ and a message $m$, computes
+
+\todo{Update: see Section 5 for a formal description of this guarantee, which I call IND-CCPKA.}
+
+\begin{definition}[KXE Oracle]
+Given a key exchange secret key $kx^S$, the KXE(key exchange and message) oracle $\KXE(kx^S, \cdot)$ takes as input a ``fake key" $k$ and a message $m$, computes
 $$sk \leftarrow \KX(1^{\lambda}, k, kx^S)$$
 and outputs $\enc(sk, m)$.
 
-Given a series of secret keys $\{kx_i^S\}_i$, let $\KXM(\{kx_i^S\}, \cdot)$ output $\{\KXM(kx_i^S, \cdot)\}_i$.
+Given a series of secret keys $\{kx_i^S\}_i$, let $\KXE(\{kx_i^S\}, \cdot)$ output $\{\KXE(kx_i^S, \cdot)\}_i$.
 \end{definition}
+\begin{definition}[ACK Oracle]
+Given a key exchange secret key $kx^S$, the ACK oracle $O_\ack(kx^S, \cdot)$ takes as input a ``fake key" $k$ and a set of ciphertexts $\ct_i$, computes
+$$sk \leftarrow \KX(1^{\lambda}, k, kx^S)$$
+$$m_i \leftarrow \dec(sk, \ct_i).$$
+let $\ell$ be the number of $m_i$ that are not $\bot$. The oracle output $\enc(sk, \ell)$.
 
-\begin{definition}[Key private IND-CPA]
+Given a series of secret keys $\{kx_i^S\}_i$, let $O_{\ACK}(\{kx_i^S\}, \cdot)$ output $\{O_{\ACK}(kx_i^S, \cdot)\}_i$.
+\end{definition}
+\begin{definition}
 \label{defn:sym-security}
 Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
 \begin{figure}[h!]
@@ -83,10 +93,10 @@ Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
 \begin{enumerate}
     \item For $i$ from $1$ to $N$, $(kx_i^P, kx_i^S) \leftarrow \gen(1^{\lambda}).$
     \item For $(i, j)$ in $[N]^2$, $sk_{ij} \leftarrow \KX(1^{\lambda}, kx_i^P, kx_j^S)$.
-    \item $\cA$ stores $1^{\lambda}, r, \{kx_i^P\}_{i \in [N]})$.
+    \item $\cA$ stores $1^{\lambda}, r, \{kx_i^P\}_{i \in [N]}$.
     \item For $r$ from $1$ to $R$
     \begin{enumerate}
-        \item $i, j, m \leftarrow \cA^{\KXM(\{kx_i^S\}, \cdot)}().$
+        \item $i, j, m \leftarrow \cA^{\KXE(\{kx_i^S\}, \cdot), O_{\ACK}(\{kx_i^S\}, \cdot)}().$
         \item $ct^{0}_r \leftarrow \enc(sk_{ij}, m)$.
         \item $\cA$ stores $ct^{0}_r$.
     \end{enumerate}
@@ -95,10 +105,10 @@ Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
 \begin{enumerate}
     \item For $i$ from $1$ to $N$, $(kx_i^P, kx_i^S) \leftarrow \gen(1^{\lambda}).$
     \item For $(i, j)$ in $[N]^2$, $sk_{ij} \leftarrow \KX(1^{\lambda}, kx_i^P, kx_j^S)$.
-    \item $\cA$ remembers $1^{\lambda}, r, \{kx_i^P\}_{i \in [N]})$.
+    \item $\cA$ stores $1^{\lambda}, r, \{kx_i^P\}_{i \in [N]}$.
     \item For $r$ from $1$ to $R$
     \begin{enumerate}
-        \item $i, j, m \leftarrow \cA^{\KXM(\{kx_i^S\}, \cdot)}()$.
+        \item $i, j, m \leftarrow \cA^{\KXE(\{kx_i^S\}, \cdot), O_{\ACK}(\{kx_i^S\}, \cdot)}()$.
         \item $ct^1_r \leftarrow \Sim(1^{\lambda}, \{(kx_i^P, kx_i^S)\}_{i \in [N]})$.
         \item $\cA$ stores $ct^{1}_r$.
     \end{enumerate}
@@ -171,6 +181,7 @@ Let $n, R$ be polynomially bounded in $\lambda$.  onsider the following two expe
 \end{definition}
 For our implementation, we use libsodium's key exchange functionality for the $\KX$ function, then libsodium's secret key AEAD for the $\enc$ and $\dec$ functions. This provides a Key Private IND-CPA symmetric key encryption scheme. We use Addra as the PIR protocol.
 \subsection{Messages, Sequence numbers, ACK}
+\todo{It turns out the ACK system creates a significant security subtlety.}
 To guarantee the consistent prefix property, each client $i$ labels all messages to be sent to another client $j$ with a sequence number. In the order client $i$ receives $\send$ inputs to client $j$, client $i$ label the messages with sequence number $1,2,\cdots$. The client will transmit the labeled message\footnote{Called chunk in the code.} $\msg^{lb} = (k, \msg)$, where $k$ is the sequence number and $\msg$ is the actual message. 
 
 Critical to both consistent prefix and eventual consistency is the ACK messages. An ACK message is a special type of messages denoted $\ACK(k)$.\todo{In the whitepaper an additional chunk number is used. Since this definition does not use chunking, I'll ignore it}. When client $j$ sends $\ACK(k)$ to client $i$, it means ``I have read all messages up to message $k$ from you". As we will soon define rigorously, user $i$ will keep broadcasting message $k$ until user $j$ sends $\ACK(k)$, in which case they begin broadcasting message $k + 1$. 
