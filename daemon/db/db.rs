@@ -633,6 +633,7 @@ pub mod ffi {
       &self,
       params: AddOutgoingAsyncInvitationParams,
     ) -> Result<Friend>;
+    fn remove_outgoing_async_invitation(&self, public_id: &str) -> Result<()>;
     // It is important to define the behavior of this function in the case of
     // duplicate requests. i.e. when a friend (request) with the same public key
     // is already in the database. Here's the definition for now.
@@ -3206,6 +3207,50 @@ impl DB {
       Ok(friend) => Ok(friend),
       Err(e) => Err(e).map_err(|e| e),
     }
+  }
+
+  fn remove_outgoing_async_invitation(&self, public_id: &str) -> Result<(), anyhow::Error> {
+    let mut conn = self.connect()?;
+    self.check_rep(&mut conn);
+
+    // there are a lot of things we want to delete here.
+    // 1. delete the friend record
+    // 2. delete the outgoing_async_invitation record
+    // 3. delete the outgoing_chunk record
+    // since this friend was never an actual friend, we do not mark the friend as Deleted. instead we just remove them from the database completely.
+
+    use crate::schema::friend;
+    use crate::schema::outgoing_async_invitation;
+    use crate::schema::outgoing_chunk;
+
+    conn.transaction::<_, anyhow::Error, _>(|conn_b| {
+      let friend_uid = outgoing_async_invitation::table
+        .filter(outgoing_async_invitation::public_id.eq(public_id))
+        .select(outgoing_async_invitation::friend_uid)
+        .first::<i32>(conn_b)
+        .context("remove_outgoing_async_invitation, failed to get friend_uid")?;
+
+      diesel::delete(outgoing_async_invitation::table)
+        .filter(outgoing_async_invitation::public_id.eq(public_id))
+        .execute(conn_b)
+        .context("remove_outgoing_async_invitation, failed to delete outgoing_async_invitation")?;
+
+      diesel::delete(outgoing_chunk::table)
+        .filter(outgoing_chunk::to_friend.eq(friend_uid))
+        .execute(conn_b)
+        .context("remove_outgoing_async_invitation, failed to delete outgoing_chunk")?;
+
+      diesel::delete(friend::table)
+        .filter(friend::uid.eq(friend_uid))
+        .execute(conn_b)
+        .context("remove_outgoing_async_invitation, failed to delete friend")?;
+
+      Ok(())
+    })?;
+
+    self.check_rep(&mut conn);
+
+    Ok(())
   }
 
   fn complete_outgoing_sync_friend(

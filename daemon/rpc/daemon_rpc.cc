@@ -502,6 +502,22 @@ Status DaemonRpc::CancelAsyncInvitation(
     asphrdaemon::CancelAsyncInvitationResponse* cancelAsyncInvitationResponse) {
   ASPHR_LOG_INFO("CancelAsyncInvitation() called.", rpc_call,
                  "CancelAsyncInvitation");
+
+  if (!G.db->has_registered()) {
+    ASPHR_LOG_INFO("Need to register first.", rpc_call,
+                   "CancelAsyncInvitation");
+    return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
+  }
+
+  try {
+    G.db->remove_outgoing_async_invitation(
+        cancelAsyncInvitationRequest->public_id());
+  } catch (const rust::Error& e) {
+    ASPHR_LOG_ERR("Failed to cancel async friend request.", error, e.what(),
+                  rpc_call, "CancelAsyncInvitation");
+    return Status(grpc::StatusCode::UNKNOWN, e.what());
+  }
+
   return Status::OK;
 }
 
