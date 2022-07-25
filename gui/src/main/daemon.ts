@@ -774,17 +774,19 @@ export class DaemonImpl implements Daemon {
       return {
         invitationsList: [
           {
-            uniqueName: "OutgoingSualeh",
-            displayName: "Sualeh Asif ooooo",
-            publicId: "asdfasdf",
-            message: "hihihihihihihihih",
+            uniqueName: "sualeh-asif",
+            displayName: "Sualeh Asif",
+            publicId:
+              "85dG6DNNvNQeCNSMXyJ5j3YprmRkmQDe7QcbEuHgoyw81UBLAAAA3NfN3fJgkNUMtrt8vxQBx3wfLn1cg3MJUac99XRwN9rVbn",
+            message: "hi! want to be my friend?",
             sentAt: dateToProtobufDate(new Date()),
           },
           {
-            uniqueName: "OutgoingShengtong",
-            displayName: "Shengtong aaaaaa",
-            publicId: "asdfasdf",
-            message: "hihihihihihihihih",
+            uniqueName: "stzh1555",
+            displayName: "Shengtong Zhang",
+            publicId:
+              "9abFxDNNvxQeCNxMXxJxj3qprmRkmQDe7QcbEuHgoyw81UBLAAAA3NfN3fJgkNUMtrt8vxQBx3wfLn1cg3MJUac99XRwN9rVbn",
+            message: "hi! want to be my friend pls?",
             sentAt: dateToProtobufDate(new Date()),
           },
         ],
@@ -816,13 +818,15 @@ export class DaemonImpl implements Daemon {
       return {
         invitationsList: [
           {
-            message: "Im First",
-            publicId: "asdfasdf",
+            message: "hey! it's Michael. verify my public ID on my twitter.",
+            publicId:
+              "88Y1GinMVwMtA3SpGo3ZwjzhizQyzJ4xbeh7qzEsHhSDxJ88JiQKoxJ3nR9iGYR5jVQqnxFdekoxhGsDZKaMAWhqPHzKAYXAhR",
             receivedAt: dateToProtobufDate(new Date()),
           },
           {
-            message: "Im Second",
-            publicId: "asdfasdf",
+            message: "hey! it's Aman. verify my public ID on my twitter.",
+            publicId:
+              "9abFxDNNvxQeCNxMXxJxj3qprmRkmQDe7QcbEuHgoyw81UBLAAAA3NfN3fJgkNUMtrt8vxQBx3wfLn1cg3MJUac99XRwN9rVbn",
             receivedAt: dateToProtobufDate(new Date()),
           },
         ],

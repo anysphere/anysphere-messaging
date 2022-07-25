@@ -6,23 +6,30 @@ import AddFriendChoice from "./AddFriendChoice";
 import AddFriendInPerson from "./AddFriendInPerson";
 import AddFriendRemote from "./AddFriendRemote";
 import AddFriendRemotePartTwo from "./AddFriendRemotePartTwo";
+import AddFriendIncoming from "./AddFriendIncoming";
+import { IncomingAsyncInvitation } from "types";
 
-enum AddFriendScreen {
+export enum AddFriendScreen {
   Choice,
   InPerson,
   Remote,
   RemotePartTwo,
+  Incoming,
 }
 
 export default function AddFriend({
   onClose,
   setStatus,
+  initialScreen,
+  incomingInvitation,
 }: {
   onClose: () => void;
   setStatus: (status: StatusProps) => void;
+  initialScreen?: AddFriendScreen;
+  incomingInvitation?: IncomingAsyncInvitation;
 }): JSX.Element {
   const [screen, setScreen] = React.useState<AddFriendScreen>(
-    AddFriendScreen.Choice
+    initialScreen ?? AddFriendScreen.Choice
   );
   const [story, setStory] = React.useState<string>("");
   const [publicID, setPublicID] = React.useState<string>("");
@@ -88,6 +95,19 @@ export default function AddFriend({
           setStatus={setStatus}
           publicId={publicID}
           theirId={theirID}
+        />
+      );
+      break;
+    case AddFriendScreen.Incoming:
+      if (incomingInvitation === undefined) {
+        throw new Error("invalid state");
+      }
+      component = (
+        <AddFriendIncoming
+          onClose={onClose}
+          setStatus={setStatus}
+          publicId={publicID}
+          inv={incomingInvitation}
         />
       );
       break;

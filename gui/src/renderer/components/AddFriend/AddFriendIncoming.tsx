@@ -5,29 +5,29 @@ import { generateUniqueNameFromDisplayName } from "./utils";
 import { IDAnimation } from "./IDAnimation";
 import { SmallEditor } from "./SmallEditor";
 import { $getRoot, EditorState } from "lexical";
+import { IncomingAsyncInvitation } from "types";
 
 const DEBUG_COLORS = false;
 // const DEBUG_COLORS = true;
 
-export default function AddFriendRemotePartTwo({
+export default function AddFriendIncoming({
   onClose,
   setStatus,
   publicId,
-  theirId,
+  inv,
 }: {
   onClose: () => void;
   setStatus: (status: StatusProps) => void;
   publicId: string;
-  theirId: string;
+  inv: IncomingAsyncInvitation;
 }): JSX.Element {
   const [displayName, setDisplayName] = useState<string>("");
   const [uniqueName, setUniqueName] = useState<string>("");
   const [hasModifiedUniqueName, setHasModifiedUniqueName] =
     useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
-  const editorStateRef = useRef<EditorState>(null);
 
-  const finish = useCallback(() => {
+  const accept = useCallback(() => {
     if (displayName.length == 0) {
       setStatus({
         message: "Please enter a name.",
@@ -35,27 +35,15 @@ export default function AddFriendRemotePartTwo({
       });
       return;
     }
-    if (editorStateRef.current === null) {
-      setStatus({
-        message: `Internal error. Please try again.`,
-        actionName: null,
-      });
-      return;
-    }
-    let content = "";
-    editorStateRef.current.read(() => {
-      content = $getRoot().getTextContent();
-    });
     window
-      .addAsyncFriend({
+      .acceptAsyncInvitation({
         uniqueName,
         displayName,
-        publicId: theirId,
-        message: content,
+        publicId: inv.publicId,
       })
       .then(() => {
         setStatus({
-          message: `Sent an invitation to ${displayName}.`,
+          message: `Added ${displayName}.`,
           actionName: null,
         });
         onClose();
@@ -66,7 +54,24 @@ export default function AddFriendRemotePartTwo({
           actionName: null,
         });
       });
-  }, [editorStateRef, uniqueName, theirId, displayName, setStatus, onClose]);
+  }, [displayName, uniqueName, inv.publicId, setStatus, onClose]);
+  const reject = useCallback(() => {
+    window
+      .rejectAsyncInvitation({ publicId: inv.publicId })
+      .then(() => {
+        setStatus({
+          message: "Rejected invitation from " + inv.publicId + ".",
+          actionName: null,
+        });
+        onClose();
+      })
+      .catch((err) => {
+        setStatus({
+          message: `Failed to reject invitation: ${err}`,
+          actionName: null,
+        });
+      });
+  }, [inv.publicId, onClose, setStatus]);
 
   const component1 = (
     <>
@@ -76,11 +81,12 @@ export default function AddFriendRemotePartTwo({
           DEBUG_COLORS ? "bg-yellow-700" : ""
         )}
       >
-        New contact. What do you want to call them?
+        Accept invitation?
       </h3>
       <h6 className="absolute top-24 left-0 right-0 text-center text-xs leading-5 text-asbrown-light">
-        You're adding anysphere.id/#{theirId}. Please make sure this is the
-        right person.
+        Only accept invitations from people you trust. Their message may claim
+        that they are someone they are not, so please verify the public ID
+        before accepting.
       </h6>
       <>
         <div
@@ -91,8 +97,64 @@ export default function AddFriendRemotePartTwo({
         >
           <div className="grid h-full w-full grid-cols-1 justify-center justify-items-center">
             <div></div>
+            <div className="grid h-full w-full grid-cols-1 justify-center justify-items-center gap-2">
+              <div className="relative h-48 w-48">
+                <IDAnimation seed={inv.publicId} bordersize={4} />
+              </div>
+              <div className="text-xs text-asbrown-light">
+                anysphere.id/#{inv.publicId}
+              </div>
+            </div>
+            <div></div>
+            <div className="text-sm">{`"${inv.message}"`}</div>
+          </div>
+        </div>
+        <div className="absolute left-0 right-0 bottom-8 grid items-center justify-center text-center">
+          <button
+            className={classNames(
+              "unselectable rounded-lg bg-asbrown-100 px-3 py-1 text-asbrown-light"
+            )}
+            onClick={() => {
+              setProgress(1);
+            }}
+          >
+            Accept invitation
+          </button>
+        </div>
+        <div className="absolute left-0 right-0 bottom-2 grid items-center justify-center text-center">
+          <button
+            className="unselectable ring-none text-xs text-asbrown-200 outline-none"
+            onClick={() => {
+              reject();
+            }}
+          >
+            Remove invitation
+          </button>
+        </div>
+      </>
+    </>
+  );
+  const component2 = (
+    <>
+      <h3
+        className={classNames(
+          "absolute left-0 right-0 top-14  z-10 text-center font-['Lora'] text-xl",
+          DEBUG_COLORS ? "bg-yellow-700" : ""
+        )}
+      >
+        Great! What do you want to call them?
+      </h3>
+      <>
+        <div
+          className={classNames(
+            "absolute bottom-20 top-36 left-0 right-0",
+            DEBUG_COLORS ? "bg-purple-100" : ""
+          )}
+        >
+          <div className="grid h-full w-full grid-cols-1 justify-center justify-items-center">
+            <div></div>
             <div className="relative h-48 w-48">
-              <IDAnimation seed={theirId} bordersize={4} />
+              <IDAnimation seed={inv.publicId} bordersize={4} />
             </div>
             <div></div>
             <div className="grid h-fit grid-cols-1 gap-4">
@@ -151,65 +213,10 @@ export default function AddFriendRemotePartTwo({
               "unselectable rounded-lg bg-asbrown-100 px-3 py-1 text-asbrown-light"
             )}
             onClick={() => {
-              setProgress(1);
+              accept();
             }}
           >
-            Next
-          </button>
-        </div>
-      </>
-    </>
-  );
-  const component2 = (
-    <>
-      <h3
-        className={classNames(
-          "absolute left-0 right-0 top-14  z-10 text-center font-['Lora'] text-xl",
-          DEBUG_COLORS ? "bg-yellow-700" : ""
-        )}
-      >
-        Write an invitation message.
-      </h3>
-      <>
-        <div
-          className={classNames(
-            "absolute bottom-20 top-36 left-0 right-0",
-            DEBUG_COLORS ? "bg-purple-100" : ""
-          )}
-        >
-          <div className="grid h-full w-full grid-cols-1 justify-center justify-items-center">
-            <div className="align-items-center grid grid-cols-1 place-content-center items-center gap-8">
-              <div className="flex w-fit flex-row items-center gap-2 justify-self-center">
-                <div className="relative h-12 w-12">
-                  <IDAnimation seed={theirId} bordersize={2} />
-                </div>
-                <div className="text-lg">{displayName}</div>
-              </div>
-              <div className="w-96 rounded-lg border border-asbrown-100 p-2 shadow-sm">
-                <SmallEditor
-                  focused={true}
-                  onFocus={() => {}}
-                  placeholder="Message"
-                  editorStateRef={editorStateRef}
-                />
-              </div>
-            </div>
-            <div></div>
-          </div>
-        </div>
-        <h6 className="absolute bottom-24 left-0 right-0 text-center text-xs leading-5 text-asbrown-light">
-          Your invitation will be delivered within 24 hours.
-        </h6>
-        <div className="absolute left-0 right-0 bottom-8 grid items-center justify-center text-center">
-          <button
-            className={classNames(
-              "unselectable rounded-lg bg-asbrown-100 px-3 py-1 text-asbrown-light"
-            )}
-            onClick={() => {
-              finish();
-            }}
-          >
-            Send invitation
+            Finish
           </button>
         </div>
         <div className="absolute left-0 right-0 bottom-2 grid items-center justify-center text-center">

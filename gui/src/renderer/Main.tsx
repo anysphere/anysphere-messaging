@@ -25,7 +25,7 @@ import { StatusHandler, StatusContext } from "./components/Status";
 import { SideBar } from "./components/SideBar/SideBar";
 import { SideBarButton } from "./components/SideBar/SideBarProps";
 import { Invitations } from "./components/Invitations";
-import AddFriend from "./components/AddFriend/AddFriend";
+import AddFriend, { AddFriendScreen } from "./components/AddFriend/AddFriend";
 import Modal from "./components/Modal";
 
 const defaultTabs: Tab[] = [
@@ -198,6 +198,19 @@ function Main(): JSX.Element {
           setStatus={(x) => {
             statusState.setStatus(x);
             statusState.setVisible();
+          }}
+          handleIncomingInvitation={(inv) => {
+            setModal(
+              <AddFriend
+                onClose={closeModal}
+                setStatus={(x) => {
+                  statusState.setStatus(x);
+                  statusState.setVisible();
+                }}
+                initialScreen={AddFriendScreen.Incoming}
+                incomingInvitation={inv}
+              />
+            );
           }}
         />
       );
