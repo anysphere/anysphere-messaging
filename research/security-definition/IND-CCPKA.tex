@@ -1,7 +1,4 @@
 \clearpage
-\newcommand{\Hyb}{\mathsf{Hyb}}
-\newcommand{\Real}{\mathsf{Real}}
-\newcommand{\Ideal}{\mathsf{Ideal}}
 \section{A new security definition}
 After a few days of searching, I am rather convinced that the existing security definitions in literature are not strong enough to prove the security of our system. Therefore, I am proposing a new but relatively believable security definition that can imply the security of our system.
 
@@ -77,7 +74,7 @@ We define the oracle $\widetilde{O_{j, \ACK}}(\{kx_i^P, kx_i^S\}, \cdot)$ as fol
     $$\Hyb_{\ACK, j + 1, \Real} \equiv_c \Hyb_{\ACK, j, \Real}.$$
 \end{lemma}
 \begin{proof}
-    Let $D$ be any potential distinguisher. We design an adversary $\cA'$ to win the IND-CCPKA game. On line (2) of $\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA}$, the adversary $\cA'$ reads $\{kx_i^P\}$, then simulates $\Hyb_{\ACK, j, \Real}$ with the same choice of $\{kx_i^P\}$ until the $j + 1$-th call to the oracle $\widetilde{O_{j, \ACK}}$. It is easy to verify that $\cA'$ can use the $\KXD$ and $\KXE$ oracle to simulate the oracle $O_{\ACK}$. On the $j + 1$-th call to $\widetilde{O_{j, \ACK}}$, assume the arguments are $(s, k, \{\ct_i\})$. If $k\notin \{kx_i^P\}$, then $\cA'$ does not exit line (2) of $\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA}$ and continue the simulation of $\Hyb_{\ACK, j + 1, \Real}$ until the end. Otherwise, suppose $k = kx_{t}^P$. Then $\cA'$ use the KXDoracle to compute the number $\ell$ of $i$ such that $\KXD(kx_s^S, k, \ct_i) \neq \bot$. Then it outputs $a_{00} = a_{10} = s$, $a_{01} = a_{11} = t$, $m_0 = \ACK(\ell)$, $m_1 = \ACK(0)$, and exits line (2). Let $\ct$ be the output line (5). $\cA'$ uses $\ct$ as the output of $\widetilde{O_{j, \ACK}}$, then continue to simulate $\Hyb_{\ACK, j, \Real}$ subject to the following caveat: when it uses $\KXD$ to simulate $\widetilde{O_{j, \ACK}}$ and wishes to run $\KXD(kx_s^S, kx_t^P, \ct)$ or $\KXD(kx_t^S, kx_s^P, \ct)$, it does not call $\KXD$, and instead directly asserts that the execution returns success. Note that this is the expected output from $\KXD(kx_s^S, kx_t^P, \ct)$ since both possibilities of $\ct$ will decrypt successfully. 
+    Let $D$ be any potential distinguisher. We design an adversary $\cA'$ to win the IND-CCPKA game. On line (2) of $\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA}$, the adversary $\cA'$ reads $\{kx_i^P\}$, then simulates $\Hyb_{\ACK, j, \Real}$ with the same choice of $\{kx_i^P\}$ until the $j + 1$-th call to the oracle $\widetilde{O_{j, \ACK}}$. It is easy to verify that $\cA'$ can use the $\KXD$ and $\KXE$ oracle to simulate the oracle $O_{\ACK}$. On the $j + 1$-th call to $\widetilde{O_{j, \ACK}}$, assume the arguments are $(s, k, \{\ct_i\})$. If $k\notin \{kx_i^P\}$, then $\cA'$ does not exit line (2) of $\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA}$ and continue the simulation of $\Hyb_{\ACK, j + 1, \Real}$ until the end. Otherwise, suppose $k = kx_{t}^P$. Then $\cA'$ use the KXDoracle to compute $m'_i = \KXD(kx_s^S, k, \ct_i) \neq \bot$. Then it outputs $a_{00} = a_{10} = s$, $a_{01} = a_{11} = t$, $m_0 = \ACK(\{m'_i\})$, $m_1 = \ACK(0)$, and exits line (2). Let $\ct$ be the output line (5). $\cA'$ uses $\ct$ as the output of $\widetilde{O_{j, \ACK}}$, then continue to simulate $\Hyb_{\ACK, j, \Real}$ subject to the following caveat: when it uses $\KXD$ to simulate $\widetilde{O_{j, \ACK}}$ and wishes to run $\KXD(kx_s^S, kx_t^P, \ct)$ or $\KXD(kx_t^S, kx_s^P, \ct)$, it skips this $m'_i$. Note that this is the expected output from $\KXD(kx_s^S, kx_t^P, \ct)$ since both possibilities of $\ct$ will decrypt to something in the output space of $\ACK$ function, and ignoring it will not affect the output since $\ACK$ is good for acknowledgement.
 
     In the end, $\cA'$ finishes simulation of $\Hyb_{\ACK, j, \Real}$, and returns $b' = 1$ iff $D$ accepts the resulting view.
 
@@ -155,5 +152,5 @@ Finally, let $U$ be a polynomial upper bound on the number of times that $\cA$ c
 \Hyb_{\enc, 0} &= \Hyb_{\ACK, 0, \Ideal} \\
 \Hyb_{\ACK, R, \Ideal} &= \Ideal.
 \end{align*}
-By the previous three lemmas, we have constructed a polynomially long chain of indistinguishable experiments between $\Real$ and $\Ideal$. Thus we conclude that $\Real$ and $\Ideal$ are indistinguishable as desired.
+By the previous three lemmas, we have constructed a polynomially long chain of indistinguishable experiments between $\Real$ and $\Ideal$. Thus we conclude that $\Real$ and $\Ideal$ are indistinguishable, and $\Pi_{\sym}$ satisfies \cref{defn:sym-security}.
 \clearpage

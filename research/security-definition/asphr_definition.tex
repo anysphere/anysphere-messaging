@@ -89,8 +89,11 @@ It outputs $m$.
 \end{definition}
 \begin{definition}[ACK Oracle]
 \label{defn:ack-oracle}
-Given a key exchange secret key $kx^S$, and a polynomial time computable function $\ACK: \NN \to \Sigma^*$, the ACK oracle $O_\ACK(kx^S, f, \cdot)$ takes as input a ``fake key" $k$ and a set of ciphertexts $\ct_i$, computes $m_i = \KXD(kx^S, k, \ct_i)$ for each $i$. Let $\ell$ be the number of $m_i$ that are not $\bot$. The oracle output $\enc(sk, \ACK(\ell))$.
+Given a key exchange secret key $kx^S$, and a polynomial time computable function $\ACK: \Sigma^* \to \Sigma^*$, the ACK oracle $O_\ACK(kx^S, \cdot)$ takes as input a ``fake key" $k$ and a set of ciphertexts $\ct_i$, computes $m_i = \KXD(kx^S, k, \ct_i)$ for each $i$. The oracle output $\enc(sk, \ACK(\{m_i\}))$.
+
+We say that the function $\ACK$ is ``good for acknowledgement" if it is polynomial time computable, for any $m$ in the output space of $\ACK$, $\ACK(\{m_i\}) = \ACK(\{m_i\} - m)$.
 \end{definition}
+\textbf{Remark}: The good definition actually simplifies matters in the security proof. It is also intuitive in our system: we don't want the adversary to replay ACK messages.
 \begin{definition}
 \label{defn:sym-security}
 Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
@@ -123,7 +126,7 @@ Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
 \end{framed}
 \end{figure}
 
-Then we say the encryption scheme is key-private IND-CPA if there exists a p.p.t simulator $\Sim$ such that for any polynomial computable function $\ACK: \NN \to \Sigma^*$, any p.p.t adversary with oracle $\cA^O$, the real world experiment and the ideal world experiment are computationally indistinguishable.
+Then we say the encryption scheme is key-private IND-CPA if there exists a p.p.t simulator $\Sim$ such that for any good-for-acknowledgement function $\ACK: \Sigma^* \to \Sigma^*$, any p.p.t adversary with oracle $\cA^O$, the real world experiment and the ideal world experiment are computationally indistinguishable.
 \end{definition}
 \begin{definition}[EUF-CMA Authentication]
 Let $kx^P_A, kx^P_B, \sk_{AB}, \sk_{BA}$ be the same as \cref{defn:KX-Correctness}. For any p.p.t. adversary $\cA^O$ with access to oracle $O$, if
