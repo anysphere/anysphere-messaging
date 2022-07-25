@@ -495,6 +495,16 @@ Status DaemonRpc::RejectAsyncInvitation(
   return Status::OK;
 }
 
+Status DaemonRpc::CancelAsyncInvitation(
+    grpc::ServerContext* context,
+    const asphrdaemon::CancelAsyncInvitationRequest*
+        cancelAsyncInvitationRequest,
+    asphrdaemon::CancelAsyncInvitationResponse* cancelAsyncInvitationResponse) {
+  ASPHR_LOG_INFO("CancelAsyncInvitation() called.", rpc_call,
+                 "CancelAsyncInvitation");
+  return Status::OK;
+}
+
 Status DaemonRpc::RemoveFriend(
     ServerContext* context,
     const asphrdaemon::RemoveFriendRequest* removeFriendRequest,

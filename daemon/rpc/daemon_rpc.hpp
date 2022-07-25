@@ -83,6 +83,13 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
       asphrdaemon::RejectAsyncInvitationResponse* rejectAsyncInvitationResponse)
       override;
 
+  grpc::Status CancelAsyncInvitation(
+      grpc::ServerContext* context,
+      const asphrdaemon::CancelAsyncInvitationRequest*
+          cancelAsyncInvitationRequest,
+      asphrdaemon::CancelAsyncInvitationResponse* cancelAsyncInvitationResponse)
+      override;
+
   grpc::Status SendMessage(
       grpc::ServerContext* context,
       const asphrdaemon::SendMessageRequest* sendMessageRequest,
