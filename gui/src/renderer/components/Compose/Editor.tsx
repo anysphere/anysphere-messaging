@@ -23,7 +23,6 @@ import AsphrAutoLinkPlugin from "./Plugins/AsphrAutoLinkPlugin";
 import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
 import { TRANSFORMERS } from "@lexical/markdown";
 
-
 const prose = "prose-stone";
 
 const theme = {
