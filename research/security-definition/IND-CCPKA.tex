@@ -1,0 +1,106 @@
+\clearpage
+\newcommand{\KXD}{\mathsf{KXD}}
+\newcommand{\Hyb}{\mathsf{Hyb}}
+\section{A new security definition}
+After a few days of searching, I am rather convinced that the existing security definitions in literature are not strong enough to prove the security of our system. Therefore, I am proposing a new but relatively believable security definition that can imply the security of our system.
+
+Recall that we are using a key exchange plus symmetric key system $\Pi_{\sym} = (\gen, \KX, \enc, \dec)$. We first define two oracles for convenience.
+\begin{definition}
+\label{defn:CCPKA}
+The key-exchange-and-encrypt(KXE) oracle $\KXE(kx^S, \cdot)$ takes as input a public key $kx_m^P$ and a message $m$, and computes
+$$\sk \leftarrow \KX(kx^S, kx_m^P),$$
+$$\ct \leftarrow \enc(\sk, m).$$
+It outputs $\ct$.
+
+The key-exchange-and-decrypt(KXD) oracle $\KXD(kx^S, \cdot)$ takes as input a public key $kx_m^P$ and a ciphertext $\ct$, and computes
+$$\sk \leftarrow \KX(kx^S, kx_m^P),$$
+$$m \leftarrow \dec(\sk, \ct).$$
+It outputs $m$.
+\end{definition}
+\begin{definition}[Indistinguishable under chosen ciphertext and public key attack(IND-CCPKA)]
+Consider the following security experiment, where $N = N(\lambda)$ is polynomial in $\lambda$.
+\begin{figure}[h!]
+\begin{framed}
+$\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA}$
+\begin{enumerate}
+    \item for $i$ in $[N]$, $(kx_{i}^P, kx_{i}^S) \leftarrow \gen(1^{\lambda}).$
+    \item $a_{00}, a_{01}, a_{10}, a_{11}, m_0, m_1 \leftarrow \cA^{\KXE(kx_{i}^S, \cdot), \KXD(kx_{i}^S, \cdot)}(\mathsf{find}, 1^{\lambda}, kx_{ij}^P).$
+    \item for $(i, j)$ in $\{0, 1\}^2$, $kx^{P}_{ij}, kx^S_{ij} \leftarrow kx^P_{a_{ij}}, kx^S_{a_{ij}}$. 
+    \item $b \leftarrow U(\{0, 1\})$.
+    \item $\ct \leftarrow \KXE(kx_{b0}^S, kx_{b1}^P, m_b).$
+    \item $b' \leftarrow \cA^{\KXE(kx_{i}^S, \cdot), \KXD(kx_{i}^S, \cdot)}(\mathsf{guess}, \ct)$.
+\end{enumerate}
+\end{framed}
+\end{figure}
+
+Let $Q_{ij}$ denote the queries $\cA$ sent to the oracle $\KXD(kx_{ij}^S, \cdot)$. Let
+$$\ct_{\query} = \{\ct': \exists (i,j) \in \{0, 1\}^2, (kx_{i(1 - j)}^P, \ct') \in Q_{ij}\}.$$
+We define the output of the experiment as $1$ if both $b' = b$ and $\ct \notin \ct_{\query}$, and $0$ otherwise. 
+
+Then we say the key exchange plus symmetric key system $\Pi_{\sym}$ is IND-CCPKA secure if for any p.p.t with oracle adversary $\cA^O$, we have
+$$\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA} = 1) \leq \frac{1}{2} + \negl(\lambda).$$
+\end{definition}
+\subsection{Implications of IND-CCPKA}
+In this section, we show that if $\Pi_{\sym}$ satisfies \cref{defn:CCPKA}, then it satisfies \cref{defn:sym-security}.
+
+We recall the relevant definitions. We take our simulator to simply outputs $\enc(\sk_{12}, 0^{L})$.
+\begin{figure}[h!]
+\begin{framed}
+\textbf{Real World Experiment}
+\begin{enumerate}
+    \item For $i$ from $1$ to $N$, $(kx_i^P, kx_i^S) \leftarrow \gen(1^{\lambda}).$
+    \item For $(i, j)$ in $[N]^2$, $sk_{ij} \leftarrow \KX(1^{\lambda}, kx_i^P, kx_j^S)$.
+    \item $\cA$ stores $1^{\lambda}, r, \{kx_i^P\}_{i \in [N]}$.
+    \item For $r$ from $1$ to $R$
+    \begin{enumerate}
+        \item $i, j, m \leftarrow \cA^{\KXE(\{kx_i^S\}, \cdot), O_{\ACK}(\{kx_i^S\}, \cdot)}().$
+        \item $ct^{0}_r \leftarrow \enc(sk_{ij}, m)$.
+        \item $\cA$ stores $ct^{0}_r$.
+    \end{enumerate}
+\end{enumerate}
+\textbf{Ideal World Experiment}
+\begin{enumerate}
+    \item For $i$ from $1$ to $N$, $(kx_i^P, kx_i^S) \leftarrow \gen(1^{\lambda}).$
+    \item For $(i, j)$ in $[N]^2$, $sk_{ij} \leftarrow \KX(1^{\lambda}, kx_i^P, kx_j^S)$.
+    \item $\cA$ stores $1^{\lambda}, r, \{kx_i^P\}_{i \in [N]}$.
+    \item For $r$ from $1$ to $R$
+    \begin{enumerate}
+        \item $i, j, m \leftarrow \cA^{\KXE(\{kx_i^S\}, \cdot), O_{\ACK}(\{kx_i^S\}, \cdot)}()$.
+        \item $ct^1_r \leftarrow \enc(\sk_{12}, 0^{L})$.
+        \item $\cA$ stores $ct^{1}_r$.
+    \end{enumerate}
+\end{enumerate}
+\end{framed}
+\caption{Recap of \cref{defn:sym-security}}
+\end{figure}
+To show the views of $\cA$ are indistinguishable, we use the hybridizing argument. First, we need to hybridize the $O_{\ACK}$ oracle so it can be simulated under the restrictions of \cref{defn:CCPKA}. 
+\begin{definition}
+    We define the hybrid oracle $\widetilde{O_{j, \ACK}}$ to behave as follow
+\end{definition}
+
+\begin{figure}[h!]
+\begin{framed}
+\textbf{Hybrid Experiment} $\Hyb_\ell$.
+\begin{enumerate}
+    \item For $i$ from $1$ to $N$, $(kx_i^P, kx_i^S) \leftarrow \gen(1^{\lambda}).$
+    \item For $(i, j)$ in $[N]^2$, $sk_{ij} \leftarrow \KX(1^{\lambda}, kx_i^P, kx_j^S)$.
+    \item $\cA$ stores $1^{\lambda}, r, \{kx_i^P\}_{i \in [N]}$.
+    \item For $r$ from $1$ to $\ell$
+    \begin{enumerate}
+        \item $i, j, m \leftarrow \cA^{\KXE(\{kx_i^S\}, \cdot), O_{\ACK}(\{kx_i^S\}, \cdot)}().$
+        \item $ct_r \leftarrow \enc(sk_{ij}, m)$.
+        \item $\cA$ stores $ct_r$.
+    \end{enumerate}
+    \item For $r$ from $\ell + 1$ to $R$
+    \begin{enumerate}
+        \item $i, j, m \leftarrow \cA^{\KXE(\{kx_i^S\}, \cdot), O_{\ACK}(\{kx_i^S\}, \cdot)}().$
+        \item $ct_r \leftarrow \enc(\sk_{12}, 0^{L})$.
+        \item $\cA$ stores $ct_r$.
+    \end{enumerate}
+\end{enumerate}
+\end{framed}
+\end{figure}
+Clearly, $\Hyb_0$ corresponds to the Ideal world experiment and $\Hyb_{R}$ corresponds to the Real world experiment. Therefore, there must exist an $0 \leq \ell < R$ such that the view of $\cA$ under $\Hyb_{\ell}$ and $\Hyb_{\ell + 1}$ are distinguishable.
+
+We now define an adversary 
+\clearpage
