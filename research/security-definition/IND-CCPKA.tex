@@ -1,6 +1,8 @@
 \clearpage
 \newcommand{\KXD}{\mathsf{KXD}}
 \newcommand{\Hyb}{\mathsf{Hyb}}
+\newcommand{\Real}{\mathsf{Real}}
+\newcommand{\Ideal}{\mathsf{Ideal}}
 \section{A new security definition}
 After a few days of searching, I am rather convinced that the existing security definitions in literature are not strong enough to prove the security of our system. Therefore, I am proposing a new but relatively believable security definition that can imply the security of our system.
 
@@ -48,7 +50,7 @@ In this section, we show that if $\Pi_{\sym}$ satisfies \cref{defn:CCPKA}, then 
 We recall the relevant definitions. We take our simulator to simply outputs $\enc(\sk_{12}, 0^{L})$.
 \begin{figure}[h!]
 \begin{framed}
-\textbf{Real World Experiment}
+\textbf{Real World Experiment $\Real$}
 \begin{enumerate}
     \item For $i$ from $1$ to $N$, $(kx_i^P, kx_i^S) \leftarrow \gen(1^{\lambda}).$
     \item For $(i, j)$ in $[N]^2$, $sk_{ij} \leftarrow \KX(1^{\lambda}, kx_i^P, kx_j^S)$.
@@ -60,7 +62,7 @@ We recall the relevant definitions. We take our simulator to simply outputs $\en
         \item $\cA$ stores $ct^{0}_r$.
     \end{enumerate}
 \end{enumerate}
-\textbf{Ideal World Experiment}
+\textbf{Ideal World Experiment $\Ideal$}
 \begin{enumerate}
     \item For $i$ from $1$ to $N$, $(kx_i^P, kx_i^S) \leftarrow \gen(1^{\lambda}).$
     \item For $(i, j)$ in $[N]^2$, $sk_{ij} \leftarrow \KX(1^{\lambda}, kx_i^P, kx_j^S)$.
@@ -75,11 +77,20 @@ We recall the relevant definitions. We take our simulator to simply outputs $\en
 \end{framed}
 \caption{Recap of \cref{defn:sym-security}}
 \end{figure}
-To show the views of $\cA$ are indistinguishable, we use the hybridizing argument. First, we need to hybridize the $O_{\ACK}$ oracle so it can be simulated under the restrictions of \cref{defn:CCPKA}. 
+To show the views of $\cA$ are indistinguishable, we use the hybridizing argument. Let $D$ be any potential distinguisher. First, we need to hybridize the $O_{\ACK}$ oracle so it can be simulated under the restrictions of \cref{defn:CCPKA}. 
 \begin{definition}
-    We define the hybrid oracle $\widetilde{O_{j, \ACK}}(\{kx_i^P, kx_i^S\}, f, \cdot)$ as follows: for the first $j$ time it is called it behaves exactly the same as $O_{\ACK}(\{kx_i^S\}, f, \cdot)$. After $j$ calls, it checks if the argument key $k$ is a member of $\{kx_i^P\}$. If not, it behaves exactly the same as $O_{\ACK}(\{kx_i^S\}, \cdot)$. If $k = kx_i^P$ for some $i$, it outputs $KXE(\{kx_i^S\}, k, f(0))$.
-\end{definition}
+We define the oracle $\widetilde{O_{j, \ACK}}(\{kx_i^P, kx_i^S\}, \ACK, \cdot)$ as follows. For the first $j$ time it behaves exactly the same as $O_{\ACK}(kx_i^S, \ACK, \cdot)$. After $j$ calls, it checks if the argument key $k$ is a member of $\{kx_i^P\}$. If not, it behaves exactly the same as $O_{\ACK}(\{kx_i^S\}, \ACK, \cdot)$. If $k = kx_i^P$ for some $i$, it directly outputs $\KXE(\{kx_i^S\}, k, \ACK(0))$.
 
+    For each $j$, define $\Hyb_{\ACK, j, \Real}$ as the Real World Experiment with $O_{\ACK}(\{kx_i^S\}, \ACK, \cdot)$ replaced by $\widetilde{O_{j, \ACK}}(\{kx_i^P, kx_i^S\}, \ACK, \cdot)$. Define $\Hyb_{\ACK, j, \Ideal}$ analogously for the Ideal World Experiment. 
+\end{definition}
+\begin{lemma}
+    Assume $\Pi_{\sym}$ is IND-CCPKA secure. For any $j$, we have 
+    $$\PP(D(\Hyb_{\ACK, j + 1, \Real})) - \PP(D(\Hyb_{\ACK, j, \Real})) = \negl(\lambda).$$
+\end{lemma}
+\begin{proof}
+    Suppose the contrary. Without loss of generality, assume
+    $$$$Then we can design an adversary $\cA'$ to win the IND-CCPKA game. 
+\end{proof}
 \begin{figure}[h!]
 \begin{framed}
 \textbf{Hybrid Experiment} $\Hyb_\ell$.

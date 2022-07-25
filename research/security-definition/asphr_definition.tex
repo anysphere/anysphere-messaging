@@ -41,7 +41,7 @@ Anysphere relies on two crypto primitives: a symmetric key AE, and a PIR scheme.
 \arvid{we probably want IND-CCA to guarantee integrity?}
 \stzh{Resolved, adds EUF-CMA assumption below.}
 \todo{Rename this. IK-CPA is far from enough.}
-A key-private IND-CPA symmetric key AE(Authenticated Encryption) scheme is a quadruple of algorithms $(\gen, \KX, \enc, \dec)$ with specifications
+A key-private IND-CPA symmetric key AE (Authenticated Encryption) scheme is a quadruple of algorithms $(\gen, \KX, \enc, \dec)$ with specifications
 \begin{itemize}
     \item $\gen(1^{\lambda}) \to (kx^P, kx^S)$,
     \item $\KX(1^{\lambda}, kx_A^P, kx_B^S) \to sk_{AB},$
@@ -69,7 +69,7 @@ $$\dec(sk_{BA}, \enc(sk', m)) = \bot.$$
 
 \todo{Update: see Section 5 for a formal description of this guarantee, which I call IND-CCPKA.}
 
-\textbf{Convention.} Given an oracle $O(x, \cdot)$ abd a series $\{x_i\}_i$, define $O(\{x_i\}_i, \cdot)$ as the oracle that outputs the series $\{O(x_i, \cdot)\}_i$.
+\textbf{Convention.} Given an oracle $O(x, \cdot)$ and a series $\{x_i\}_i$, define $O(\{x_i\}_i, \cdot)$ as the oracle whose input is a tuple $(j, m)$ and outputs $O(x_j, m)$.
 
 \begin{definition}[KXE Oracle]
 Given a key exchange secret key $kx^S$, the KXE(key exchange and message) oracle $\KXE(kx^S, \cdot)$ takes as input a ``fake key" $k$ and a message $m$, computes
