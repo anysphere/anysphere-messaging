@@ -3209,7 +3209,7 @@ impl DB {
     }
   }
 
-  fn remove_outgoing_async_invitation(&self, public_id: &str) -> Result<(), anyhow::Error> {
+  pub fn remove_outgoing_async_invitation(&self, public_id: &str) -> Result<(), anyhow::Error> {
     let mut conn = self.connect()?;
     self.check_rep(&mut conn);
 
@@ -3220,6 +3220,7 @@ impl DB {
     // since this friend was never an actual friend, we do not mark the friend as Deleted. instead we just remove them from the database completely.
 
     use crate::schema::friend;
+    use crate::schema::transmission;
     use crate::schema::outgoing_async_invitation;
     use crate::schema::outgoing_chunk;
 
@@ -3239,6 +3240,11 @@ impl DB {
         .filter(outgoing_chunk::to_friend.eq(friend_uid))
         .execute(conn_b)
         .context("remove_outgoing_async_invitation, failed to delete outgoing_chunk")?;
+      
+      diesel::delete(transmission::table)
+        .filter(transmission::friend_uid.eq(friend_uid))
+        .execute(conn_b)
+        .context("remove_outgoing_async_invitation, failed to delete transmission")?;
 
       diesel::delete(friend::table)
         .filter(friend::uid.eq(friend_uid))

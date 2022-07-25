@@ -356,3 +356,38 @@ fn test_async_add_friend() {
   assert_eq!(new_address.uid, friends[0].uid);
   assert!(new_address.ack_index >= 0);
 }
+
+#[test]
+fn test_cancel_async_invitation() {
+  let db_file = gen_temp_file();
+  let db = init(db_file.as_str()).unwrap();
+
+  let config_data = get_registration_fragment();
+  db.do_register(config_data).unwrap();
+
+  let params = ffi::AddOutgoingAsyncInvitationParams {
+    unique_name: "friend_1".to_string(),
+    display_name: "Friend 1".to_string(),
+    public_id: "hi_this_is_a_public_id".to_string(),
+    invitation_public_key: br#"fffff"#.to_vec(),
+    kx_public_key: br#"kxkxkx"#.to_vec(),
+    message: "message hi hi".to_string(),
+    read_index: 0,
+    read_key: br#"rrrrr"#.to_vec(),
+    write_key: br#"wwww"#.to_vec(),
+    max_friends: 20,
+  };
+
+  let f = db.add_outgoing_async_invitation(params).unwrap();
+
+  let invitations = db.get_outgoing_async_invitations().unwrap();
+  assert_eq!(invitations.len(), 1);
+  assert_eq!(invitations[0].friend_uid, f.uid);
+  assert_eq!(invitations[0].public_id, "hi_this_is_a_public_id");
+  assert_eq!(invitations[0].message, "message hi hi");
+
+  db.remove_outgoing_async_invitation("hi_this_is_a_public_id").unwrap();
+
+  let invitations = db.get_outgoing_async_invitations().unwrap();
+  assert_eq!(invitations.len(), 0);
+}
