@@ -544,6 +544,42 @@ export namespace RejectAsyncInvitationResponse {
   }
 }
 
+export class CancelAsyncInvitationRequest extends jspb.Message {
+  getPublicId(): string;
+  setPublicId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CancelAsyncInvitationRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: CancelAsyncInvitationRequest): CancelAsyncInvitationRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CancelAsyncInvitationRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CancelAsyncInvitationRequest;
+  static deserializeBinaryFromReader(message: CancelAsyncInvitationRequest, reader: jspb.BinaryReader): CancelAsyncInvitationRequest;
+}
+
+export namespace CancelAsyncInvitationRequest {
+  export type AsObject = {
+    publicId: string,
+  }
+}
+
+export class CancelAsyncInvitationResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CancelAsyncInvitationResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: CancelAsyncInvitationResponse): CancelAsyncInvitationResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CancelAsyncInvitationResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CancelAsyncInvitationResponse;
+  static deserializeBinaryFromReader(message: CancelAsyncInvitationResponse, reader: jspb.BinaryReader): CancelAsyncInvitationResponse;
+}
+
+export namespace CancelAsyncInvitationResponse {
+  export type AsObject = {
+  }
+}
+
 export class RemoveFriendRequest extends jspb.Message {
   getUniqueName(): string;
   setUniqueName(value: string): void;

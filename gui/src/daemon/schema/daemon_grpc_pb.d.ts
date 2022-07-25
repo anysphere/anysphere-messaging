@@ -20,6 +20,7 @@ interface IDaemonService extends grpc.ServiceDefinition<grpc.UntypedServiceImple
   getIncomingAsyncInvitations: grpc.MethodDefinition<schema_daemon_pb.GetIncomingAsyncInvitationsRequest, schema_daemon_pb.GetIncomingAsyncInvitationsResponse>;
   acceptAsyncInvitation: grpc.MethodDefinition<schema_daemon_pb.AcceptAsyncInvitationRequest, schema_daemon_pb.AcceptAsyncInvitationResponse>;
   rejectAsyncInvitation: grpc.MethodDefinition<schema_daemon_pb.RejectAsyncInvitationRequest, schema_daemon_pb.RejectAsyncInvitationResponse>;
+  cancelAsyncInvitation: grpc.MethodDefinition<schema_daemon_pb.CancelAsyncInvitationRequest, schema_daemon_pb.CancelAsyncInvitationResponse>;
   sendMessage: grpc.MethodDefinition<schema_daemon_pb.SendMessageRequest, schema_daemon_pb.SendMessageResponse>;
   getMessages: grpc.MethodDefinition<schema_daemon_pb.GetMessagesRequest, schema_daemon_pb.GetMessagesResponse>;
   getMessagesStreamed: grpc.MethodDefinition<schema_daemon_pb.GetMessagesRequest, schema_daemon_pb.GetMessagesResponse>;
@@ -46,6 +47,7 @@ export interface IDaemonServer extends grpc.UntypedServiceImplementation {
   getIncomingAsyncInvitations: grpc.handleUnaryCall<schema_daemon_pb.GetIncomingAsyncInvitationsRequest, schema_daemon_pb.GetIncomingAsyncInvitationsResponse>;
   acceptAsyncInvitation: grpc.handleUnaryCall<schema_daemon_pb.AcceptAsyncInvitationRequest, schema_daemon_pb.AcceptAsyncInvitationResponse>;
   rejectAsyncInvitation: grpc.handleUnaryCall<schema_daemon_pb.RejectAsyncInvitationRequest, schema_daemon_pb.RejectAsyncInvitationResponse>;
+  cancelAsyncInvitation: grpc.handleUnaryCall<schema_daemon_pb.CancelAsyncInvitationRequest, schema_daemon_pb.CancelAsyncInvitationResponse>;
   sendMessage: grpc.handleUnaryCall<schema_daemon_pb.SendMessageRequest, schema_daemon_pb.SendMessageResponse>;
   getMessages: grpc.handleUnaryCall<schema_daemon_pb.GetMessagesRequest, schema_daemon_pb.GetMessagesResponse>;
   getMessagesStreamed: grpc.handleServerStreamingCall<schema_daemon_pb.GetMessagesRequest, schema_daemon_pb.GetMessagesResponse>;
@@ -93,6 +95,9 @@ export class DaemonClient extends grpc.Client {
   rejectAsyncInvitation(argument: schema_daemon_pb.RejectAsyncInvitationRequest, callback: grpc.requestCallback<schema_daemon_pb.RejectAsyncInvitationResponse>): grpc.ClientUnaryCall;
   rejectAsyncInvitation(argument: schema_daemon_pb.RejectAsyncInvitationRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.RejectAsyncInvitationResponse>): grpc.ClientUnaryCall;
   rejectAsyncInvitation(argument: schema_daemon_pb.RejectAsyncInvitationRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.RejectAsyncInvitationResponse>): grpc.ClientUnaryCall;
+  cancelAsyncInvitation(argument: schema_daemon_pb.CancelAsyncInvitationRequest, callback: grpc.requestCallback<schema_daemon_pb.CancelAsyncInvitationResponse>): grpc.ClientUnaryCall;
+  cancelAsyncInvitation(argument: schema_daemon_pb.CancelAsyncInvitationRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.CancelAsyncInvitationResponse>): grpc.ClientUnaryCall;
+  cancelAsyncInvitation(argument: schema_daemon_pb.CancelAsyncInvitationRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.CancelAsyncInvitationResponse>): grpc.ClientUnaryCall;
   sendMessage(argument: schema_daemon_pb.SendMessageRequest, callback: grpc.requestCallback<schema_daemon_pb.SendMessageResponse>): grpc.ClientUnaryCall;
   sendMessage(argument: schema_daemon_pb.SendMessageRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.SendMessageResponse>): grpc.ClientUnaryCall;
   sendMessage(argument: schema_daemon_pb.SendMessageRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.SendMessageResponse>): grpc.ClientUnaryCall;
