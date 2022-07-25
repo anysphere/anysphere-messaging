@@ -72,7 +72,9 @@ $$\dec(sk_{BA}, \enc(sk', m)) = \bot.$$
 
 To formally define the security notion our system is required to satisfy, we first define some oracles.
 
-\textbf{Convention.} Given an oracle $O(x, \cdot)$ and a series $\{x_i\}_i$, define $O(\{x_i\}_i, \cdot)$ as the oracle whose input is a tuple $(j, m)$ and outputs $O(x_j, m)$.
+\textbf{Convention.} Given an oracle $O(x, \cdot)$ and a series $\{x_i\}_i$, define $O(\{x_i\}_i, \cdot)$ as the oracle whose input takes an extra argument $j$ and outputs $O(\{x_i\}_i, j, \cdot) = O(x_j, \cdot)$.
+
+\textbf{Convention.} When we say two experiments are indistinguishable, we mean the view of the adversary in the two experiments are indistinguishable. The view of the adversary consists of all inputs, outputs, and internal randomness of the adversary.
 
 \begin{definition}
 The key-exchange-and-encrypt(KXE) oracle $\KXE(kx^S, \cdot)$ takes as input a public key $kx_m^P$ and a message $m$, and computes
@@ -87,11 +89,11 @@ It outputs $m$.
 \end{definition}
 \begin{definition}[ACK Oracle]
 \label{defn:ack-oracle}
-Given a key exchange secret key $kx^S$, and a polynomial time computable function $\ACK: \NN \to \Sigma^*$, the ACK oracle $O_\ack(kx^S, f, \cdot)$ takes as input a ``fake key" $k$ and a set of ciphertexts $\ct_i$, computes $m_i = \KXD(kx^S, k, \ct_i)$ for each $i$. Let $\ell$ be the number of $m_i$ that are not $\bot$. The oracle output $\enc(sk, \ACK(\ell))$.
+Given a key exchange secret key $kx^S$, and a polynomial time computable function $\ACK: \NN \to \Sigma^*$, the ACK oracle $O_\ACK(kx^S, f, \cdot)$ takes as input a ``fake key" $k$ and a set of ciphertexts $\ct_i$, computes $m_i = \KXD(kx^S, k, \ct_i)$ for each $i$. Let $\ell$ be the number of $m_i$ that are not $\bot$. The oracle output $\enc(sk, \ACK(\ell))$.
 \end{definition}
 \begin{definition}
 \label{defn:sym-security}
-vLet $N, R$ be polynomial in $\lambda$. Consider two experiments.
+Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
 \begin{figure}[h!]
 \begin{framed}
 \textbf{Real World Experiment}
@@ -121,7 +123,7 @@ vLet $N, R$ be polynomial in $\lambda$. Consider two experiments.
 \end{framed}
 \end{figure}
 
-Then we say the encryption scheme is key-private IND-CPA if there exists a p.p.t simulator $\Sim$ such that for any polynomial computable function $\ACK: \NN \to \Sigma^*$, any p.p.t adversary with oracle $\cA^O$, the view of $\cA$ under the real world experiment and the ideal world experiment are computationally indistinguishable. The view of $\cA$ is defined as the input, output, and random coins of $\cA$, plus the array $\{ct_r\}_{r \in [R]}$.
+Then we say the encryption scheme is key-private IND-CPA if there exists a p.p.t simulator $\Sim$ such that for any polynomial computable function $\ACK: \NN \to \Sigma^*$, any p.p.t adversary with oracle $\cA^O$, the real world experiment and the ideal world experiment are computationally indistinguishable.
 \end{definition}
 \begin{definition}[EUF-CMA Authentication]
 Let $kx^P_A, kx^P_B, \sk_{AB}, \sk_{BA}$ be the same as \cref{defn:KX-Correctness}. For any p.p.t. adversary $\cA^O$ with access to oracle $O$, if
@@ -159,7 +161,7 @@ then $x_i = DB[i]$.
 \end{definition}
 \begin{definition}[SIM Security]
 \label{defn:pir-security}
-Let $n, R$ be polynomially bounded in $\lambda$.  onsider the following two experiments. Then we say the PIR scheme is \textbf{secure} if there exists a p.p.t simulator $\Sim$ such that stated p.p.t adversary $\cA$, the view of $\cA$ under the real world experiment and the ideal world experiment are computationally indistinguishable. The view of $\cA$ is defined as the input, output, and random coins of $\cA$, plus the queries $ct_r^b$.
+Let $n, R$ be polynomially bounded in $\lambda$.  onsider the following two experiments. Then we say the PIR scheme is \textbf{secure} if there exists a p.p.t simulator $\Sim$ such that stated p.p.t adversary $\cA$, the view of $\cA$ under the real world experiment and the ideal world experiment are computationally indistinguishable. 
 \todo{This definition is equivalent to https://eprint.iacr.org/2022/081.pdf, Experiment 2.2. The definition over there is IND. May want to add a note here.}
 \begin{figure}[h!]
 \begin{framed}

@@ -66,61 +66,94 @@ We recall the relevant definitions. We take our simulator to simply outputs $\en
 \end{framed}
 \caption{Recap of \cref{defn:sym-security}}
 \end{figure}
-To show the views of $\cA$ are indistinguishable, we use the hybridizing argument. Let $D$ be any potential distinguisher. First, we need to hybridize the $O_{\ACK}$ oracle so it can be simulated under the restrictions of \cref{defn:CCPKA}. 
+To show the views of $\cA$ are indistinguishable, we use the hybridizing argument. First, we need to hybridize the $O_{\ACK}$ oracle so it can be simulated under the restrictions of \cref{defn:CCPKA}. 
 \begin{definition}
-We define the oracle $\widetilde{O_{j, \ACK}}(\{kx_i^P, kx_i^S\}, \ACK, \cdot)$ as follows. For the first $j$ time it behaves exactly the same as $O_{\ACK}(kx_i^S, \ACK, \cdot)$. After $j$ calls, it checks if the argument key $k$ is a member of $\{kx_i^P\}$. If not, it behaves exactly the same as $O_{\ACK}(\{kx_i^S\}, \ACK, \cdot)$. If $k = kx_i^P$ for some $i$, it directly outputs $\KXE(\{kx_i^S\}, k, \ACK(0))$.
+We define the oracle $\widetilde{O_{j, \ACK}}(\{kx_i^P, kx_i^S\}, \cdot)$ as follows. For the first $j$ time it behaves exactly the same as $O_{\ACK}(kx_i^S, \cdot)$. After $j$ calls, it checks if the argument key $k$ is a member of $\{kx_i^P\}$. If not, it behaves exactly the same as $O_{\ACK}(\{kx_i^S\}, \cdot)$. If $k = kx_i^P$ for some $i$, it directly outputs $\KXE(\{kx_i^S\}, k, \ACK(0))$.
 
-    For each $j$, define $\Hyb_{\ACK, j, \Real}$ as the Real World Experiment with $O_{\ACK}(\{kx_i^S\}, \ACK, \cdot)$ replaced by $\widetilde{O_{j, \ACK}}(\{kx_i^P, kx_i^S\}, \ACK, \cdot)$. Define $\Hyb_{\ACK, j, \Ideal}$ analogously for the Ideal World Experiment. 
+    For each $j$, define $\Hyb_{\ACK, j, \Real}$ as the Real World Experiment with $O_{\ACK}(\{kx_i^S\}, \cdot)$ replaced by $\widetilde{O_{j, \ACK}}(\{kx_i^P, kx_i^S\}, \ACK, \cdot)$. Define $\Hyb_{\ACK, j, \Ideal}$ analogously for the Ideal World Experiment. 
 \end{definition}
 \begin{lemma}
-    Assume $\Pi_{\sym}$ is IND-CCPKA secure. For any $j$, we have 
-    $$\PP(D(\Hyb_{\ACK, j + 1, \Real})) - \PP(D(\Hyb_{\ACK, j, \Real})) = \negl(\lambda).$$
+     Assume $\Pi_{\sym}$ is IND-CCPKA secure. Then for any $j$, we have 
+    $$\Hyb_{\ACK, j + 1, \Real} \equiv_c \Hyb_{\ACK, j, \Real}.$$
 \end{lemma}
 \begin{proof}
-    Suppose the contrary. Without loss of generality, assume the existence of a polynomial function $p(\lambda)$ such that
-    $$\PP(D(\Hyb_{\ACK, j + 1, \Real})) - \PP(D(\Hyb_{\ACK, j, \Real})) \geq p(\lambda)^{-1}$$
-    Then we can design an adversary $\cA'$ to win the IND-CCPKA game. On line (2) of $\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA}$, the adversary $\cA'$ reads $\{kx_i^P\}$, then simulates $\Hyb_{\ACK, j, \Real}$ with the same choice of $\{kx_i^P\}$ until the $j + 1$-th call to the oracle $\widetilde{O_{j, \ACK}}$. It is easy to verify that $\cA'$ can use the $\KXD$ and $\KXE$ oracle to simulate the oracle $O_{\ACK}$. On the $j + 1$-th call to $\widetilde{O_{j, \ACK}}$, assume the arguments are $(s, k, \{\ct_i\})$. If $k\notin \{kx_i^P\}$, then $\cA'$ does not exit line (2) of $\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA}$ and continue the simulation of $\Hyb_{\ACK, j + 1, \Real}$ until the end. Otherwise, suppose $k = kx_{t}^P$. Then $\cA'$ use the KXDoracle to compute the number $\ell$ of $i$ such that $\KXD(kx_s^S, k, \ct_i) \neq \bot$. Then it outputs $a_{00} = a_{10} = s$, $a_{01} = a_{11} = t$, $m_0 = \ACK(\ell)$, $m_1 = \ACK(0)$, and exits line (2). Let $\ct$ be the output line (5). $\cA'$ uses $\ct$ as the output of $\widetilde{O_{j, \ACK}}$, then continue to simulate $\Hyb_{\ACK, j, \Real}$ subject to the following caveat: when it uses $\KXD$ to simulate $\widetilde{O_{j, \ACK}}$ and wishes to run $\KXD(kx_s^S, kx_t^P, \ct)$ or $\KXD(kx_t^S, kx_s^P, \ct)$, it does not call $\KXD$, and instead directly asserts that the execution returns success. Note that this is the expected output from $\KXD(kx_s^S, kx_t^P, \ct)$ since both possibilities of $\ct$ will decrypt successfully. 
+    Let $D$ be any potential distinguisher. We design an adversary $\cA'$ to win the IND-CCPKA game. On line (2) of $\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA}$, the adversary $\cA'$ reads $\{kx_i^P\}$, then simulates $\Hyb_{\ACK, j, \Real}$ with the same choice of $\{kx_i^P\}$ until the $j + 1$-th call to the oracle $\widetilde{O_{j, \ACK}}$. It is easy to verify that $\cA'$ can use the $\KXD$ and $\KXE$ oracle to simulate the oracle $O_{\ACK}$. On the $j + 1$-th call to $\widetilde{O_{j, \ACK}}$, assume the arguments are $(s, k, \{\ct_i\})$. If $k\notin \{kx_i^P\}$, then $\cA'$ does not exit line (2) of $\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA}$ and continue the simulation of $\Hyb_{\ACK, j + 1, \Real}$ until the end. Otherwise, suppose $k = kx_{t}^P$. Then $\cA'$ use the KXDoracle to compute the number $\ell$ of $i$ such that $\KXD(kx_s^S, k, \ct_i) \neq \bot$. Then it outputs $a_{00} = a_{10} = s$, $a_{01} = a_{11} = t$, $m_0 = \ACK(\ell)$, $m_1 = \ACK(0)$, and exits line (2). Let $\ct$ be the output line (5). $\cA'$ uses $\ct$ as the output of $\widetilde{O_{j, \ACK}}$, then continue to simulate $\Hyb_{\ACK, j, \Real}$ subject to the following caveat: when it uses $\KXD$ to simulate $\widetilde{O_{j, \ACK}}$ and wishes to run $\KXD(kx_s^S, kx_t^P, \ct)$ or $\KXD(kx_t^S, kx_s^P, \ct)$, it does not call $\KXD$, and instead directly asserts that the execution returns success. Note that this is the expected output from $\KXD(kx_s^S, kx_t^P, \ct)$ since both possibilities of $\ct$ will decrypt successfully. 
 
     In the end, $\cA'$ finishes simulation of $\Hyb_{\ACK, j, \Real}$, and returns $b' = 1$ iff $D$ accepts the resulting view.
 
     Now note that if $b = 1$, then $\cA'$ perfectly simulates $\Hyb_{\ACK, j + 1, \Real}$, while if $b = 0$, then $\cA'$ perfectly simulates $\Hyb_{\ACK, j, \Real}$. Furthermore, $\cA'$ guarantees that $\ct \notin \ct_{\query}$. Therefore, we have
     \begin{align*}
-     &\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA} = 1) \\
+     &\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA'} = 1) \\
      &= \frac{1}{2} + \frac{1}{2}\PP(b' = 1 | b = 1) - \frac{1}{2}\PP(b' = 1 | b = 0) \\   
-     &= \frac{1}{2} + \frac{1}{2}\left(\PP(D(\Hyb_{\ACK, j + 1, \Real})) - \PP(D(\Hyb_{\ACK, j, \Real}))\right) \\
-     &\geq \frac{1}{2} + \frac{1}{2p(\lambda)}.
+     &= \frac{1}{2} + \frac{1}{2}\left(\PP(D(\Hyb_{\ACK, j + 1, \Real})) - \PP(D(\Hyb_{\ACK, j, \Real}))\right).
     \end{align*}
-    Therefore $\cA'$ contradicts the definition of IND-CCPKA.
+    So by IND-CCPKA, there exists a negligible function $\mu(\lambda)$ independent of $j$ such that for any $j$, we have
+    $$\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA'} = 1) \leq \frac{1}{2} + \mu(\lambda).$$
+    Thus we conclude that
+    $$\PP(D(\Hyb_{\ACK, j + 1, \Real})) - \PP(D(\Hyb_{\ACK, j, \Real})) \leq 2\mu(\lambda) = \negl(\lambda).$$
+    Similarly, we can show that
+    $$\PP(D(\Hyb_{\ACK, j + 1, \Real})) - \PP(D(\Hyb_{\ACK, j, \Real})) \geq \negl(\lambda)$$
+    So we conclude that
+    $$D(\Hyb_{\ACK, j + 1, \Real}) \equiv_c \PP(D(\Hyb_{\ACK, j, \Real})).$$
 \end{proof}
 Analogously, we can show that
 \begin{lemma}
-    Assume $\Pi_{\sym}$ is IND-CCPKA secure. For any $j$, we have 
-    $$\PP(D(\Hyb_{\ACK, j + 1, \Ideal})) - \PP(D(\Hyb_{\ACK, j, \Ideal})) = \negl(\lambda).$$
+     Assume $\Pi_{\sym}$ is IND-CCPKA secure. Then for any $j$, we have 
+    $$\Hyb_{\ACK, j + 1, \Ideal} \equiv_c \Hyb_{\ACK, j, \Ideal}.$$
 \end{lemma}
-We let $\widetilde{O_{\ACK}} = \widetilde{O_{0, \ACK}}$. Then $\widetilde{O_{\ACK}}$ is identical to 
+Denote $\widetilde{O_{\ACK}} = \widetilde{O_{0, \ACK}}$. If we let the input be $(j, k, \{ct_i\})$, then the output of $\widetilde{O_{\ACK}}(\{kx_i^P, kx_i^S\}, \cdot)$ is identical to $O_{\ACK}(\{kx_i^P\}, \cdot)$ if $k \notin \{kx_i^P\}$, and equal to $\KXE(kx_j^P, j, k, \ACK(0))$ if $k \in \{kx_i^P\}$. With this definition, we can now hybrid between the real and ideal world.
+
 \begin{figure}[h!]
 \begin{framed}
-\textbf{Hybrid Experiment} $\Hyb_\ell$.
+\textbf{Hybrid Experiment} $\Hyb_{\enc, \ell}$.
 \begin{enumerate}
     \item For $i$ from $1$ to $N$, $(kx_i^P, kx_i^S) \leftarrow \gen(1^{\lambda}).$
     \item For $(i, j)$ in $[N]^2$, $sk_{ij} \leftarrow \KX(1^{\lambda}, kx_i^P, kx_j^S)$.
     \item $\cA$ stores $1^{\lambda}, r, \{kx_i^P\}_{i \in [N]}$.
     \item For $r$ from $1$ to $\ell$
     \begin{enumerate}
-        \item $i, j, m \leftarrow \cA^{\KXE(\{kx_i^S\}, \cdot), O_{\ACK}(\{kx_i^S\}, \cdot)}().$
+        \item $i, j, m \leftarrow \cA^{\KXE(\{kx_i^S\}, \cdot), \widetilde{O_{\ACK}}(\{kx_i^P, kx_i^S\}, \cdot)}().$
         \item $ct_r \leftarrow \enc(sk_{ij}, m)$.
         \item $\cA$ stores $ct_r$.
     \end{enumerate}
     \item For $r$ from $\ell + 1$ to $R$
     \begin{enumerate}
-        \item $i, j, m \leftarrow \cA^{\KXE(\{kx_i^S\}, \cdot), O_{\ACK}(\{kx_i^S\}, \cdot)}().$
+        \item $i, j, m \leftarrow \cA^{\KXE(\{kx_i^S\}, \cdot), \widetilde{O_{\ACK}}(\{kx_i^P, kx_i^S\}, \cdot)}().$
         \item $ct_r \leftarrow \enc(\sk_{12}, 0^{L})$.
         \item $\cA$ stores $ct_r$.
     \end{enumerate}
 \end{enumerate}
 \end{framed}
 \end{figure}
-Clearly, $\Hyb_0$ corresponds to the Ideal world experiment and $\Hyb_{R}$ corresponds to the Real world experiment. Therefore, there must exist an $0 \leq \ell < R$ such that the view of $\cA$ under $\Hyb_{\ell}$ and $\Hyb_{\ell + 1}$ are distinguishable.
 
-We now define an adversary 
+\begin{lemma}
+    Assume $\Pi_{\sym}$ is IND-CCPKA secure. Then for any $0 \leq \ell \leq R$, we have
+    $$\Hyb_{\enc, \ell} \equiv_c \Hyb_{\enc, \ell + 1}.$$
+\end{lemma}
+\begin{proof}
+    Let $D$ be any potential distinguisher. We design an adversary $\cA'$ to win the IND-CCPKA game. On line (2) of $\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA}$, the adversary $\cA'$ reads $\{kx_i^P\}$, then simulates $\Hyb_{\enc, \ell}$ for $r$ from $1$ to $\ell$. When $r = \ell + 1$, let $i, j, m$ be as in line (4a) of $\Hyb_{\enc, \ell}$. $\cA'$ then outputs $a_{00} = i, a_{01} = j, a_{10} = 1, a_{11} = 2, m_0 = m, m_1 = 0^L$, then exit line (2). Let $\ct$ be the output of line (5). $\cA'$ then set $\ct_r = \ct$ on line (4b) of $\Hyb_{\enc, \ell}$, then continue simulating $\Hyb_{\enc, \ell}$. throughout the end. $\cA'$ returns $b' = 1$ iff $D$ accepts the resulting view.
+
+     Now note that if $b = 1$, then $\cA'$ perfectly simulates $\Hyb_{\enc, \ell}$, while if $b = 0$, then $\cA'$ perfectly simulates $\Hyb_{\enc, \ell+1}$. Furthermore, $\cA'$ can guarantee that $\ct_{\query} = \emptyset$: when simulating $\widetilde{O_{\ACK}}$, if the key $k$ is not in $\{kx_i^P\}$ then the calls to $\KXD$ will not add elements to $\ct_{\query}$, while if $k$ is in $\{kx_i^P\}$ then $\cA'$ only needs to call $\KXE$. Therefore, we have
+    \begin{align*}
+     &\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA'} = 1) \\
+     &= \frac{1}{2} + \frac{1}{2}\PP(b' = 1 | b = 1) - \frac{1}{2}\PP(b' = 1 | b = 0) \\   
+     &= \frac{1}{2} + \frac{1}{2}\left(\PP(D(\Hyb_{\enc, \ell})) - \PP(D(\Hyb_{\enc, \ell+1}))\right).
+    \end{align*}
+    So by IND-CCPKA, there exists a negligible function $\mu(\lambda)$ independent of $j$ such that for any $j$, we have
+    $$\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA} = 1) \leq \frac{1}{2} + \mu(\lambda).$$
+    Thus we conclude that
+    $$\PP(D(\Hyb_{\enc, \ell})) - \PP(D(\Hyb_{\enc, \ell+1})) \leq 2\mu(\lambda) = \negl(\lambda).$$
+    Similarly, we can show that
+    $$\PP(D(\Hyb_{\enc, \ell})) - \PP(D(\Hyb_{\enc, \ell+1})) \geq \negl(\lambda).$$
+    So we conclude that
+    $$D(\Hyb_{\enc, \ell})) \equiv_c D(\Hyb_{\enc, \ell + 1}))$$
+\end{proof}
+Finally, let $U$ be a polynomial upper bound on the number of times that $\cA$ calls the oracles. Then the following experiments are identical
+\begin{align*}
+\Real &= \Hyb_{\ACK, U, \Real} \\
+\Hyb_{\ACK, 0 \Real} &= \Hyb_{\enc, R} \\
+\Hyb_{\enc, 0} &= \Hyb_{\ACK, 0, \Ideal} \\
+\Hyb_{\ACK, R, \Ideal} &= \Ideal.
+\end{align*}
+By the previous three lemmas, we have constructed a polynomially long chain of indistinguishable experiments between $\Real$ and $\Ideal$. Thus we conclude that $\Real$ and $\Ideal$ are indistinguishable as desired.
 \clearpage
