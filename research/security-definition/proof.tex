@@ -259,10 +259,10 @@ Experiment $\mathsf{Hyb}_1$: We add the statements marked Hybrid 1. To argue thi
 \begin{itemize}
     \item Simulate $\cA$ in step (1), (3), (4.b).
     \item On step (2), $\reg_i \leftarrow (i, kx_i^{P})$ for each $i \in \cH$.
-    \item On step (4.a), simulate client action verbatim until Phase 2 Step (6). In Step (6), if $\reg_s \notin \reg_{\cH}$, parse $\reg_s = (i_s, kx^P_s)$, then call the $\KXM$ oracle to compute
-    $$\ct_{\msg} = \KXM(kx^S_i, (kx^P_s, \msg)).$$
+    \item On step (4.a), simulate client action verbatim until Phase 2 Step (6). In Step (6), if $\reg_s \notin \reg_{\cH}$, parse $\reg_s = (i_s, kx^P_s)$, then call the $\KXE$ oracle to compute
+    $$\ct_{\msg} = \KXE(kx^S_i, (kx^P_s, \msg)).$$
     and
-    $$\ct_{\ack} = \KXM(kx^S_i, (kx^S_i, \ACK(\seqr))).$$
+    $$\ct_{\ack} = \KXE(kx^S_i, (kx^S_i, \ACK(\seqr))).$$
     If $\reg_s \in \reg_{\cH}$, assume $\reg_s = \reg_j$. Output $(i, j, \msg)$, and move to line (4.b) in \cref{defn:ind-real-world}. Let $\ct_{\msg} = \ct^b_r$, the output of line (4.b). Repeat this for output $(i,j,ACK(\seqr))$.
     \item On step 
 \end{itemize}
