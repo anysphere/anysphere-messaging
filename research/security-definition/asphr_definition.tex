@@ -11,6 +11,7 @@
 \newcommand{\ACK}{\mathsf{ACK}}
 \newcommand{\ack}{\mathsf{ack}}
 \newcommand{\KXE}{\mathsf{KXE}}
+\newcommand{\KXD}{\mathsf{KXD}}
 \newcommand{\KX}{\mathsf{KX}}
 \section{Definition of Anysphere}
 In this section, we define the Anysphere core protocol described in our whitepaper. We rigorously define how our core protocol is able to handle multiple contacts, run asynchronous rounds. In the next section, we will prove that our core protocol maintains correctness and security.
@@ -69,24 +70,28 @@ $$\dec(sk_{BA}, \enc(sk', m)) = \bot.$$
 
 \todo{Update: see Section 5 for a formal description of this guarantee, which I call IND-CCPKA.}
 
+To formally define the security notion our system is required to satisfy, we first define some oracles.
+
 \textbf{Convention.} Given an oracle $O(x, \cdot)$ and a series $\{x_i\}_i$, define $O(\{x_i\}_i, \cdot)$ as the oracle whose input is a tuple $(j, m)$ and outputs $O(x_j, m)$.
 
-\begin{definition}[KXE Oracle]
-Given a key exchange secret key $kx^S$, the KXE(key exchange and message) oracle $\KXE(kx^S, \cdot)$ takes as input a ``fake key" $k$ and a message $m$, computes
-$$sk \leftarrow \KX(1^{\lambda}, k, kx^S)$$
-and outputs $\enc(sk, m)$.
+\begin{definition}
+The key-exchange-and-encrypt(KXE) oracle $\KXE(kx^S, \cdot)$ takes as input a public key $kx_m^P$ and a message $m$, and computes
+$$\sk \leftarrow \KX(kx^S, kx_m^P),$$
+$$\ct \leftarrow \enc(\sk, m).$$
+It outputs $\ct$.
+
+The key-exchange-and-decrypt(KXD) oracle $\KXD(kx^S, \cdot)$ takes as input a public key $kx_m^P$ and a ciphertext $\ct$, and computes
+$$\sk \leftarrow \KX(kx^S, kx_m^P),$$
+$$m \leftarrow \dec(\sk, \ct).$$
+It outputs $m$.
 \end{definition}
 \begin{definition}[ACK Oracle]
-Given a key exchange secret key $kx^S$, and a polynomial time computable function $\ACK: \NN \to \Sigma^*$, the ACK oracle $O_\ack(kx^S, f, \cdot)$ takes as input a ``fake key" $k$ and a set of ciphertexts $\ct_i$, computes
-$$sk \leftarrow \KX(1^{\lambda}, k, kx^S)$$
-$$m_i \leftarrow \dec(sk, \ct_i).$$
-let $\ell$ be the number of $m_i$ that are not $\bot$. 
-
-The oracle output $\enc(sk, \ACK(\ell))$.
+\label{defn:ack-oracle}
+Given a key exchange secret key $kx^S$, and a polynomial time computable function $\ACK: \NN \to \Sigma^*$, the ACK oracle $O_\ack(kx^S, f, \cdot)$ takes as input a ``fake key" $k$ and a set of ciphertexts $\ct_i$, computes $m_i = \KXD(kx^S, k, \ct_i)$ for each $i$. Let $\ell$ be the number of $m_i$ that are not $\bot$. The oracle output $\enc(sk, \ACK(\ell))$.
 \end{definition}
 \begin{definition}
 \label{defn:sym-security}
-Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
+vLet $N, R$ be polynomial in $\lambda$. Consider two experiments.
 \begin{figure}[h!]
 \begin{framed}
 \textbf{Real World Experiment}

@@ -1,5 +1,4 @@
 \clearpage
-\newcommand{\KXD}{\mathsf{KXD}}
 \newcommand{\Hyb}{\mathsf{Hyb}}
 \newcommand{\Real}{\mathsf{Real}}
 \newcommand{\Ideal}{\mathsf{Ideal}}
@@ -9,26 +8,16 @@ After a few days of searching, I am rather convinced that the existing security 
 \textbf{Remark}: A key problem with existing security definitions is that they only guarantee security under a ``uniformly random secret key". If the adversary can actively exchange keys with the honest users, they can potentially break this hypothesis.
 
 Recall that we are using a key exchange plus symmetric key system $\Pi_{\sym} = (\gen, \KX, \enc, \dec)$. We first define two oracles for convenience.
-\begin{definition}
-\label{defn:CCPKA}
-The key-exchange-and-encrypt(KXE) oracle $\KXE(kx^S, \cdot)$ takes as input a public key $kx_m^P$ and a message $m$, and computes
-$$\sk \leftarrow \KX(kx^S, kx_m^P),$$
-$$\ct \leftarrow \enc(\sk, m).$$
-It outputs $\ct$.
 
-The key-exchange-and-decrypt(KXD) oracle $\KXD(kx^S, \cdot)$ takes as input a public key $kx_m^P$ and a ciphertext $\ct$, and computes
-$$\sk \leftarrow \KX(kx^S, kx_m^P),$$
-$$m \leftarrow \dec(\sk, \ct).$$
-It outputs $m$.
-\end{definition}
 \begin{definition}[Indistinguishable under chosen ciphertext and public key attack(IND-CCPKA)]
+\label{defn:CCPKA}
 Consider the following security experiment, where $N = N(\lambda)$ is polynomial in $\lambda$.
 \begin{figure}[h!]
 \begin{framed}
 $\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA}$
 \begin{enumerate}
     \item for $i$ in $[N]$, $(kx_{i}^P, kx_{i}^S) \leftarrow \gen(1^{\lambda}).$
-    \item $a_{00}, a_{01}, a_{10}, a_{11}, m_0, m_1 \leftarrow \cA^{\KXE(kx_{i}^S, \cdot), \KXD(kx_{i}^S, \cdot)}(\mathsf{find}, 1^{\lambda}, kx_{ij}^P).$
+    \item $a_{00}, a_{01}, a_{10}, a_{11}, m_0, m_1 \leftarrow \cA^{\KXE(kx_{i}^S, \cdot), \KXD(kx_{i}^S, \cdot)}(\mathsf{find}, 1^{\lambda}, kx_{i}^P).$
     \item for $(i, j)$ in $\{0, 1\}^2$, $kx^{P}_{ij}, kx^S_{ij} \leftarrow kx^P_{a_{ij}}, kx^S_{a_{ij}}$. 
     \item $b \leftarrow U(\{0, 1\})$.
     \item $\ct \leftarrow \KXE(kx_{b0}^S, kx_{b1}^P, m_b).$
@@ -37,7 +26,7 @@ $\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA}$
 \end{framed}
 \end{figure}
 
-Let $Q_{ij}$ denote the queries $\cA$ sent to the oracle $\KXD(kx_{ij}^S, \cdot)$. Let
+Let $Q_{ij}$ denote the queries $\cA$ sent to the oracle $\KXD(kx_{ij}^S, \cdot)$ on line (6). Let
 $$\ct_{\query} = \{\ct': \exists (i,j) \in \{0, 1\}^2, (kx_{i(1 - j)}^P, \ct') \in Q_{ij}\}.$$
 We define the output of the experiment as $1$ if both $b' = b$ and $\ct \notin \ct_{\query}$, and $0$ otherwise. 
 
@@ -88,9 +77,27 @@ We define the oracle $\widetilde{O_{j, \ACK}}(\{kx_i^P, kx_i^S\}, \ACK, \cdot)$ 
     $$\PP(D(\Hyb_{\ACK, j + 1, \Real})) - \PP(D(\Hyb_{\ACK, j, \Real})) = \negl(\lambda).$$
 \end{lemma}
 \begin{proof}
-    Suppose the contrary. Without loss of generality, assume
-    $$$$Then we can design an adversary $\cA'$ to win the IND-CCPKA game. 
+    Suppose the contrary. Without loss of generality, assume the existence of a polynomial function $p(\lambda)$ such that
+    $$\PP(D(\Hyb_{\ACK, j + 1, \Real})) - \PP(D(\Hyb_{\ACK, j, \Real})) \geq p(\lambda)^{-1}$$
+    Then we can design an adversary $\cA'$ to win the IND-CCPKA game. On line (2) of $\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA}$, the adversary $\cA'$ reads $\{kx_i^P\}$, then simulates $\Hyb_{\ACK, j, \Real}$ with the same choice of $\{kx_i^P\}$ until the $j + 1$-th call to the oracle $\widetilde{O_{j, \ACK}}$. It is easy to verify that $\cA'$ can use the $\KXD$ and $\KXE$ oracle to simulate the oracle $O_{\ACK}$. On the $j + 1$-th call to $\widetilde{O_{j, \ACK}}$, assume the arguments are $(s, k, \{\ct_i\})$. If $k\notin \{kx_i^P\}$, then $\cA'$ does not exit line (2) of $\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA}$ and continue the simulation of $\Hyb_{\ACK, j + 1, \Real}$ until the end. Otherwise, suppose $k = kx_{t}^P$. Then $\cA'$ use the KXDoracle to compute the number $\ell$ of $i$ such that $\KXD(kx_s^S, k, \ct_i) \neq \bot$. Then it outputs $a_{00} = a_{10} = s$, $a_{01} = a_{11} = t$, $m_0 = \ACK(\ell)$, $m_1 = \ACK(0)$, and exits line (2). Let $\ct$ be the output line (5). $\cA'$ uses $\ct$ as the output of $\widetilde{O_{j, \ACK}}$, then continue to simulate $\Hyb_{\ACK, j, \Real}$ subject to the following caveat: when it uses $\KXD$ to simulate $\widetilde{O_{j, \ACK}}$ and wishes to run $\KXD(kx_s^S, kx_t^P, \ct)$ or $\KXD(kx_t^S, kx_s^P, \ct)$, it does not call $\KXD$, and instead directly asserts that the execution returns success. Note that this is the expected output from $\KXD(kx_s^S, kx_t^P, \ct)$ since both possibilities of $\ct$ will decrypt successfully. 
+
+    In the end, $\cA'$ finishes simulation of $\Hyb_{\ACK, j, \Real}$, and returns $b' = 1$ iff $D$ accepts the resulting view.
+
+    Now note that if $b = 1$, then $\cA'$ perfectly simulates $\Hyb_{\ACK, j + 1, \Real}$, while if $b = 0$, then $\cA'$ perfectly simulates $\Hyb_{\ACK, j, \Real}$. Furthermore, $\cA'$ guarantees that $\ct \notin \ct_{\query}$. Therefore, we have
+    \begin{align*}
+     &\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA} = 1) \\
+     &= \frac{1}{2} + \frac{1}{2}\PP(b' = 1 | b = 1) - \frac{1}{2}\PP(b' = 1 | b = 0) \\   
+     &= \frac{1}{2} + \frac{1}{2}\left(\PP(D(\Hyb_{\ACK, j + 1, \Real})) - \PP(D(\Hyb_{\ACK, j, \Real}))\right) \\
+     &\geq \frac{1}{2} + \frac{1}{2p(\lambda)}.
+    \end{align*}
+    Therefore $\cA'$ contradicts the definition of IND-CCPKA.
 \end{proof}
+Analogously, we can show that
+\begin{lemma}
+    Assume $\Pi_{\sym}$ is IND-CCPKA secure. For any $j$, we have 
+    $$\PP(D(\Hyb_{\ACK, j + 1, \Ideal})) - \PP(D(\Hyb_{\ACK, j, \Ideal})) = \negl(\lambda).$$
+\end{lemma}
+We let $\widetilde{O_{\ACK}} = \widetilde{O_{0, \ACK}}$. Then $\widetilde{O_{\ACK}}$ is identical to 
 \begin{figure}[h!]
 \begin{framed}
 \textbf{Hybrid Experiment} $\Hyb_\ell$.
