@@ -17,9 +17,6 @@ const EMAIL_MATCHER =
 const urlMatcher: LinkMatcher = (text: string) => {
   const match: RegExpExecArray | null = URL_MATCHER.exec(text);
 
-  console.log("text: ", text);
-  console.log("match: ", match);
-
   if (match === null || match[0] === undefined) {
     return null;
   }

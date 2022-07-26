@@ -201,7 +201,11 @@ function Main(): JSX.Element {
         if (!registered) {
           setModal(
             <RegisterModal
-              onClose={() => {}} // should not be able to close modal by clicking outside
+              onClose={() => {
+                console.log(
+                  "// should not be able to close modal by clicking outside"
+                );
+              }}
               onRegister={(username: string, key: string) => {
                 window
                   .registerUser({ name: username, betaKey: key })
@@ -209,7 +213,6 @@ function Main(): JSX.Element {
                     closeModal();
                     statusState.setStatus({
                       message: `Registered!`,
-                      action: () => {},
                       actionName: null,
                     });
                     statusState.setVisible();
@@ -218,7 +221,6 @@ function Main(): JSX.Element {
                     console.error(e);
                     statusState.setStatus({
                       message: `Unable to register. Perhaps incorrect access key?`,
-                      action: () => {},
                       actionName: null,
                     });
                     statusState.setVisible();
@@ -232,12 +234,13 @@ function Main(): JSX.Element {
   }, [closeModal, statusState]);
 
   const openOutbox = React.useCallback(() => {
-    for (let i = 0; i < tabs.length; i++) {
-      if (tabs[i].type === TabType.Outbox) {
-        switchTab(tabs[i].id);
+    for (const tab of tabs) {
+      if (tab.type === TabType.Outbox) {
+        switchTab(tab.id);
         return;
       }
     }
+
     const outboxTab = {
       type: TabType.Outbox,
       name: "Outbox",
@@ -249,9 +252,9 @@ function Main(): JSX.Element {
   }, [switchTab, tabs, pushTab]);
 
   const openSent = React.useCallback(() => {
-    for (let i = 0; i < tabs.length; i++) {
-      if (tabs[i].type === TabType.Sent) {
-        switchTab(tabs[i].id);
+    for (const tab of tabs) {
+      if (tab.type === TabType.Sent) {
+        switchTab(tab.id);
         return;
       }
     }
@@ -267,7 +270,7 @@ function Main(): JSX.Element {
 
   // Sidebar options
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
-  const sideBarCallback = (b: SideBarButton) => {
+  const sideBarCallback = (b: SideBarButton): void => {
     setSidebarOpen(false);
     switch (b) {
       case SideBarButton.INBOX:
@@ -279,7 +282,7 @@ function Main(): JSX.Element {
       case SideBarButton.ADD_FRIEND:
         return openFriendModal();
       default:
-        return () => {};
+        return;
         break;
     }
   };

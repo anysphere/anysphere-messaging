@@ -189,7 +189,7 @@ function Write({
 }: {
   data: WriteData;
   onDone: () => void;
-  edit: (data: any) => void;
+  edit: (data: unknown) => void;
   setStatus: (status: StatusProps) => void;
   onClose: () => void;
 }): JSX.Element {

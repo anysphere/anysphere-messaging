@@ -23,9 +23,13 @@ export const statusContext = React.createContext<StatusInterface>({
     message: "",
     actionName: null,
   },
-  setStatus: () => {},
+  setStatus: () => {
+    console.log("first setStatus");
+  },
   display: false,
-  setVisible: () => {},
+  setVisible: () => {
+    console.log("first setVisible");
+  },
 });
 
 export function Status(props: {
