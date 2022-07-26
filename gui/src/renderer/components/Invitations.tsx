@@ -124,36 +124,6 @@ function IncomingInvitationComp({
         <div className="text-sm text-asbrown-300">{inv.message}</div>
         <div className="flex-1"></div>
         <div className="text-sm text-asbrown-200">{timestampString}</div>
-        {/* <button
-          className="h-fit rounded-lg bg-asbrown-100 px-2 py-2 text-sm text-asbrown-dark"
-          onClick={() => {
-            console.log("aaaa need to accept!");
-          }}
-        >
-          Accept
-        </button>
-        <button
-          className="h-fit rounded-lg bg-asbrown-100 px-2 py-2 text-sm text-asbrown-dark"
-          onClick={() => {
-            window
-              .rejectAsyncInvitation({ publicId: inv.publicId })
-              .then(() => {
-                setStatus({
-                  message: "Rejected invitation from " + inv.publicId + ".",
-                  actionName: null,
-                });
-                updateCallback();
-              })
-              .catch((err) => {
-                setStatus({
-                  message: `Failed to reject invitation: ${err}`,
-                  actionName: null,
-                });
-              });
-          }}
-        >
-          Remove
-        </button> */}
       </div>
     </div>
   );
