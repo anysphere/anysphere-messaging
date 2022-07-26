@@ -20,9 +20,9 @@ export function Modal({
   children: React.ReactNode;
   onClose: () => void;
   type?: ModalType;
-}) {
+}): JSX.Element {
   React.useEffect(() => {
-    const handler = (event: any) => {
+    const handler = (event: KeyboardEvent): void => {
       if (event.key === "Escape") {
         onClose();
       }
