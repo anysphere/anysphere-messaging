@@ -90,7 +90,7 @@ It outputs $m$.
 \end{definition}
 \begin{definition}[Eval Oracle]
 \label{defn:ack-oracle}
-Given a key exchange secret key $kx^S$, and a polynomial time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^n$, the Eval oracle $\Eval_{f}(kx^S, \cdot)$ takes as input a ``fake key" $k$, a set of ciphertexts $\arg_{\ct} = \{\ct_i\}$, and a plaintext argument $\arg_{p}$. It computes 
+Given a key exchange secret key $kx^S$, and a polynomial time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^L$, the Eval oracle $\Eval_{f}(kx^S, \cdot)$ takes as input a ``fake key" $k$, a set of ciphertexts $\arg_{\ct} = \{\ct_i\}$, and a plaintext argument $\arg_{p}$. It computes 
 $$\sk \leftarrow \KX(k, kx^S)$$
 $$m_i \leftarrow \dec(sk, \ct_i).$$ 
 It outputs $\enc(sk, f(\{m_i\}, \arg_p))$.
@@ -128,7 +128,7 @@ Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
 \end{framed}
 \end{figure}
 
-Then we say the encryption scheme is key-private IND-CPA if there exists a p.p.t simulator $\Sim$ such that for any polynomial-time computable function $f: \Sigma^* \to \Sigma^{L_f}$, any p.p.t adversary with oracle $\cA^O$, the real world experiment and the ideal world experiment are computationally indistinguishable.
+Then we say the encryption scheme is key-private IND-CPA if there exists a p.p.t simulator $\Sim$ such that for any polynomial-time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^{L}$, any p.p.t adversary with oracle $\cA^O$, the real world experiment and the ideal world experiment are computationally indistinguishable.
 \end{definition}
 \begin{definition}[EUF-CMA Authentication]
 Let $kx^P_A, kx^P_B, \sk_{AB}, \sk_{BA}$ be the same as \cref{defn:KX-Correctness}. For any p.p.t. adversary $\cA^O$ with access to oracle $O$, if
