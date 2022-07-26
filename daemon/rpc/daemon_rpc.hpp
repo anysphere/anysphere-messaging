@@ -27,6 +27,11 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
       const asphrdaemon::GetMyPublicIDRequest* getMyPublicIDRequest,
       asphrdaemon::GetMyPublicIDResponse* getMyPublicIDResponse) override;
 
+  grpc::Status IsValidPublicID(
+      grpc::ServerContext* context,
+      const asphrdaemon::IsValidPublicIDRequest* isValidPublicIDRequest,
+      asphrdaemon::IsValidPublicIDResponse* isValidPublicIDResponse) override;
+
   grpc::Status GetFriendList(
       grpc::ServerContext* context,
       const asphrdaemon::GetFriendListRequest* getFriendListRequest,
@@ -81,6 +86,13 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
       const asphrdaemon::RejectAsyncInvitationRequest*
           rejectAsyncInvitationRequest,
       asphrdaemon::RejectAsyncInvitationResponse* rejectAsyncInvitationResponse)
+      override;
+
+  grpc::Status CancelAsyncInvitation(
+      grpc::ServerContext* context,
+      const asphrdaemon::CancelAsyncInvitationRequest*
+          cancelAsyncInvitationRequest,
+      asphrdaemon::CancelAsyncInvitationResponse* cancelAsyncInvitationResponse)
       override;
 
   grpc::Status SendMessage(

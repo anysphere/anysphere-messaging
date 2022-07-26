@@ -67,6 +67,10 @@ export interface Daemon {
 
   getMyPublicID(): Promise<daemon_pb.GetMyPublicIDResponse.AsObject>;
 
+  isValidPublicID(
+    isValidPublicIdRequest: daemon_pb.IsValidPublicIDRequest.AsObject
+  ): Promise<daemon_pb.IsValidPublicIDResponse.AsObject>;
+
   getFriendList(): Promise<Friend[]>;
 
   removeFriend(
@@ -100,6 +104,10 @@ export interface Daemon {
   rejectAsyncInvitation(
     rejectAsyncInvitationRequest: daemon_pb.RejectAsyncInvitationRequest.AsObject
   ): Promise<daemon_pb.RejectAsyncInvitationResponse.AsObject>;
+
+  cancelAsyncInvitation(
+    cancelAsyncInvitationRequest: daemon_pb.CancelAsyncInvitationRequest.AsObject
+  ): Promise<daemon_pb.CancelAsyncInvitationResponse.AsObject>;
 
   sendMessage(
     sendMessageRequest: daemon_pb.SendMessageRequest.AsObject
@@ -770,17 +778,19 @@ export class DaemonImpl implements Daemon {
       return {
         invitationsList: [
           {
-            uniqueName: "OutgoingSualeh",
-            displayName: "Sualeh Asif ooooo",
-            publicId: "asdfasdf",
-            message: "hihihihihihihihih",
+            uniqueName: "sualeh-asif",
+            displayName: "Sualeh Asif",
+            publicId:
+              "85dG6DNNvNQeCNSMXyJ5j3YprmRkmQDe7QcbEuHgoyw81UBLAAAA3NfN3fJgkNUMtrt8vxQBx3wfLn1cg3MJUac99XRwN9rVbn",
+            message: "hi! want to be my friend?",
             sentAt: dateToProtobufDate(new Date()),
           },
           {
-            uniqueName: "OutgoingShengtong",
-            displayName: "Shengtong aaaaaa",
-            publicId: "asdfasdf",
-            message: "hihihihihihihihih",
+            uniqueName: "stzh1555",
+            displayName: "Shengtong Zhang",
+            publicId:
+              "9abFxDNNvxQeCNxMXxJxj3qprmRkmQDe7QcbEuHgoyw81UBLAAAA3NfN3fJgkNUMtrt8vxQBx3wfLn1cg3MJUac99XRwN9rVbn",
+            message: "hi! want to be my friend pls?",
             sentAt: dateToProtobufDate(new Date()),
           },
         ],
@@ -812,13 +822,15 @@ export class DaemonImpl implements Daemon {
       return {
         invitationsList: [
           {
-            message: "Im First",
-            publicId: "asdfasdf",
+            message: "hey! it's Michael. verify my public ID on my twitter.",
+            publicId:
+              "88Y1GinMVwMtA3SpGo3ZwjzhizQyzJ4xbeh7qzEsHhSDxJ88JiQKoxJ3nR9iGYR5jVQqnxFdekoxhGsDZKaMAWhqPHzKAYXAhR",
             receivedAt: dateToProtobufDate(new Date()),
           },
           {
-            message: "Im Second",
-            publicId: "asdfasdf",
+            message: "hey! it's Aman. verify my public ID on my twitter.",
+            publicId:
+              "9abFxDNNvxQeCNxMXxJxj3qprmRkmQDe7QcbEuHgoyw81UBLAAAA3NfN3fJgkNUMtrt8vxQBx3wfLn1cg3MJUac99XRwN9rVbn",
             receivedAt: dateToProtobufDate(new Date()),
           },
         ],
@@ -898,6 +910,58 @@ export class DaemonImpl implements Daemon {
 
     if (response === undefined) {
       throw new Error("rejectAsyncInvitation returned undefined");
+    }
+
+    return response.toObject();
+  }
+
+  public async cancelAsyncInvitation(
+    cancelAsyncInvitationRequest: daemon_pb.CancelAsyncInvitationRequest.AsObject
+  ): Promise<daemon_pb.CancelAsyncInvitationResponse.AsObject> {
+    if (FAKE_DATA) {
+      return {};
+    }
+
+    const request = new daemon_pb.CancelAsyncInvitationRequest();
+    request.setPublicId(cancelAsyncInvitationRequest.publicId);
+
+    const boundCancelAsyncInvitation: (
+      argument: daemon_pb.CancelAsyncInvitationRequest,
+      callback: grpc.requestCallback<daemon_pb.CancelAsyncInvitationResponse>
+    ) => grpc.ClientUnaryCall = this.client.cancelAsyncInvitation.bind(
+      this.client
+    );
+    const promisifiedCancelAsyncInvitation = promisify(
+      boundCancelAsyncInvitation
+    );
+    const response = await promisifiedCancelAsyncInvitation(request);
+
+    if (response === undefined) {
+      throw new Error("cancelAsyncInvitation returned undefined");
+    }
+
+    return response.toObject();
+  }
+
+  public async isValidPublicID(
+    isValidPublicIdRequest: daemon_pb.IsValidPublicIDRequest.AsObject
+  ): Promise<daemon_pb.IsValidPublicIDResponse.AsObject> {
+    if (FAKE_DATA) {
+      return { valid: true };
+    }
+
+    const request = new daemon_pb.IsValidPublicIDRequest();
+    request.setPublicId(isValidPublicIdRequest.publicId);
+
+    const boundIsValidPublicID: (
+      argument: daemon_pb.IsValidPublicIDRequest,
+      callback: grpc.requestCallback<daemon_pb.IsValidPublicIDResponse>
+    ) => grpc.ClientUnaryCall = this.client.isValidPublicID.bind(this.client);
+    const promisifiedIsValidPublicID = promisify(boundIsValidPublicID);
+    const response = await promisifiedIsValidPublicID(request);
+
+    if (response === undefined) {
+      throw new Error("isValidPublicID returned undefined");
     }
 
     return response.toObject();

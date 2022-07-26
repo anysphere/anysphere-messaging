@@ -176,6 +176,22 @@ Status DaemonRpc::GetMyPublicID(
   return Status::OK;
 }
 
+Status DaemonRpc::IsValidPublicID(
+    grpc::ServerContext* context,
+    const asphrdaemon::IsValidPublicIDRequest* isValidPublicIDRequest,
+    asphrdaemon::IsValidPublicIDResponse* isValidPublicIDResponse) {
+  ASPHR_LOG_INFO("IsValidPublicID() called.", rpc_call, "IsValidPublicID");
+
+  auto public_id_maybe =
+      PublicIdentifier::from_public_id(isValidPublicIDRequest->public_id());
+  if (!public_id_maybe.ok()) {
+    isValidPublicIDResponse->set_valid(false);
+    return Status::OK;
+  }
+  isValidPublicIDResponse->set_valid(true);
+  return Status::OK;
+}
+
 // ---------------------------------------
 // ---------------------------------------
 // ||   Start: Invitation Functions    ||
@@ -489,6 +505,32 @@ Status DaemonRpc::RejectAsyncInvitation(
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Failed to reject async friend request.", error, e.what(),
                   rpc_call, "RejectAsyncInvitation");
+    return Status(grpc::StatusCode::UNKNOWN, e.what());
+  }
+
+  return Status::OK;
+}
+
+Status DaemonRpc::CancelAsyncInvitation(
+    grpc::ServerContext* context,
+    const asphrdaemon::CancelAsyncInvitationRequest*
+        cancelAsyncInvitationRequest,
+    asphrdaemon::CancelAsyncInvitationResponse* cancelAsyncInvitationResponse) {
+  ASPHR_LOG_INFO("CancelAsyncInvitation() called.", rpc_call,
+                 "CancelAsyncInvitation");
+
+  if (!G.db->has_registered()) {
+    ASPHR_LOG_INFO("Need to register first.", rpc_call,
+                   "CancelAsyncInvitation");
+    return Status(grpc::StatusCode::UNAUTHENTICATED, "not registered");
+  }
+
+  try {
+    G.db->remove_outgoing_async_invitation(
+        cancelAsyncInvitationRequest->public_id());
+  } catch (const rust::Error& e) {
+    ASPHR_LOG_ERR("Failed to cancel async friend request.", error, e.what(),
+                  rpc_call, "CancelAsyncInvitation");
     return Status(grpc::StatusCode::UNKNOWN, e.what());
   }
 

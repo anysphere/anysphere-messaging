@@ -73,6 +73,28 @@ function deserialize_asphrdaemon_AddSyncFriendResponse(buffer_arg) {
   return schema_daemon_pb.AddSyncFriendResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_asphrdaemon_CancelAsyncInvitationRequest(arg) {
+  if (!(arg instanceof schema_daemon_pb.CancelAsyncInvitationRequest)) {
+    throw new Error('Expected argument of type asphrdaemon.CancelAsyncInvitationRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_CancelAsyncInvitationRequest(buffer_arg) {
+  return schema_daemon_pb.CancelAsyncInvitationRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_asphrdaemon_CancelAsyncInvitationResponse(arg) {
+  if (!(arg instanceof schema_daemon_pb.CancelAsyncInvitationResponse)) {
+    throw new Error('Expected argument of type asphrdaemon.CancelAsyncInvitationResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_CancelAsyncInvitationResponse(buffer_arg) {
+  return schema_daemon_pb.CancelAsyncInvitationResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_asphrdaemon_ChangeLatencyRequest(arg) {
   if (!(arg instanceof schema_daemon_pb.ChangeLatencyRequest)) {
     throw new Error('Expected argument of type asphrdaemon.ChangeLatencyRequest');
@@ -315,6 +337,28 @@ function deserialize_asphrdaemon_GetStatusResponse(buffer_arg) {
   return schema_daemon_pb.GetStatusResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_asphrdaemon_IsValidPublicIDRequest(arg) {
+  if (!(arg instanceof schema_daemon_pb.IsValidPublicIDRequest)) {
+    throw new Error('Expected argument of type asphrdaemon.IsValidPublicIDRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_IsValidPublicIDRequest(buffer_arg) {
+  return schema_daemon_pb.IsValidPublicIDRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_asphrdaemon_IsValidPublicIDResponse(arg) {
+  if (!(arg instanceof schema_daemon_pb.IsValidPublicIDResponse)) {
+    throw new Error('Expected argument of type asphrdaemon.IsValidPublicIDResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_asphrdaemon_IsValidPublicIDResponse(buffer_arg) {
+  return schema_daemon_pb.IsValidPublicIDResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_asphrdaemon_KillRequest(arg) {
   if (!(arg instanceof schema_daemon_pb.KillRequest)) {
     throw new Error('Expected argument of type asphrdaemon.KillRequest');
@@ -471,6 +515,17 @@ var DaemonService = exports.DaemonService = {
     responseSerialize: serialize_asphrdaemon_GetMyPublicIDResponse,
     responseDeserialize: deserialize_asphrdaemon_GetMyPublicIDResponse,
   },
+  isValidPublicID: {
+    path: '/asphrdaemon.Daemon/IsValidPublicID',
+    requestStream: false,
+    responseStream: false,
+    requestType: schema_daemon_pb.IsValidPublicIDRequest,
+    responseType: schema_daemon_pb.IsValidPublicIDResponse,
+    requestSerialize: serialize_asphrdaemon_IsValidPublicIDRequest,
+    requestDeserialize: deserialize_asphrdaemon_IsValidPublicIDRequest,
+    responseSerialize: serialize_asphrdaemon_IsValidPublicIDResponse,
+    responseDeserialize: deserialize_asphrdaemon_IsValidPublicIDResponse,
+  },
   getFriendList: {
     path: '/asphrdaemon.Daemon/GetFriendList',
     requestStream: false,
@@ -569,6 +624,17 @@ var DaemonService = exports.DaemonService = {
     requestDeserialize: deserialize_asphrdaemon_RejectAsyncInvitationRequest,
     responseSerialize: serialize_asphrdaemon_RejectAsyncInvitationResponse,
     responseDeserialize: deserialize_asphrdaemon_RejectAsyncInvitationResponse,
+  },
+  cancelAsyncInvitation: {
+    path: '/asphrdaemon.Daemon/CancelAsyncInvitation',
+    requestStream: false,
+    responseStream: false,
+    requestType: schema_daemon_pb.CancelAsyncInvitationRequest,
+    responseType: schema_daemon_pb.CancelAsyncInvitationResponse,
+    requestSerialize: serialize_asphrdaemon_CancelAsyncInvitationRequest,
+    requestDeserialize: deserialize_asphrdaemon_CancelAsyncInvitationRequest,
+    responseSerialize: serialize_asphrdaemon_CancelAsyncInvitationResponse,
+    responseDeserialize: deserialize_asphrdaemon_CancelAsyncInvitationResponse,
   },
   sendMessage: {
     path: '/asphrdaemon.Daemon/SendMessage',

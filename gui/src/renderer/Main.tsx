@@ -24,7 +24,8 @@ import { KBarOptions } from "./components/cmd-k/types";
 import { StatusHandler, statusContext } from "./components/Status";
 import { SideBar } from "./components/SideBar/SideBar";
 import { SideBarButton } from "./components/SideBar/SideBarProps";
-import AddFriend from "./components/AddFriend/AddFriend";
+import { Invitations } from "./components/Invitations";
+import AddFriend, { AddFriendScreen } from "./components/AddFriend/AddFriend";
 import Modal from "./components/Modal";
 
 const defaultTabs: Tab[] = [
@@ -190,6 +191,29 @@ function Main(): JSX.Element {
         />
       );
       break;
+    case TabType.Invitations:
+      selectedComponent = (
+        <Invitations
+          setStatus={(x) => {
+            statusState.setStatus(x);
+            statusState.setVisible();
+          }}
+          handleIncomingInvitation={(inv) => {
+            setModal(
+              <AddFriend
+                onClose={closeModal}
+                setStatus={(x) => {
+                  statusState.setStatus(x);
+                  statusState.setVisible();
+                }}
+                initialScreen={AddFriendScreen.Incoming}
+                incomingInvitation={inv}
+              />
+            );
+          }}
+        />
+      );
+      break;
     default:
       selectedComponent = <div>Unknown tab</div>;
   }
@@ -272,6 +296,13 @@ function Main(): JSX.Element {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const sideBarCallback = (b: SideBarButton): void => {
     setSidebarOpen(false);
+    const invTab = {
+      type: TabType.Invitations,
+      name: "Invitations",
+      id: `invitations`,
+      data: null,
+      unclosable: false,
+    };
     switch (b) {
       case SideBarButton.INBOX:
         return switchTab("all");
@@ -281,6 +312,14 @@ function Main(): JSX.Element {
         return openSent();
       case SideBarButton.ADD_FRIEND:
         return openFriendModal();
+      case SideBarButton.INVITATIONS:
+        for (const tab of tabs) {
+          if (tab.type === TabType.Invitations && tab.id === "invitations") {
+            switchTab(tab.id);
+            return;
+          }
+        }
+        return pushTab(invTab);
       default:
         return;
         break;

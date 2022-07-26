@@ -5,6 +5,8 @@
 
 import * as React from "react";
 import { IncomingMessage, OutgoingMessage } from "../../types";
+import { formatTime } from "../utils";
+import { protobufDateToDate } from "../../types";
 import { micromark } from "micromark";
 import DOMPurify from "dompurify";
 
@@ -26,6 +28,24 @@ function Read({
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
+
+  let timestampString = "";
+
+  if ("deliveredAt" in message) {
+    if (message.deliveredAt === undefined) {
+      timestampString = "Not yet delivered.";
+      console.error("Message has no deliveredAt");
+    } else {
+      timestampString = formatTime(protobufDateToDate(message.deliveredAt));
+    }
+  } else if ("sentAt" in message) {
+    if (message.sentAt === undefined) {
+      timestampString = "Not yet sent.";
+      console.error("Message has no sentAt");
+    } else {
+      timestampString = formatTime(protobufDateToDate(message.sentAt));
+    }
+  }
 
   const parsedMessage = micromark(message.message);
 
@@ -65,21 +85,22 @@ function Read({
           </div>
           <div className="pl-2">
             {"otherRecipientsList" in message
-              ? "me, " +
+              ? "me" +
                 message.otherRecipientsList
                   .map((recipient) => {
                     if (recipient.displayName !== "") {
-                      return recipient.displayName;
+                      return ", " + recipient.displayName;
                     } else {
-                      return recipient.publicId;
+                      return ", " + recipient.publicId;
                     }
                   })
-                  .join(", ")
+                  .join("")
               : message.toFriendsList
                   .map((recipient) => recipient.displayName)
                   .join(", ")}
           </div>
           <div className="flex-1"></div>
+          <div>{timestampString}</div>
         </div>
         <hr className="border-asbrown-100" />
         <div className="h-full w-full grow resize-none whitespace-pre-wrap pt-4 pb-4 focus:outline-none">
