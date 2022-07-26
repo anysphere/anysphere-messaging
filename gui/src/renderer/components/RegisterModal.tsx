@@ -18,7 +18,7 @@ export function RegisterModal({
 }: {
   onClose: () => void;
   onRegister: (username: string, key: string) => void;
-}) {
+}): JSX.Element {
   const [screen, setScreen] = React.useState<RegisterScreen>(
     RegisterScreen.Welcome
   );
@@ -66,7 +66,7 @@ function RegisterModalForm({
   onClose: () => void;
   onRegister: (username: string, key: string) => void;
 }): JSX.Element {
-  const [username, setUsername] = React.useState<string>("No Name");
+  const [username, _] = React.useState<string>("No Name");
   const [accesskey, setAccesskey] = React.useState<string>("");
   return (
     <Modal onClose={onClose}>
@@ -86,7 +86,8 @@ function RegisterModalForm({
               our current implementation meets our privacy guarantees, we may
               have bugs, and those bugs may have privacy consequences.
             </b>{" "}
-            While in alpha, don't send anything on Anysphere that you wouldn't
+            While in alpha, {"don't"} send anything on Anysphere that you{" "}
+            {"wouldn't"}
             send on Signal.
           </div>
           <div className="my-2 flex flex-row items-baseline justify-center gap-1">
