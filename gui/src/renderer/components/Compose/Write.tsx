@@ -11,6 +11,8 @@ import { useSearch, useFocus, classNames } from "../../utils";
 import { SelectableList, ListItem } from "../SelectableList";
 import { Editor } from "./Editor";
 import { $getRoot, EditorState } from "lexical";
+import {$generateHtmlFromNodes} from '@lexical/html';
+import {$convertToMarkdownString} from '@lexical/markdown';
 
 const DEBUG_COLORS = false;
 // const DEBUG_COLORS = true;
@@ -96,7 +98,6 @@ function MultiSelect(props: {
         <SelectableList
           items={selectableOptions}
           searchable={true}
-          globalAction={() => {}}
           onRender={({ item, active }) =>
             typeof item === "string" ? (
               <div className="unselectable text-xs text-asbrown-300">
@@ -224,7 +225,7 @@ function Write({
     // the sync invitations have verified each other so it is safe to treat as a real friend
     // in the daemon.proto we keep them separate because we still want to display progress information
     window
-      .getOutgoingSyncInvitations()
+      .getOutgoingSyncInvitations(new daemon_pb.GetOutgoingSyncInvitationsRequest())
       .then(
         (
           invitations: daemon_pb.GetOutgoingSyncInvitationsResponse.AsObject
@@ -253,7 +254,6 @@ function Write({
     if (data.multiSelectState.text.length > 0) {
       setStatus({
         message: `Unknown contact: ${data.multiSelectState.text}.`,
-        action: () => {},
         actionName: null,
       });
       return;
@@ -261,23 +261,26 @@ function Write({
     if (data.multiSelectState.friends.length === 0) {
       setStatus({
         message: `No contacts selected.`,
-        action: () => {},
         actionName: null,
       });
       return;
     }
+
     if (editorStateRef.current === null) {
       setStatus({
         message: `Internal error. Please try again.`,
-        action: () => {},
         actionName: null,
       });
       return;
     }
+
     let content = "";
     editorStateRef.current.read(() => {
-      content = $getRoot().getTextContent();
+      // content = $getRoot().getTextContent();
+
+      content = $convertToMarkdownString();
     });
+
 
     const uniqueNames = data.multiSelectState.friends.map(
       (friend) => friend.uniqueName
@@ -293,7 +296,6 @@ function Write({
       .then((_) => {
         setStatus({
           message: `Message sent to ${displayNames.join(", ")}.`,
-          action: () => {},
           actionName: null,
         });
         onDone();
@@ -302,7 +304,6 @@ function Write({
         console.error(err);
         setStatus({
           message: `Message failed to send.`,
-          action: () => {},
           actionName: null,
         });
       });

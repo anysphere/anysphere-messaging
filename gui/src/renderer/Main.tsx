@@ -21,7 +21,7 @@ import { CmdKPortal } from "./components/cmd-k/CmdKPortal";
 import { CmdKSearch } from "./components/cmd-k/CmdKSearch";
 import { CmdKResultRenderer } from "./components/cmd-k/CmdKResultRenderer";
 import { KBarOptions } from "./components/cmd-k/types";
-import { StatusHandler, StatusContext } from "./components/Status";
+import { StatusHandler, statusContext } from "./components/Status";
 import { SideBar } from "./components/SideBar/SideBar";
 import { SideBarButton } from "./components/SideBar/SideBarProps";
 import AddFriend from "./components/AddFriend/AddFriend";
@@ -53,7 +53,7 @@ function Main(): JSX.Element {
   ] = useTabs(defaultTabs);
   const [modal, setModal] = React.useState<JSX.Element | null>(null);
 
-  const statusState = React.useContext(StatusContext);
+  const statusState = React.useContext(statusContext);
 
   const readMessage = React.useCallback(
     (message: IncomingMessage | OutgoingMessage, _mode: string) => {
