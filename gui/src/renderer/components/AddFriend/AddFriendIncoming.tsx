@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 import { StatusProps } from "../Status";
 import { classNames } from "../../utils";
 import { useState, useCallback, useRef } from "react";

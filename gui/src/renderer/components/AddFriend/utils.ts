@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 export function generateUniqueNameFromDisplayName(displayName: string): string {
   // make lowercase, replace space by dash
   const name = displayName.toLowerCase().replace(/ /g, "-");

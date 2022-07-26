@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 import { StatusProps } from "../Status";
 import { classNames } from "../../utils";
 import { useEffect, useState } from "react";
@@ -26,6 +31,10 @@ export default function AddFriendRemote({
     id = id.replace(/^https?:\/\//, "");
     if (id.startsWith("anysphere.id/#")) {
       id = id.substring("anysphere.id/#".length);
+    }
+    // for fake data, we want to check that id is not empty
+    if (id.length == 0) {
+      return;
     }
     // check if id is valid
     window

@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
 import { StatusProps } from "../Status";
 import { classNames } from "../../utils";
 import { useState, useCallback, useRef } from "react";
@@ -79,8 +84,8 @@ export default function AddFriendRemotePartTwo({
         New contact. What do you want to call them?
       </h3>
       <h6 className="absolute top-24 left-0 right-0 text-center text-xs leading-5 text-asbrown-light">
-        You're adding anysphere.id/#{theirId}. Please make sure this is the
-        right person.
+        {`You're adding anysphere.id/#${theirId}. Please make sure this is the
+        right person.`}
       </h6>
       <>
         <div
