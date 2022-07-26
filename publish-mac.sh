@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if [[ -z "${ASPHR_VERSION}" ]]; then
+    echo "ASPHR_VERSION is empty. Please set it to the version of asphr you want to publish."
+    exit 1
+fi
+
 sed -i '' "s/version.*/version\": \"${ASPHR_VERSION}\",/g" client/gui/release/app/package.json
 pushd client/gui || exit
 npm install
