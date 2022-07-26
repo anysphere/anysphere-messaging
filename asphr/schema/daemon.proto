@@ -17,6 +17,8 @@ service Daemon {
   rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {}
 
   rpc GetMyPublicID(GetMyPublicIDRequest) returns (GetMyPublicIDResponse) {}
+  rpc IsValidPublicID(IsValidPublicIDRequest)
+      returns (IsValidPublicIDResponse) {}
 
   rpc GetFriendList(GetFriendListRequest) returns (GetFriendListResponse) {}
   rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse) {}
@@ -37,6 +39,8 @@ service Daemon {
       returns (AcceptAsyncInvitationResponse) {}
   rpc RejectAsyncInvitation(RejectAsyncInvitationRequest)
       returns (RejectAsyncInvitationResponse) {}
+  rpc CancelAsyncInvitation(CancelAsyncInvitationRequest)
+      returns (CancelAsyncInvitationResponse) {}
 
   rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {}
 
@@ -92,6 +96,10 @@ message GetMyPublicIDResponse {
   string story = 2;
   // en encoding of the public identifier in a nice story format
 }
+
+message IsValidPublicIDRequest { string public_id = 1; }
+
+message IsValidPublicIDResponse { bool valid = 1; }
 
 message AddSyncFriendRequest {
   string unique_name = 1;
@@ -162,6 +170,10 @@ message AcceptAsyncInvitationResponse {}
 message RejectAsyncInvitationRequest { string public_id = 1; }
 
 message RejectAsyncInvitationResponse {}
+
+message CancelAsyncInvitationRequest { string public_id = 1; }
+
+message CancelAsyncInvitationResponse {}
 
 message RemoveFriendRequest { string unique_name = 1; }
 
