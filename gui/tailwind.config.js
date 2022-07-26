@@ -7,7 +7,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   purge: ["./src/**/*.{js,jsx,ts,tsx}"],
-  plugins: [require("@tailwindcss/forms"), require('@tailwindcss/typography')],
+  plugins: [require("@tailwindcss/forms"), require("@tailwindcss/typography")],
   theme: {
     extend: {
       colors: {

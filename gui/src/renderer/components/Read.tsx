@@ -5,7 +5,7 @@
 
 import * as React from "react";
 import { IncomingMessage, OutgoingMessage } from "../../types";
-import {micromark} from 'micromark';
+import { micromark } from "micromark";
 
 function Read({
   message,
@@ -64,7 +64,10 @@ function Read({
         </div>
         <hr className="border-asbrown-100" />
         <div className="h-full w-full grow resize-none whitespace-pre-wrap pt-4 pb-4 focus:outline-none">
-          <div className="prose prose-stone prose-sm max-w-prose"  dangerouslySetInnerHTML={{ __html: parsedMessage }}/>
+          <div
+            className="prose prose-stone prose-sm max-w-prose"
+            dangerouslySetInnerHTML={{ __html: parsedMessage }}
+          />
         </div>
       </div>
     </div>

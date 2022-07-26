@@ -18,19 +18,20 @@ interface StatusInterface {
   setVisible: () => void;
 }
 
-export const statusContext = React.createContext<StatusInterface>(
-  {
-    status: {
-      message: "",
-      actionName: null,
-    },
-    setStatus: () => {},
-    display: false,
-    setVisible: () => {},
-  }
-);
+export const statusContext = React.createContext<StatusInterface>({
+  status: {
+    message: "",
+    actionName: null,
+  },
+  setStatus: () => {},
+  display: false,
+  setVisible: () => {},
+});
 
-export function Status(props: { status: StatusProps; onClose: () => void }): JSX.Element {
+export function Status(props: {
+  status: StatusProps;
+  onClose: () => void;
+}): JSX.Element {
   return (
     <div
       className={`unselectable fixed bottom-5 left-4 z-50 flex flex-row gap-1 rounded-md bg-asbrown-100 px-2 py-2 text-sm text-asbrown-light`}
@@ -49,7 +50,9 @@ export function Status(props: { status: StatusProps; onClose: () => void }): JSX
   );
 }
 
-export function StatusHandler(props: { children: React.ReactNode }): JSX.Element {
+export function StatusHandler(props: {
+  children: React.ReactNode;
+}): JSX.Element {
   const [status, setStatus] = React.useState<StatusProps>({
     message: "",
     actionName: null,

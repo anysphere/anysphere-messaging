@@ -11,7 +11,7 @@ import { useSearch, useFocus, classNames } from "../../utils";
 import { SelectableList, ListItem } from "../SelectableList";
 import { Editor } from "./Editor";
 import { EditorState } from "lexical";
-import {$convertToMarkdownString} from '@lexical/markdown';
+import { $convertToMarkdownString } from "@lexical/markdown";
 
 const DEBUG_COLORS = false;
 // const DEBUG_COLORS = true;
@@ -224,7 +224,9 @@ function Write({
     // the sync invitations have verified each other so it is safe to treat as a real friend
     // in the daemon.proto we keep them separate because we still want to display progress information
     window
-      .getOutgoingSyncInvitations(new daemon_pb.GetOutgoingSyncInvitationsRequest())
+      .getOutgoingSyncInvitations(
+        new daemon_pb.GetOutgoingSyncInvitationsRequest()
+      )
       .then(
         (
           invitations: daemon_pb.GetOutgoingSyncInvitationsResponse.AsObject
