@@ -67,6 +67,10 @@ export interface Daemon {
 
   getMyPublicID(): Promise<daemon_pb.GetMyPublicIDResponse.AsObject>;
 
+  isValidPublicID(
+    isValidPublicIdRequest: daemon_pb.IsValidPublicIDRequest.AsObject
+  ): Promise<daemon_pb.IsValidPublicIDResponse.AsObject>;
+
   getFriendList(): Promise<Friend[]>;
 
   removeFriend(
@@ -934,6 +938,30 @@ export class DaemonImpl implements Daemon {
 
     if (response === undefined) {
       throw new Error("cancelAsyncInvitation returned undefined");
+    }
+
+    return response.toObject();
+  }
+
+  public async isValidPublicID(
+    isValidPublicIdRequest: daemon_pb.IsValidPublicIDRequest.AsObject
+  ): Promise<daemon_pb.IsValidPublicIDResponse.AsObject> {
+    if (FAKE_DATA) {
+      return { valid: true };
+    }
+
+    const request = new daemon_pb.IsValidPublicIDRequest();
+    request.setPublicId(isValidPublicIdRequest.publicId);
+
+    const boundIsValidPublicID: (
+      argument: daemon_pb.IsValidPublicIDRequest,
+      callback: grpc.requestCallback<daemon_pb.IsValidPublicIDResponse>
+    ) => grpc.ClientUnaryCall = this.client.isValidPublicID.bind(this.client);
+    const promisifiedIsValidPublicID = promisify(boundIsValidPublicID);
+    const response = await promisifiedIsValidPublicID(request);
+
+    if (response === undefined) {
+      throw new Error("isValidPublicID returned undefined");
     }
 
     return response.toObject();

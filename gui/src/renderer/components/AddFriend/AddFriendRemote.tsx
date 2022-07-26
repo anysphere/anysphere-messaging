@@ -28,13 +28,20 @@ export default function AddFriendRemote({
       id = id.substring("anysphere.id/#".length);
     }
     // check if id is valid
-    // unsure how to check this... there is a checksum, but I'm not sure how to check it
-    // TODO: check the checksum. for now we just check length > 40
-    if (id.length <= 40) {
-      return;
-    }
-    onPastePublicId(id);
-  }, [theirId, onPastePublicId]);
+    window
+      .isValidPublicID({ publicId: id })
+      .then(({ isValid }) => {
+        if (isValid) {
+          onPastePublicId(id);
+        }
+      })
+      .catch((err) => {
+        setStatus({
+          message: `Failed to check if public ID is valid: ${err}`,
+          actionName: null,
+        });
+      });
+  }, [theirId, onPastePublicId, setStatus]);
 
   return (
     <div className="grid h-full w-full items-center">
