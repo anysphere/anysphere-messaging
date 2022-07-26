@@ -11,6 +11,7 @@ import * as grpc from "@grpc/grpc-js";
 interface IDaemonService extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation> {
   registerUser: grpc.MethodDefinition<schema_daemon_pb.RegisterUserRequest, schema_daemon_pb.RegisterUserResponse>;
   getMyPublicID: grpc.MethodDefinition<schema_daemon_pb.GetMyPublicIDRequest, schema_daemon_pb.GetMyPublicIDResponse>;
+  isValidPublicID: grpc.MethodDefinition<schema_daemon_pb.IsValidPublicIDRequest, schema_daemon_pb.IsValidPublicIDResponse>;
   getFriendList: grpc.MethodDefinition<schema_daemon_pb.GetFriendListRequest, schema_daemon_pb.GetFriendListResponse>;
   removeFriend: grpc.MethodDefinition<schema_daemon_pb.RemoveFriendRequest, schema_daemon_pb.RemoveFriendResponse>;
   addSyncFriend: grpc.MethodDefinition<schema_daemon_pb.AddSyncFriendRequest, schema_daemon_pb.AddSyncFriendResponse>;
@@ -38,6 +39,7 @@ export const DaemonService: IDaemonService;
 export interface IDaemonServer extends grpc.UntypedServiceImplementation {
   registerUser: grpc.handleUnaryCall<schema_daemon_pb.RegisterUserRequest, schema_daemon_pb.RegisterUserResponse>;
   getMyPublicID: grpc.handleUnaryCall<schema_daemon_pb.GetMyPublicIDRequest, schema_daemon_pb.GetMyPublicIDResponse>;
+  isValidPublicID: grpc.handleUnaryCall<schema_daemon_pb.IsValidPublicIDRequest, schema_daemon_pb.IsValidPublicIDResponse>;
   getFriendList: grpc.handleUnaryCall<schema_daemon_pb.GetFriendListRequest, schema_daemon_pb.GetFriendListResponse>;
   removeFriend: grpc.handleUnaryCall<schema_daemon_pb.RemoveFriendRequest, schema_daemon_pb.RemoveFriendResponse>;
   addSyncFriend: grpc.handleUnaryCall<schema_daemon_pb.AddSyncFriendRequest, schema_daemon_pb.AddSyncFriendResponse>;
@@ -68,6 +70,9 @@ export class DaemonClient extends grpc.Client {
   getMyPublicID(argument: schema_daemon_pb.GetMyPublicIDRequest, callback: grpc.requestCallback<schema_daemon_pb.GetMyPublicIDResponse>): grpc.ClientUnaryCall;
   getMyPublicID(argument: schema_daemon_pb.GetMyPublicIDRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetMyPublicIDResponse>): grpc.ClientUnaryCall;
   getMyPublicID(argument: schema_daemon_pb.GetMyPublicIDRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetMyPublicIDResponse>): grpc.ClientUnaryCall;
+  isValidPublicID(argument: schema_daemon_pb.IsValidPublicIDRequest, callback: grpc.requestCallback<schema_daemon_pb.IsValidPublicIDResponse>): grpc.ClientUnaryCall;
+  isValidPublicID(argument: schema_daemon_pb.IsValidPublicIDRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.IsValidPublicIDResponse>): grpc.ClientUnaryCall;
+  isValidPublicID(argument: schema_daemon_pb.IsValidPublicIDRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.IsValidPublicIDResponse>): grpc.ClientUnaryCall;
   getFriendList(argument: schema_daemon_pb.GetFriendListRequest, callback: grpc.requestCallback<schema_daemon_pb.GetFriendListResponse>): grpc.ClientUnaryCall;
   getFriendList(argument: schema_daemon_pb.GetFriendListRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetFriendListResponse>): grpc.ClientUnaryCall;
   getFriendList(argument: schema_daemon_pb.GetFriendListRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<schema_daemon_pb.GetFriendListResponse>): grpc.ClientUnaryCall;

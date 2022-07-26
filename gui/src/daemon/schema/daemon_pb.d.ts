@@ -156,6 +156,46 @@ export namespace GetMyPublicIDResponse {
   }
 }
 
+export class IsValidPublicIDRequest extends jspb.Message {
+  getPublicId(): string;
+  setPublicId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): IsValidPublicIDRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: IsValidPublicIDRequest): IsValidPublicIDRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: IsValidPublicIDRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): IsValidPublicIDRequest;
+  static deserializeBinaryFromReader(message: IsValidPublicIDRequest, reader: jspb.BinaryReader): IsValidPublicIDRequest;
+}
+
+export namespace IsValidPublicIDRequest {
+  export type AsObject = {
+    publicId: string,
+  }
+}
+
+export class IsValidPublicIDResponse extends jspb.Message {
+  getValid(): boolean;
+  setValid(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): IsValidPublicIDResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: IsValidPublicIDResponse): IsValidPublicIDResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: IsValidPublicIDResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): IsValidPublicIDResponse;
+  static deserializeBinaryFromReader(message: IsValidPublicIDResponse, reader: jspb.BinaryReader): IsValidPublicIDResponse;
+}
+
+export namespace IsValidPublicIDResponse {
+  export type AsObject = {
+    valid: boolean,
+  }
+}
+
 export class AddSyncFriendRequest extends jspb.Message {
   getUniqueName(): string;
   setUniqueName(value: string): void;
