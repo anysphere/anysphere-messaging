@@ -58,15 +58,6 @@ function Read({
     },
   });
 
-  const htmlMessage = (
-    <div
-      dangerouslySetInnerHTML={{
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        __html: purifiedMessage,
-      }}
-    />
-  );
-
   return (
     <div className="mt-8 flex w-full place-content-center text-sm">
       <div className="flex w-full max-w-3xl flex-col place-self-center bg-white p-2 px-4">
@@ -103,10 +94,19 @@ function Read({
           <div>{timestampString}</div>
         </div>
         <hr className="border-asbrown-100" />
-        <div className="h-full w-full grow resize-none whitespace-pre-wrap pt-4 pb-4 focus:outline-none">
-          <div className="prose prose-sm prose-stone max-w-prose">
-            {htmlMessage}
-          </div>
+        <div className="h-full w-full grow resize-none pt-4 pb-4 focus:outline-none">
+          <div
+            className="prose prose-sm prose-stone max-w-prose prose-h1:mt-6"
+            style={{
+              "> :first-child": {
+                marginTop: "0",
+              },
+            }}
+            dangerouslySetInnerHTML={{
+              // eslint-disable-next-line @typescript-eslint/naming-convention
+              __html: purifiedMessage,
+            }}
+          ></div>
         </div>
       </div>
     </div>

@@ -10,6 +10,14 @@ module.exports = {
   plugins: [require("@tailwindcss/forms"), require("@tailwindcss/typography")],
   theme: {
     extend: {
+      typography: ({ theme }) => ({
+        stonex: {
+          css: {
+            // "--tw-prose-bullets": theme("colors.asbrown['dark']"),
+            "--tw-prose-bullets": theme("colors.asbrown[light]"),
+          },
+        },
+      }),
       colors: {
         asbrown: {
           100: "#E4DFD2",

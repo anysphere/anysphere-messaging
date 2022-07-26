@@ -7,6 +7,7 @@ import { MutableRefObject, useEffect } from "react";
 import { COMMAND_PRIORITY_LOW, EditorState, FOCUS_COMMAND } from "lexical";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
+import { PlainTextPlugin } from "@lexical/react/LexicalPlainTextPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
@@ -26,23 +27,23 @@ import { TRANSFORMERS } from "@lexical/markdown";
 const prose = "prose-stone";
 
 const theme = {
-  paragraph: prose,
+  paragraph: "mt-0 mb-0",
   placeholder: prose,
-  quote: prose,
+  quote: "mt-0 mb-0",
   heading: {
-    h1: prose,
-    h2: prose,
-    h3: prose,
-    h4: prose,
-    h5: prose,
+    h1: "mt-0 mb-0",
+    h2: "mt-0 mb-0",
+    h3: "mt-0 mb-0",
+    h4: "mt-0 mb-0",
+    h5: "mt-0 mb-0",
   },
   list: {
     nested: {
       listitem: prose,
     },
-    ol: prose,
-    ul: prose,
-    listitem: prose,
+    ol: "mt-0 mb-0",
+    ul: "mt-0 mb-0",
+    listitem: "mt-1 mb-1",
   },
 };
 
@@ -109,7 +110,7 @@ export function Editor({
   };
 
   return (
-    <div className="relative bg-white prose prose-sm">
+    <div className="prose prose-sm prose-stone prose-stonex relative bg-white">
       <LexicalComposer initialConfig={initialConfig}>
         <RichTextPlugin
           contentEditable={
