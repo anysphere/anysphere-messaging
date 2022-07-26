@@ -83,7 +83,7 @@ function Main(): JSX.Element {
   );
 
   const editWrite = React.useCallback(
-    (data: any) => {
+    (data: unknown) => {
       if (selectedTab.type !== TabType.Write) {
         return;
       }
@@ -353,7 +353,7 @@ function Main(): JSX.Element {
           >
             <div className="relative h-full w-full">
               <h1 className="absolute top-4 left-0 right-0 text-center text-sm font-bold">
-                Install 'anysphere' command
+                Install {'anysphere'} command
               </h1>
               <div className="absolute top-8 bottom-0 left-0 right-0 grid place-content-center">
                 <div className="grid h-full w-full gap-2 p-2 text-sm">
@@ -365,7 +365,7 @@ function Main(): JSX.Element {
                       {`sudo mkdir -p /usr/local/bin
 sudo ln -sf /Applications/Anysphere.app/Contents/Resources/bin/anysphere /usr/local/bin/anysphere
 cat << EOF >> ~/.zprofile
-export PATH="\$PATH:/usr/local/bin"
+export PATH="\\$PATH:/usr/local/bin"
 EOF`}
                     </code>
                   </div>
@@ -375,7 +375,7 @@ EOF`}
                   </div>
                   <div className="unselectable pt-1 text-xs text-asbrown-300">
                     Why do we ask you to run this yourself? Administrator
-                    privileges are needed to install the command, and we don't
+                    privileges are needed to install the command, and we {"don't"}
                     want to ask you for your password without you seeing exactly
                     what is being run.
                   </div>
