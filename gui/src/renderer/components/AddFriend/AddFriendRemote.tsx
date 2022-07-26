@@ -30,8 +30,8 @@ export default function AddFriendRemote({
     // check if id is valid
     window
       .isValidPublicID({ publicId: id })
-      .then(({ isValid }) => {
-        if (isValid) {
+      .then(({ valid }) => {
+        if (valid) {
           onPastePublicId(id);
         }
       })
