@@ -96,17 +96,12 @@ function Read({
         <hr className="border-asbrown-100" />
         <div className="h-full w-full grow resize-none pt-4 pb-4 focus:outline-none">
           <div
-            className="prose prose-sm prose-stone max-w-prose prose-h1:mt-6"
-            style={{
-              "> :first-child": {
-                marginTop: "0",
-              },
-            }}
+            className="prose prose-sm prose-stone max-w-prose prose-h1:mt-6 first:prose-h1:mt-0"
             dangerouslySetInnerHTML={{
               // eslint-disable-next-line @typescript-eslint/naming-convention
               __html: purifiedMessage,
             }}
-          ></div>
+          />
         </div>
       </div>
     </div>
