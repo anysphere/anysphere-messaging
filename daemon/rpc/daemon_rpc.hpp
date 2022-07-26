@@ -27,6 +27,11 @@ class DaemonRpc final : public asphrdaemon::Daemon::Service {
       const asphrdaemon::GetMyPublicIDRequest* getMyPublicIDRequest,
       asphrdaemon::GetMyPublicIDResponse* getMyPublicIDResponse) override;
 
+  grpc::Status IsValidPublicID(
+      grpc::ServerContext* context,
+      const asphrdaemon::IsValidPublicIDRequest* isValidPublicIDRequest,
+      asphrdaemon::IsValidPublicIDResponse* isValidPublicIDResponse) override;
+
   grpc::Status GetFriendList(
       grpc::ServerContext* context,
       const asphrdaemon::GetFriendListRequest* getFriendListRequest,

@@ -176,6 +176,22 @@ Status DaemonRpc::GetMyPublicID(
   return Status::OK;
 }
 
+grpc::Status IsValidPublicID(
+    grpc::ServerContext* context,
+    const asphrdaemon::IsValidPublicIDRequest* isValidPublicIDRequest,
+    asphrdaemon::IsValidPublicIDResponse* isValidPublicIDResponse) {
+  ASPHR_LOG_INFO("IsValidPublicID() called.", rpc_call, "IsValidPublicID");
+
+  auto public_id_maybe =
+      PublicIdentifier::from_public_id(isValidPublicIDRequest->public_id());
+  if (!public_id_maybe.ok()) {
+    isValidPublicIDResponse->set_is_valid(false);
+    return Status::OK;
+  }
+  isValidPublicIDResponse->set_is_valid(true);
+  return Status::OK;
+}
+
 // ---------------------------------------
 // ---------------------------------------
 // ||   Start: Invitation Functions    ||
