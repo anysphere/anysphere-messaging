@@ -10,7 +10,8 @@ import { StatusProps } from "../Status";
 import { useSearch, useFocus, classNames } from "../../utils";
 import { SelectableList, ListItem } from "../SelectableList";
 import { Editor } from "./Editor";
-import { $getRoot, EditorState } from "lexical";
+import { EditorState } from "lexical";
+import { $convertToMarkdownString } from "@lexical/markdown";
 
 const DEBUG_COLORS = false;
 // const DEBUG_COLORS = true;
@@ -96,7 +97,6 @@ function MultiSelect(props: {
         <SelectableList
           items={selectableOptions}
           searchable={true}
-          globalAction={() => {}}
           onRender={({ item, active }) =>
             typeof item === "string" ? (
               <div className="unselectable text-xs text-asbrown-300">
@@ -189,7 +189,7 @@ function Write({
 }: {
   data: WriteData;
   onDone: () => void;
-  edit: (data: any) => void;
+  edit: (data: unknown) => void;
   setStatus: (status: StatusProps) => void;
   onClose: () => void;
 }): JSX.Element {
@@ -224,7 +224,9 @@ function Write({
     // the sync invitations have verified each other so it is safe to treat as a real friend
     // in the daemon.proto we keep them separate because we still want to display progress information
     window
-      .getOutgoingSyncInvitations()
+      .getOutgoingSyncInvitations(
+        new daemon_pb.GetOutgoingSyncInvitationsRequest()
+      )
       .then(
         (
           invitations: daemon_pb.GetOutgoingSyncInvitationsResponse.AsObject
@@ -253,7 +255,6 @@ function Write({
     if (data.multiSelectState.text.length > 0) {
       setStatus({
         message: `Unknown contact: ${data.multiSelectState.text}.`,
-        action: () => {},
         actionName: null,
       });
       return;
@@ -261,22 +262,22 @@ function Write({
     if (data.multiSelectState.friends.length === 0) {
       setStatus({
         message: `No contacts selected.`,
-        action: () => {},
         actionName: null,
       });
       return;
     }
+
     if (editorStateRef.current === null) {
       setStatus({
         message: `Internal error. Please try again.`,
-        action: () => {},
         actionName: null,
       });
       return;
     }
+
     let content = "";
     editorStateRef.current.read(() => {
-      content = $getRoot().getTextContent();
+      content = $convertToMarkdownString();
     });
 
     const uniqueNames = data.multiSelectState.friends.map(
@@ -293,7 +294,6 @@ function Write({
       .then((_) => {
         setStatus({
           message: `Message sent to ${displayNames.join(", ")}.`,
-          action: () => {},
           actionName: null,
         });
         onDone();
@@ -302,7 +302,6 @@ function Write({
         console.error(err);
         setStatus({
           message: `Message failed to send.`,
-          action: () => {},
           actionName: null,
         });
       });
@@ -316,11 +315,14 @@ function Write({
   React.useEffect(() => {
     const handler = (event: KeyboardEvent): void => {
       if (event.key === "Tab") {
-        event.preventDefault();
-        edit({
-          ...data,
-          focus: data.focus === "content" ? "to" : "content",
-        });
+        // if we are in the to field we can change the focus :)
+        if (data.focus === "to") {
+          event.preventDefault();
+          edit({
+            ...data,
+            focus: "content",
+          });
+        }
       } else if (event.metaKey && event.key === "Enter") {
         event.preventDefault();
         send();
@@ -364,7 +366,7 @@ function Write({
               onNext={() =>
                 edit({
                   ...data,
-                  focus: data.focus === "content" ? "to" : "content",
+                  focus: "content",
                 })
               }
               multiSelectState={data.multiSelectState}

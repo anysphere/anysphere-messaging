@@ -6,15 +6,44 @@
 import { MutableRefObject, useEffect } from "react";
 import { COMMAND_PRIORITY_LOW, EditorState, FOCUS_COMMAND } from "lexical";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
-import { PlainTextPlugin } from "@lexical/react/LexicalPlainTextPlugin";
+import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
+import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
+import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
+import { AutoLinkNode, LinkNode } from "@lexical/link";
+import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
+import { ListPlugin } from "@lexical/react/LexicalListPlugin";
+import { ListItemNode, ListNode } from "@lexical/list";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { LexicalEditor } from "lexical/LexicalEditor";
+import AsphrAutoLinkPlugin from "./Plugins/AsphrAutoLinkPlugin";
+
+import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
+import { TRANSFORMERS } from "@lexical/markdown";
+
+const prose = "prose-stone";
 
 const theme = {
-  paragraph: "mb-1", // tailwind classes work!
+  paragraph: prose,
+  placeholder: prose,
+  quote: prose,
+  heading: {
+    h1: prose,
+    h2: prose,
+    h3: prose,
+    h4: prose,
+    h5: prose,
+  },
+  list: {
+    nested: {
+      listitem: prose,
+    },
+    ol: prose,
+    ul: prose,
+    listitem: prose,
+  },
 };
 
 // Lexical React plugins are React components, which makes them
@@ -27,7 +56,7 @@ function FocusPlugin({
 }: {
   focused: boolean;
   onFocus: () => void;
-}): JSX.Element {
+}): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
 
   useEffect(() => {
@@ -66,12 +95,23 @@ export function Editor({
     onError: (error: Error, _: LexicalEditor) => {
       console.error(error);
     },
+    nodes: [
+      AutoLinkNode,
+      LinkNode,
+      TableCellNode,
+      TableRowNode,
+      TableNode,
+      ListNode,
+      ListItemNode,
+      HeadingNode,
+      QuoteNode,
+    ],
   };
 
   return (
-    <div className="relative bg-white">
+    <div className="relative bg-white prose prose-sm">
       <LexicalComposer initialConfig={initialConfig}>
-        <PlainTextPlugin
+        <RichTextPlugin
           contentEditable={
             <ContentEditable className="min-h-[100px] text-sm outline-none" />
           }
@@ -82,6 +122,10 @@ export function Editor({
         />
         <HistoryPlugin />
         <FocusPlugin focused={focused} onFocus={onFocus} />
+        <AsphrAutoLinkPlugin />
+        <LinkPlugin />
+        <ListPlugin />
+        <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
       </LexicalComposer>
     </div>
   );

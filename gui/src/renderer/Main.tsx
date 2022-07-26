@@ -21,7 +21,7 @@ import { CmdKPortal } from "./components/cmd-k/CmdKPortal";
 import { CmdKSearch } from "./components/cmd-k/CmdKSearch";
 import { CmdKResultRenderer } from "./components/cmd-k/CmdKResultRenderer";
 import { KBarOptions } from "./components/cmd-k/types";
-import { StatusHandler, StatusContext } from "./components/Status";
+import { StatusHandler, statusContext } from "./components/Status";
 import { SideBar } from "./components/SideBar/SideBar";
 import { SideBarButton } from "./components/SideBar/SideBarProps";
 import AddFriend from "./components/AddFriend/AddFriend";
@@ -53,7 +53,7 @@ function Main(): JSX.Element {
   ] = useTabs(defaultTabs);
   const [modal, setModal] = React.useState<JSX.Element | null>(null);
 
-  const statusState = React.useContext(StatusContext);
+  const statusState = React.useContext(statusContext);
 
   const readMessage = React.useCallback(
     (message: IncomingMessage | OutgoingMessage, _mode: string) => {
@@ -83,7 +83,7 @@ function Main(): JSX.Element {
   );
 
   const editWrite = React.useCallback(
-    (data: any) => {
+    (data: unknown) => {
       if (selectedTab.type !== TabType.Write) {
         return;
       }
@@ -201,7 +201,11 @@ function Main(): JSX.Element {
         if (!registered) {
           setModal(
             <RegisterModal
-              onClose={() => {}} // should not be able to close modal by clicking outside
+              onClose={() => {
+                console.log(
+                  "// should not be able to close modal by clicking outside"
+                );
+              }}
               onRegister={(username: string, key: string) => {
                 window
                   .registerUser({ name: username, betaKey: key })
@@ -209,7 +213,6 @@ function Main(): JSX.Element {
                     closeModal();
                     statusState.setStatus({
                       message: `Registered!`,
-                      action: () => {},
                       actionName: null,
                     });
                     statusState.setVisible();
@@ -218,7 +221,6 @@ function Main(): JSX.Element {
                     console.error(e);
                     statusState.setStatus({
                       message: `Unable to register. Perhaps incorrect access key?`,
-                      action: () => {},
                       actionName: null,
                     });
                     statusState.setVisible();
@@ -232,12 +234,13 @@ function Main(): JSX.Element {
   }, [closeModal, statusState]);
 
   const openOutbox = React.useCallback(() => {
-    for (let i = 0; i < tabs.length; i++) {
-      if (tabs[i].type === TabType.Outbox) {
-        switchTab(tabs[i].id);
+    for (const tab of tabs) {
+      if (tab.type === TabType.Outbox) {
+        switchTab(tab.id);
         return;
       }
     }
+
     const outboxTab = {
       type: TabType.Outbox,
       name: "Outbox",
@@ -249,9 +252,9 @@ function Main(): JSX.Element {
   }, [switchTab, tabs, pushTab]);
 
   const openSent = React.useCallback(() => {
-    for (let i = 0; i < tabs.length; i++) {
-      if (tabs[i].type === TabType.Sent) {
-        switchTab(tabs[i].id);
+    for (const tab of tabs) {
+      if (tab.type === TabType.Sent) {
+        switchTab(tab.id);
         return;
       }
     }
@@ -267,7 +270,7 @@ function Main(): JSX.Element {
 
   // Sidebar options
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
-  const sideBarCallback = (b: SideBarButton) => {
+  const sideBarCallback = (b: SideBarButton): void => {
     setSidebarOpen(false);
     switch (b) {
       case SideBarButton.INBOX:
@@ -279,7 +282,7 @@ function Main(): JSX.Element {
       case SideBarButton.ADD_FRIEND:
         return openFriendModal();
       default:
-        return () => {};
+        return;
         break;
     }
   };
@@ -350,7 +353,7 @@ function Main(): JSX.Element {
           >
             <div className="relative h-full w-full">
               <h1 className="absolute top-4 left-0 right-0 text-center text-sm font-bold">
-                Install 'anysphere' command
+                Install {"anysphere"} command
               </h1>
               <div className="absolute top-8 bottom-0 left-0 right-0 grid place-content-center">
                 <div className="grid h-full w-full gap-2 p-2 text-sm">
@@ -362,7 +365,7 @@ function Main(): JSX.Element {
                       {`sudo mkdir -p /usr/local/bin
 sudo ln -sf /Applications/Anysphere.app/Contents/Resources/bin/anysphere /usr/local/bin/anysphere
 cat << EOF >> ~/.zprofile
-export PATH="\$PATH:/usr/local/bin"
+export PATH="\\$PATH:/usr/local/bin"
 EOF`}
                     </code>
                   </div>
@@ -372,7 +375,8 @@ EOF`}
                   </div>
                   <div className="unselectable pt-1 text-xs text-asbrown-300">
                     Why do we ask you to run this yourself? Administrator
-                    privileges are needed to install the command, and we don't
+                    privileges are needed to install the command, and we{" "}
+                    {"don't"}
                     want to ask you for your password without you seeing exactly
                     what is being run.
                   </div>

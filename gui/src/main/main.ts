@@ -79,6 +79,25 @@ async function startDaemonIfNeeded(pkgPath: string): Promise<void> {
       );
     }
 
+    // We do not copy the CLI here, because installing the CLI is a pain.
+    // Particularly, we would need to modify the user's PATH.
+    // TODO: expose a cmd-K command to install the CLI. It presents the user with a
+    // copy-able short command to run in the terminal.
+    //
+    // first copy the CLI
+    // const cliPath = path.join(pkgPath, "bin", "anysphere");
+    // // ln -sf link it!
+    // // TODO(arvid): just add to PATH instead, because not everyone has /usr/local/bin in their PATH
+    // const mkdir = await exec(`mkdir -p /usr/local/bin`);
+    // if (mkdir.stderr) {
+    //   logger.error(mkdir.stderr);
+    // }
+    // const clilink = await exec(`ln -sf ${cliPath} /usr/local/bin/anysphere`);
+    // if (clilink.stderr) {
+    //   logger.error(clilink.stderr);
+    // }
+    // logger.log("Successfully linked the CLI.");
+
     // TODO(arvid): handle windows and linux too
     // possible problem, so let's start the daemon!
     // unload the plist if it exists.

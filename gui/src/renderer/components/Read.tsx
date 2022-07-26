@@ -5,6 +5,8 @@
 
 import * as React from "react";
 import { IncomingMessage, OutgoingMessage } from "../../types";
+import { micromark } from "micromark";
+import DOMPurify from "dompurify";
 
 function Read({
   message,
@@ -24,6 +26,26 @@ function Read({
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
+
+  const parsedMessage = micromark(message.message);
+
+  // We shouldn't need this because we're using micromark which makes sure that it is clean.
+  // But an extra layer of protection is nice.
+  const purifiedMessage = DOMPurify.sanitize(parsedMessage, {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    USE_PROFILES: {
+      html: true,
+    },
+  });
+
+  const htmlMessage = (
+    <div
+      dangerouslySetInnerHTML={{
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        __html: purifiedMessage,
+      }}
+    />
+  );
 
   return (
     <div className="mt-8 flex w-full place-content-center text-sm">
@@ -61,7 +83,9 @@ function Read({
         </div>
         <hr className="border-asbrown-100" />
         <div className="h-full w-full grow resize-none whitespace-pre-wrap pt-4 pb-4 focus:outline-none">
-          {message.message}
+          <div className="prose prose-stone prose-sm max-w-prose">
+            {htmlMessage}
+          </div>
         </div>
       </div>
     </div>
