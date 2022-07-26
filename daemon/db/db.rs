@@ -3217,6 +3217,7 @@ impl DB {
     // 1. delete the friend record
     // 2. delete the outgoing_async_invitation record
     // 3. delete the outgoing_chunk record
+    // 4. delete the transmission record
     // since this friend was never an actual friend, we do not mark the friend as Deleted. instead we just remove them from the database completely.
 
     use crate::schema::friend;
