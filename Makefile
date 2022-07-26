@@ -27,6 +27,7 @@ push: server
 	docker push 946207870883.dkr.ecr.us-east-1.amazonaws.com/asphr-server
 
 # ALWAYS ALWAYS RUN IN GITPOD. NEVER WITHOUT GITPOD
+# first run setup.sh in infra/aws
 push-minimal: minimal-server
 	docker tag minimal-server 946207870883.dkr.ecr.us-east-1.amazonaws.com/asphr-server
 	docker push 946207870883.dkr.ecr.us-east-1.amazonaws.com/asphr-server

@@ -258,14 +258,6 @@ class DaemonRpcTest : public ::testing::Test {
     }
     return friends;
   }
-  // call this method to generate N strangers
-  auto register_N_people(int N) -> vector<FriendTestingInfo> {
-    vector<string> db_files;
-    for (auto i = 0; i < N; i++) {
-      db_files.push_back(generateTempFile());
-    }
-    return register_people(db_files);
-  }
 
   // Due to the simultaneous read capacity constraint, this method might break
   // down for more than three users.

@@ -195,13 +195,16 @@ Status ServerRpc<PIR, AccountManager>::AddAsyncInvitation(
     ServerContext* context,
     const AddAsyncInvitationInfo* addAsyncInvitationInfo,
     AddAsyncInvitationResponse* addAsyncInvitationResponse) {
-  ASPHR_LOG_INFO("AddFriendAsync() called");
+  ASPHR_LOG_INFO("AddAsyncInvitation() called", rpc_call, "AddAsyncInvitation");
   auto index = addAsyncInvitationInfo->index();
   pir_index_t pir_index = index;
   try {
     if (!account_manager.valid_index_access(
             addAsyncInvitationInfo->authentication_token(), pir_index)) {
-      ASPHR_LOG_ERR("incorrect authentication token");
+      ASPHR_LOG_ERR("Incorrect authentication token.", rpc_call,
+                    "AddAsyncInvitation", authentication_token,
+                    addAsyncInvitationInfo->authentication_token(), index,
+                    index);
       return Status(grpc::StatusCode::UNAUTHENTICATED,
                     "incorrect authentication token");
     }
@@ -214,7 +217,9 @@ Status ServerRpc<PIR, AccountManager>::AddAsyncInvitation(
       addAsyncInvitationInfo->invitation();  // this is now a byte array
 
   if (std::ssize(invitation) > MAX_INVITATION_LENGTH) {
-    ASPHR_LOG_ERR("invitation too long");
+    ASPHR_LOG_ERR("Invitation too long.", rpc_call, "AddAsyncInvitation",
+                  invitation_length, std::ssize(invitation),
+                  max_invitation_length, MAX_INVITATION_LENGTH);
     return Status(grpc::StatusCode::INVALID_ARGUMENT, "invitation too long");
   }
 

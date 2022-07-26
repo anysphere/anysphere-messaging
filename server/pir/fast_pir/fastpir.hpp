@@ -25,6 +25,7 @@ class FastPIR {
 
   auto set_value(pir_index_t index, pir_value_t value) noexcept -> void;
 
+  // throws if database is empty
   auto get_value_privately(pir_query_t pir_query) noexcept(false)
       -> pir_answer_t;
 

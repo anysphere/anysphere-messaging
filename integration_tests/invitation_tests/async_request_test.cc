@@ -40,7 +40,7 @@ TEST_F(DaemonRpcTest, ZeroFriendAccept) {
   // thus allow a request to be delivered with one call to the transmitter
   ResetStub();
 
-  auto peoples = register_N_people(2);
+  auto peoples = register_people(2);
   auto& p1 = peoples.at(0);  // sender
   auto& p2 = peoples.at(1);  // receiver
 
@@ -152,7 +152,7 @@ TEST_F(DaemonRpcTest, ZeroFriendAccept) {
     EXPECT_EQ(friend_info.public_id(), p1_id);
   }
 
-   // TODO(stzh1555): check the control message flow.
+  // TODO(stzh1555): check the control message flow.
 }
 
 // Friend1 -> Friend2
@@ -169,7 +169,7 @@ TEST_F(DaemonRpcTest, OneFriendAccept) {
   // thus allow a request to be delivered with one call to the transmitter
   ResetStub();
 
-  auto peoples = register_N_people(4);
+  auto peoples = register_people(4);
   auto& p1 = peoples.at(0);  // sender
   auto& p2 = peoples.at(1);  // receiver
   auto& p3 = peoples.at(2);  // third party
@@ -312,7 +312,7 @@ TEST_F(DaemonRpcTest, DISABLED_ZeroFriendFarAway) {
 
   // Sualeh's guess is that this is the slow part of the test.
   const auto peoples =
-      register_N_people(BLOCK_DISTANCE * ASYNC_FRIEND_REQUEST_BATCH_SIZE + 11);
+      register_people(BLOCK_DISTANCE * ASYNC_FRIEND_REQUEST_BATCH_SIZE + 11);
   auto& p1 = peoples.at(0);  // sender
   // get the last user
   auto& p2 = peoples.at(peoples.size() - 2);  // receiver
