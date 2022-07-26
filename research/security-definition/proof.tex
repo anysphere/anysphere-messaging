@@ -255,44 +255,25 @@ $\mathbf{\Pi_{\asphr}.C.\mathsf{ServerRPC}}(t, \resp)$
 
 We use a hybrid argument to show that the two views are indistinguishable. We start from the original implementation of the client methods $\Pi_{\asphr}.C$, and use a hybrid argument to transform it into the simulator methods $\Sim_{\asphr}$. We call the Real World Experiment $\Hyb_0$.  
 
-\todo{The first hybrid here uses a couple of inexplicable ACK oracles. The reason is the following: if an adversary $\cA$ exists that breaks indistinguishability, then we want to construct an adversary $\cA'$ that breaks our security definition \cref{defn:sym-security}. $\cA'$ has to "simulate" the view of $\cA$ while only knowing the public key of the adversaries. Now assume the adversary $\cA$ establishes trust with a certain malicious public key $k$. Then $\cA'$ must be able to accurately simulate all the internal state changes related to this public key, since the associated ACKs and messages are contained in the view of $\cA$. On the other hand, $\cA'$ cannot possibly do this with only the encryption oracle, since $k$ might not have a computable private key. So the ACK oracle comes to the rescue.}
+\todo{The first hybrid here uses a couple of inexplicable ACK oracles. The reason is the following: if an adversary $\cA$ exists that breaks indistinguishability, then we want to construct an adversary $\cA'$ that breaks our security definition \cref{defn:sym-security}. $\cA'$ has to "simulate" the view of $\cA$ while only knowing the public key of the adversaries. Now assume the adversary $\cA$ establishes trust with a certain malicious public key $k$. Then $\cA'$ must be able to accurately simulate all the internal state changes related to this public key, since the associated ACKs and messages are contained in the view of $\cA$. On the other hand, $\cA'$ cannot possibly do this with only the encryption oracle, since $k$ might not have a computable private key. So the Eval oracle comes to the rescue.}
 
 \todo{If we can somehow bypass this issue, the length of the paper can be reduced by at least 5 pages. So please share any possible ideas.}
 
-First Hybrid: We add the statements marked Hybrid 1 and run the experiment in \cref{defn:real-world}. We call this modified experiment $\Hyb_1$. To argue this preserves indistinguishability, suppose on the contrary that an adversary $\cA$ and a distinguisher $\cD$ can distinguish the view before and after the modification. Then we can build an adversary $\cA_1^O$ and a distinguisher $\cD'$ breaking \cref{defn:sym-security}. The adversary $\cA_1^O$ simulates the experiment in \cref{defn:real-world} with the following $\ACK_1$ function. 
+First Hybrid: We add the statements marked Hybrid 1 and run the experiment in \cref{defn:real-world}. We call this modified experiment $\Hyb_1$. To argue this preserves indistinguishability, suppose on the contrary that an adversary $\cA$ and a distinguisher $\cD$ can distinguish the view before and after the modification. Then we can build an adversary $\cA_1^O$ and a distinguisher $\cD'$ breaking \cref{defn:sym-security}. 
 
-\begin{figure}[h!]
-\begin{framed}
-$\ACK_1(\{m_i\}_{i = 1}^M)$
-\begin{enumerate}
-    \item $\seqr \leftarrow 0$.
-    \item for $i$ from $1$ to $M$
-    \begin{enumerate}
-        \item If $m_i$ is not a length $2$ array, or if $m_i[0] \neq \seqr + 1$, continue.
-        \item Else, $\seqr++$.
-    \end{enumerate}
-    \item return $\ACK(\seqr)$.
-\end{enumerate}
-\end{framed}
-\end{figure}
+For the adversary $\cA_1^O$ to simulate the experiment in \cref{defn:real-world}, the key idea is to choose a powerful function $f: \Sigma^* \times \Sigma^* \to \Sigma^L$. For each $\reg = (j, kx^P)\notin \reg_{\cH}$, $\cA_1$ stores a log of changes to $\frienddb[\reg], \inb[\reg], \outb[\reg]$ \textbf{encrypted using $\sk = \KX(kx^P, kx_i^S)$}. Whenever it wants to access or update these data in the client simulation, it calls $\Eval_f(kx_i^S, kx^P, \cdot)$, which is able to decrypt the log, recover the plaintext of the fields, do the corresponding simulation, then re-encrypt the outputs and updates to the log. Therefore, we can choose an $f$ such that $\cA_1^O$ can use $f$ to perfectly simulate client updates on the $\sk$-encrypted fields. Finally, note that any client outputs computed from $\frienddb[\reg], \inb[\reg], \outb[\reg]$ are $\sk$-encrypted, so $f$ can perfectly simulate client outputs as well. 
 
-The step numbers below refers to the steps in \cref{defn:real-world} unless otherwise indicated.
+With this choice of $f$, we describe the full $\cA_1^O$. The step numbers below refers to the steps in \cref{defn:real-world} unless otherwise indicated.
 \begin{itemize}
     \item Simulate $\cA$ in step (1), (3), (4.b).
-    \item On step (2), $\reg_i \leftarrow (i, kx_i^{P})$ for each $i \in \cH$. Initialize a new map $\ct_{\ack}$ for each user $i$. 
-    \item On step (4.a), $\cA'$ simulates client action in $\Pi_{\asphr}.\mathsf{Input}$ verbatim until Phase 2 Step (6). In Step (6), $\cA'$ do casework based on if $\reg_s \in \reg_{\cH}$. 
+    \item On step (2), $\reg_i \leftarrow (i, kx_i^{P})$ for each $i \in \cH$. 
+    \item On step (4.a), iterate over $i \in \cH$. $\cA'$ simulates client $i$'s action in $\Pi_{\asphr}.\mathsf{Input}$ verbatim until Phase 2 Step (6). In Step (6), $\cA'$ do casework based on if $\reg_s \in \reg_{\cH}$. 
     \begin{itemize}
-        \item     If $\reg_s \notin \reg_{\cH}$, parse $\reg_s = (i_s, kx^P_s)$, then call the $\KXE$ oracle to compute
-        $$\ct_{\msg} = \KXE(kx^S_i, (kx^P_s, \msg)).$$
-        If $\reg_s$ is in $\ct_{\ack}$, then set $\ct_{\ack} = \ct_{\ack}[\reg_s]$. Otherwise, expand $\reg_s = (i_s, kx^P_s)$, and set
-        $$\ct_{\ack} = \KXE(kx^S_i, (kx^P_s, \ACK(0))).$$
+        \item  If $\reg_s \notin \reg_{\cH}$, use $\Eval_f$ to simulate the rest of the client actions
         \item  If $\reg_s \in \reg_{\cH}$, assume $\reg_s = \reg_j$. $\cA'$ output $(i, j, \msg)$, and move to line (4.b) in \cref{defn:sym-security}. Let $\ct_{\msg} = \ct^b_r$ be the output of line (4.b). Repeat this for output $(i,j, \ACK(\seqr))$.
     \end{itemize}
    
-    \item On step (4.c), $\cA'$ simulates client action in $\Pi_{\asphr}.\mathsf{ServerRPC}$ from step (1) to step (5). In Step (6), $\cA'$ does the following.
-    \begin{enumerate}
-        \item Push $\ct_{\msg}$ directly into $\inb[\reg_r]$.
-    \end{enumerate} forms an array of all messages $\{\ct_i\}_i$ retrieved from $\reg_r$ in the past. $\cA'$ 
+    \item On step (4.c), $\cA'$ simulates client action in $\Pi_{\asphr}.\mathsf{ServerRPC}$ using $\Eval_f$.
     
     fixed $\cA'$ skips step (7). 
 \end{itemize}

@@ -76,26 +76,14 @@ To formally define the security notion our system is required to satisfy, we fir
 \textbf{Convention.} Given an oracle $O(x, \cdot)$ and a series $\{x_i\}_i$, define $O(\{x_i\}_i, \cdot)$ as the oracle whose input takes an extra argument $j$ and outputs $O(\{x_i\}_i, j, \cdot) = O(x_j, \cdot)$.
 
 \textbf{Convention.} When we say two experiments are indistinguishable, we mean the view of the adversary in the two experiments are indistinguishable. The view of the adversary consists of all inputs, outputs, and internal randomness of the adversary.
-
 \begin{definition}
-The key-exchange-and-encrypt(KXE) oracle $\KXE(kx^S, \cdot)$ takes as input a public key $kx_m^P$ and a message $m$, and computes
-$$\sk \leftarrow \KX(kx^S, kx_m^P),$$
-$$\ct \leftarrow \enc(\sk, m).$$
-It outputs $\ct$.
-
-The key-exchange-and-decrypt(KXD) oracle $\KXD(kx^S, \cdot)$ takes as input a public key $kx_m^P$ and a ciphertext $\ct$, and computes
-$$\sk \leftarrow \KX(kx^S, kx_m^P),$$
-$$m \leftarrow \dec(\sk, \ct).$$
-It outputs $m$.
-\end{definition}
-\begin{definition}[Eval Oracle]
 \label{defn:ack-oracle}
 Given a key exchange secret key $kx^S$, and a polynomial time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^L$, the Eval oracle $\Eval_{f}(kx^S, \cdot)$ takes as input a ``fake key" $k$, a set of ciphertexts $\arg_{\ct} = \{\ct_i\}$, and a plaintext argument $\arg_{p}$. It computes 
 $$\sk \leftarrow \KX(k, kx^S)$$
 $$m_i \leftarrow \dec(sk, \ct_i).$$ 
 It outputs $\enc(sk, f(\{m_i\}, \arg_p))$.
 \end{definition}
-\textbf{Remark}: Note we require $f$'s output to be constant length. Also note that the $\Eval$ oracle is a weaker version of $\KXD$. However, 
+\textbf{Remark}: Note we require $f$'s output to be constant length. Also note that the $\Eval$ oracle can do the $\KXE$ operation described below.
 \begin{definition}
 \label{defn:sym-security}
 Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
@@ -108,8 +96,8 @@ Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
     \item $\cA$ stores $1^{\lambda}, r, \{kx_i^P\}_{i \in [N]}$.
     \item For $r$ from $1$ to $R$
     \begin{enumerate}
-        \item $i, j, m \leftarrow \cA^{\KXE(\{kx_i^S\}, \cdot), \Eval_f(\{kx_i^S\}, \cdot)}().$
-        \item $ct^{0}_r \leftarrow \enc(sk_{ij}, m)$.
+        \item $i, j, \ct, \arg_p \leftarrow \cA^{\Eval_f(\{kx_i^S\}, \cdot)}().$
+        \item $ct^{0}_r \leftarrow \Eval_f(kx_i^S, kx_j^P, \ct, \arg_p)$.
         \item $\cA$ stores $ct^{0}_r$.
     \end{enumerate}
 \end{enumerate}
@@ -120,7 +108,7 @@ Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
     \item $\cA$ stores $1^{\lambda}, r, \{kx_i^P\}_{i \in [N]}$.
     \item For $r$ from $1$ to $R$
     \begin{enumerate}
-        \item $i, j, m \leftarrow \cA^{\KXE(\{kx_i^S\}, \cdot), \Eval_f(\{kx_i^S\}, \cdot)}()$.
+        \item $i, j, m \leftarrow \cA^{\Eval_f(\{kx_i^S\}, \cdot)}()$.
         \item $ct^1_r \leftarrow \Sim(1^{\lambda}, \{(kx_i^P, kx_i^S)\}_{i \in [N]})$.
         \item $\cA$ stores $ct^{1}_r$.
     \end{enumerate}
@@ -166,7 +154,7 @@ then $x_i = DB[i]$.
 \end{definition}
 \begin{definition}[SIM Security]
 \label{defn:pir-security}
-Let $n, R$ be polynomially bounded in $\lambda$.  onsider the following two experiments. Then we say the PIR scheme is \textbf{secure} if there exists a p.p.t simulator $\Sim$ such that stated p.p.t adversary $\cA$, the view of $\cA$ under the real world experiment and the ideal world experiment are computationally indistinguishable. 
+Let $n, R$ be polynomially bounded in $\lambda$. Consider the following two experiments. Then we say the PIR scheme is \textbf{secure} if there exists a p.p.t simulator $\Sim$ such that stated p.p.t adversary $\cA$, the view of $\cA$ under the real world experiment and the ideal world experiment are computationally indistinguishable. 
 \todo{This definition is equivalent to https://eprint.iacr.org/2022/081.pdf, Experiment 2.2. The definition over there is IND. May want to add a note here.}
 \begin{figure}[h!]
 \begin{framed}
