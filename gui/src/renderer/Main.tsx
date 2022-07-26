@@ -192,7 +192,6 @@ function Main(): JSX.Element {
       );
       break;
     case TabType.Invitations:
-      console.log("hey");
       selectedComponent = (
         <Invitations
           setStatus={(x) => {
@@ -311,6 +310,12 @@ function Main(): JSX.Element {
       case SideBarButton.ADD_FRIEND:
         return openFriendModal();
       case SideBarButton.INVITATIONS:
+        for (const tab of tabs) {
+          if (tab.type === TabType.Invitations && tab.id === "invitations") {
+            switchTab(tab.id);
+            return;
+          }
+        }
         return pushTab(invTab);
       default:
         return () => {};
