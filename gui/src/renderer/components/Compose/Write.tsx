@@ -11,7 +11,6 @@ import { useSearch, useFocus, classNames } from "../../utils";
 import { SelectableList, ListItem } from "../SelectableList";
 import { Editor } from "./Editor";
 import { $getRoot, EditorState } from "lexical";
-import {$generateHtmlFromNodes} from '@lexical/html';
 import {$convertToMarkdownString} from '@lexical/markdown';
 
 const DEBUG_COLORS = false;
@@ -276,11 +275,8 @@ function Write({
 
     let content = "";
     editorStateRef.current.read(() => {
-      // content = $getRoot().getTextContent();
-
       content = $convertToMarkdownString();
     });
-
 
     const uniqueNames = data.multiSelectState.friends.map(
       (friend) => friend.uniqueName
