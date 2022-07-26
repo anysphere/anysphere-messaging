@@ -315,7 +315,7 @@ export class DaemonImpl implements Daemon {
           {
             uid: 1,
             message:
-              "Can you schedule a meeting with Srini for next week, please?",
+              "## Meeting times with Srini\nCan you schedule a meeting with [Srini](https://people.csail.mit.edu/devadas/) for **next week**, please `yayyyyy`?",
             fromUniqueName: "sualeh-asif",
             fromDisplayName: "Sualeh Asif",
             otherRecipientsList: [],
@@ -388,7 +388,7 @@ export class DaemonImpl implements Daemon {
           {
             uid: 5,
             message:
-              "Hi Arvid,\n\nThank you so much for onboarding me to Anysphere! I am very excited to work with you.\n\nBest,\nShengtong",
+              "Hi Arvid,\nThank you so much for onboarding me to Anysphere! I am very excited to work with you.\nBest,\nShengtong",
             fromUniqueName: "stzh1555",
             fromDisplayName: "Shengtong Zhang",
             otherRecipientsList: [],
@@ -399,7 +399,7 @@ export class DaemonImpl implements Daemon {
           {
             uid: 6,
             message:
-              "Dear Arvid,\n\nThis is my first ever completely private message to you. No one will be able to read this message, find out when it was sent, or even suspect that I sent anything to you at all.\n\nHere's to a thoughtful, private and free future.\n\nYours truly,\nSualeh",
+              "Dear Arvid,\nThis is my first ever completely private message to you. No one will be able to read this message, find out when it was sent, or even suspect that I sent anything to you at all.\nHere's to a thoughtful, private and free future.\nYours truly,\nSualeh",
             fromUniqueName: "stzh1555",
             fromDisplayName: "Shengtong Zhang",
             otherRecipientsList: [],

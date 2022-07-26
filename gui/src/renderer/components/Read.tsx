@@ -7,6 +7,8 @@ import * as React from "react";
 import { IncomingMessage, OutgoingMessage } from "../../types";
 import { formatTime } from "../utils";
 import { protobufDateToDate } from "../../types";
+import { micromark } from "micromark";
+import DOMPurify from "dompurify";
 
 function Read({
   message,
@@ -45,6 +47,26 @@ function Read({
     }
   }
 
+  const parsedMessage = micromark(message.message);
+
+  // We shouldn't need this because we're using micromark which makes sure that it is clean.
+  // But an extra layer of protection is nice.
+  const purifiedMessage = DOMPurify.sanitize(parsedMessage, {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    USE_PROFILES: {
+      html: true,
+    },
+  });
+
+  const htmlMessage = (
+    <div
+      dangerouslySetInnerHTML={{
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        __html: purifiedMessage,
+      }}
+    />
+  );
+
   return (
     <div className="mt-8 flex w-full place-content-center text-sm">
       <div className="flex w-full max-w-3xl flex-col place-self-center bg-white p-2 px-4">
@@ -82,7 +104,9 @@ function Read({
         </div>
         <hr className="border-asbrown-100" />
         <div className="h-full w-full grow resize-none whitespace-pre-wrap pt-4 pb-4 focus:outline-none">
-          {message.message}
+          <div className="prose prose-stone prose-sm max-w-prose">
+            {htmlMessage}
+          </div>
         </div>
       </div>
     </div>
