@@ -13,6 +13,7 @@
 \newcommand{\KXE}{\mathsf{KXE}}
 \newcommand{\KXD}{\mathsf{KXD}}
 \newcommand{\KX}{\mathsf{KX}}
+\newcommand{\Eval}{\mathsf{Eval}}
 \section{Definition of Anysphere}
 In this section, we define the Anysphere core protocol described in our whitepaper. We rigorously define how our core protocol is able to handle multiple contacts, run asynchronous rounds. In the next section, we will prove that our core protocol maintains correctness and security.
 \subsection{A weaker Security Definition}
@@ -87,13 +88,14 @@ $$\sk \leftarrow \KX(kx^S, kx_m^P),$$
 $$m \leftarrow \dec(\sk, \ct).$$
 It outputs $m$.
 \end{definition}
-\begin{definition}[ACK Oracle]
+\begin{definition}[Eval Oracle]
 \label{defn:ack-oracle}
-Given a key exchange secret key $kx^S$, and a polynomial time computable function $\ACK: \Sigma^* \to \Sigma^*$, the ACK oracle $O_\ACK(kx^S, \cdot)$ takes as input a ``fake key" $k$ and a set of ciphertexts $\ct_i$, computes $m_i = \KXD(kx^S, k, \ct_i)$ for each $i$. The oracle output $\enc(sk, \ACK(\{m_i\}))$.
-
-We say that the function $\ACK$ is ``good for acknowledgement" if it is polynomial time computable, for any $m$ in the output space of $\ACK$, $\ACK(\{m_i\}) = \ACK(\{m_i\} - m)$.
+Given a key exchange secret key $kx^S$, and a polynomial time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^n$, the Eval oracle $\Eval_{f}(kx^S, \cdot)$ takes as input a ``fake key" $k$, a set of ciphertexts $\arg_{\ct} = \{\ct_i\}$, and a plaintext argument $\arg_{p}$. It computes 
+$$\sk \leftarrow \KX(k, kx^S)$$
+$$m_i \leftarrow \dec(sk, \ct_i).$$ 
+It outputs $\enc(sk, f(\{m_i\}, \arg_p))$.
 \end{definition}
-\textbf{Remark}: The good definition actually simplifies matters in the security proof. It is also intuitive in our system: we don't want the adversary to replay ACK messages.
+\textbf{Remark}: Note we require $f$'s output to be constant length. Also note that the $\Eval$ oracle is a weaker version of $\KXD$. However, 
 \begin{definition}
 \label{defn:sym-security}
 Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
@@ -106,7 +108,7 @@ Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
     \item $\cA$ stores $1^{\lambda}, r, \{kx_i^P\}_{i \in [N]}$.
     \item For $r$ from $1$ to $R$
     \begin{enumerate}
-        \item $i, j, m \leftarrow \cA^{\KXE(\{kx_i^S\}, \cdot), O_{\ACK}(\{kx_i^S\}, \ACK, \cdot)}().$
+        \item $i, j, m \leftarrow \cA^{\KXE(\{kx_i^S\}, \cdot), \Eval_f(\{kx_i^S\}, \cdot)}().$
         \item $ct^{0}_r \leftarrow \enc(sk_{ij}, m)$.
         \item $\cA$ stores $ct^{0}_r$.
     \end{enumerate}
@@ -118,7 +120,7 @@ Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
     \item $\cA$ stores $1^{\lambda}, r, \{kx_i^P\}_{i \in [N]}$.
     \item For $r$ from $1$ to $R$
     \begin{enumerate}
-        \item $i, j, m \leftarrow \cA^{\KXE(\{kx_i^S\}, \cdot), O_{\ACK}(\{kx_i^S\}, \ACK, \cdot)}()$.
+        \item $i, j, m \leftarrow \cA^{\KXE(\{kx_i^S\}, \cdot), \Eval_f(\{kx_i^S\}, \cdot)}()$.
         \item $ct^1_r \leftarrow \Sim(1^{\lambda}, \{(kx_i^P, kx_i^S)\}_{i \in [N]})$.
         \item $\cA$ stores $ct^{1}_r$.
     \end{enumerate}
@@ -126,7 +128,7 @@ Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
 \end{framed}
 \end{figure}
 
-Then we say the encryption scheme is key-private IND-CPA if there exists a p.p.t simulator $\Sim$ such that for any good-for-acknowledgement function $\ACK: \Sigma^* \to \Sigma^*$, any p.p.t adversary with oracle $\cA^O$, the real world experiment and the ideal world experiment are computationally indistinguishable.
+Then we say the encryption scheme is key-private IND-CPA if there exists a p.p.t simulator $\Sim$ such that for any polynomial-time computable function $f: \Sigma^* \to \Sigma^{L_f}$, any p.p.t adversary with oracle $\cA^O$, the real world experiment and the ideal world experiment are computationally indistinguishable.
 \end{definition}
 \begin{definition}[EUF-CMA Authentication]
 Let $kx^P_A, kx^P_B, \sk_{AB}, \sk_{BA}$ be the same as \cref{defn:KX-Correctness}. For any p.p.t. adversary $\cA^O$ with access to oracle $O$, if
