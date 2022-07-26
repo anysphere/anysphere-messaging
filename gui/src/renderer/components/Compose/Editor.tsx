@@ -26,7 +26,7 @@ import { TRANSFORMERS } from "@lexical/markdown";
 const prose = "prose-stone";
 
 const theme = {
-  paragraph: prose,
+  paragraph: "prose-stone mt-0 mb-0",
   placeholder: prose,
   quote: prose,
   heading: {
@@ -109,7 +109,7 @@ export function Editor({
   };
 
   return (
-    <div className="relative bg-white prose prose-sm">
+    <div className="prose prose-sm relative bg-white">
       <LexicalComposer initialConfig={initialConfig}>
         <RichTextPlugin
           contentEditable={
