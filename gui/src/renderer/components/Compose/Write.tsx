@@ -10,7 +10,7 @@ import { StatusProps } from "../Status";
 import { useSearch, useFocus, classNames } from "../../utils";
 import { SelectableList, ListItem } from "../SelectableList";
 import { Editor } from "./Editor";
-import { $getRoot, EditorState } from "lexical";
+import { EditorState } from "lexical";
 import {$convertToMarkdownString} from '@lexical/markdown';
 
 const DEBUG_COLORS = false;
@@ -313,11 +313,14 @@ function Write({
   React.useEffect(() => {
     const handler = (event: KeyboardEvent): void => {
       if (event.key === "Tab") {
-        event.preventDefault();
-        edit({
-          ...data,
-          focus: data.focus === "to" ? "content": "content",
-        });
+        // if we are in the to field we can change the focus :)
+        if (data.focus === "to") {
+          event.preventDefault();
+          edit({
+            ...data,
+            focus: "content",
+          });
+        }
       } else if (event.metaKey && event.key === "Enter") {
         event.preventDefault();
         send();
@@ -361,7 +364,7 @@ function Write({
               onNext={() =>
                 edit({
                   ...data,
-                  focus: data.focus === "content" ? "to" : "content",
+                  focus: "content",
                 })
               }
               multiSelectState={data.multiSelectState}
