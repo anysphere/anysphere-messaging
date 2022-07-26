@@ -68,7 +68,7 @@ export default function AddFriendRemote({
               <IDAnimation seed={publicId} bordersize={4} />
             </div>
             <div></div>
-            <h2 className="text-sm" style={{ userSelect: "text" }}>
+            <h2 className="text-xs" style={{ userSelect: "text" }}>
               anysphere.id/#{publicId}
             </h2>
             <div></div>
