@@ -38,24 +38,8 @@ const emailMatcher: LinkMatcher = (text: string) => {
     return null;
   }
 
-  // strip ([.,;:!?\"']?) from the end of the match if it exists
-  let url = match[0];
-  let matchLength = match[0].length;
-
-  if (
-    url.endsWith(".") ||
-    url.endsWith(",") ||
-    url.endsWith(";") ||
-    url.endsWith("!") ||
-    url.endsWith("?") ||
-    url.endsWith(":") ||
-    url.endsWith('"') ||
-    url.endsWith("'")
-  ) {
-    // this matches the regex: [.,;:!?\"']$
-    url = url.slice(0, -1);
-    matchLength--;
-  }
+  // for bug, see at the top.
+  const url = match[0];
 
   return {
     index: match.index,
