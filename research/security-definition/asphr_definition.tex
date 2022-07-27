@@ -287,7 +287,7 @@ Phase 2:
     \end{itemize}
     \item Let $\reg_r = (i_r, \_)$. Formulate a PIR request for index $i_r$. %\arvid{this $r$ is not the same as the $r$ in $\reg_r$? maybe this should be $i_r$ or something}
     \begin{itemize}
-        \item $\ct_{\query}, \sk_{\pir} \leftarrow \Pi_{\pir}.\query(1^{\lambda}, \sk_{\pir}, i_r).$
+        \item $\ct_{\query}, \sk_{\pir} \leftarrow \Pi_{\pir}.\query(1^{\lambda}, i_r).$
     \end{itemize}
     \item return $\req = (\ct_{\msg}, \ct_{\ack}, \ct_{\query})$.
     \item Remember $\reg_r$.
