@@ -5,7 +5,7 @@
 
 \section{Proofs}
 \label{sec:proofs}
-In this section, we prove that our messaging scheme satisfies \cref{defn:correctness}, \cref{defn:SIM-secure}, and \cref{defn:integrity}. These definitions establish correctness, security, and integrity respectively.
+In this section, we prove that our messaging scheme satisfies \cref{defn:correctness}, \cref{defn:messaging-security}, and \cref{defn:messaging-integrity}. These definitions establish correctness, security, and integrity respectively.
 \subsection{Proof of Correctness}
 To show \cref{defn:correctness}, we need to show our two consistency models: Consistent Prefix and Eventual Consistency.
 
@@ -125,9 +125,9 @@ are independent of each other, since both $i$ and $j$ must have both made a non-
 $$(1 - B^{-2})^{\lambda B^2 T^U_{\mathsf{trans}} / K} = \negl(\lambda)$$
 as desired. The proof for the latter possibility is analogous. Thus, we have demonstrated eventual consistency for the Anysphere protocol.
 \subsection{Proof of Security}
-In this section we show that our scheme is SIM secure. The security of our system is essentially implied by the IND-CPA security of the underlying symmetric key protocol $\Pi_{\sym}$ and the SIM security of the pir protocol $\Pi_{\pir}$. We now justify this by constructing a simulator $\Sim_{\asphr}$ that satisfied \cref{defn:SIM-secure}.
+In this section we show that our scheme is SIM secure. The security of our system is essentially implied by the IND-CPA security of the underlying symmetric key protocol $\Pi_{\sym}$ and the SIM security of the pir protocol $\Pi_{\pir}$. We now justify this by constructing a simulator $\Sim_{\asphr}$ that satisfied \cref{defn:messaging-security}.
 
-Let $N$ be the number of honest clients, and take $R = 2N(\lambda)T(\lambda)$. Let $\Sim_{\sym}$ and $\Sim_{\pir}$ be the simulators defined in \cref{defn:sym-security} and \cref{defn:pir-security} respectively, with parameters $N$ and $R$. At step (2), (4.a), and (4.c) of \cref{defn:ideal-world}, our simulator will run modified versions of the corresponding client methods in the respective steps of \cref{defn:real-world} for each $i \in \cH$. The important modifications involve replacing all lines that involve unleaked information.
+Let $N$ be the number of honest clients, and take $R = 2N(\lambda)T(\lambda)$. Let $\Sim_{\sym}$ and $\Sim_{\pir}$ be the simulators defined in \cref{defn:sym-security} and \cref{defn:pir-security} respectively, with parameters $N$ and $R$. At step (2), (4.a), and (4.c) of \cref{defn:messaging-ideal-world-experiment}, our simulator will run modified versions of the corresponding client methods in the respective steps of \cref{defn:messaging-real-world-experiment} for each $i \in \cH$. The important modifications involve replacing all lines that involve unleaked information.
 
 We now describe these modifications. Changes are marked in red.
 \todo{Hard-coded. Please modify if the $\Pi_{\asphr}$ methods get changed.}
@@ -260,11 +260,11 @@ We use a hybrid argument to show that the two views are indistinguishable. We st
 
 \todo{If we can somehow bypass this issue, the length of the paper can be reduced by at least 5 pages. So please share any possible ideas.}
 
-First Hybrid: We add the statements marked Hybrid 1 and run the experiment in \cref{defn:real-world}. We call this modified experiment $\Hyb_1$. To argue this preserves indistinguishability, suppose on the contrary that an adversary $\cA$ and a distinguisher $\cD$ can distinguish the view before and after the modification. Then we can build an adversary $\cA_1^O$ and a distinguisher $\cD'$ breaking \cref{defn:sym-security}. 
+First Hybrid: We add the statements marked Hybrid 1 and run the experiment in \cref{defn:messaging-real-world-experiment}. We call this modified experiment $\Hyb_1$. To argue this preserves indistinguishability, suppose on the contrary that an adversary $\cA$ and a distinguisher $\cD$ can distinguish the view before and after the modification. Then we can build an adversary $\cA_1^O$ and a distinguisher $\cD'$ breaking \cref{defn:sym-security}. 
 
-For the adversary $\cA_1^O$ to simulate the experiment in \cref{defn:real-world}, the key idea is to choose a powerful function $f: \Sigma^* \times \Sigma^* \to \Sigma^L$. For each $\reg = (j, kx^P)$, define $\data[\reg] = (\frienddb[\reg], \inb[\reg], \outb[\reg])$. $\cA_1$ stores a log of changes to $\data$ \textbf{encrypted using $\sk = \KX(kx^P, kx_i^S)$}. Whenever it wants to access or update these data in the client simulation, it calls $\Eval_f(kx_i^S, kx^P, \cdot)$. We choose $f$ to decrypt the log, recover the plaintext of the fields, do the corresponding simulation, then re-encrypt the outputs and updates to the log ($f$ can use $\arg_p$ to determine which line it is on). For such an $f$, $\cA_1^O$ can use $f$ to perfectly simulate client updates on the $\sk$-encrypted $\data[\reg]$. Finally, note that any client outputs computed from $\data$ are $\sk$-encrypted, so $f$ can perfectly simulate client outputs as well. 
+For the adversary $\cA_1^O$ to simulate the experiment in \cref{defn:messaging-real-world-experiment}, the key idea is to choose a powerful function $f: \Sigma^* \times \Sigma^* \to \Sigma^L$. For each $\reg = (j, kx^P)$, define $\data[\reg] = (\frienddb[\reg], \inb[\reg], \outb[\reg])$. $\cA_1$ stores a log of changes to $\data$ \textbf{encrypted using $\sk = \KX(kx^P, kx_i^S)$}. Whenever it wants to access or update these data in the client simulation, it calls $\Eval_f(kx_i^S, kx^P, \cdot)$. We choose $f$ to decrypt the log, recover the plaintext of the fields, do the corresponding simulation, then re-encrypt the outputs and updates to the log ($f$ can use $\arg_p$ to determine which line it is on). For such an $f$, $\cA_1^O$ can use $f$ to perfectly simulate client updates on the $\sk$-encrypted $\data[\reg]$. Finally, note that any client outputs computed from $\data$ are $\sk$-encrypted, so $f$ can perfectly simulate client outputs as well. 
 
-With this choice of $f$, we describe the full $\cA_1^O$. The step numbers below refers to the steps in \cref{defn:real-world} unless otherwise indicated.
+With this choice of $f$, we describe the full $\cA_1^O$. The step numbers below refers to the steps in \cref{defn:messaging-real-world-experiment} unless otherwise indicated.
 \begin{itemize}
     \item Simulate $\cA$ in step (1), (3), (4.b).
     \item On step (2), $\reg_i \leftarrow (i, kx_i^{P})$ for each $i \in \cH$. 
@@ -279,25 +279,25 @@ With this choice of $f$, we describe the full $\cA_1^O$. The step numbers below 
 We note that if $b = 0$, i.e. in the real world experiment of \cref{defn:sym-security}, $\cA_1$ perfectly simulates the view of $\cA$ in $\Hyb_0$, while if $b = 1$, i.e. in the ideal world experiment of \cref{defn:sym-security}, $\cA_1$ perfectly simulates the view of $\cA$ in $\Hyb_1$. Thus, $\cA_1$ just need to output the view of $\cA$ at the end of the simulation, and the same distinguisher $\cD' = \cD$ is able to distinguish between the views of $\cA_1$ in the real and ideal world. This contradicts our assumption that $\Pi_{\sym}$ satisfies \cref{defn:sym-security}. Therefore, we finally conclude that
 $$\Hyb_0 \equiv_c \Hyb_1.$$
 
-Corollary of First Hybrid: We add the statements marked Hybrid 1' and run the experiment in \cref{defn:real-world}. We call this modified experiment $\Hyb_{1'}$.
+Corollary of First Hybrid: We add the statements marked Hybrid 1' and run the experiment in \cref{defn:messaging-real-world-experiment}. We call this modified experiment $\Hyb_{1'}$.
 
 We argue that this hybrid does not change the adversary's view at all: the only thing $\Pi_{\asphr}.C.\mathsf{ServerRPC}$ does is update fields of $\data[\reg_r]$. Note that in $\Hyb_1$, for any $\reg \in \reg_{\cH}$, the fields of $\data[\reg]$ does not affect the output of the client. So adding the statement marked Hybrid 1' does not affect the output of the client. We conclude that
 $$\Hyb_1 \equiv_c \Hyb_{1'}.$$
 
-Second Hybrid: We add the statements marked Hybrid 2, and run the experiment in \cref{defn:real-world}. We call this modified experiment $\Hyb_{2}$.
+Second Hybrid: We add the statements marked Hybrid 2, and run the experiment in \cref{defn:messaging-real-world-experiment}. We call this modified experiment $\Hyb_{2}$.
 
 We now show that $\Hyb_{1'}$ and $\Hyb_{2}$ are indistinguishable. Suppose on the contrary that an adversary $\cA$ and a distinguisher $\cD$ can $\Hyb_{1'}$ and $\Hyb_{2}$. Then we can build an adversary $\cA_2$ and a distinguisher $\cD'$ breaking \cref{defn:pir-security}. 
 
-$\cA_2$ simulates a modified version of $\Hyb_1$. $\cA_2$ simulates line (1, 2, 3, 4b, 4c) in \cref{defn:real-world} verbatim as in both $\Hyb_{1'}$ and $\Hyb_2$. On line (4a), $\cA_2$ simulates everything but Phase 2 step (7) verbatim. When it reaches Phase 2 step (7), if $\reg_r \notin \reg_{\cH}$ then it simulates this step verbatim as well. If $\reg_r \in \reg_{\cH}$, then $\cA_2$ returns $i_r$ and exits line (1a) of the experiment in \cref{defn:pir-security}. Let $\ct^b_r$ be the return value of line (1b). $\cA_2$ sets $\ct_{\query} = \ct^b_r$ and continues simulation.
+$\cA_2$ simulates a modified version of $\Hyb_1$. $\cA_2$ simulates line (1, 2, 3, 4b, 4c) in \cref{defn:messaging-real-world-experiment} verbatim as in both $\Hyb_{1'}$ and $\Hyb_2$. On line (4a), $\cA_2$ simulates everything but Phase 2 step (7) verbatim. When it reaches Phase 2 step (7), if $\reg_r \notin \reg_{\cH}$ then it simulates this step verbatim as well. If $\reg_r \in \reg_{\cH}$, then $\cA_2$ returns $i_r$ and exits line (1a) of the experiment in \cref{defn:pir-security}. Let $\ct^b_r$ be the return value of line (1b). $\cA_2$ sets $\ct_{\query} = \ct^b_r$ and continues simulation.
 
 Note that contrary to the previous scenario, $\cA_2$ knows all the key exchange secret keys. Furthermore, if $\reg_r \notin \reg_{\cH}$, $\cA_2$ knows $\sk_{\pir}$ generated by $\Pi_{\asphr}.C.\mathsf{Input}$. If $\reg_r \notin \reg_{\cH}$, then $\cA_2$ does not know the $\sk_{\pir}$, but this $\sk_{\pir}$ will never be used since Hybrid 1' ensures that $\Pi_{\asphr}.C.\mathsf{ServerRPC}$ is skipped. Thus, we conclude that $\cA_2$ can complete the simulation.
 
 Note that in the real world experiment of \cref{defn:pir-security}, $\cA_2$ simulates $\Hyb_{1'}$ verbatim, while in the ideal world experiment of $\cref{defn:pir-security}$, $\cA_2$ simulates $\Hyb_2$ verbatim. Thus, $\cA_2$ just need to output the view of $\cA$ at the end of the simulation, and the same distinguisher $\cD' = \cD$ is able to distinguish between the views of $\cA_1$ in the real and ideal world. This contradicts our assumption that $\Pi_{\pir}$ satisfies \cref{defn:pir-security}. Therefore, we conclude that
 $$\Hyb_{1'} \equiv_c \Hyb_2.$$
-Third Hybrid: We add the statements marked Hybrid 3, and run the experiment in \cref{defn:real-world}. We call this modified experiment $\Hyb_{3}$. This modification does not change the view of the adversary at all: after all the changes in Hybrid 1, 1' and 2, for any $\reg \in \reg_{\cH}$, the contents of $\frienddb[\reg], \inb[\reg], \outb[\reg]$ does not affect the client's output. In particular, the way $\reg_s$ and $\reg_r$ are selected ensures that whether $\reg$ lies in $\frienddb$ or not does not affect the distribution of $\reg_s$ or $\reg_r$. For any $\reg \notin \reg_{\cH}$, Hybrid 3 does not affect how $\frienddb[\reg], \inb[\reg], \outb[\reg]$ are updated. So we have shown
+Third Hybrid: We add the statements marked Hybrid 3, and run the experiment in \cref{defn:messaging-real-world-experiment}. We call this modified experiment $\Hyb_{3}$. This modification does not change the view of the adversary at all: after all the changes in Hybrid 1, 1' and 2, for any $\reg \in \reg_{\cH}$, the contents of $\frienddb[\reg], \inb[\reg], \outb[\reg]$ does not affect the client's output. In particular, the way $\reg_s$ and $\reg_r$ are selected ensures that whether $\reg$ lies in $\frienddb$ or not does not affect the distribution of $\reg_s$ or $\reg_r$. For any $\reg \notin \reg_{\cH}$, Hybrid 3 does not affect how $\frienddb[\reg], \inb[\reg], \outb[\reg]$ are updated. So we have shown
 $$\Hyb_{2} \equiv_c \Hyb_3.$$
 We can now conclude that
 $$\Hyb_0 \equiv_c \Hyb_3$$
-Note that $\Hyb_0$ is equal to the real world experiment, and $\Hyb_3$ is equal to the ideal world experiment. Therefore, $\Pi_{\asphr}$ satisfies \cref{defn:SIM-secure} as desired. 
+Note that $\Hyb_0$ is equal to the real world experiment, and $\Hyb_3$ is equal to the ideal world experiment. Therefore, $\Pi_{\asphr}$ satisfies \cref{defn:messaging-security} as desired. 
 
 
