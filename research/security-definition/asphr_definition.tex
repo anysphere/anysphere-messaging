@@ -125,12 +125,11 @@ where $Q$ is the set of messages that $\cA$ queried to the oracle.
 \end{definition}
 
 \subsubsection{PIR Protocol}
-Central to our application is the Private Information Retrieval(PIR) Protocol. It consists of four efficient algorithms
+Central to our application is the Private Information Retrieval(PIR) Protocol. It consists of three efficient algorithms
 \begin{itemize}
-    \item $\gen(1^{\lambda}, n) \to (pk, sk)$.
-    \item $\query(1^{\lambda}, sk, i) \to ct$.
-    \item $\answer^{DB}(1^{\lambda}, pk, ct) \to a$.
-    \item $\dec(1^{\lambda}, sk, a) \to x_i$.
+    \item $\query(1^{\lambda}, i) \to (\ct, \sk)$.
+    \item $\answer^{DB}(1^{\lambda}, \ct) \to a$.
+    \item $\dec(1^{\lambda}, \sk, a) \to x_i$.
 \end{itemize}
 % \arvid{Another PIR syntax, which I believe might be more standard?}
 % \begin{itemize}
@@ -143,35 +142,35 @@ where $D$ is a length $n$ database with int64 entries, and $n$ is upper bounded 
 \begin{definition}[Correctness]
 For any database $DB$ of length $n$ with int64 entries, and any message $ct$ of length $L_{\msg}$, if we run
 \begin{enumerate}
-    \item $(pk, sk) \leftarrow \gen(1^{\lambda}, n)$.
-    \item $ct \leftarrow \query(1^{\lambda}, sk, i)$.
-    \item $a \leftarrow \answer^{DB}(1^{\lambda}, pk, ct)$.
-    \item $x_i \leftarrow \dec(1^{\lambda}, sk, a)$.
+    \item $(\ct, \sk) \leftarrow \query(1^{\lambda}, i)$.
+    \item $a \leftarrow \answer^{DB}(1^{\lambda}, \ct)$.
+    \item $x_i \leftarrow \dec(1^{\lambda}, \sk, a)$.
 \end{enumerate}
 then $x_i = DB[i]$.
 \end{definition}
 \begin{definition}[SIM Security]
 \label{defn:pir-security}
-Let $n, R$ be polynomially bounded in $\lambda$. Consider the following two experiments. Then we say the PIR scheme is \textbf{secure} if there exists a p.p.t simulator $\Sim$ such that stated p.p.t adversary $\cA$, the view of $\cA$ under the real world experiment and the ideal world experiment are computationally indistinguishable. 
+Let $n, R$ be polynomially bounded in $\lambda$. Consider the following two experiments. Then we say the PIR scheme is \textbf{secure} if there exists a p.p.t simulator $\Sim$ such that for any stated p.p.t adversary $\cA$, the view of $\cA$ under the real world experiment and the ideal world experiment are computationally indistinguishable. 
+
 \todo{This definition is equivalent to https://eprint.iacr.org/2022/081.pdf, Experiment 2.2. The definition over there is IND. May want to add a note here.}
 \begin{figure}[h!]
 \begin{framed}
 \textbf{Real World Experiment}
 \begin{enumerate}
-    \item $(pk, sk) \leftarrow \gen(1^{\lambda}, n).$
     \item for $r$ from $1$ to $R$
     \begin{enumerate}
-        \item $i \leftarrow \cA(1^{\lambda}, n, pk, \{ct_s^0\}_{s < r})$.
-        \item $ct_r^0 \leftarrow \query(1^{\lambda}, sk, i)$.
+        \item $i_r \leftarrow \cA(1^{\lambda}, n)$.
+        \item $\ct_r^0, \sk \leftarrow \query(1^{\lambda}, i_r)$.
+        \item $\cA$ stores $\ct_r^0$.
     \end{enumerate}
 \end{enumerate}
 \textbf{Ideal World Experiment}
 \begin{enumerate}
-    \item $(pk, sk) \leftarrow \gen(1^{\lambda}, n).$
     \item for $r$ from $1$ to $R$
     \begin{enumerate}
-        \item $i \leftarrow \cA(1^{\lambda}, n, pk, \{ct_s^1\}_{s < r}))$.
-        \item $ct_r^1 \leftarrow \Sim(1^{\lambda}, sk, n)$.
+        \item $i_r \leftarrow \cA(1^{\lambda}, n)$.
+        \item $\ct_r^1, \sk \leftarrow \Sim(1^{\lambda}, n)$.
+        \item $\cA$ stores $\ct_r^1$.
     \end{enumerate}
 \end{enumerate}
 \end{framed}
@@ -197,11 +196,11 @@ There are many ways to resolve this issue. The most straightforward solution is 
 
 \textbf{The PIR Request Replay Attack} Another new attack vector is the ACK system. While the ACK messages are essential to ensure our consistency model, it introduces a way for an adversarial server to get ``feedback" on their malicious responses to the client. We describe one way to exploit this.
 
-Generating PIR keypairs is expensive. Some MPM systems such as Addra(Pung actually does rotate PIR key) generates the PIR public / private keypair $(\pk, \sk)$ once for each client and use them to generate all PIR queries. While this design poses no problem for Addra, which has no ACK system, it creates a serious security hole in our system. 
+Most PIR schemes nowadays use an underlying homomorphic public key cryptosystem, and generating the public-private keypair is expensive. Some MPM systems such as Addra\footnote{Pung actually does rotate PIR key.} generate a keypair $(\pk_{\pir}, \sk_{\pir})$ once for each client and use them in all PIR queries $\ct = \query(1^{\lambda}, \sk_{\pir}, i)$. While this design poses no problem for Addra, which has no ACK system, it creates a serious security hole in our system. 
 
-Suppose honest user $A$ is friend with malicious user $C$. User $C$ is interested if $A$ is communicating with honest user $B$ at index $i_B$. Suppose user $A$ queries the database with $\ct = \query(1^{\lambda}, \sk, i)$. A malicious server can formulate a response $\resp = \answer^{DB'}(1^{\lambda}, \pk, \ct)$, where $DB'[i_B]$ is a valid message from $C$ to $A$ and $DB'[i] = 0$ for any $i \neq i_B$. The malicious server returns $\resp$ for $A$'s subsequent queries the database. If $\ct$ is a query to $i_B$, and $A$ uses the same PIR keypair for all queries, $A$ will receive the message from $C$ the next time it queries $C$'s index, and send an ACK to $C$. Otherwise, $A$ will never receive a message from $C$ and send an ACK to $C$. Therefore, the adversary can learn if $\ct$ is a query to $i_B$ or not, and subsequently learn if $A$ and $B$ are communicating.
+Suppose honest user $A$ is friend with malicious user $C$. User $C$ is interested if $A$ is communicating with honest user $B$ at index $i_B$. Suppose user $A$ generates a query $\ct = \query(1^{\lambda}, \sk_{\pir}, i)$. A malicious server can formulate a response $\resp = \answer^{DB'}(1^{\lambda}, \ct)$, where $DB'[i_B]$ is a valid message from $C$ to $A$ and $DB'[i] = 0$ for any $i \neq i_B$. The malicious server returns $\resp$ for $A$'s subsequent queries the database. If $\ct$ is a query to $i_B$, and $A$ uses the same PIR keypair for all queries, $A$ will receive the message from $C$ the next time it queries $C$'s index, and send an ACK to $C$. Otherwise, $A$ will never receive a message from $C$ and send an ACK to $C$. Therefore, the adversary can learn if $\ct$ is a query to $i_B$ or not, and subsequently learn if $A$ and $B$ are communicating.
 
-This attack can be easily bypassed by changing the PIR keypair each round. However, it provides evidence that a secure PIR system does not guarantee metadata security of the whole system.
+This attack can be easily prevented by changing the PIR keypair each round. However, it provides evidence that a secure PIR system does not guarantee metadata security of the whole system.
 \subsection{The Anysphere Core Protocol}
 \todo{I'm going to stick to our actual implementation as closely as possible, please point out anything that doesn't agree with the current protocol, greatly appreciate it.}
 Let's first recap and summarize what we have defined so far. Recall that
@@ -236,7 +235,6 @@ $\mathbf{\Pi_{\asphr}.C.\mathsf{Register}}(1^{\lambda}, i, N)$
     \item Initialize empty maps $\inb, \outb$. The maps take registration info as keys, and arrays of messages as values.\footnote{They are named Friend, Inbox, Outbox in our code. Our code is slightly more complicated to support features like sending to multiple friends and chunking.}
     \item Set a transmission schedule $T_{\trans}$. The user can customize this parameter. We assume $T_{\trans}$ is upper bounded by a constant $T_{\trans}^U$.
     \item $(kx^P, kx^S) \leftarrow \gen(1^{\lambda})$. 
-    \item Initialize PIR Keys. $(\pk_{\pir}, \sk_{\pir}) \leftarrow \Pi_{\pir}.\gen(1^{\lambda}, N).$
     \item Return $\reg \leftarrow (i, kx^P)$.
 \end{enumerate}
 \vspace{10pt}
@@ -289,9 +287,9 @@ Phase 2:
     \end{itemize}
     \item Let $\reg_r = (i_r, \_)$. Formulate a PIR request for index $i_r$. %\arvid{this $r$ is not the same as the $r$ in $\reg_r$? maybe this should be $i_r$ or something}
     \begin{itemize}
-        \item $\ct_{\query} \leftarrow \Pi_{\pir}.\query(1^{\lambda}, \sk_{\pir}, i_r).$
+        \item $\ct_{\query}, \sk_{\pir} \leftarrow \Pi_{\pir}.\query(1^{\lambda}, \sk_{\pir}, i_r).$
     \end{itemize}
-    \item return $\req = (\ct_{\msg}, \ct_{\ack}, \pk_{\pir}, \ct_{\query})$.
+    \item return $\req = (\ct_{\msg}, \ct_{\ack}, \ct_{\query})$.
     \item Remember $\reg_r$.
 \end{enumerate}
 \vspace{10pt}
@@ -306,8 +304,8 @@ $\mathbf{\Pi_{\asphr}.S.\mathsf{ClientRPC}}(t, \{\req_i\}_{i = 1}^N)$
     \item If $\req_i = \emptyset$, let $\resp_i = \emptyset$, and continue to next $i$. 
     \item Parse $\req_i = (\ct_{\msg}, \ct_{\ack}, \pk_{\pir}, \ct_{\query})$.
     \item $\msgdb[i] \leftarrow \ct_{\msg}, \ackdb[i] \leftarrow \ct_{\ack}$.
-    \item $a_{\msg} \leftarrow \Pi_{\pir}.\answer^{\msgdb}(1^{\lambda}, \pk_{\pir}, \ct_{\query}).$
-    \item $a_{\ack} \leftarrow \Pi_{\pir}.\answer^{\ackdb}(1^{\lambda}, \pk_{\pir}, \ct_{\query}).$
+    \item $a_{\msg} \leftarrow \Pi_{\pir}.\answer^{\msgdb}(1^{\lambda}, \ct_{\query}).$
+    \item $a_{\ack} \leftarrow \Pi_{\pir}.\answer^{\ackdb}(1^{\lambda}, \ct_{\query}).$
     \item $\resp_i \leftarrow (a_{\msg}, a_{\ack}).$
 \end{enumerate}
 \vspace{10pt}
@@ -316,7 +314,7 @@ $\mathbf{\Pi_{\asphr}.C.\mathsf{ServerRPC}}(t, \resp)$
 \hrule
 \vspace{5pt}
 \begin{enumerate}
-    \item If $\resp = \emptyset$, ignore.
+    \item If $\resp = \emptyset$, return.
     \item Parse $\resp = (a_{\msg}, a_{\ack})$. Let $\reg_r, \sk_{\pir}$ be defined in the last call to $\Pi_{\asphr}.C.\mathsf{Input}$.
     \item $\ct_{\msg} \leftarrow \Pi_{\pir}.\Dec(1^{\lambda}, \sk_{\pir}, a_{\msg}).$
     \item $\ct_{\ack} \leftarrow \Pi_{\pir}.\Dec(1^{\lambda}, \sk_{\pir}, a_{\ack}).$

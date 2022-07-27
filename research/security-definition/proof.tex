@@ -215,12 +215,12 @@ Phase 2:
          
      If $\reg_r \in \reg_{\cH}$, 
     \begin{itemize}
-        \item $\ct_{\query} \leftarrow \Sim_{\pir}(1^{\lambda}, n, \sk_{\pir}).$
+        \item $\ct_{\query} \leftarrow \Sim_{\pir}(1^{\lambda}, n).$
     \end{itemize}
     Else, 
     }
     \begin{itemize}
-        \item $\ct_{\query} \leftarrow \Pi_{\pir}.\query(1^{\lambda}, \pk_{\pir}, i_r).$
+        \item $\ct_{\query}, \sk_{\pir} \leftarrow \Pi_{\pir}.\query(1^{\lambda}, i_r).$
     \end{itemize}
     \item return $\req = (\ct_{\msg}, \ct_{\ack}, \pk_{\pir}, \ct_{\query})$.
     \item Remember $\reg_r$.
@@ -230,7 +230,7 @@ $\mathbf{\Pi_{\asphr}.C.\mathsf{ServerRPC}}(t, \resp)$
 \vspace{5pt}
 \hrule
 \vspace{5pt}
-{\color{red} \textbf{Hybrid 1'}: if $\reg_r \in \reg_{\cH}$, skip this method.}
+{\color{red} \textbf{Hybrid 1'}: if $\reg_r \in \reg_{\cH}$, return.}
 \begin{enumerate}
     \item If $\resp = \emptyset$, ignore.
     \item Parse $\resp = (a_{\msg}, a_{\ack})$. Let $\reg_r, \sk_{\pir}$ be defined in the last call to $\Pi_{\asphr}.C.\mathsf{Input}$.
