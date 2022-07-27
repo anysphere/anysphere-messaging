@@ -131,7 +131,7 @@ In the definition, if user $k$ tries to send user $j$ before user $j$ adds user 
 Since the GUI can query the client at any time, we expect the client's view to be ``correct" all the time. There is a caveat: due to the lack of synchronous rounds, the clients do not immediately read all messages sent by their friends. Thus, the strongest correctness notion of sequential consistency might not be satisfied. Instead, we settle for a pair of weaker consistency models defined in \cite{doug13Consistency}. 
 \begin{definition}[Correctness]
 \label{defn:correctness}
- We say a messaging scheme is \textbf{correct} if the following consistency model is satisfied with probability $1 - \negl(\lambda)$.
+ We say a messaging system is \textbf{correct} if the following consistency model is satisfied with probability $1 - \negl(\lambda)$.
  
  Take any choice of parameters of the honest world experiment, any $j \in [N]$, and any positive integer $T_0 \leq T$. Let $V_j \leftarrow C_j.\mathsf{GetView}()$ be the view of client $j$ after timestep $T_0$ of the Honest World Experiment. Then we must have
 
@@ -143,12 +143,15 @@ $$\cI'_{i, t} = \begin{cases}
 \end{cases}.$$
 2) \textbf{Eventual Consistency}: For any $T_1$, there is a polynomial function $T_{cons}$ in $N, T_1$ such that if $T_0 \geq T_{cons}$, then we can additionally take $t(i) \geq T_1$ for every $i$ with probability $1 - \negl(\lambda)$.
 \end{definition}
-We now turn to security definitions. We use a real world-ideal world definition of metadata privacy introduced by NIAR.
+
+\subsection{Metadata Security and Integrity}
+We now turn to security definitions. We write our security definitions following the real world-ideal world paradigm used in \cite{shi2021non}. On a high level, the real world definition is the honest world experiment with an adversarial server who can run arbitrary code. The ideal world definition is the real world definition
+
 \begin{figure}[h!]
 \begin{framed}
 \begin{definition}[Real world Experiment] \hfill\\
 \label{defn:real-world}
-Same notations as above. Let $\cA$ be a \textbf{stateful} adversary. Let $\cH$ denote the set of honest clients. For convenience, we denote $\reg_{\cH} = \{\reg_i\}_{i \in\cH}$ to be their registration info. The real-world experiment $\mathsf{Real}^{\cA}(1^{\lambda})$ is described below.
+Same notations as above. Let $\cA$ be a \textbf{stateful} adversary. Let $\cH$ denote the set of honest clients. For convenience, we denote $\reg_{\cH} = \{\reg_i\}_{i \in\cH}$ to be their registration info. The real-world experiment $\mathsf{Real}^{\cA}$ is described below.
 \begin{enumerate}
 \item $N, T, \cH \leftarrow \cA(1^{\lambda})$.
 \item For each $i \in \cH$, $\reg_i \leftarrow C_i.\mathsf{Register}(1^{\lambda}, i, N)$. 
@@ -203,7 +206,7 @@ Same notations as above. Let $\Sim$ be a stateful simulator. The ideal-world exp
 \end{figure}
 \begin{definition}[SIM Security]
 \label{defn:SIM-secure}
-We say a messaging scheme is SIM-secure iff for  any polynomial upper bounds on $N$ and $T$, there exists a p.p.t simulator $\Sim$ such that for any p.p.t adversary $\cA$, the view of $\cA$ is indistinguishable in $\mathsf{Real}^{\cA}(1^{\lambda})$ and $\mathsf{Ideal}^{\cA, \mathsf{\Sim}}(1^{\lambda})$.
+We say a messaging system is SIM-secure iff for  any polynomial upper bounds on $N$ and $T$, there exists a p.p.t simulator $\Sim$ such that for any p.p.t adversary $\cA$, the view of $\cA$ is indistinguishable in $\mathsf{Real}^{\cA}(1^{\lambda})$ and $\mathsf{Ideal}^{\cA, \mathsf{\Sim}}(1^{\lambda})$.
 \end{definition}
 
 \todo{SIM-security is a relatively novel form of security defined in NIAR. Because it is not often seen in literature, I'm defining a IND-security below, which should be more traditional.}
@@ -235,14 +238,14 @@ We say an adversary $\cA$ is admissible if with probability $1$, after running t
 \end{framed}
 \end{figure}
 \begin{definition}[IND Security]
-We say a messaging scheme is IND-secure iff for any polynomial upper bounds on $N$ and $T$ and any admissible adversary $\cA$, its view in the real world IND-experiment for $b = 0$ and $b = 1$ are indistinguishable.
+We say a messaging system is IND-secure iff for any polynomial upper bounds on $N$ and $T$ and any admissible adversary $\cA$, its view in the real world IND-experiment for $b = 0$ and $b = 1$ are indistinguishable.
 \end{definition}
 
 \todo{Check that SIM secure and IND secure are equivalent. I'm fairly convinced by NIAR Appendix A.}
-Finally, we require the messaging scheme to satisfy Integrity: while a malicious server can DoS users, it shouldn't be able to forge messages between honest users, or selectively drop messages between honest users. In other words, consistent prefix must still be satisfied even though we cannot guarantee eventual consistency. We define the notion of integrity rigorously.
+Finally, we require the messaging system to satisfy Integrity: while a malicious server can DoS users, it shouldn't be able to forge messages between honest users, or selectively drop messages between honest users. In other words, consistent prefix must still be satisfied even though we cannot guarantee eventual consistency. We define the notion of integrity rigorously.
 \begin{definition}[Integrity]
 \label{defn:integrity}
-Same notation as before. Consider the real world experiment described in \cref{defn:real-world}. Take any pair of honest users $i, j \in \cH$, and consider the view of $j$ at the end of the experiment given by $V_j = (\cF, \cM) \leftarrow C_j.\mathsf{GetView}()$.  Then we say the messaging scheme guarantees Integrity if with probability $1 - \negl(\lambda)$, there exists a $t(i)$ such that
+Same notation as before. Consider the real world experiment described in \cref{defn:real-world}. Take any pair of honest users $i, j \in \cH$, and consider the view of $j$ at the end of the experiment given by $V_j = (\cF, \cM) \leftarrow C_j.\mathsf{GetView}()$.  Then we say the messaging system guarantees Integrity if with probability $1 - \negl(\lambda)$, there exists a $t(i)$ such that
 \begin{multline*}
      \{\msg : (\reg_i, \msg) \subset \cM\} \\
       = \{(\reg_k, \msg): \exists t \leq t(i), \send(\reg_j, \msg) = \cI_{k, t} \land \\
