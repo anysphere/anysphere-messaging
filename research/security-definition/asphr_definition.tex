@@ -21,6 +21,8 @@ Unfortunately, Anysphere does not support the strongest security notion describe
 
 \arvid{Another path to explore here would be to create a new leak function, say LeakCF, which contains the exact information leaked for the CF attack. For example, one potentially useful leak function would be one that contains the current number of friends, or perhaps the number of friends but rounded to the nearest 10. In the worst case (such as our current prioritization case), we would leak the timing that a message actually gets sent to the server, which might be very hard to model here... Hmmmm}
 
+\stzh{I agree. This remains unresolved.}
+
 \begin{definition}[SIM-secure with no compromised friends and bounded friends]
 We say that a set of input $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ satisfy \textbf{no compromised friends} if for any $i \in \cH, j \in \cK$ and $t \in [T]$, we have
 $$\trust(\reg_j) \neq \cI_{i, t}.$$
@@ -38,7 +40,9 @@ Currently we have $B = 2$.
 
 We now explain the construction of Anysphere. 
 \subsection{Cryptography Primitives}
-Anysphere relies on two crypto primitives: a symmetric key AE, and a PIR scheme. We outline formal simulator-based definition of the two.
+Anysphere relies on two crypto primitives: a key exchange-symmetric key Authenticated Encryption system(AE), and a PIR scheme. We outline formal simulator-based security requirements of the two.
+
+It turns out that our security requirement on the PIR scheme is standard and well-documented in literature. However, existing security requirements on the key exchange, including IND-CCA or even IK-CCA, are not sufficient. In this section, we introduce a security requirement that closely resembles the actual security need of our system, but seems less natural. In Section 5, we introduce a security notion called IND-CCPKA, which is much stronger than the minimal level of security we need but seems more natural.
 \subsubsection{Key Private IND-CPA symmetric key AE scheme}
 \arvid{we probably want IND-CCA to guarantee integrity?}
 \stzh{Resolved, adds EUF-CMA assumption below.}
@@ -58,27 +62,19 @@ If we let
     \item $(kx^P_A, kx_A^S), (kx^P_B, kx_B^S)  \leftarrow \gen(1^{\lambda}).$
     \item $sk_{AB} \leftarrow \KX(1^{\lambda}, kx_A^P, kx_B^S), sk_{BA} \leftarrow \KX(1^{\lambda}, kx_B^P, kx_A^S)$
 \end{enumerate}
-then $sk_{AB} = sk_{BA}$ with probability $1$. \todo{This simplifies the security definition below. Otherwise, we need to give adversary power to call $\Enc$ on $\sk_{ij}$, where $h$ is uncompromised.} For any plaintext $m$ of a fixed length $L$, we have
+then $sk_{AB} = sk_{BA}$ with probability $1$. For any plaintext $m$ of a fixed length $L$, we have
 $$\dec(sk_{BA}, \enc(sk_{AB}, m)) = m.$$
-\todo{I think there is a subtlety here: The line below is not covered by EUF-CMA.}
+\todo{The line below is unused?}
 Furthermore, for any secret key $sk' \neq sk_{AB}$, we have
 $$\dec(sk_{BA}, \enc(sk', m)) = \bot.$$
 
 \end{definition}
-\todo{The following definitions about security has not existed in literature(as communicated by Prof. Angel). Do we want a proof that libsodium satisfies this? The "Private Signaling" paper seems to contain a related definition?}
-
-\todo{I need to find a ``no backdoor" guarantee here for the KX algorithm. Basically, an adversary should be able to challenge KX with arbitrary public key(not necessarily coming from Gen()), and not leak information. the key exchange oracle is my take on this. Another approach involves ZK proofs, but might be expensive to implement.}
-
-\todo{Update: see Section 5 for a formal description of this guarantee, which I call IND-CCPKA.}
 
 To formally define the security notion our system is required to satisfy, we first define some oracles.
 
-\textbf{Convention.} Given an oracle $O(x, \cdot)$ and a series $\{x_i\}_i$, define $O(\{x_i\}_i, \cdot)$ as the oracle whose input takes an extra argument $j$ and outputs $O(\{x_i\}_i, j, \cdot) = O(x_j, \cdot)$.
-
-\textbf{Convention.} When we say two experiments are indistinguishable, we mean the view of the adversary in the two experiments are indistinguishable. The view of the adversary consists of all inputs, outputs, and internal randomness of the adversary.
 \begin{definition}
 \label{defn:ack-oracle}
-Given a key exchange secret key $kx^S$, and a polynomial time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^L$, the Eval oracle $\Eval_{f}(kx^S, \cdot)$ takes as input a ``fake key" $k$, a set of ciphertexts $\arg_{\ct} = \{\ct_i\}$, and a plaintext argument $\arg_{p}$. It computes 
+Given a key exchange secret key $kx^S$, and a polynomial time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^L$, the Eval oracle $\Eval_{f}(kx^S, \cdot)$ takes as input a "public key" $k$, a set of ciphertexts $\arg_{\ct} = \{\ct_i\}$, and a plaintext argument $\arg_{p}$. It computes 
 $$\sk \leftarrow \KX(k, kx^S)$$
 $$m_i \leftarrow \dec(sk, \ct_i).$$ 
 It outputs $\enc(sk, f(\{m_i\}, \arg_p))$.
@@ -118,6 +114,8 @@ Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
 
 Then we say the encryption scheme is key-private IND-CPA if there exists a p.p.t simulator $\Sim$ such that for any polynomial-time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^{L}$, any p.p.t adversary with oracle $\cA^O$, the real world experiment and the ideal world experiment are computationally indistinguishable.
 \end{definition}
+
+Note: $\Sim$ does not depend on $f$ or $\cA$.
 \begin{definition}[EUF-CMA Authentication]
 Let $kx^P_A, kx^P_B, \sk_{AB}, \sk_{BA}$ be the same as \cref{defn:KX-Correctness}. For any p.p.t. adversary $\cA^O$ with access to oracle $O$, if
 $$m \leftarrow \cA^{\Enc(\sk_{AB}, \cdot), \Enc(\sk_{BA}, \cdot)}(1^{\lambda}, kx^P_A, kx^P_B)$$
@@ -181,7 +179,6 @@ Let $n, R$ be polynomially bounded in $\lambda$. Consider the following two expe
 \end{definition}
 For our implementation, we use libsodium's key exchange functionality for the $\KX$ function, then libsodium's secret key AEAD for the $\enc$ and $\dec$ functions. This provides a Key Private IND-CPA symmetric key encryption scheme. We use Addra as the PIR protocol.
 \subsection{Messages, Sequence numbers, ACK}
-\todo{It turns out the ACK system creates a significant security subtlety.}
 To guarantee the consistent prefix property, each client $i$ labels all messages to be sent to another client $j$ with a sequence number. In the order client $i$ receives $\send$ inputs to client $j$, client $i$ label the messages with sequence number $1,2,\cdots$. The client will transmit the labeled message\footnote{Called chunk in the code.} $\msg^{lb} = (k, \msg)$, where $k$ is the sequence number and $\msg$ is the actual message. 
 
 Critical to both consistent prefix and eventual consistency is the ACK messages. An ACK message is a special type of messages denoted $\ACK(k)$.\todo{In the whitepaper an additional chunk number is used. Since this definition does not use chunking, I'll ignore it}. When client $j$ sends $\ACK(k)$ to client $i$, it means ``I have read all messages up to message $k$ from you". As we will soon define rigorously, user $i$ will keep broadcasting message $k$ until user $j$ sends $\ACK(k)$, in which case they begin broadcasting message $k + 1$. 
@@ -189,6 +186,22 @@ Critical to both consistent prefix and eventual consistency is the ACK messages.
 To prevent replay attack, we encode ACK messages differently from actual messages sent between users\footnote{In the code, this is guaranteed as ACKs and Chunks use different protobuf structs.}. Any ACK message is distinct from any labeled messages generated from user input.
 
 Let $L_{\msglb}$ denote the length of the labeled message, and let $L_{\ct}$ be the length of the ciphertext generated by encoding $\msg^{lb}$ with $\Pi_{\sym}.\enc$. While the input messages have length $L_{\msg}$, the messages client sent to the server have length $L_{\ct}$. We will take $L = L_{\ct}$ in the PIR scheme.
+\subsection{Potential Security Vulnerability}
+In this section, we describe several previously unobserved security vulnerabilities we discovered while writing this document. These vulnerabilities show that even with a secure PIR implementation, the security of the whole system is not straightforward.
+
+\textbf{The Impersonation Attack} The first new attack vector is the trust establishment system. Due to a lack of central authorities, our system uses the registration information $\reg$ as the unique identifier of a client / user. The registration information is a tuple $\reg = (i, kx^P)$ containing the index $i$ of the client in the PIR database, and the key exchange public key $kx^P$ of the client. This information is intended to be posted on the client / user's social media, so that others can verify that the registration info indeed belongs to the person.
+
+Suppose user $A, B$ are friends, and their registration informations are $\reg_A = (i_A, kx^P_A)$ and $\reg_B = (i_B, kx^P_B)$ respectively. Then a malicious user $C$ can declare on their webpage that their registration information is $\reg_C = (i_C, kx^P_B)$. If user $A$ establishes trust with user $C$, then user $B$ will ``overhear" all conversations between user $A$ and user $C$, since the way $B$ decides if a message from $A$ is meant for them is by decrypting user $A$'s ciphertext with their shared public key $\sk_{AB}$. By letting $\sk_{AC} = \sk_{AB}$, user $C$ compromised the integrity of user $A$ and $B$'s conversation.
+
+There are many ways to resolve this issue. The most straightforward solution is for users to sign their registration information with their secret key. However, this will make the registration information too long to be put in e.g. a twitter profile. Another solution is to label each message with their intended recipient; we are planning to incorporate this solution ASAP.
+
+\textbf{The PIR Request Replay Attack} Another new attack vector is the ACK system. While the ACK messages are essential to ensure our consistency model, it introduces a way for an adversarial server to get ``feedback" on their malicious responses to the client. We describe one way to exploit this.
+
+Generating PIR keypairs is expensive. Some MPM systems such as Addra(Pung actually does rotate PIR key) generates the PIR public / private keypair $(\pk, \sk)$ once for each client and use them to generate all PIR queries. While this design poses no problem for Addra, which has no ACK system, it creates a serious security hole in our system. 
+
+Suppose honest user $A$ is friend with malicious user $C$. User $C$ is interested if $A$ is communicating with honest user $B$ at index $i_B$. Suppose user $A$ queries the database with $\ct = \query(1^{\lambda}, \sk, i)$. A malicious server can formulate a response $\resp = \answer^{DB'}(1^{\lambda}, \pk, \ct)$, where $DB'[i_B]$ is a valid message from $C$ to $A$ and $DB'[i] = 0$ for any $i \neq i_B$. The malicious server returns $\resp$ for $A$'s subsequent queries the database. If $\ct$ is a query to $i_B$, and $A$ uses the same PIR keypair for all queries, $A$ will receive the message from $C$ the next time it queries $C$'s index, and send an ACK to $C$. Otherwise, $A$ will never receive a message from $C$ and send an ACK to $C$. Therefore, the adversary can learn if $\ct$ is a query to $i_B$ or not, and subsequently learn if $A$ and $B$ are communicating.
+
+This attack can be easily bypassed by changing the PIR keypair each round. However, it provides evidence that a secure PIR system does not guarantee metadata security of the whole system.
 \subsection{The Anysphere Core Protocol}
 \todo{I'm going to stick to our actual implementation as closely as possible, please point out anything that doesn't agree with the current protocol, greatly appreciate it.}
 Let's first recap and summarize what we have defined so far. Recall that
@@ -197,8 +210,8 @@ Let's first recap and summarize what we have defined so far. Recall that
     \item $N$ is the number of users.
     \item $T$ is the number of timesteps our protocol is run.
     \item $L_{\msg}$ is the length of each message we send.
-    \item We use a key-private IND-CPA symmetric key AE scheme $\Pi_{\sym}$.
-    \item We use a PIR protocol $\Pi_{\pir}$.
+    \item We use a  $\Pi_{\sym}$.
+    \item We use a PIR protocol $\Pi_{\pir}$ satisfying \cref{defn:pir-security}.
 \end{enumerate}
 We can now formally define Anysphere's core protocol.
 \begin{definition}[The Anysphere Core Protocol]

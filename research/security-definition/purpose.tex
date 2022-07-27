@@ -6,8 +6,8 @@ Previous MPM papers have focused on the security of a multi-round MPM where each
     \item Practical messaging apps need many more components beyond sending and receiving messages, such as trust establishment, etc. These components will be constantly updated. It is important that the security of the MPM system is preserved by these components.
 \end{itemize}
 
-\arvid{Pung and Talek both kinda handle multiple rounds no?}
-\stzh{Ah I made a mistake. Let me reword this more carefully.}
+%\arvid{Pung and Talek both kinda handle multiple rounds no?}
+%\stzh{Ah I made a mistake. Let me reword this more carefully.}
 
 We design a formal security definition for a multi-round real-time messaging scheme. This draft is more based on the security definition presented in NIAR. 
 
@@ -15,4 +15,12 @@ We design a formal security definition for a multi-round real-time messaging sch
 
 \todo{Also, CF attack is a huge problem! What should we do about it?}
 
-\todo{I ended up including ACKS since it is critical to correctness.}
+\subsection{Conventions}
+Double column makes the paper easier to read, but prevents me from writing writing very long formulas. Therefore, I am introducing a few conventions to avoid introducing long formulas.
+\begin{itemize}
+    \item When I write $f(\cdot)$, the dot might hide several variables.
+    
+    \item Given an oracle $O(x, \cdot)$ and a series $\{x_i\}_i$, define $O(\{x_i\}_i, \cdot)$ as the oracle whose input takes an extra argument $j$ and outputs $O(\{x_i\}_i, j, \cdot) = O(x_j, \cdot)$.
+
+    \item When we say two experiments are indistinguishable, we mean the view of the adversary in the two experiments are indistinguishable. The view of the adversary consists of all inputs, outputs, and internal randomness of the adversary.
+\end{itemize}

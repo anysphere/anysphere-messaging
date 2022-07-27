@@ -16,7 +16,7 @@ The \textbf{view} of a client is a tuple consisting of
 
 1. A list of friends $\cF$ of the client.
 
-2. A list of messages $\cM$ received by the client, including the sender, timestep and content of the messages. \todo{Do we reveal whether the message have been received?}
+2. A list of messages $\cM$ received by the client, including the sender, timestep and content of the messages.
 \end{definition}
 \begin{definition}
 A \textbf{user input} is a command the user can issue to the client. It can take one of the following values.
@@ -54,7 +54,7 @@ Server Side Algorithms for server $S$.
     \item $S.\mathsf{ClientRPC}(t, \{\req_i\}_{i = 1}^N) \to \{\resp_i\}_{i = 1}^N$, responds to all client requests of the timestep.
 \end{itemize}
 \end{definition}
-We now define how the algorithm will be executed, and correctness.
+We now describe how the server and clients interact in an adversary-free setting, and define correctness.
 \begin{figure}[h!]
 \begin{framed}
 \begin{definition}[Honest Server Experiment]  \hfill\\
@@ -63,7 +63,7 @@ We now define how the algorithm will be executed, and correctness.
     \item $\lambda$, the security parameter.
     \item $N$, the number of clients, bounded above by a polynomial function $N(\lambda)$ of $\lambda$.
     \item $T$, the number of timesteps, bounded above by a polynomial function $T(\lambda)$ of $\lambda$.
-    \item For each client $i$ and timestep $t$, a set of user inputs $\cI_{i, t}$, whose length is bounded by a constant.
+    \item For each client $i$ and timestep $t$, a user input $\cI_{i, t}$.
 \end{enumerate}
 
 Let $S$ denote the server machine, let $\{C_i\}_{i = 1}^N$ denote the client machines.
@@ -88,7 +88,7 @@ Let $S$ denote the server machine, let $\{C_i\}_{i = 1}^N$ denote the client mac
 \arvid{Do we want an adversary to be able to control some of the clients? Ideally I think we would want to, because we want to guarantee resistance against denial of service attacks from clients}
 \stzh{Good idea. I'll come back to this after I finish the security proof in the current iteration.}
 
-The definition of correctness is a bit tricky: we do not immediately read all messages sent by our friends. Instead, we settle for a pair of weaker consistency models defined in 6.033. %https://www.microsoft.com/en-us/research/wp-content/uploads/2011/10/ConsistencyAndBaseballReport.pdf
+The definition of correctness is subject to a caveat: we do not immediately read all messages sent by our friends. Instead, we settle for a pair of weaker consistency models defined in 6.033. %https://www.microsoft.com/en-us/research/wp-content/uploads/2011/10/ConsistencyAndBaseballReport.pdf
 \begin{definition}
 We define the ``correct" view given user inputs. Informally speaking, the correct view should satisfy
 \begin{enumerate}
@@ -127,7 +127,7 @@ $$\cI'_{i, t} = \begin{cases}
 \end{cases}.$$
 2) \textbf{Eventual Consistency}: For any $T_1$, there is a polynomial function $T_{cons}$ in $N, T_1$ such that if $T_0 \geq T_{cons}$, then we can additionally take $t(i) \geq T_1$ for every $i$ with probability $1 - \negl(\lambda)$.
 \end{definition}
-We now turn to security definitions. We use the real world-ideal world definition of metadata privacy.
+We now turn to security definitions. We use a real world-ideal world definition of metadata privacy introduced by NIAR.
 \begin{figure}[h!]
 \begin{framed}
 \begin{definition}[Real world Experiment] \hfill\\
@@ -223,7 +223,7 @@ We say a messaging scheme is IND-secure iff for any polynomial upper bounds on $
 \end{definition}
 
 \todo{Check that SIM secure and IND secure are equivalent. I'm fairly convinced by NIAR Appendix A.}
-Finally, we require the messaging scheme to satisfy Integrity: while a malicious server can DoS users, it shouldn't be able to forge messages between honest users, or selectively drop messages between users. In other words, consistent prefix must still be satisfied even though we cannot guarantee eventual consistency. We define the notion of integrity rigorously.
+Finally, we require the messaging scheme to satisfy Integrity: while a malicious server can DoS users, it shouldn't be able to forge messages between honest users, or selectively drop messages between honest users. In other words, consistent prefix must still be satisfied even though we cannot guarantee eventual consistency. We define the notion of integrity rigorously.
 \begin{definition}[Integrity]
 \label{defn:integrity}
 Same notation as before. Consider the real world experiment described in \cref{defn:real-world}. Take any pair of honest users $i, j \in \cH$, and consider the view of $j$ at the end of the experiment given by $V_j = (\cF, \cM) \leftarrow C_j.\mathsf{GetView}()$.  Then we say the messaging scheme guarantees Integrity if with probability $1 - \negl(\lambda)$, there exists a $t(i)$ such that
