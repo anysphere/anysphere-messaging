@@ -4,6 +4,7 @@
 \newcommand{\cD}{\mathcal{D}}
 
 \section{Proofs}
+\label{sec:proofs}
 In this section, we prove that our messaging scheme satisfies \cref{defn:correctness}, \cref{defn:SIM-secure}, and \cref{defn:integrity}. These definitions establish correctness, security, and integrity respectively.
 \subsection{Proof of Correctness}
 To show \cref{defn:correctness}, we need to show our two consistency models: Consistent Prefix and Eventual Consistency.
@@ -18,7 +19,7 @@ and let $\msg_{ij}(\ell)$ be the $\ell$-th message in $\MSGS(t_0, i, j)$, sorted
 \textbf{Consistent Prefix}: We establish the following property by induction.
 \begin{lemma}
 \label{lem:correctness-main}
-In the honest server experiment \cref{defn:honest-server-experiment}. Let $i \neq j$ be any pair of users, and $t \leq T$. Then with probability $1 - \negl(\lambda)$, at the end of timestep $t$ the proposition below holds.
+In the honest server experiment \cref{defn:messaging-honest-server-experiment}. Let $i \neq j$ be any pair of users, and $t \leq T$. Then with probability $1 - \negl(\lambda)$, at the end of timestep $t$ the proposition below holds.
 
 \textbf{Proposition: }One of the following holds.
 

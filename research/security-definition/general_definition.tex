@@ -1,74 +1,87 @@
 \todo{General comment: standardize labeling convention, and name the 20+ experiments}
 \section{General Definitions}
-\todo{User = person using the application. Client = the application the user is using}
-
-In this section, we attempt to design a security definition for a messaging application that is as general as possible, then outline some properties that we expect a satisfactory metadata-private messaging app to achieve. We start from the following basic assumptions.
+\label{sec:general-defn}
+In this section, we design a security definition for a messaging application that is as general as possible. We start from the following basic principles.
 \begin{enumerate}
-    \item The messaging app has a centralized server in charge of storing and routing messages.
-    \item The messaging app has a large number of users, interacting with client machines. The client machine should allow the user to register, add friends, and send messages. It should display received messages to the user.
+    \item The messaging system has a centralized server in charge of storing and routing messages. We do not consider decentralized messaging systems in this paper.
+    \item The messaging system has a large number of users, interacting with ``client" software on their computers. The client software should allow the user to register, add friends, and send messages at any time. It should display received messages to the user.
     \item To achieve metadata privacy, the messaging application should hide metadata of conversations between honest users from a powerful adversary that controls the server and a subset of clients. 
 \end{enumerate}
+We now translate these principles into mathematical definitions that describe a general messaging system.
 \begin{definition}
-In this document, we divide our execution into discrete \textbf{timesteps}. In reality, each timestep might be a small unit of time, like 100ms. This is different from ``rounds" used in most MPM security definitions, since clients do not necessarily transmit real or fake messages at every timestep.
+\label{defn:timestep}
+A \textbf{timestep} is a basic unit of time in our system. This is different from ``rounds" used in most MPM security definitions, since clients do not necessarily transmit real or fake messages at every timestep. Instead, a timestep plays a similar role as a clock cycle in computer hardware. We assume that the system starts on timestep $t = 1$. Methods are executed on positive integer timesteps.
 \end{definition}
 \begin{definition}
+\label{defn:client-view}
 The \textbf{view} of a client is a tuple consisting of
 
 1. A list of friends $\cF$ of the client.
 
-2. A list of messages $\cM$ received by the client, including the sender, timestep and content of the messages.
+2. A list of messages $\cM$ received by the client, including the sender and content of the messages.
 \end{definition}
 \begin{definition}
-A \textbf{user input} is a command the user can issue to the client. It can take one of the following values.
-
-$\emptyset$: noop.
-
-$\trust(\reg)$: Add the user identified by $\reg$ as a friend, and enable the two parties to start a conversation.
-
-$\send(\reg, \msg)$: Send the message $\msg$ to the client identified by $\reg$. We assume that the messages have a fixed length $L_{\msg}$ polynomial in $\lambda$.
+The \textbf{registration information}, denoted $\reg$ in this paper, is the unique identifier of a user.
+\end{definition}
+\textbf{Remark: }Throughout the rest of the paper, we will always use the registration info as the identifier in the messaging system. For example, we will makes friends with and send messages to a registration info. Registration info is ubiquitous in practical messaging systems: in Messenger, it is the Facebook handle. In Signal, it is the email address. In Anysphere, it is the ``public ID" as defined in \cite[Figure 6]{whitepaper}.
+\begin{definition}
+\label{defn:user-input}
+A \textbf{user input} is a command the user can issue to the client. In our current protocol, it can take one of the following values.
+\begin{itemize}
+    \item $\emptyset$: noop.
+    \item $\trust(\reg)$: Add the user identified by $\reg$ as a friend, and enable the two parties to start a conversation.
+    \item $\send(\reg, \msg)$: Send the message $\msg$ to the client identified by $\reg$. We assume that $\msg$ has a constant length $L_{\msg}$.
+\end{itemize}
 
 \todo{We could do a ``setparameter" method here to allow clients to customize their transmission schedule, etc.}
 
-Without loss of generality, we assume the client issues one input per timestep.
+Without loss of generality, we assume each user issues exactly one input per timestep.
 \end{definition}
-\textbf{Remark}:  To support variable length messages, we simply pad short messages, and split long messages into chunks of length $L_{\msg}$. This does not affect our security definition below.
+\textbf{Remark}:  In our implementation, we take $L_{\msg} = 1\mathsf{KB}$. To support variable length messages, we simply pad short messages, and split long messages into chunks of length $L_{\msg}$. This modification does not affect our security definition below.
 \begin{definition}
-\label{def:messaging-scheme}
-A \textbf{Messaging Scheme/Application/App} consists of the following polynomial time methods on stated Turing machines.
+\label{defn:messaging-scheme}
+A \textbf{Messaging System/Application/App} is a scheme consisting of the following polynomial time algorithms on stated Turing machines.
 
 Client Side Algorithms for client $C$.
 \begin{itemize}
-    \item $C.\mathsf{Register}(1^{\lambda}, i, N) \to \reg$, takes in a security parameter $\lambda$, the index $i$ of the client, the total number of users $N$, and outputs a public registration info $\reg$ and initializes the client database $D_C$.
+    \item $C.\mathsf{Register}(1^{\lambda}, i, N) \to \reg$. The client registration algorithm takes in a security parameter $\lambda$, the index $i$ of the client, the total number of users $N$, and outputs a public registration info $\reg$. It also initializes client storage and keypairs.
     
-    \item $C.\mathsf{Input}(t, \cI) \to \req$, takes in a user input $\cI$, updates the local storage to reflect that, and issues a request $\req$ to the server. The request can be empty, which means the client doesn't request the server on that timestep.
+    \item $C.\mathsf{Input}(t, \cI) \to \req$. This algorithm handles a user input $\cI$. It updates the client storage to reflect the new input, then issues a (possibly empty) request $\req$ to the server.
     
-    \item $C.\mathsf{ServerRPC}(t, \resp)\to \lambda$, updates the database given the server response $\resp$.
+    \item $C.\mathsf{ServerRPC}(t, \resp)$. This algorithm handles the server's response $\resp$ and updates client storage.
     
-    \item $C.\mathsf{GetView}() \to V$, outputs the view of the client.
+    \item $C.\mathsf{GetView}() \to V$. This algorithm outputs the view of the client(\cref{defn:client-view}). Its output is passed to the GUI and displayed to the user.
 \end{itemize}
 
 Server Side Algorithms for server $S$.
 
 \begin{itemize}
-    \item $S.\mathsf{InitServer}(1^{\lambda}, N)$, takes in the security parameter $\lambda$, number of clients $N$, and initializes the server side database $D_S$.
-    \item $S.\mathsf{ClientRPC}(t, \{\req_i\}_{i = 1}^N) \to \{\resp_i\}_{i = 1}^N$, responds to all client requests of the timestep.
+    \item $S.\mathsf{InitServer}(1^{\lambda}, N)$. This algorithm takes in the security parameter $\lambda$, number of clients $N$, and initializes the server side database $D_S$.
+    \item $S.\mathsf{ClientRPC}(t, \{\req_i\}_{i = 1}^N) \to \{\resp_i\}_{i = 1}^N$. This algorithm responds to all client requests $\req_i$ the server received on a given timestep $t$. It outputs the responses $\resp_i$ that gets sent back to the client.
 \end{itemize}
 \end{definition}
-We now describe how the server and clients interact in an adversary-free setting, and define correctness.
-\begin{figure}[h!]
-\begin{framed}
+
+
+Now we know what a messaging system is, we can describe some desired properties. In the rest of this section, we will look at three properties we wish Anysphere to satisfy: Correctness, Metadata Security, and Integrity.
+
+\subsection{Correctness}
+First, we describe how the server and clients interact when the application is running normally. We call this scenario the Honest Server Experiment
+
 \begin{definition}[Honest Server Experiment]  \hfill\\
-\label{defn:honest-server-experiment}
-\textbf{Parameters}: \begin{enumerate}
+\label{defn:messaging-honest-server-experiment}
+The honest server experiments takes in the following parameters
+
+\begin{enumerate}
     \item $\lambda$, the security parameter.
     \item $N$, the number of clients, bounded above by a polynomial function $N(\lambda)$ of $\lambda$.
     \item $T$, the number of timesteps, bounded above by a polynomial function $T(\lambda)$ of $\lambda$.
-    \item For each client $i$ and timestep $t$, a user input $\cI_{i, t}$.
+    \item For each client $i \in [N]$ and timestep $t \in [T]$, a user input $\cI_{i, t}$.
 \end{enumerate}
 
-Let $S$ denote the server machine, let $\{C_i\}_{i = 1}^N$ denote the client machines.
-
-\textbf{Execution}:
+Let $S$ denote the server machine, let $\{C_i\}_{i = 1}^N$ denote the client machines. The experiment is described below.
+\begin{figure}[ht!]
+\begin{framed}
+\textbf{Honest Server Experiment}
 \begin{enumerate}
 \item $S.\mathsf{InitServer}(1^{\lambda}, N)$. 
 \item For each $i \in [N]$, $\reg_i \leftarrow C_i.\mathsf{Register}(1^{\lambda}, i, N)$. 
@@ -81,45 +94,48 @@ Let $S$ denote the server machine, let $\{C_i\}_{i = 1}^N$ denote the client mac
     \item For each $i \in [N]$, $C_i.\mathsf{ServerRPC}(t, \resp_i)$.
     \end{enumerate}
 \end{enumerate}
-\end{definition}
 \end{framed}
+\label{expr:messaging-honest-server}
+\caption{The Honest Server Experiment}
 \end{figure}
+
+\end{definition}
 
 \arvid{Do we want an adversary to be able to control some of the clients? Ideally I think we would want to, because we want to guarantee resistance against denial of service attacks from clients}
 \stzh{Good idea. I'll come back to this after I finish the security proof in the current iteration.}
 
-The definition of correctness is subject to a caveat: we do not immediately read all messages sent by our friends. Instead, we settle for a pair of weaker consistency models defined in 6.033. %https://www.microsoft.com/en-us/research/wp-content/uploads/2011/10/ConsistencyAndBaseballReport.pdf
-\begin{definition}
-We define the ``correct" view given user inputs. Informally speaking, the correct view should satisfy
+In this case, we expect the client's view to be "correct". First, we need to define what "correct" means here. Informally speaking, the correct view should satisfy
 \begin{enumerate}
-    \item The list of friends should contain the friends we called $\trust$ on.         
+    \item The list of friends contain the friends we called $\trust$ on.         
     \item Messages from a client with established trust should be present.  
     \item No other friends or messages should be present. 
 \end{enumerate}
-More formally, given a set of clients identified by $\{\reg_i\}_{i \in [N]}$, and user inputs $\{\cI_{i, t}\}_{i \in [N], t \in [T]}$, a view $(\cF, \cM)$ of client $j$ is said to be \textbf{correct} if it satisfies
+We state the formal definition.
+\begin{definition}
+\label{defn:client-view-correct}
+Given a set of clients identified by $\{\reg_i\}_{i \in [N]}$, and user inputs $\{\cI_{i, t}\}_{i \in [N], t \in [T]}$, a view $(\cF, \cM)$ of client $j$ is \textbf{correct} if it satisfies
 \begin{multline*}
-\cF \cap \{\reg_i: i \in [N]\} = 
- \\ \{\reg_k: \exists t \in [T], \trust(\reg_k) = \cI_{j, t}\},    
+\cF \cap \{\reg_i\} = \{\reg_k: \exists t \in [T], \trust(\reg_k) = \cI_{j, t}\},    
 \end{multline*}
 and
-\begin{multline*}
- \cM = \{(\reg_k, \msg): \exists t, \send(\reg_j, \msg) = \cI_{k, t} \land \\
- \exists t' < t, \trust(\reg_j) = \cI_{k, t'} \land \\
- \exists t'', \trust(\reg_k) = \cI_{j, t''}\} .   
-\end{multline*}
+\begin{align*}
+ \cM = \{(\reg_k, \msg): &\exists t, \send(\reg_j, \msg) = \cI_{k, t} \land \\
+ &\exists t' < t, \trust(\reg_j) = \cI_{k, t'} \land \\
+ &\exists t'', \trust(\reg_k) = \cI_{j, t''}\}.   
+\end{align*}
 \end{definition}
-\textbf{Remark}: Note that we allow $\cF$ to contain friends that are non-existent. This is because we need a trusted PKI to verify the identity of the client, which we do not have. I do not think having these non-existent friends would cause any harm...
+\textbf{Remark}: Note that we allow $\cF$ to contain friends that are non-existent. Ruling out these friends is a part of the trust establishment mechanism(\cite[Section 4]{whitepaper}), which is beyond the scope of this paper. 
 
-Of course, we have a handshake protocol to verify the validity of friends, but this is a preliminary draft, so I don't know if it is appropriate to go so far right now...
+In the definition, if user $k$ tries to send user $j$ before user $j$ adds user $k$ as a friend, user $j$ should be able to receive the message. This is a feature of our system. 
 
-Also note that $k$ might be broadcasting the message before $j$ adds $k$ as a friend. Our system is actually capable of receiving such messages.
+Since the GUI can query the client at any time, we expect the client's view to be ``correct" all the time. There is a caveat: due to the lack of synchronous rounds, the clients do not immediately read all messages sent by their friends. Thus, the strongest correctness notion of sequential consistency might not be satisfied. Instead, we settle for a pair of weaker consistency models defined in \cite{doug13Consistency}. 
 \begin{definition}[Correctness]
 \label{defn:correctness}
  We say a messaging scheme is \textbf{correct} if the following consistency model is satisfied with probability $1 - \negl(\lambda)$.
  
- Take any choice of parameters of the honest world experiment, any index $i \in [N]$, and any time $T_0$. Let $V_j \leftarrow C_j.\mathsf{GetView}()$ be the view of client $j$ after timestep $T_0$ of the Honest World Experiment. Then we want
+ Take any choice of parameters of the honest world experiment, any $j \in [N]$, and any positive integer $T_0 \leq T$. Let $V_j \leftarrow C_j.\mathsf{GetView}()$ be the view of client $j$ after timestep $T_0$ of the Honest World Experiment. Then we must have
 
-1) \textbf{Consistent Prefix}: $V$ is identical to the correct view of the client $j$ if a prefix of user inputs have been executed on each machine. More formally, with probability $1 - \negl(\lambda)$, for any $j \in [N]$, there exists a map $t: [N] \to [T]$ such that  $V$ is a correct view of client $j$ under inputs $(\{\reg_i\}_{i \in [N]}, \{\cI'_{i, t}\})$
+1) \textbf{Consistent Prefix}: $V$ is identical to the correct view of the client $j$ if a prefix of user inputs have been executed on each client machine. More formally, with probability $1 - \negl(\lambda)$, for any $j \in [N]$, there exists a map $t: [N] \to [T_0]$ such that  $V$ is a correct view of client $j$ under inputs $(\{\reg_i\}_{i \in [N]}, \{\cI'_{i, t}\})$
 where we define
 $$\cI'_{i, t} = \begin{cases}
 \cI_{i, t}, t \leq t(i) \\
