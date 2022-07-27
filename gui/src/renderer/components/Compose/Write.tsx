@@ -279,6 +279,10 @@ function Write({
     editorStateRef.current.read(() => {
       content = $convertToMarkdownString();
     });
+    console.log("markdown string", content);
+    // replace \n\n with \n
+    content = content.replace(/\n\n/g, "\n");
+    console.log("markdown string v2", content);
 
     const uniqueNames = data.multiSelectState.friends.map(
       (friend) => friend.uniqueName
