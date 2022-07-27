@@ -21,7 +21,13 @@ const urlMatcher: LinkMatcher = (text: string) => {
     return null;
   }
 
-  const url = match[0];
+  let url = match[0];
+
+  if (!(url.substring(0, 4) === "http" || url.substring(0, 3) === "ftp")) {
+    url = "https://" + url;
+  }
+
+  console.log(url);
 
   return {
     index: match.index,
