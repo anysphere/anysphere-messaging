@@ -156,7 +156,11 @@ async function installExtensions(): Promise<void> {
     .catch(logger.log);
 }
 
-const createWindow = async () => {
+const createWindow = async ({
+  publicID,
+}: {
+  publicID?: string;
+}): Promise<void> => {
   if (isDevelopment) {
     await installExtensions();
   }
@@ -185,7 +189,12 @@ const createWindow = async () => {
     },
   });
 
-  mainWindow.loadURL(resolveHtmlPath("index.html"));
+  let loadURL = resolveHtmlPath("index.html");
+  if (publicID != null) {
+    loadURL = resolveHtmlPath(`index.html?publicID=${publicID}`);
+  }
+
+  mainWindow.loadURL(loadURL);
 
   mainWindow.on("ready-to-show", () => {
     if (process.env["START_MINIMIZED"] === "true") {
@@ -292,7 +301,7 @@ app.on("web-contents-created", (event, contents) => {
 app.on("open-url", (event, url) => {
   const publicID = url.split("/").pop();
   if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
+    createWindow({ publicID });
   } else {
     BrowserWindow.getAllWindows()[0].loadURL(
       resolveHtmlPath("index.html?publicID=" + publicID)
