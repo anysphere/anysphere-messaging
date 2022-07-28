@@ -38,7 +38,7 @@ A \textbf{user input} is a command the user can issue to the client. In our curr
 
 Without loss of generality, we assume each user issues exactly one input per timestep.
 \end{definition}
-\textbf{Remark}:  In our implementation, we take $L_{\msg} = 1\mathsf{KB}$. To support variable length messages, we simply pad short messages, and split long messages into chunks of length $L_{\msg}$. This modification does not affect our security definition below.
+\textbf{Remark}:  In our implementation, we take $L_{\msg} \approx 1\mathsf{KB}$. To support variable length messages, we pad short messages and split long messages into chunks of length $L_{\msg}$. This modification does not affect our security definition below.
 \begin{definition}
 \label{defn:messaging-scheme}
 A \textbf{Messaging System/Application/App} is a scheme consisting of the following polynomial time algorithms on stated Turing machines.
@@ -71,7 +71,7 @@ First, we describe how the server and clients interact when the application is r
 
 \begin{definition}  \hfill\\
 \label{defn:messaging-honest-server-experiment}
-The honest server experiments takes in the following parameters
+The honest server experiments takes the following parameters
 
 \begin{enumerate}
     \item $\lambda$, the security parameter.
@@ -97,8 +97,8 @@ Let $S$ denote the server machine, let $\{C_i\}_{i = 1}^N$ denote the client mac
     \end{enumerate}
 \end{enumerate}
 \end{framed}
+\caption{The Honest Server Experiment for Messaging System}
 \label{expr:messaging-honest-server}
-\caption{The Honest Server Experiment}
 \end{figure}
 
 \end{definition}
@@ -174,8 +174,8 @@ The real world experiment use the parameters $\lambda, N, T$ as in \cref{defn:me
     \end{enumerate}
 \end{enumerate}
 \end{framed}
-\label{expr:messaging-real-world}
 \caption{Real World Experiment for Messaging System}
+\label{expr:messaging-real-world}
 \end{figure}
 
 We next define the ideal world experiment. As in \cite{shi2021non}, we first define the leakage, which is the information the adversary is allowed to know. Informally, it contains the time and contents of
@@ -215,8 +215,8 @@ We use the same parameters and notations as \cref{defn:messaging-real-world-expe
     \end{enumerate}
 \end{enumerate}
 \end{framed}
-\label{expr:messaging-ideal-world}
 \caption{Ideal World Experiment for Messaging System}
+\label{expr:messaging-ideal-world}
 \end{figure}
 
 \end{definition}
@@ -249,8 +249,8 @@ We use the same notations as in \cref{defn:messaging-ideal-world-experiment}. Fo
     \end{enumerate}
 \end{enumerate}
 \end{framed}
-\label{expr:messaging-IND}
 \caption{IND Experiment for Messaging System}
+\label{expr:messaging-IND}
 \end{figure}
 
 We say the adversary $\cA$ is \textbf{admissible} if with probability $1$ we have
@@ -287,17 +287,17 @@ Unfortunately, Anysphere does not support the strongest security notion in \cref
 
 \stzh{I agree. This remains unresolved. We need to figure out what to do here.}
 
-\todo{We need to figure out what to do here ASAP.}
+\todo{We need to figure out what to do here ASAP before putting this out.}
 
-\begin{definition}[SIM-secure with no compromised friends and bounded friends]
+\begin{definition}
 We say that a set of input $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ satisfy \textbf{no compromised friends} if for any $i \in \cH, j \in \cK$ and $t \in [T]$, we have
 $$\trust(\reg_j) \neq \cI_{i, t}.$$
 We say that a set of input $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ satisfy \textbf{$B$-bounded friends} if for any $i \in \cH$, the set
 $$\{\reg: \exists t, \trust(\reg) = \cI_{i, t}\}$$
 has cardinality at most $B$.
 
-We say a messaging scheme is correct with $B$-bounded friends iff for any parameters $(\lambda, N, T, \{\cI_{i, t}\})$ of the honest server experiment, if $\{\cI_{i, t}\}$ satisfy $B$-bounded friends, then the scheme produces the correct views.
+We say a messaging scheme is correct with $B$-bounded friends if for any parameters $(\lambda, N, T, \{\cI_{i, t}\})$ of the honest server experiment, if $\{\cI_{i, t}\}$ satisfy $B$-bounded friends, then the scheme produces the correct views.
 
-We say a messaging scheme is SIM-secure with no compromised friends / $B$-bounded friends iff for any polynomial upper bounds on $N$ and $T$, there exists a p.p.t simulator $\Sim$ such that for any p.p.t adversary $\cA$, the view of $\cA$ is indistinguishable in $\mathsf{Real}^{\cA}(1^{\lambda})$ and $\mathsf{Ideal}^{\cA, \mathsf{\Sim}}(1^{\lambda})$, provided that the input set $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ satisfies no compromised friends / $B$-bounded friends.
+We say a messaging scheme is SIM-secure with no compromised friends / $B$-bounded friends if for any polynomial upper bounds on $N$ and $T$, there exists a p.p.t simulator $\Sim$ such that for any p.p.t adversary $\cA$, the view of $\cA$ is indistinguishable in $\mathsf{Real}^{\cA}(1^{\lambda})$ and $\mathsf{Ideal}^{\cA, \mathsf{\Sim}}(1^{\lambda})$, provided that the input set $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ satisfies no compromised friends / $B$-bounded friends.
 \end{definition}
 \textbf{Remark}: It is possible to bypass CF attacks under either $B$-bounded friends or no compromised friends model. We'll assume the $B$-bounded friends for now. Currently we have $B = 2$.

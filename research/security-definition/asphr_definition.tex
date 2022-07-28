@@ -1,86 +1,79 @@
 \section{Definition of Anysphere}
 \label{sec:asphr-defn}
-In this section, we define the Anysphere core protocol described in our whitepaper. We rigorously define how our core protocol is able to handle multiple contacts, run asynchronous rounds. In the next section, we will prove that our core protocol maintains correctness and security.
+In this section, we define in detail the Anysphere core protocol described in our whitepaper \cite{whitepaper}. 
 \subsection{Cryptography Primitives}
-Anysphere relies on two crypto primitives: a key exchange-symmetric key Authenticated Encryption system(AE), and a PIR scheme. We outline formal simulator-based security requirements of the two.
+Anysphere relies on two cryptographical primitives: a symmetric key authenticated encryption(AE) system, and a PIR scheme. We outline formal simulator-based security definitions of the two.
 
-It turns out that our security requirement on the PIR scheme is standard and well-documented in literature. However, existing security requirements on the key exchange, including IND-CCA or even IK-CCA, are not sufficient. In this section, we introduce a security requirement that closely resembles the actual security need of our system, but seems less natural. In Section 5, we introduce a security notion called IND-CCPKA, which is much stronger than the minimal level of security we need but seems more natural.
-\subsubsection{Symmetric Key Cryptography}
+It turns out that our security definition of the PIR scheme is standard and well-documented in literature. However, existing security definitions on the AE, including IND-CCA2 or even IK-CCA(\cite{BBDP01keyprivate}), are not sufficient. In this section, we introduce a security requirement, called Eval Security, that closely resembles the actual security need of our system, but seems less natural. In Section 5, we introduce a security notion called IND-CCPKA, which is much stronger than the minimal level of security we need but seems more natural.
+\subsubsection{Authenticated Encryption System}
 
-\arvid{we probably want IND-CCA to guarantee integrity?}
-\stzh{Resolved, adds EUF-CMA assumption below.}
-\todo{Rename this. IK-CPA is far from enough.}
-A key-private IND-CPA symmetric key AE (Authenticated Encryption) scheme is a quadruple of algorithms $(\gen, \KX, \enc, \dec)$ with specifications
+Our AE scheme consists of a quadruple of algorithms $(\gen, \KX, \enc, \dec)$ with specifications
 \begin{itemize}
     \item $\gen(1^{\lambda}) \to (kx^P, kx^S)$,
     \item $\KX(1^{\lambda}, kx_A^P, kx_B^S) \to sk_{AB},$
     \item $\enc(sk_{AB}, m) \to ct,$
     \item $\dec(sk_{BA}, ct) \to m.$
 \end{itemize}
-such that 
-\begin{definition}[Correctness]
-\label{defn:KX-Correctness}
-If we let
+We require this scheme to be correct, secure, and authenticated. These properties are precisely defined below. Correctness is standard, but security and authentication definitions seem to be non-standard.
+\begin{definition}
+\label{defn:AE-correctness}
+Let
 \begin{enumerate}
     \item $(kx^P_A, kx_A^S), (kx^P_B, kx_B^S)  \leftarrow \gen(1^{\lambda}).$
-    \item $sk_{AB} \leftarrow \KX(1^{\lambda}, kx_A^P, kx_B^S), sk_{BA} \leftarrow \KX(1^{\lambda}, kx_B^P, kx_A^S)$
+    \item $sk_{AB} \leftarrow \KX(1^{\lambda}, kx_A^P, kx_B^S), sk_{BA} \leftarrow \KX(1^{\lambda}, kx_B^P, kx_A^S).$
 \end{enumerate}
-then $sk_{AB} = sk_{BA}$ with probability $1$. For any plaintext $m$ of a fixed length $L$, we have
+We say our AE scheme is \textbf{correct} if with probability 1, we have $sk_{AB} = sk_{BA}$, and for any plaintext $m$ of length $L_{\msg}$, we have
 $$\dec(sk_{BA}, \enc(sk_{AB}, m)) = m.$$
-\todo{The line below is unused?}
-Furthermore, for any secret key $sk' \neq sk_{AB}$, we have
-$$\dec(sk_{BA}, \enc(sk', m)) = \bot.$$
-
 \end{definition}
-
-To formally define the security notion our system is required to satisfy, we first define some oracles.
-
 \begin{definition}
-\label{defn:ack-oracle}
-Given a key exchange secret key $kx^S$, and a polynomial time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^L$, the Eval oracle $\Eval_{f}(kx^S, \cdot)$ takes as input a "public key" $k$, a set of ciphertexts $\arg_{\ct} = \{\ct_i\}$, and a plaintext argument $\arg_{p}$. It computes 
-$$\sk \leftarrow \KX(k, kx^S)$$
-$$m_i \leftarrow \dec(sk, \ct_i).$$ 
-It outputs $\enc(sk, f(\{m_i\}, \arg_p))$.
+\label{defn:AE-eval-oracle}
+Given a key exchange secret key $kx^S$, and a polynomial time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^{L_{\msg}}$, the \textbf{Eval oracle} $\Eval_{f}(\kx^S, \cdot)$ takes as input a "public key" $k$, a set of ciphertexts $\arg_{\ct} = \{\ct_i\}$, and a plaintext argument $\arg_{p}$. It computes 
+$$\sk \leftarrow \KX(k, \kx^S)$$
+$$m_i \leftarrow \dec(\sk, \ct_i).$$ 
+It outputs $\enc(\sk, f(\{m_i\}, \arg_p))$.
 \end{definition}
-\textbf{Remark}: Note we require $f$'s output to be constant length. Also note that the $\Eval$ oracle can do the $\KXE$ operation described below.
+\textbf{Remark}: Note we require $f$'s output to be constant length. The $\Eval$ oracle is stronger than the $\KXE$, but weaker than the $\KXD$ oracle described in \cref{sec:IND-CCPKA}.
 \begin{definition}
-\label{defn:sym-security}
-Let $N, R$ be polynomial in $\lambda$. Consider two experiments.
+\label{defn:AE-eval-security}
+Let $N, R$ be polynomial in $\lambda$. Consider the two experiments defined in \cref{expr:AE-real-ideal-world}.
+
 \begin{figure}[h!]
 \begin{framed}
 \textbf{Real World Experiment}
 \begin{enumerate}
-    \item For $i$ from $1$ to $N$, $(kx_i^P, kx_i^S) \leftarrow \gen(1^{\lambda}).$
-    \item For $(i, j)$ in $[N]^2$, $sk_{ij} \leftarrow \KX(1^{\lambda}, kx_i^P, kx_j^S)$.
-    \item $\cA$ stores $1^{\lambda}, r, \{kx_i^P\}_{i \in [N]}$.
+    \item For $i$ from $1$ to $N$, $(\kx_i^P, \kx_i^S) \leftarrow \gen(1^{\lambda}).$
+    \item $\cA$ stores $1^{\lambda}, r, \{\kx_i^P\}_{i \in [N]}$.
     \item For $r$ from $1$ to $R$
     \begin{enumerate}
-        \item $i, j, \ct, \arg_p \leftarrow \cA^{\Eval_f(\{kx_i^S\}, \cdot)}().$
-        \item $ct^{0}_r \leftarrow \Eval_f(kx_i^S, kx_j^P, \ct, \arg_p)$.
-        \item $\cA$ stores $ct^{0}_r$.
+        \item $i, j, \ct, \arg_p \leftarrow \cA^{\Eval_f(\{\kx_i^S\}, \cdot)}().$
+        \item $\ct^{0}_r \leftarrow \Eval_f(\kx_i^S, \kx_j^P, \ct, \arg_p)$.
+        \item $\cA$ stores $\ct^{0}_r$.
     \end{enumerate}
 \end{enumerate}
 \textbf{Ideal World Experiment}
 \begin{enumerate}
-    \item For $i$ from $1$ to $N$, $(kx_i^P, kx_i^S) \leftarrow \gen(1^{\lambda}).$
-    \item For $(i, j)$ in $[N]^2$, $sk_{ij} \leftarrow \KX(1^{\lambda}, kx_i^P, kx_j^S)$.
-    \item $\cA$ stores $1^{\lambda}, r, \{kx_i^P\}_{i \in [N]}$.
+    \item For $i$ from $1$ to $N$, $(\kx_i^P, \kx_i^S) \leftarrow \gen(1^{\lambda}).$
+    \item $\cA$ stores $1^{\lambda}, r, \{\kx_i^P\}_{i \in [N]}$.
     \item For $r$ from $1$ to $R$
     \begin{enumerate}
-        \item $i, j, m \leftarrow \cA^{\Eval_f(\{kx_i^S\}, \cdot)}()$.
-        \item $ct^1_r \leftarrow \Sim(1^{\lambda}, \{(kx_i^P, kx_i^S)\}_{i \in [N]})$.
-        \item $\cA$ stores $ct^{1}_r$.
+        \item $i, j, m \leftarrow \cA^{\Eval_f(\{\kx_i^S\}, \cdot)}()$.
+        \item $ct^1_r \leftarrow \Sim(1^{\lambda}, \{(\kx_i^P, \kx_i^S)\}_{i \in [N]})$.
+        \item $\cA$ stores $\ct^{1}_r$.
     \end{enumerate}
 \end{enumerate}
 \end{framed}
+\caption{Real and Ideal World Experiment for AE Scheme}
+\label{expr:AE-real-ideal-world}
 \end{figure}
 
-Then we say the encryption scheme is key-private IND-CPA if there exists a p.p.t simulator $\Sim$ such that for any polynomial-time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^{L}$, any p.p.t adversary with oracle $\cA^O$, the real world experiment and the ideal world experiment are computationally indistinguishable.
+Then we say the encryption scheme is \textbf{Eval-Secure} if there exists a p.p.t simulator $\Sim$ such that for any polynomial-time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^{L}$ and any p.p.t adversary with oracle $\cA^O$, the real world experiment and the ideal world experiment are computationally indistinguishable.
 \end{definition}
 
-Note: $\Sim$ does not depend on $f$ or $\cA$.
+Note that $\Sim$ does not depend on $f$ or $\cA$. If we use symmetric key encryption with pre-distributed secret keys (assumed in \cite{angel2016unobservable}), then Eval-Security is implied by IK-CCA(\cite[Definition 1]{BBDP01keyprivate}). Since we do not have pre-distributed secret keys, we need to show that the key exchange step is secure as well. In order to achieve this, we define a new security requirement called IND-CCPKA in \cref{sec:IND-CCPKA}, and show that Eval-Security is a corollary of IND-CCPKA.
+
 \begin{definition}[EUF-CMA Authentication]
-Let $kx^P_A, kx^P_B, \sk_{AB}, \sk_{BA}$ be the same as \cref{defn:KX-Correctness}. For any p.p.t. adversary $\cA^O$ with access to oracle $O$, if
+\todo{This is by far not sufficient. Maybe some kind of Eval thingy is good.}
+Let $kx^P_A, kx^P_B, \sk_{AB}, \sk_{BA}$ be the same as \cref{defn:AE-correctness}. For any p.p.t. adversary $\cA^O$ with access to oracle $O$, if
 $$m \leftarrow \cA^{\Enc(\sk_{AB}, \cdot), \Enc(\sk_{BA}, \cdot)}(1^{\lambda}, kx^P_A, kx^P_B)$$
 then 
 $$\PP(m \notin Q, \Dec(\sk_{BA}, m) \neq \bot) = \negl(\lambda),$$

@@ -1,4 +1,5 @@
 \section{A new security definition}
+\label{sec:IND-CCPKA}
 After a few days of searching, I am rather convinced that the existing security definitions in literature are not strong enough to prove the security of our system. Therefore, I am proposing a new but relatively believable security definition that can imply the security of our system.
 
 \textbf{Remark}: A key problem with existing security definitions is that they only guarantee security under a ``uniformly random secret key". If the adversary can actively exchange keys with the honest users, they can potentially break this hypothesis.
@@ -42,7 +43,7 @@ Then we say the key exchange plus symmetric key system $\Pi_{\sym}$ is IND-CCPKA
 $$\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA} = 1) \leq \frac{1}{2} + \negl(\lambda).$$
 \end{definition}
 \subsection{Implications of IND-CCPKA}
-In this section, we show that if $\Pi_{\sym}$ satisfies \cref{defn:CCPKA}, then it satisfies \cref{defn:sym-security}.
+In this section, we show that if $\Pi_{\sym}$ satisfies \cref{defn:CCPKA}, then it satisfies \cref{defn:AE-eval-security}.
 
 We recall the relevant definitions. We take our simulator to simply outputs $\enc(\sk_{12}, 0^{L})$.
 \begin{figure}[h!]
@@ -72,7 +73,7 @@ We recall the relevant definitions. We take our simulator to simply outputs $\en
     \end{enumerate}
 \end{enumerate}
 \end{framed}
-\caption{Recap of \cref{defn:sym-security}}
+\caption{Recap of \cref{defn:AE-eval-security}}
 \end{figure}
 To show the views of $\cA$ are indistinguishable, we use the hybridizing argument. First, we need to hybridize the $\Eval_f$ oracle so it can be simulated under the restrictions of \cref{defn:CCPKA}. 
 \begin{definition}
@@ -163,4 +164,4 @@ Finally, let $U$ be a polynomial upper bound on the number of times that $\cA$ c
 \Hyb_{\enc, 0} &= \Hyb_{\Eval, 0, \Ideal} \\
 \Hyb_{\Eval, R, \Ideal} &= \Ideal.
 \end{align*}
-By the previous three lemmas, we have constructed a polynomially long chain of indistinguishable experiments between $\Real$ and $\Ideal$. Thus we conclude that $\Real$ and $\Ideal$ are indistinguishable, and $\Pi_{\sym}$ satisfies \cref{defn:sym-security}.
+By the previous three lemmas, we have constructed a polynomially long chain of indistinguishable experiments between $\Real$ and $\Ideal$. Thus we conclude that $\Real$ and $\Ideal$ are indistinguishable, and $\Pi_{\sym}$ satisfies \cref{defn:AE-eval-security}.
