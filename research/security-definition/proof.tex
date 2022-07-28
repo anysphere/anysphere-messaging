@@ -1,8 +1,3 @@
-\newcommand{\MSGS}{\text{MSGSent}}
-\newcommand{\msgs}{\text{msgsent}}
-\newcommand{\MSGR}{\text{MSGRecv}}
-\newcommand{\cD}{\mathcal{D}}
-
 \section{Proofs}
 \label{sec:proofs}
 In this section, we prove that our messaging scheme satisfies \cref{defn:messaging-correctness}, \cref{defn:messaging-security}, and \cref{defn:messaging-integrity}. These definitions establish correctness, security, and integrity respectively.
@@ -79,7 +74,7 @@ Thus, the desired properties still hold.
 \vspace{10pt}
 $C_j.\Serverrpc$
 \hrule
-The relevant variables will be changed only during message decipher when a request is sent during Phase 2 of $C_j.\mathsf{UserInput}$. Let $i' = i_r$ be the PIR index chosen in that phase. No relevant variable changes if $i' \neq i$, so assume $i' = i$. Analogous to the previous analysis, let $t'$ be the last time user $i$ sends a nonempty request the server, and suppose they chose $\reg_s = (j', \_)$ that time. Then
+If no request is sent during Phase 2 of $C_j.\Userinput$, the proposition is trivial. Otherwise, the relevant variables will be changed only during step (6) (message decipher). Let $i' = i_r$ be the PIR index chosen in that phase. No relevant variable changes if $i' \neq i$, so assume $i' = i$. Analogous to the previous analysis, let $t'$ be the last time user $i$ sends a nonempty request the server, and suppose they chose $\reg_s = (j', \_)$ that time. Then
 if $j' \neq j$, we have $\msg^{lb} = \bot$ with probability $1 - \negl(\lambda)$, and no relevant variable will be changed. If $j' = j$, we have
 $$\msg^{lb} = \begin{cases}
 (-1, 0^{L_{\msg}}), S_{t' - 1} > E_t'. \\

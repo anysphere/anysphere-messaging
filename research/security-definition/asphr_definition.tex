@@ -95,6 +95,9 @@ $$\PP(\dec(\KX(\kx_i^S, \kx_j^P), m) \neq \bot \land m \notin \ct_{\query, ij}) 
 \end{definition}
 \todo{Does there exist problem with this definition? I'm fairly certain this gives what we want, but not 100\% sure this is actually correct.}
 
+\textbf{Remark}: A corollary of Eval-Unforgability is the property that if $\{\kx_i^{P}, \kx_i^{S}\}(i = 1,2,3)$ are three randomly generated keypairs, and $\sk_{ij} = \KX(\kx_i^P, \kx_j^S)$, then for any message $m$, 
+$$\Dec(\sk_{12}, \Enc(\sk_{13}, m)) = \bot$$ 
+with probability $1 - \negl(\lambda)$. This property will be used in the correctness proof.
 \subsubsection{PIR Scheme}
 \label{subsec:PIR}
 Central to our application is the Private Information Retrieval(PIR) scheme. It consists of three efficient algorithms
