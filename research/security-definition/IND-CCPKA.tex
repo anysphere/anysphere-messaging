@@ -2,9 +2,9 @@
 \label{sec:IND-CCPKA}
 After a few days of searching, I am rather convinced that the existing security definitions in literature are not strong enough to prove the security of our system. Therefore, I am proposing a new but relatively believable security definition that can imply the security of our system.
 
-\textbf{Remark}: A key problem with existing security definitions is that they only guarantee security under a ``uniformly random secret key". If the adversary can actively exchange keys with the honest users, they can potentially break this hypothesis.
+A key problem with existing security definitions is that they only guarantee security under a ``uniformly random secret key". If the adversary can actively exchange keys with the honest users, they can potentially break this hypothesis.
 
-Recall that we are using a key exchange plus symmetric key system $\Pi_{\sym} = (\gen, \KX, \enc, \dec)$. We first define two oracles for convenience.
+Recall that we are using a AE scheme $\Pi_{\ae}$ consisting of algorithms $(\gen, \KX, \enc, \dec)$ with syntax defined in \cref{subsec:AE}. We first define two oracles for convenience.
 
 \begin{definition}
 The key-exchange-and-encrypt(KXE) oracle $\KXE(kx^S, \cdot)$ takes as input a public key $kx_m^P$ and a message $m$, and computes
@@ -23,7 +23,7 @@ It outputs $m$.
 Consider the following security experiment, where $N = N(\lambda)$ is polynomial in $\lambda$.
 \begin{figure}[h!]
 \begin{framed}
-$\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA}$
+$\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\ae}, \cA}$
 \begin{enumerate}
     \item for $i$ in $[N]$, $(kx_{i}^P, kx_{i}^S) \leftarrow \gen(1^{\lambda}).$
     \item $a_{00}, a_{01}, a_{10}, a_{11}, m_0, m_1 \leftarrow \cA^{\KXE(kx_{i}^S, \cdot), \KXD(kx_{i}^S, \cdot)}(\mathsf{find}, 1^{\lambda}, kx_{i}^P).$
@@ -39,11 +39,11 @@ Let $Q_{ij}$ denote the queries $\cA$ sent to the oracle $\KXD(kx_{ij}^S, \cdot)
 $$\ct_{\query} = \{\ct': \exists (i,j) \in \{0, 1\}^2, (kx_{i(1 - j)}^P, \ct') \in Q_{ij}\}.$$
 We define the output of the experiment as $1$ if both $b' = b$ and $\ct \notin \ct_{\query}$, and $0$ otherwise. 
 
-Then we say the key exchange plus symmetric key system $\Pi_{\sym}$ is IND-CCPKA secure if for any p.p.t with oracle adversary $\cA^O$, we have
-$$\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA} = 1) \leq \frac{1}{2} + \negl(\lambda).$$
+Then we say the key exchange plus symmetric key system $\Pi_{\ae}$ is IND-CCPKA secure if for any p.p.t with oracle adversary $\cA^O$, we have
+$$\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\ae}, \cA} = 1) \leq \frac{1}{2} + \negl(\lambda).$$
 \end{definition}
 \subsection{Implications of IND-CCPKA}
-In this section, we show that if $\Pi_{\sym}$ satisfies \cref{defn:AE-CCPKA}, then it satisfies \cref{defn:AE-eval-security}.
+In this section, we show that if $\Pi_{\ae}$ satisfies \cref{defn:AE-CCPKA}, then it satisfies \cref{defn:AE-eval-security}.
 
 We recall the relevant definitions. We take our simulator to simply outputs $\enc(\sk_{12}, 0^{L})$.
 \begin{figure}[h!]
@@ -82,22 +82,22 @@ We define the oracle $\widetilde{\Eval_{j, f}}(\{kx_i^P, kx_i^S\}, \cdot)$ as fo
     For each $j$, define $\Hyb_{\Eval, j, \Real}$ as the Real World Experiment with $\Eval_f(\{kx_i^S\}, \cdot)$ replaced by $\widetilde{\Eval_{j, f}}(\{kx_i^P, kx_i^S\}, \Eval, \cdot)$. Define $\Hyb_{\Eval, j, \Ideal}$ analogously for the Ideal World Experiment. 
 \end{definition}
 \begin{lemma}
-     Assume $\Pi_{\sym}$ is IND-CCPKA secure. Then for any $j$, we have 
+     Assume $\Pi_{\ae}$ is IND-CCPKA secure. Then for any $j$, we have 
     $$\Hyb_{\Eval, j + 1, \Real} \equiv_c \Hyb_{\Eval, j, \Real}.$$
 \end{lemma}
 \begin{proof}
-    Let $D$ be any potential distinguisher. We design an adversary $\cA'$ to win the IND-CCPKA game. On line (2) of $\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA}$, the adversary $\cA'$ reads $\{kx_i^P\}$, then simulates $\Hyb_{\Eval, j, \Real}$ with the same choice of $\{kx_i^P\}$ until the $j + 1$-th call to the oracle $\widetilde{\Eval_{j, f}}$. It is easy to verify that $\cA'$ can use the $\KXD$ and $\KXE$ oracle to simulate the oracle $\Eval_f$. On the $j + 1$-th call to $\widetilde{\Eval_{j, f}}$, assume the arguments are $(s, k, \{\ct_i\}, \arg_p)$. If $k\notin \{kx_i^P\}$, then $\cA'$ does not exit line (2) of $\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA}$ and continue the simulation of $\Hyb_{\Eval, j + 1, \Real}$ until the end. Otherwise, suppose $k = kx_{t}^P$. Then $\cA'$ use the KXD oracle to compute $m'_i = \KXD(kx_s^S, k, \ct_i)$. Then it outputs $a_{00} = a_{10} = s$, $a_{01} = a_{11} = t$, $m_0 = f(\{m'_i\}, \arg_p)$, $m_1 = f(\emptyset, \emptyset)$, and exits line (2). Let $\ct$ be the output line (5). $\cA'$ uses $\ct$ as the output of $\widetilde{\Eval_{j, f}}$, then continue to simulate $\Hyb_{\Eval, j, \Real}$ subject to the following change: when it simulates $\widetilde{\Eval_{j, f}}$, if the input key $k$ lies in $\{kx_i^P\}$, then $\cA'$ outputs $\KXE(\{kx_i^S\}, k, f(\emptyset, \emptyset))$ directly.
+    Let $D$ be any potential distinguisher. We design an adversary $\cA'$ to win the IND-CCPKA game. On line (2) of $\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\ae}, \cA}$, the adversary $\cA'$ reads $\{kx_i^P\}$, then simulates $\Hyb_{\Eval, j, \Real}$ with the same choice of $\{kx_i^P\}$ until the $j + 1$-th call to the oracle $\widetilde{\Eval_{j, f}}$. It is easy to verify that $\cA'$ can use the $\KXD$ and $\KXE$ oracle to simulate the oracle $\Eval_f$. On the $j + 1$-th call to $\widetilde{\Eval_{j, f}}$, assume the arguments are $(s, k, \{\ct_i\}, \arg_p)$. If $k\notin \{kx_i^P\}$, then $\cA'$ does not exit line (2) of $\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\ae}, \cA}$ and continue the simulation of $\Hyb_{\Eval, j + 1, \Real}$ until the end. Otherwise, suppose $k = kx_{t}^P$. Then $\cA'$ use the KXD oracle to compute $m'_i = \KXD(kx_s^S, k, \ct_i)$. Then it outputs $a_{00} = a_{10} = s$, $a_{01} = a_{11} = t$, $m_0 = f(\{m'_i\}, \arg_p)$, $m_1 = f(\emptyset, \emptyset)$, and exits line (2). Let $\ct$ be the output line (5). $\cA'$ uses $\ct$ as the output of $\widetilde{\Eval_{j, f}}$, then continue to simulate $\Hyb_{\Eval, j, \Real}$ subject to the following change: when it simulates $\widetilde{\Eval_{j, f}}$, if the input key $k$ lies in $\{kx_i^P\}$, then $\cA'$ outputs $\KXE(\{kx_i^S\}, k, f(\emptyset, \emptyset))$ directly.
 
     In the end, $\cA'$ finishes simulation of $\Hyb_{\Eval, j, \Real}$, and returns $b' = 1$ iff $D$ accepts the resulting view.
 
     If $b = 1$, then $\cA'$ perfectly simulates $\Hyb_{\Eval, j + 1, \Real}$, while if $b = 0$, then $\cA'$ perfectly simulates $\Hyb_{\Eval, j, \Real}$. Furthermore, $\cA'$ guarantees that $\ct_{\query} = \emptyset$, since in line 6) of \cref{defn:AE-CCPKA} $\cA'$ never pass any $k \in \{kx_i^P\}$ to $\KXD$. Therefore, we have
     \begin{align*}
-     &\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA'} = 1) \\
+     &\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\ae}, \cA'} = 1) \\
      &= \frac{1}{2} + \frac{1}{2}\PP(b' = 1 | b = 1) - \frac{1}{2}\PP(b' = 1 | b = 0) \\   
      &= \frac{1}{2} + \frac{1}{2}\left(\PP(D(\Hyb_{\Eval, j + 1, \Real})) - \PP(D(\Hyb_{\Eval, j, \Real}))\right).
     \end{align*}
     So by IND-CCPKA, there exists a negligible function $\mu(\lambda)$ independent of $j$ such that for any $j$, we have
-    $$\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA'} = 1) \leq \frac{1}{2} + \mu(\lambda).$$
+    $$\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\ae}, \cA'} = 1) \leq \frac{1}{2} + \mu(\lambda).$$
     Thus we conclude that
     $$\PP(D(\Hyb_{\Eval, j + 1, \Real})) - \PP(D(\Hyb_{\Eval, j, \Real})) \leq 2\mu(\lambda) = \negl(\lambda).$$
     Similarly, we can show that
@@ -107,7 +107,7 @@ We define the oracle $\widetilde{\Eval_{j, f}}(\{kx_i^P, kx_i^S\}, \cdot)$ as fo
 \end{proof}
 Analogously, we can show that
 \begin{lemma}
-     Assume $\Pi_{\sym}$ is IND-CCPKA secure. Then for any $j$, we have 
+     Assume $\Pi_{\ae}$ is IND-CCPKA secure. Then for any $j$, we have 
     $$\Hyb_{\Eval, j + 1, \Ideal} \equiv_c \Hyb_{\Eval, j, \Ideal}.$$
 \end{lemma}
 Denote $\widetilde{\Eval_f} = \widetilde{O_{0, \Eval}}$. If we let the input be $(j, k, \{ct_i\})$, then the output of $\widetilde{\Eval_f}(\{kx_i^P, kx_i^S\}, \cdot)$ is identical to $\Eval_f(\{kx_i^P\}, \cdot)$ if $k \notin \{kx_i^P\}$, and equal to $\KXE(kx_j^P, j, k, \Eval(0))$ if $k \in \{kx_i^P\}$. With this definition, we can now hybrid between the real and ideal world.
@@ -136,20 +136,20 @@ Denote $\widetilde{\Eval_f} = \widetilde{O_{0, \Eval}}$. If we let the input be 
 \end{figure}
 
 \begin{lemma}
-    Assume $\Pi_{\sym}$ is IND-CCPKA secure. Then for any $0 \leq \ell \leq R$, we have
+    Assume $\Pi_{\ae}$ is IND-CCPKA secure. Then for any $0 \leq \ell \leq R$, we have
     $$\Hyb_{\enc, \ell} \equiv_c \Hyb_{\enc, \ell + 1}.$$
 \end{lemma}
 \begin{proof}
-    Let $D$ be any potential distinguisher. We design an adversary $\cA'$ to win the IND-CCPKA game. On line (2) of $\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA}$, the adversary $\cA'$ reads $\{kx_i^P\}$, then simulates $\Hyb_{\enc, \ell}$ for $r$ from $1$ to $\ell$. When $r = \ell + 1$, let $i, j, m$ be as in line (4a) of $\Hyb_{\enc, \ell}$. $\cA'$ then outputs $a_{00} = i, a_{01} = j, a_{10} = 1, a_{11} = 2, m_0 = f(\emptyset, \emptyset), m_1 = 0^L$, then exit line (2). Let $\ct$ be the output of line (5). $\cA'$ then set $\ct_r = \ct$ on line (4b) of $\Hyb_{\enc, \ell}$, then continue simulating $\Hyb_{\enc, \ell}$. throughout the end. $\cA'$ returns $b' = 1$ iff $D$ accepts the resulting view.
+    Let $D$ be any potential distinguisher. We design an adversary $\cA'$ to win the IND-CCPKA game. On line (2) of $\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\ae}, \cA}$, the adversary $\cA'$ reads $\{kx_i^P\}$, then simulates $\Hyb_{\enc, \ell}$ for $r$ from $1$ to $\ell$. When $r = \ell + 1$, let $i, j, m$ be as in line (4a) of $\Hyb_{\enc, \ell}$. $\cA'$ then outputs $a_{00} = i, a_{01} = j, a_{10} = 1, a_{11} = 2, m_0 = f(\emptyset, \emptyset), m_1 = 0^L$, then exit line (2). Let $\ct$ be the output of line (5). $\cA'$ then set $\ct_r = \ct$ on line (4b) of $\Hyb_{\enc, \ell}$, then continue simulating $\Hyb_{\enc, \ell}$. throughout the end. $\cA'$ returns $b' = 1$ iff $D$ accepts the resulting view.
 
      Now note that if $b = 1$, then $\cA'$ perfectly simulates $\Hyb_{\enc, \ell}$, while if $b = 0$, then $\cA'$ perfectly simulates $\Hyb_{\enc, \ell+1}$. Furthermore, $\cA'$ can guarantee that $\ct_{\query} = \emptyset$: when simulating $\widetilde{\Eval_f}$, if the key $k$ is not in $\{kx_i^P\}$ then the calls to $\KXD$ will not add elements to $\ct_{\query}$, while if $k$ is in $\{kx_i^P\}$ then $\cA'$ only needs to call $\KXE$. Therefore, we have
     \begin{align*}
-     &\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA'} = 1) \\
+     &\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\ae}, \cA'} = 1) \\
      &= \frac{1}{2} + \frac{1}{2}\PP(b' = 1 | b = 1) - \frac{1}{2}\PP(b' = 1 | b = 0) \\   
      &= \frac{1}{2} + \frac{1}{2}\left(\PP(D(\Hyb_{\enc, \ell})) - \PP(D(\Hyb_{\enc, \ell+1}))\right).
     \end{align*}
     So by IND-CCPKA, there exists a negligible function $\mu(\lambda)$ independent of $j$ such that for any $j$, we have
-    $$\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA} = 1) \leq \frac{1}{2} + \mu(\lambda).$$
+    $$\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\ae}, \cA} = 1) \leq \frac{1}{2} + \mu(\lambda).$$
     Thus we conclude that
     $$\PP(D(\Hyb_{\enc, \ell})) - \PP(D(\Hyb_{\enc, \ell+1})) \leq 2\mu(\lambda) = \negl(\lambda).$$
     Similarly, we can show that
@@ -164,4 +164,4 @@ Finally, let $U$ be a polynomial upper bound on the number of times that $\cA$ c
 \Hyb_{\enc, 0} &= \Hyb_{\Eval, 0, \Ideal} \\
 \Hyb_{\Eval, R, \Ideal} &= \Ideal.
 \end{align*}
-By the previous three lemmas, we have constructed a polynomially long chain of indistinguishable experiments between $\Real$ and $\Ideal$. Thus we conclude that $\Real$ and $\Ideal$ are indistinguishable, and $\Pi_{\sym}$ satisfies \cref{defn:AE-eval-security}.
+By the previous three lemmas, we have constructed a polynomially long chain of indistinguishable experiments between $\Real$ and $\Ideal$. Thus we conclude that $\Real$ and $\Ideal$ are indistinguishable, and $\Pi_{\ae}$ satisfies \cref{defn:AE-eval-security}.

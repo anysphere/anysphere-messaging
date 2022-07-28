@@ -63,12 +63,12 @@ The relevant variables will be changed only during ACK decipher when a request i
  &= \ackdb[j'].
 \end{align*}
 Let $t'$ be the last time user $j$ sends a nonempty request the server, and suppose they chose $\reg_s = (i', \_)$ that time. Then
-$$\ct_{\ack} = \Pi_{\sym}.\Enc(sk_{ji'}, a)$$
-where $\sk_{ji'} = \Pi_{\sym}.\mathsf{KX}(kx_{i'}^P, kx_{j}^S)$, and $a$ is the ACK message. Thus, in step (1) of ACK decipher, we have
-$$\ack = \Pi_{\sym}.\Dec(sk_{ij}, \Pi_{\sym}.\Enc(sk_{ji'}, a)).$$
-If $i' \neq i$, we have $sk_{ij} \neq sk_{ji'}$ with probability $1 - \negl(\lambda)$ by the security of $\Pi_{\sym}$. In this case, $\ack = \bot$ by the correctness of $\Pi_{\sym}$, so no relevant variable is changed. 
+$$\ct_{\ack} = \Pi_{\ae}.\Enc(sk_{ji'}, a)$$
+where $\sk_{ji'} = \Pi_{\ae}.\mathsf{KX}(kx_{i'}^P, kx_{j}^S)$, and $a$ is the ACK message. Thus, in step (1) of ACK decipher, we have
+$$\ack = \Pi_{\ae}.\Dec(sk_{ij}, \Pi_{\ae}.\Enc(sk_{ji'}, a)).$$
+If $i' \neq i$, we have $sk_{ij} \neq sk_{ji'}$ with probability $1 - \negl(\lambda)$ by the security of $\Pi_{\ae}$. In this case, $\ack = \bot$ by the correctness of $\Pi_{\ae}$, so no relevant variable is changed. 
 
-If $i' = i$, by the correctness of $\Pi_{\sym}$ we have $\ack = a$. By the protocol definition, we conclude that
+If $i' = i$, by the correctness of $\Pi_{\ae}$ we have $\ack = a$. By the protocol definition, we conclude that
 $$\ack = \ACK(R_{t' - 1}).$$
 In step (7.c), we have $C_i.\frienddb[\reg_j].\seqs = S_{t - 1}$. By the induction hypothesis, we have
 $$S_{t - 1} \geq R_{t - 1} \geq R_{t' - 1}.$$
@@ -125,7 +125,7 @@ are independent of each other, since both $i$ and $j$ must have both made a non-
 $$(1 - B^{-2})^{\lambda B^2 T^U_{\mathsf{trans}} / K} = \negl(\lambda)$$
 as desired. The proof for the latter possibility is analogous. Thus, we have demonstrated eventual consistency for the Anysphere protocol.
 \subsection{Proof of Security}
-In this section we show that our scheme is SIM secure. The security of our system is essentially implied by the IND-CPA security of the underlying symmetric key protocol $\Pi_{\sym}$ and the SIM security of the pir protocol $\Pi_{\pir}$. We now justify this by constructing a simulator $\Sim_{\asphr}$ that satisfied \cref{defn:messaging-security}.
+In this section we show that our scheme is SIM secure. The security of our system is essentially implied by the IND-CPA security of the underlying symmetric key protocol $\Pi_{\ae}$ and the SIM security of the pir protocol $\Pi_{\pir}$. We now justify this by constructing a simulator $\Sim_{\asphr}$ that satisfied \cref{defn:messaging-security}.
 
 Let $N$ be the number of honest clients, and take $R = 2N(\lambda)T(\lambda)$. Let $\Sim_{\sym}$ and $\Sim_{\pir}$ be the simulators defined in \cref{defn:AE-eval-security} and \cref{defn:PIR-SIM-security} respectively, with parameters $N$ and $R$. At step (2), (4.a), and (4.c) of \cref{defn:messaging-ideal-world-experiment}, our simulator will run modified versions of the corresponding client methods in the respective steps of \cref{defn:messaging-real-world-experiment} for each $i \in \cH$. The important modifications involve replacing all lines that involve unleaked information.
 
@@ -178,7 +178,7 @@ If $\cI = \trust(\reg)$.
 \begin{enumerate}
     \item Check if $\reg$ is in $\frienddb$. If so, skip to Phase 2.
     \item $(i, kx_f^P) \leftarrow \reg$.
-    \item $sk \leftarrow \Pi_{\sym}.\mathsf{KX}(1^{\lambda}, kx_f^P, kx^S).$
+    \item $sk \leftarrow \Pi_{\ae}.\mathsf{KX}(1^{\lambda}, kx_f^P, kx^S).$
     \item $\frienddb[\reg] \leftarrow \{\sk: sk,  \seqs: 1, \seqe: 0, \seqr: 0\}$.
 \end{enumerate}
 
@@ -187,7 +187,7 @@ Phase 2:
     \item If $t$ is not divisible by $T_{\trans}$, return $\emptyset$.
     \item Let $\{\reg_1, \cdots, \reg_k\}$ be the keys of $\frienddb$, with $k\leq B$. Construct $S = [\reg_1,\cdots, \reg_k, \reg, \cdots, \reg]$, where we add $B - k$ copies of $\reg$, our own registration info. Sample $\reg_s, \reg_r$ uniformly and independently at random from $S$. 
     \item Let $\msg$ be the (labeled) message with sequence number $\frienddb[\reg_s].\seqs$ in $\outb[\reg_s]$. If $\outb[\reg_s]$ is empty, let $\msg = (-1, 0^{L_{\msg}})$.
-    \item $\sk \leftarrow \frienddb[\reg_s].\sk$. If $\reg_s$ does not exist in $\frienddb$, randomly generate a secret key $\_, \sk \leftarrow \Pi_{\sym}.\gen(1^{\lambda}).$
+    \item $\sk \leftarrow \frienddb[\reg_s].\sk$. If $\reg_s$ does not exist in $\frienddb$, randomly generate a secret key $\_, \sk \leftarrow \Pi_{\ae}.\gen(1^{\lambda}).$
     \item $\seqr \leftarrow \frienddb[\reg_s].\seqr$.
     \item Encrypt Messages with $\sk$.
     
@@ -204,8 +204,8 @@ Phase 2:
     
     
     \begin{itemize}
-        \item $\ct_{\msg} = \Pi_{\sym}.\enc(\sk, \msg).$
-        \item $\ct_{\ack} = \Pi_{\sym}.\enc(\sk, \ACK(\seqr))$.
+        \item $\ct_{\msg} = \Pi_{\ae}.\enc(\sk, \msg).$
+        \item $\ct_{\ack} = \Pi_{\ae}.\enc(\sk, \ACK(\seqr))$.
     \end{itemize}
     \item Let $\reg_r = (i_r, \_)$. Formulate a PIR request for index $i_r$. 
     
@@ -240,14 +240,14 @@ $\mathbf{\Pi_{\asphr}.C.\mathsf{ServerRPC}}(t, \resp)$
     \item $\sk \leftarrow \frienddb[\reg_r].\sk$.
     \item Decipher the message.
     \begin{enumerate}
-        \item $\msg^{lb} \leftarrow \Pi_{\sym}.\Dec(1^{\lambda}, \sk, \ct_{\msg})$.
+        \item $\msg^{lb} \leftarrow \Pi_{\ae}.\Dec(1^{\lambda}, \sk, \ct_{\msg})$.
         \item If $\msg^{lb} = \bot$ or $\msg^{lb}[0]$ is not $\frienddb[\reg_r].\seqr + 1$, ignore the message.
         \item Add $1$ to $\frienddb[\reg_r].\seqr$. 
         \item Let $\msg$ be $\msg^{lb}[1]$. Push $\msg$ to $\inb[\reg_r]$.
     \end{enumerate}
     \item Decipher the ACK.
     \begin{enumerate}
-        \item $\ack \leftarrow \Pi_{\sym}.\Dec(1^{\lambda}, \sk, \ct_{\ack})$.
+        \item $\ack \leftarrow \Pi_{\ae}.\Dec(1^{\lambda}, \sk, \ct_{\ack})$.
         \item If $\ack = \bot$ or $\ack$ is not the form $\ACK(k)$ for some $k$, ignore the ack.
         \item Let $\ack = \ACK(k)$. If $k < \frienddb[\reg_r].\seqs$, ignore the ack.
         \item $\frienddb[\reg_r].\seqs \leftarrow k + 1$. Remove the message with sequence number $k$ from $\outb[\reg_r]$.
@@ -276,7 +276,7 @@ With this choice of $f$, we describe the full $\cA_1^O$. The step numbers below 
    
     \item On step (4.c), $\cA_1$ simulates client action in $\Pi_{\asphr}.\mathsf{ServerRPC}$ using $\Eval_f$.
 \end{itemize}
-We note that if $b = 0$, i.e. in the real world experiment of \cref{defn:AE-eval-security}, $\cA_1$ perfectly simulates the view of $\cA$ in $\Hyb_0$, while if $b = 1$, i.e. in the ideal world experiment of \cref{defn:AE-eval-security}, $\cA_1$ perfectly simulates the view of $\cA$ in $\Hyb_1$. Thus, $\cA_1$ just need to output the view of $\cA$ at the end of the simulation, and the same distinguisher $\cD' = \cD$ is able to distinguish between the views of $\cA_1$ in the real and ideal world. This contradicts our assumption that $\Pi_{\sym}$ satisfies \cref{defn:AE-eval-security}. Therefore, we finally conclude that
+We note that if $b = 0$, i.e. in the real world experiment of \cref{defn:AE-eval-security}, $\cA_1$ perfectly simulates the view of $\cA$ in $\Hyb_0$, while if $b = 1$, i.e. in the ideal world experiment of \cref{defn:AE-eval-security}, $\cA_1$ perfectly simulates the view of $\cA$ in $\Hyb_1$. Thus, $\cA_1$ just need to output the view of $\cA$ at the end of the simulation, and the same distinguisher $\cD' = \cD$ is able to distinguish between the views of $\cA_1$ in the real and ideal world. This contradicts our assumption that $\Pi_{\ae}$ satisfies \cref{defn:AE-eval-security}. Therefore, we finally conclude that
 $$\Hyb_0 \equiv_c \Hyb_1.$$
 
 Corollary of First Hybrid: We add the statements marked Hybrid 1' and run the experiment in \cref{defn:messaging-real-world-experiment}. We call this modified experiment $\Hyb_{1'}$.
