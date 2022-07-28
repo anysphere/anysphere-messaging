@@ -45,11 +45,11 @@ A \textbf{Messaging System/Application/App} consists of the following polynomial
 
 Client Side Algorithms for client $C$.
 \begin{itemize}
-    \item $C.\mathsf{Register}(1^{\lambda}, i, N) \to \reg$. The client registration algorithm takes in a security parameter $\lambda$, the index $i$ of the client, the total number of users $N$, and outputs a public registration info $\reg$. It also initializes client storage and keypairs.
+    \item $C.\Register(1^{\lambda}, i, N) \to \reg$. The client registration algorithm takes in a security parameter $\lambda$, the index $i$ of the client, the total number of users $N$, and outputs a public registration info $\reg$. It also initializes client storage and keypairs.
     
-    \item $C.\mathsf{Input}(t, \cI) \to \req$. This algorithm handles a user input $\cI$. It updates the client storage to reflect the new input, then issues a (possibly empty) request $\req$ to the server.
+    \item $C.\Userinput(t, \cI) \to \req$. This algorithm handles a user input $\cI$. It updates the client storage to reflect the new input, then issues a (possibly empty) request $\req$ to the server.
     
-    \item $C.\mathsf{ServerRPC}(t, \resp)$. This algorithm handles the server's response $\resp$ and updates client storage.
+    \item $C.\Serverrpc(t, \resp)$. This algorithm handles the server's response $\resp$ and updates client storage.
     
     \item $C.\mathsf{GetView}() \to V$. This algorithm outputs the view of the client(\cref{defn:client-view}). Its output is passed to the GUI and displayed to the user.
 \end{itemize}
@@ -58,7 +58,7 @@ Server Side Algorithms for server $S$.
 
 \begin{itemize}
     \item $S.\mathsf{InitServer}(1^{\lambda}, N)$. This algorithm takes in the security parameter $\lambda$, number of clients $N$, and initializes the server side database $D_S$.
-    \item $S.\mathsf{ClientRPC}(t, \{\req_i\}_{i = 1}^N) \to \{\resp_i\}_{i = 1}^N$. This algorithm responds to all client requests $\req_i$ the server received on a given timestep $t$. It outputs the responses $\resp_i$ that gets sent back to the client.
+    \item $S.\Clientrpc(t, \{\req_i\}_{i = 1}^N) \to \{\resp_i\}_{i = 1}^N$. This algorithm responds to all client requests $\req_i$ the server received on a given timestep $t$. It outputs the responses $\resp_i$ that gets sent back to the client.
 \end{itemize}
 \end{definition}
 
@@ -86,14 +86,14 @@ Let $S$ denote the server machine, let $\{C_i\}_{i = 1}^N$ denote the client mac
 \textbf{Honest Server Experiment}
 \begin{enumerate}
 \item $S.\mathsf{InitServer}(1^{\lambda}, N)$. 
-\item For each $i \in [N]$, $\reg_i \leftarrow C_i.\mathsf{Register}(1^{\lambda}, i, N)$. 
+\item For each $i \in [N]$, $\reg_i \leftarrow C_i.\Register(1^{\lambda}, i, N)$. 
 \item For $t$ from $1$ to $T$:
     \begin{enumerate}
-    \item For each $i \in [N]$, $\req_i \leftarrow C_i.\mathsf{Input}(t, \cI)$.
+    \item For each $i \in [N]$, $\req_i \leftarrow C_i.\Userinput(t, \cI)$.
     
-    \item $\{\resp_i\} \leftarrow S.\mathsf{ClientRPC}(t, \{\req_i\})$.
+    \item $\{\resp_i\} \leftarrow S.\Clientrpc(t, \{\req_i\})$.
     
-    \item For each $i \in [N]$, $C_i.\mathsf{ServerRPC}(t, \resp_i)$.
+    \item For each $i \in [N]$, $C_i.\Serverrpc(t, \resp_i)$.
     \end{enumerate}
 \end{enumerate}
 \end{framed}
@@ -162,15 +162,15 @@ The real world experiment use the parameters $\lambda, N, T$ as in \cref{defn:me
 \textbf{Real World Experiment}
 \begin{enumerate}
 \item $\cH \leftarrow \cA(1^{\lambda}, N, T)$.
-\item For each $i \in \cH$, $\reg_i \leftarrow C_i.\mathsf{Register}(1^{\lambda}, i, N)$. 
+\item For each $i \in \cH$, $\reg_i \leftarrow C_i.\Register(1^{\lambda}, i, N)$. 
 \item $\{\cI_{i, 1}\} \leftarrow \cA(1^{\lambda}, \reg_{\cH})$.
 \item For $t$ from $1$ to $T$:
     \begin{enumerate}
-    \item For each $i \in H$, $\req_i \leftarrow C_i.\mathsf{Input}(t, \cI_{i, t})$.
+    \item For each $i \in H$, $\req_i \leftarrow C_i.\Userinput(t, \cI_{i, t})$.
     
     \item $\{\resp_i\}_{i \in \cH}, \{\cI_{i, t + 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\req_i\}_{i \in \cH})$.
     
-    \item For each $i \in \cH$, $C_i.\mathsf{ServerRPC}(t, \resp_i)$.
+    \item For each $i \in \cH$, $C_i.\Serverrpc(t, \resp_i)$.
     \end{enumerate}
 \end{enumerate}
 \end{framed}
@@ -237,15 +237,15 @@ We use the same notations as in \cref{defn:messaging-ideal-world-experiment}. Fo
 \textbf{IND Experiment}
 \begin{enumerate}
 \item $\cH \leftarrow \cA(1^{\lambda}, N, T)$.
-\item For each $i \in \cH$, $\reg_i \leftarrow C_i.\mathsf{Register}(1^{\lambda}, i, N)$. 
+\item For each $i \in \cH$, $\reg_i \leftarrow C_i.\Register(1^{\lambda}, i, N)$. 
 \item $\{\cI^{0}_{i, 1}\}, \{\cI^{1}_{i, 1}\} \leftarrow \cA(1^{\lambda}, \{\reg_i\}_{i \in \cH})$.
 \item For $t$ from $1$ to $T$:
     \begin{enumerate}
-    \item For each $i \in H$, $\req_i \leftarrow C_i.\mathsf{Input}(t, \cI^{b}_{i, t})$.
+    \item For each $i \in H$, $\req_i \leftarrow C_i.\Userinput(t, \cI^{b}_{i, t})$.
     
     \item for $b'\in \{0, 1\}$, $\{\resp^{b'}_i\}_{i \in \cH},\{\cI^{b'}_{i, t + 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\req_i\}_{i \in \cH})$.
     
-    \item For each $i \in \cH$, $C_i.\mathsf{ServerRPC}(t, \resp^{b}_i)$.
+    \item For each $i \in \cH$, $C_i.\Serverrpc(t, \resp^{b}_i)$.
     \end{enumerate}
 \end{enumerate}
 \end{framed}

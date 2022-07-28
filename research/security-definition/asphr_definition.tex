@@ -228,7 +228,7 @@ $\mathbf{\Pi_{\asphr}.S.\mathsf{InitServer}}(1^{\lambda}, N)$.
 Initialize arrays $\msgdb, \ackdb$ of length $N$ with entries of length $L_{\ct}$. Fill them with random strings.
 
 \vspace{10pt}
-$\mathbf{\Pi_{\asphr}.C.\mathsf{Input}}(t, \cI)$
+$\mathbf{\Pi_{\asphr}.C.\Userinput}(t, \cI)$
 \vspace{5pt}
 \hrule
 \vspace{5pt}
@@ -276,7 +276,7 @@ Phase 2:
     \item Remember $\reg_r$ and $\sk_{\pir}$.
 \end{enumerate}
 \vspace{10pt}
-$\mathbf{\Pi_{\asphr}.S.\mathsf{ClientRPC}}(t, \{\req_i\}_{i = 1}^N)$
+$\mathbf{\Pi_{\asphr}.S.\Clientrpc}(t, \{\req_i\}_{i = 1}^N)$
 \vspace{5pt}
 \hrule
 \vspace{5pt}
@@ -292,13 +292,13 @@ $\mathbf{\Pi_{\asphr}.S.\mathsf{ClientRPC}}(t, \{\req_i\}_{i = 1}^N)$
     \item $\resp_i \leftarrow (a_{\msg}, a_{\ack}).$
 \end{enumerate}
 \vspace{10pt}
-$\mathbf{\Pi_{\asphr}.C.\mathsf{ServerRPC}}(t, \resp)$
+$\mathbf{\Pi_{\asphr}.C.\Serverrpc}(t, \resp)$
 \vspace{5pt}
 \hrule
 \vspace{5pt}
 \begin{enumerate}
     \item If $\resp = \emptyset$, return.
-    \item Parse $\resp = (a_{\msg}, a_{\ack})$. Let $\reg_r, \sk_{\pir}$ be defined in the last call to $\Pi_{\asphr}.C.\mathsf{Input}$.
+    \item Parse $\resp = (a_{\msg}, a_{\ack})$. Let $\reg_r, \sk_{\pir}$ be defined in the last call to $\Pi_{\asphr}.C.\Userinput$.
     \item $\ct_{\msg} \leftarrow \Pi_{\pir}.\Dec(1^{\lambda}, \sk_{\pir}, a_{\msg}).$
     \item $\ct_{\ack} \leftarrow \Pi_{\pir}.\Dec(1^{\lambda}, \sk_{\pir}, a_{\ack}).$
     \item $\sk_{\ae} \leftarrow \frienddb[\reg_r].\sk$.
