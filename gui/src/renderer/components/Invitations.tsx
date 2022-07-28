@@ -51,7 +51,7 @@ function OutgoingAsyncInvitationComp({
   return (
     <div
       className={`${
-        active ? "border-asbrown-100 bg-asbeige" : "border-white bg-white"
+        active ? "border-asbrown-100 bg-asbeige2" : "border-white bg-white"
       } my-2 rounded-sm border-l-4 px-4 py-4`}
     >
       <div className="flex flex-row gap-5">
@@ -113,7 +113,7 @@ function IncomingInvitationComp({
   return (
     <div
       className={`${
-        active ? "border-asbrown-100 bg-asbeige" : "border-white bg-white"
+        active ? "border-asbrown-100 bg-asbeige2" : "border-white bg-white"
       } my-2 rounded-sm border-l-4 px-4 py-4`}
     >
       <div className="flex flex-row gap-5">

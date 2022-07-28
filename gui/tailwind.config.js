@@ -31,6 +31,7 @@ module.exports = {
           dark: "#194F39",
         },
         asbeige: "#F9F7F1",
+        asbeige2: "#FCFBF8",
         asyellow: {
           light: "#FECA6F",
           500: "#E2A924",
