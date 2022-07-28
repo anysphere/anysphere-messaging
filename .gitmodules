@@ -7,3 +7,6 @@
 [submodule "research/whitepaper"]
 	path = research/whitepaper
 	url = git@github.com:anysphere/whitepaper
+[submodule "website/anysphere-id-pages"]
+	path = website/anysphere-id-pages
+	url = git@github.com:anysphere/anysphere-id-pages
