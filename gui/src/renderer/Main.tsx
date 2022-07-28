@@ -69,6 +69,7 @@ function Main({
     updateTab,
   ] = useTabs(defaultTabs);
   const [modal, setModal] = React.useState<JSX.Element | null>(null);
+  const [hasShownInitialModal, setHasShownInitialModal] = React.useState(false);
 
   const statusState = React.useContext(statusContext);
 
@@ -135,6 +136,9 @@ function Main({
   }, [setModal]);
 
   React.useEffect(() => {
+    if (hasShownInitialModal) {
+      return;
+    }
     if (initialModal === InitialModal.AddFriendByPublicId) {
       setModal(
         <AddFriend
@@ -148,7 +152,14 @@ function Main({
         />
       );
     }
-  }, [closeModal, statusState, initialModal, initialModalData]);
+    setHasShownInitialModal(true);
+  }, [
+    closeModal,
+    statusState,
+    initialModal,
+    initialModalData,
+    hasShownInitialModal,
+  ]);
 
   const openFriendModal = React.useCallback(() => {
     setModal(
