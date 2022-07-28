@@ -1,6 +1,6 @@
 {
   "name": "anysphere",
-  "version": "0.1.9",
+  "version": "0.1.11",
   "author": "Anysphere, Inc.",
   "description": "The world's first completely private messenger.",
   "main": "./dist/main/main.js",
