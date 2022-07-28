@@ -272,6 +272,7 @@ TEST(ServerRpcTest, AddGetAsyncInvitationMalformed) {
     request.set_authentication_token(authentication_token);
     request.set_index(allocation.at(0));
     request.set_invitation(invitation_0);
+    request.set_invitation_public_key(public_key);
     AddAsyncInvitationResponse response;
     auto status = rpc.AddAsyncInvitation(nullptr, &request, &response);
     EXPECT_TRUE(status.ok());
@@ -287,6 +288,7 @@ TEST(ServerRpcTest, AddGetAsyncInvitationMalformed) {
       str += "a";
     }
     request.set_invitation(str);
+    request.set_invitation_public_key(public_key);
     AddAsyncInvitationResponse response;
     auto status = rpc.AddAsyncInvitation(nullptr, &request, &response);
     EXPECT_FALSE(status.ok());

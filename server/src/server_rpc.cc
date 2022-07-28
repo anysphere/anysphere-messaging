@@ -197,6 +197,7 @@ Status ServerRpc<PIR, AccountManager>::AddAsyncInvitation(
     AddAsyncInvitationResponse* addAsyncInvitationResponse) {
   ASPHR_LOG_INFO("AddAsyncInvitation() called", rpc_call, "AddAsyncInvitation");
   auto index = addAsyncInvitationInfo->index();
+
   pir_index_t pir_index = index;
   try {
     if (!account_manager.valid_index_access(
@@ -216,6 +217,10 @@ Status ServerRpc<PIR, AccountManager>::AddAsyncInvitation(
   auto invitation =
       addAsyncInvitationInfo->invitation();  // this is now a byte array
 
+  auto invitation_public_key =
+      addAsyncInvitationInfo->invitation_public_key();  // this is the public
+                                                        // key of the inviter.
+
   if (std::ssize(invitation) > MAX_INVITATION_LENGTH) {
     ASPHR_LOG_ERR("Invitation too long.", rpc_call, "AddAsyncInvitation",
                   invitation_length, std::ssize(invitation),
@@ -224,6 +229,11 @@ Status ServerRpc<PIR, AccountManager>::AddAsyncInvitation(
   }
 
   async_invitation_database.set_invitation(index, std::string(invitation));
+
+  // TODO: move this out and only use the postgress registration instead of
+  // doing this everytime.
+  async_invitation_database.register_user(index,
+                                          std::string(invitation_public_key));
 
   return Status::OK;
 }

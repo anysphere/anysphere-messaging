@@ -29,7 +29,8 @@ class AccountManagerInMemory {
   AccountManagerInMemory() : AccountManagerInMemory("", "") {}
   AccountManagerInMemory(string db_address, string db_password) {}
 
-  auto generate_account(const string& public_key, pir_index_t allocation)
+  auto generate_account(const string& invitation_public_key,
+                        pir_index_t allocation)
       -> pair<string, vector<pir_index_t>> {
     // TODO(arvid): store galois keys for rotation things!
     // TODO(arvid): use cryptographic randomness here (not critical for privacy)
@@ -88,7 +89,8 @@ class AccountManagerPostgres {
   AccountManagerPostgres(AccountManagerPostgres&& account_manager) noexcept
       : conn(std::move(account_manager.conn)) {}
 
-  auto generate_account(const string& public_key, pir_index_t allocation)
+  auto generate_account(const string& invitation_public_key,
+                        pir_index_t allocation)
       -> pair<string, vector<pir_index_t>> {
     pqxx::work W{*conn};
     // TODO(arvid): use cryptographic randomness here (not critical for privacy)
@@ -104,19 +106,27 @@ class AccountManagerPostgres {
     // TODO(arvid): support more accounts
     vector<pir_index_t> indices({allocation});
 
-    // convert public_key to hex
+    // BUG ALERT: This is probably not working. Ask sualeh or arvid before
+    // trusting anything here.
+
+    // convert invitation_public_key to hex
     std::stringstream ss;
-    for (const auto& c : public_key) {
+    for (const auto& c : invitation_public_key) {
       ss << std::hex << std::setw(2) << std::setfill('0')
          << static_cast<int>(c);
     }
     string hex_public_key = ss.str();
 
+    // sanitize all the inputs for pg
+    string sanitized_public_key = W.quote("\\x" + hex_public_key);
+    string sanitized_authentication_token = W.quote(authentication_token);
+    string sanitized_pir_index = W.quote(std::to_string(indices[0]));
+
     W.exec0(
         "INSERT INTO accounts (public_key, authentication_token, pir_index) "
-        "VALUES ('\\x" +
-        hex_public_key + "', '" + authentication_token + "'," +
-        std::to_string(indices[0]) + ")");
+        "VALUES (" +
+        sanitized_public_key + ", " + sanitized_authentication_token + "," +
+        sanitized_pir_index + ")");
 
     W.commit();
 

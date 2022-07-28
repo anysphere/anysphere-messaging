@@ -7,7 +7,7 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 git_repository(
     name = "asphr",
-    commit = "8a6840861b11293b83d3da86aa7e976667dcaf1e",  # autoupdate anysphere/asphr
+    commit = "fe71979cfb92f97651e3f95b7951c519136f72fa",  # autoupdate anysphere/asphr
     init_submodules = True,
     remote = "https://github.com/anysphere/asphr.git",
 )
@@ -39,7 +39,7 @@ setup_asphr("@asphr")
 
 git_repository(
     name = "client",
-    commit = "a748994f551b59360bdecc96029388914bad174c",  # autoupdate anysphere/client
+    commit = "d95dcb16d2fd517519adc6bdac37fe934d10ad1e",  # autoupdate anysphere/client
     init_submodules = True,
     remote = "https://github.com/anysphere/client.git",
 )
