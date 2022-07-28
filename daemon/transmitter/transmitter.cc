@@ -600,12 +600,15 @@ auto Transmitter::transmit_async_invitation() -> void {
   string my_id;  // we could probably cache this in DB, but we don't need to
   string my_invitation_private_key;
   string friend_invitation_public_key;
+  string my_invitation_public_key;
   db::SmallRegistrationFragment reg_info;
   try {
     reg_info = G.db->get_small_registration();
     my_id = std::string(reg_info.public_id);
     my_invitation_private_key =
         rust_u8Vec_to_string(reg_info.invitation_private_key);
+    my_invitation_public_key =
+        rust_u8Vec_to_string(reg_info.invitation_public_key);
     friend_invitation_public_key =
         rust_u8Vec_to_string(invitation.invitation_public_key);
   } catch (const rust::Error& e) {
@@ -631,6 +634,8 @@ auto Transmitter::transmit_async_invitation() -> void {
   request.set_index(reg_info.allocation);
   request.set_authentication_token(std::string(reg_info.authentication_token));
   request.set_invitation(encrypted_invitation);
+  request.set_invitation_public_key(my_invitation_public_key);
+
   asphrserver::AddAsyncInvitationResponse reply;
   grpc::ClientContext context;
   grpc::Status status = stub->AddAsyncInvitation(&context, request, &reply);
