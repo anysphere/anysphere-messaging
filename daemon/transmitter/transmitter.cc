@@ -558,6 +558,14 @@ auto Transmitter::batch_retrieve_pir(FastPIRClient& client,
   return pir_replies;
 }
 
+auto bytes_string_to_hex(const string& bytes) -> string {
+  std::stringstream ss;
+  for (auto& c : bytes) {
+    ss << std::hex << std::setfill('0') << std::setw(2) << (int)c;
+  }
+  return ss.str();
+}
+
 //----------------------------------------------------------------
 //----------------------------------------------------------------
 //|||      BELOW ARE METHODS FOR ASYNC FRIEND REQUESTS         |||
@@ -600,6 +608,7 @@ auto Transmitter::transmit_async_invitation() -> void {
   string my_id;  // we could probably cache this in DB, but we don't need to
   string my_invitation_private_key;
   string friend_invitation_public_key;
+  string invitation_public_key;
   db::SmallRegistrationFragment reg_info;
   try {
     reg_info = G.db->get_small_registration();
@@ -608,10 +617,16 @@ auto Transmitter::transmit_async_invitation() -> void {
         rust_u8Vec_to_string(reg_info.invitation_private_key);
     friend_invitation_public_key =
         rust_u8Vec_to_string(invitation.invitation_public_key);
+    invitation_public_key =
+        rust_u8Vec_to_string(invitation.invitation_public_key);
   } catch (const rust::Error& e) {
     ASPHR_LOG_ERR("Could not get registration.", error_msg, e.what());
     return;
   }
+
+  // log the private key and public key for debugging purposes
+  ASPHR_LOG_INFO("Friend invitation public key: ", friend_invitation_public_key,
+                 bytes_string_to_hex(friend_invitation_public_key));
 
   // encrypt the friend request
   auto encrypted_invitation_status_ = crypto::encrypt_async_invitation(
@@ -631,6 +646,8 @@ auto Transmitter::transmit_async_invitation() -> void {
   request.set_index(reg_info.allocation);
   request.set_authentication_token(std::string(reg_info.authentication_token));
   request.set_invitation(encrypted_invitation);
+  request.set_invitation_public_key(invitation_public_key);
+
   asphrserver::AddAsyncInvitationResponse reply;
   grpc::ClientContext context;
   grpc::Status status = stub->AddAsyncInvitation(&context, request, &reply);
