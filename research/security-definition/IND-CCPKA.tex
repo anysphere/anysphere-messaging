@@ -19,7 +19,7 @@ It outputs $m$.
 \end{definition}
 
 \begin{definition}[Indistinguishable under chosen ciphertext and public key attack(IND-CCPKA)]
-\label{defn:CCPKA}
+\label{defn:AE-CCPKA}
 Consider the following security experiment, where $N = N(\lambda)$ is polynomial in $\lambda$.
 \begin{figure}[h!]
 \begin{framed}
@@ -43,7 +43,7 @@ Then we say the key exchange plus symmetric key system $\Pi_{\sym}$ is IND-CCPKA
 $$\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA} = 1) \leq \frac{1}{2} + \negl(\lambda).$$
 \end{definition}
 \subsection{Implications of IND-CCPKA}
-In this section, we show that if $\Pi_{\sym}$ satisfies \cref{defn:CCPKA}, then it satisfies \cref{defn:AE-eval-security}.
+In this section, we show that if $\Pi_{\sym}$ satisfies \cref{defn:AE-CCPKA}, then it satisfies \cref{defn:AE-eval-security}.
 
 We recall the relevant definitions. We take our simulator to simply outputs $\enc(\sk_{12}, 0^{L})$.
 \begin{figure}[h!]
@@ -75,7 +75,7 @@ We recall the relevant definitions. We take our simulator to simply outputs $\en
 \end{framed}
 \caption{Recap of \cref{defn:AE-eval-security}}
 \end{figure}
-To show the views of $\cA$ are indistinguishable, we use the hybridizing argument. First, we need to hybridize the $\Eval_f$ oracle so it can be simulated under the restrictions of \cref{defn:CCPKA}. 
+To show the views of $\cA$ are indistinguishable, we use the hybridizing argument. First, we need to hybridize the $\Eval_f$ oracle so it can be simulated under the restrictions of \cref{defn:AE-CCPKA}. 
 \begin{definition}
 We define the oracle $\widetilde{\Eval_{j, f}}(\{kx_i^P, kx_i^S\}, \cdot)$ as follows. For the first $j$ time it behaves exactly the same as $\Eval_f(kx_i^S, \cdot)$. After $j$ calls, it checks if the argument key $k$ is a member of $\{kx_i^P\}$. If not, it behaves exactly the same as $\Eval_f(\{kx_i^S\}, \cdot)$. If $k = kx_i^P$ for some $i$, it directly outputs $\KXE(\{kx_i^S\}, k, f(\emptyset, \emptyset))$.
 
@@ -90,7 +90,7 @@ We define the oracle $\widetilde{\Eval_{j, f}}(\{kx_i^P, kx_i^S\}, \cdot)$ as fo
 
     In the end, $\cA'$ finishes simulation of $\Hyb_{\Eval, j, \Real}$, and returns $b' = 1$ iff $D$ accepts the resulting view.
 
-    If $b = 1$, then $\cA'$ perfectly simulates $\Hyb_{\Eval, j + 1, \Real}$, while if $b = 0$, then $\cA'$ perfectly simulates $\Hyb_{\Eval, j, \Real}$. Furthermore, $\cA'$ guarantees that $\ct_{\query} = \emptyset$, since in line 6) of \cref{defn:CCPKA} $\cA'$ never pass any $k \in \{kx_i^P\}$ to $\KXD$. Therefore, we have
+    If $b = 1$, then $\cA'$ perfectly simulates $\Hyb_{\Eval, j + 1, \Real}$, while if $b = 0$, then $\cA'$ perfectly simulates $\Hyb_{\Eval, j, \Real}$. Furthermore, $\cA'$ guarantees that $\ct_{\query} = \emptyset$, since in line 6) of \cref{defn:AE-CCPKA} $\cA'$ never pass any $k \in \{kx_i^P\}$ to $\KXD$. Therefore, we have
     \begin{align*}
      &\PP(\mathbf{Exp}^{\mathsf{CCPKA}}_{\Pi_{\sym}, \cA'} = 1) \\
      &= \frac{1}{2} + \frac{1}{2}\PP(b' = 1 | b = 1) - \frac{1}{2}\PP(b' = 1 | b = 0) \\   

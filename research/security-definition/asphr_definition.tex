@@ -4,26 +4,26 @@ In this section, we define in detail the Anysphere core protocol described in ou
 \subsection{Cryptography Primitives}
 Anysphere relies on two cryptographical primitives: a symmetric key authenticated encryption(AE) system, and a PIR scheme. We outline formal simulator-based security definitions of the two.
 
-It turns out that our security definition of the PIR scheme is standard and well-documented in literature. However, existing security definitions on the AE, including IND-CCA2 or even IK-CCA(\cite{BBDP01keyprivate}), are not sufficient. In this section, we introduce a security requirement, called Eval Security, that closely resembles the actual security need of our system, but seems less natural. In Section 5, we introduce a security notion called IND-CCPKA, which is much stronger than the minimal level of security we need but seems more natural.
+It turns out that our security definition of the PIR scheme is standard and well-documented in literature. However, existing security definitions on the AE, including IND-CCA2 or even IK-CCA(\cite{BBDP01keyprivate}), are not sufficient. In this section, we introduce a security requirement, called Eval Security, that is sufficient to establish the security of our system.
 \subsubsection{Authenticated Encryption System}
 
 Our AE scheme consists of a quadruple of algorithms $(\gen, \KX, \enc, \dec)$ with specifications
 \begin{itemize}
-    \item $\gen(1^{\lambda}) \to (kx^P, kx^S)$,
-    \item $\KX(1^{\lambda}, kx_A^P, kx_B^S) \to sk_{AB},$
-    \item $\enc(sk_{AB}, m) \to ct,$
-    \item $\dec(sk_{BA}, ct) \to m.$
+    \item $\gen(1^{\lambda}) \to (\kx^P, \kx^S)$,
+    \item $\KX(\kx_A^P, \kx_B^S) \to \sk_{AB},$
+    \item $\enc(\sk_{AB}, m) \to ct,$
+    \item $\dec(\sk_{BA}, \ct) \to m.$
 \end{itemize}
 We require this scheme to be correct, secure, and authenticated. These properties are precisely defined below. Correctness is standard, but security and authentication definitions seem to be non-standard.
 \begin{definition}
 \label{defn:AE-correctness}
 Let
 \begin{enumerate}
-    \item $(kx^P_A, kx_A^S), (kx^P_B, kx_B^S)  \leftarrow \gen(1^{\lambda}).$
-    \item $sk_{AB} \leftarrow \KX(1^{\lambda}, kx_A^P, kx_B^S), sk_{BA} \leftarrow \KX(1^{\lambda}, kx_B^P, kx_A^S).$
+    \item $(\kx^P_A, \kx_A^S), (\kx^P_B, \kx_B^S)  \leftarrow \gen(1^{\lambda}).$
+    \item $\sk_{AB} \leftarrow \KX(\kx_A^P,\kx_B^S), \sk_{BA} \leftarrow \KX(\kx_B^P, \kx_A^S).$
 \end{enumerate}
-We say our AE scheme is \textbf{correct} if with probability 1, we have $sk_{AB} = sk_{BA}$, and for any plaintext $m$ of length $L_{\msg}$, we have
-$$\dec(sk_{BA}, \enc(sk_{AB}, m)) = m.$$
+We say our AE scheme is \textbf{correct} if with probability 1, we have $\sk_{AB} = \sk_{BA}$, and for any plaintext $m$ of length $L_{\msg}$, we have
+$$\dec(\sk_{BA}, \enc(\sk_{AB}, m)) = m.$$
 \end{definition}
 \begin{definition}
 \label{defn:AE-eval-oracle}
@@ -69,19 +69,34 @@ Let $N, R$ be polynomial in $\lambda$. Consider the two experiments defined in \
 Then we say the encryption scheme is \textbf{Eval-Secure} if there exists a p.p.t simulator $\Sim$ such that for any polynomial-time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^{L}$ and any p.p.t adversary with oracle $\cA^O$, the real world experiment and the ideal world experiment are computationally indistinguishable.
 \end{definition}
 
-Note that $\Sim$ does not depend on $f$ or $\cA$. If we use symmetric key encryption with pre-distributed secret keys (assumed in \cite{angel2016unobservable}), then Eval-Security is implied by IK-CCA(\cite[Definition 1]{BBDP01keyprivate}). Since we do not have pre-distributed secret keys, we need to show that the key exchange step is secure as well. In order to achieve this, we define a new security requirement called IND-CCPKA in \cref{sec:IND-CCPKA}, and show that Eval-Security is a corollary of IND-CCPKA.
+Note that $\Sim$ does not depend on $f$ or $\cA$. If we use symmetric key encryption with pre-distributed secret keys (assumed in \cite{angel2016unobservable}), then Eval-Security is implied by IK-CCA(\cite[Definition 1]{BBDP01keyprivate}). Since we do not have pre-distributed secret keys, we need to show that the key exchange step is secure as well. In \cref{sec:IND-CCPKA}, we define a new security requirement called IND-CCPKA  and show that Eval-Security is a corollary of IND-CCPKA security. We believe most existing AEAD system should be IND-CCPKA secure, though we are unable to rigorously demonstrate this.\todo{Well... Can we?}
 
-\begin{definition}[EUF-CMA Authentication]
-\todo{This is by far not sufficient. Maybe some kind of Eval thingy is good.}
-Let $kx^P_A, kx^P_B, \sk_{AB}, \sk_{BA}$ be the same as \cref{defn:AE-correctness}. For any p.p.t. adversary $\cA^O$ with access to oracle $O$, if
-$$m \leftarrow \cA^{\Enc(\sk_{AB}, \cdot), \Enc(\sk_{BA}, \cdot)}(1^{\lambda}, kx^P_A, kx^P_B)$$
-then 
-$$\PP(m \notin Q, \Dec(\sk_{BA}, m) \neq \bot) = \negl(\lambda),$$
-where $Q$ is the set of messages that $\cA$ queried to the oracle.
+\begin{definition}
+\label{defn:AE-unforgability}
+Consider the forging experiment described in \cref{expr:AE-forging}.
+
+\begin{figure}[h!]
+\begin{framed}
+\textbf{Forging Experiment}
+\begin{enumerate}
+    \item For $i$ from $1$ to $N$, $(\kx_i^P, \kx_i^S) \leftarrow \gen(1^{\lambda}).$
+    \item $i, j, \ct \leftarrow \cA^{\Eval_f(\{\kx_i^S\}, \cdot)}(1^{\lambda}, \{\kx_i^P\}).$
+\end{enumerate}
+\end{framed}
+\caption{Forging Experiment for AE Scheme}
+\label{expr:AE-forging}
+\end{figure}
+
+For each $A_{ij}$, let $\ct_{\query, ij}$ be the set of output of queries to the Eval oracle of the form $\Eval_f(\kx_i^S, \kx_j^P, \cdot)$ or $\Eval_f(\kx_j^S, \kx_i^P, \cdot)$.
+
+We say the encryption scheme is \textbf{Eval-Unforgable} if there exists a p.p.t simulator $\Sim$ such that for any polynomial-time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^{L}$ and any p.p.t adversary with oracle $\cA^O$, we have
+$$\PP(\dec(\KX(\kx_i^S, \kx_j^P), m) \neq \bot \land m \notin \ct_{\query, ij}) = \negl(\lambda).$$
 \end{definition}
+\todo{Does there exist problem with this definition? I'm fairly certain this gives what we want, but not 100\% sure this is actually correct.}
 
-\subsubsection{PIR Protocol}
-Central to our application is the Private Information Retrieval(PIR) Protocol. It consists of three efficient algorithms
+\subsubsection{PIR Scheme}
+\label{subsec:PIR}
+Central to our application is the Private Information Retrieval(PIR) scheme. It consists of three efficient algorithms
 \begin{itemize}
     \item $\query(1^{\lambda}, i) \to (\ct, \sk)$.
     \item $\answer^{DB}(1^{\lambda}, \ct) \to a$.
@@ -96,7 +111,7 @@ Central to our application is the Private Information Retrieval(PIR) Protocol. I
 % Nevermind! We are recycling the secret key for the PIR queries, because generating the keys is computationally expensive, and it does not affect security (it just becomes slightly less clean)
 where $D$ is a length $n$ database with int64 entries, and $n$ is upper bounded by some polynomial $n(\lambda)$. It must satisfy
 \begin{definition}[Correctness]
-For any database $DB$ of length $n$ with int64 entries, and any message $ct$ of length $L_{\msg}$, if we run
+For any database $DB$ of length $n$ with int64 entries, and any message $\ct$ of length $L_{\msg}$, if we run
 \begin{enumerate}
     \item $(\ct, \sk) \leftarrow \query(1^{\lambda}, i)$.
     \item $a \leftarrow \answer^{DB}(1^{\lambda}, \ct)$.
@@ -132,7 +147,7 @@ Let $n, R$ be polynomially bounded in $\lambda$. Consider the following two expe
 \end{framed}
 \end{figure}
 \end{definition}
-For our implementation, we use libsodium's key exchange functionality for the $\KX$ function, then libsodium's secret key AEAD for the $\enc$ and $\dec$ functions. This provides a Key Private IND-CPA symmetric key encryption scheme. We use Addra as the PIR protocol.
+For our implementation, we use libsodium's key exchange functionality as the $\KX$ function, as libsodium's secret key AEAD for the $\enc$ and $\dec$ functions. We conjecture that this AE scheme satisfies IND-CCPKA security as in \cref{defn:AE-CCPKA}, thus satisfies \cref{defn:AE-eval-security}. We use Addra as the PIR protocol.
 \subsection{Messages, Sequence numbers, ACK}
 To guarantee the consistent prefix property, each client $i$ labels all messages to be sent to another client $j$ with a sequence number. In the order client $i$ receives $\send$ inputs to client $j$, client $i$ label the messages with sequence number $1,2,\cdots$. The client will transmit the labeled message\footnote{Called chunk in the code.} $\msg^{lb} = (k, \msg)$, where $k$ is the sequence number and $\msg$ is the actual message. 
 
