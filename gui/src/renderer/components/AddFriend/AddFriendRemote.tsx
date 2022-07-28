@@ -92,7 +92,7 @@ export default function AddFriendRemote({
               <button
                 className="unselectable rounded-lg bg-asbrown-100 px-3 py-1 text-asbrown-light"
                 onClick={() => {
-                  window.copyToClipboard(`anysphere.id/#${publicId}`);
+                  window.copyToClipboard(`https://anysphere.id/#${publicId}`);
                   setStatus({
                     message: "Copied to clipboard.",
                     actionName: null,

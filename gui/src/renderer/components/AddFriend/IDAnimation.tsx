@@ -6,6 +6,7 @@
 import seedrandom from "seedrandom";
 import { useState, useEffect, useMemo } from "react";
 import { sha256string, randint } from "./utils";
+import React from "react"; // needed for idpage
 
 // IDAnimation is used to provide a visual version of the public ID string.
 // It has the following requirements:
