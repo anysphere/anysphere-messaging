@@ -71,6 +71,14 @@ const config = {
     }
   },
 
+  protocols: [
+    {
+      name: "Anysphere URL",
+      schemes: ["anysphere"],
+      role: "Editor",
+    },
+  ],
+
   mac: {
     target: {
       target: "default",

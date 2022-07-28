@@ -27,18 +27,20 @@ export default function AddFriend({
   setStatus,
   initialScreen,
   incomingInvitation,
+  theirPublicId,
 }: {
   onClose: () => void;
   setStatus: (status: StatusProps) => void;
   initialScreen?: AddFriendScreen;
   incomingInvitation?: IncomingAsyncInvitation;
+  theirPublicId?: string;
 }): JSX.Element {
   const [screen, setScreen] = React.useState<AddFriendScreen>(
     initialScreen ?? AddFriendScreen.Choice
   );
   const [story, setStory] = React.useState<string>("");
   const [publicID, setPublicID] = React.useState<string>("");
-  const [theirID, setTheirID] = React.useState<string>("");
+  const [theirID, setTheirID] = React.useState<string>(theirPublicId ?? "");
 
   React.useEffect(() => {
     window

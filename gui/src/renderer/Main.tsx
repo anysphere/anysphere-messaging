@@ -33,15 +33,31 @@ const defaultTabs: Tab[] = [
   { type: TabType.All, name: "All", data: null, unclosable: true, id: "all" },
 ];
 
-function MainWrapper(): JSX.Element {
+function MainWrapper({
+  initialModal,
+  initialModalData,
+}: {
+  initialModal?: InitialModal;
+  initialModalData: unknown;
+}): JSX.Element {
   return (
     <StatusHandler>
-      <Main />
+      <Main initialModal={initialModal} initialModalData={initialModalData} />
     </StatusHandler>
   );
 }
 
-function Main(): JSX.Element {
+export enum InitialModal {
+  AddFriendByPublicId,
+}
+
+function Main({
+  initialModal,
+  initialModalData,
+}: {
+  initialModal?: InitialModal;
+  initialModalData: unknown;
+}): JSX.Element {
   const [
     selectedTab,
     tabs,
@@ -117,6 +133,22 @@ function Main(): JSX.Element {
   const closeModal = React.useCallback(() => {
     setModal(null);
   }, [setModal]);
+
+  React.useEffect(() => {
+    if (initialModal === InitialModal.AddFriendByPublicId) {
+      setModal(
+        <AddFriend
+          onClose={closeModal}
+          setStatus={(x) => {
+            statusState.setStatus(x);
+            statusState.setVisible();
+          }}
+          initialScreen={AddFriendScreen.RemotePartTwo}
+          theirPublicId={initialModalData as string}
+        />
+      );
+    }
+  }, [closeModal, statusState, initialModal, initialModalData]);
 
   const openFriendModal = React.useCallback(() => {
     setModal(
