@@ -22,12 +22,13 @@ Let
     \item $(\kx^P_A, \kx_A^S), (\kx^P_B, \kx_B^S)  \leftarrow \gen(1^{\lambda}).$
     \item $\sk_{AB} \leftarrow \KX(\kx_A^P,\kx_B^S), \sk_{BA} \leftarrow \KX(\kx_B^P, \kx_A^S).$
 \end{enumerate}
-We say our AE scheme is \textbf{correct} if with probability 1, we have $\sk_{AB} = \sk_{BA}$, and for any plaintext $m$ of length $L_{\msg}$, we have
+We say our AE scheme is \textbf{correct} if with probability 1, we have $\sk_{AB} = \sk_{BA}$, and for any plaintext $m$ of length $L_{\ae}$, we have
 $$\dec(\sk_{BA}, \enc(\sk_{AB}, m)) = m.$$
 \end{definition}
+\textbf{Remark}: In our implementation, we take $L_{\ae} = 1 \mathsf{KB}$.
 \begin{definition}
 \label{defn:AE-eval-oracle}
-Given a key exchange secret key $kx^S$, and a polynomial time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^{L_{\msg}}$, the \textbf{Eval oracle} $\Eval_{f}(\kx^S, \cdot)$ takes as input a "public key" $k$, a set of ciphertexts $\arg_{\ct} = \{\ct_i\}$, and a plaintext argument $\arg_{p}$. It computes 
+Given a key exchange secret key $\kx^S$, and a polynomial time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^{L_{\ae}}$, the \textbf{Eval oracle} $\Eval_{f}(\kx^S, \cdot)$ takes as input a "public key" $k$, a set of ciphertexts $\arg_{\ct} = \{\ct_i\}$, and a plaintext argument $\arg_{p}$. It computes 
 $$\sk \leftarrow \KX(k, \kx^S)$$
 $$m_i \leftarrow \dec(\sk, \ct_i).$$ 
 It outputs $\enc(\sk, f(\{m_i\}, \arg_p))$.
@@ -66,7 +67,7 @@ Let $N, R$ be polynomial in $\lambda$. Consider the two experiments defined in \
 \label{expr:AE-real-ideal-world}
 \end{figure}
 
-Then we say the AE scheme is \textbf{Eval-Secure} if there exists a p.p.t simulator $\Sim$ such that for any polynomial-time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^{L}$ and any p.p.t adversary with oracle $\cA^O$, the real world experiment and the ideal world experiment are computationally indistinguishable.
+Then we say the AE scheme is \textbf{Eval-Secure} if there exists a p.p.t simulator $\Sim$ such that for any polynomial-time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^{L_{\ae}}$ and any p.p.t adversary with oracle $\cA^O$, the real world experiment and the ideal world experiment are computationally indistinguishable.
 \end{definition}
 
 Note that $\Sim$ does not depend on $f$ or $\cA$. If we use symmetric key encryption with pre-distributed secret keys (assumed in \cite{angel2016unobservable}), then Eval-Security is implied by IK-CCA(\cite[Definition 1]{BBDP01keyprivate}). Since we do not have pre-distributed secret keys, we need to show that the key exchange step is secure as well. In \cref{sec:IND-CCPKA}, we define a new security requirement called IND-CCPKA  and show that Eval-Security is a corollary of IND-CCPKA security. We believe most existing AEAD system should be IND-CCPKA secure, though we are unable to rigorously demonstrate this.\todo{Well... Can we?}
@@ -89,7 +90,7 @@ Consider the forging experiment described in \cref{expr:AE-forging}.
 
 For each $A_{ij}$, let $\ct_{\query, ij}$ be the set of output of queries to the Eval oracle of the form $\Eval_f(\kx_i^S, \kx_j^P, \cdot)$ or $\Eval_f(\kx_j^S, \kx_i^P, \cdot)$.
 
-We say the AE scheme is \textbf{Eval-Unforgable} if there exists a p.p.t simulator $\Sim$ such that for any polynomial-time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^{L}$ and any p.p.t adversary with oracle $\cA^O$, we have
+We say the AE scheme is \textbf{Eval-Unforgable} if there exists a p.p.t simulator $\Sim$ such that for any polynomial-time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^{L_{\ae}}$ and any p.p.t adversary with oracle $\cA^O$, we have
 $$\PP(\dec(\KX(\kx_i^S, \kx_j^P), m) \neq \bot \land m \notin \ct_{\query, ij}) = \negl(\lambda).$$
 \end{definition}
 \todo{Does there exist problem with this definition? I'm fairly certain this gives what we want, but not 100\% sure this is actually correct.}
@@ -112,7 +113,7 @@ Central to our application is the Private Information Retrieval(PIR) scheme. It 
 where $\DB$ is a length $N$ database with int64 entries, and $N$ is a parameter bounded by some polynomial $N(\lambda)$. It must satisfy correctness and security as defined below.
 \begin{definition}
 \label{defn:PIR-correctness}
-For any database $\DB$ of length $N$ with entries of length $L_{\msg}$, consider the experiment
+For any database $\DB$ of length $N$ with entries of length $L_{\pir}$, consider the experiment
 \begin{enumerate}
     \item $(\ct, \sk) \leftarrow \query(1^{\lambda}, i)$.
     \item $a \leftarrow \answer^{\DB}(1^{\lambda}, \ct)$.
@@ -161,14 +162,16 @@ Critical to both consistent prefix and eventual consistency is the ACK messages.
 
 To prevent replay attack, we ensure any ACK message is distinct from any labeled messages generated from user input.\footnote{In our implementation, ACKs and Chunks use different protobuf structs to guarantee this.}
 
-Let $L_{\msglb}$ denote the length of the labeled message, and let $L_{\ct}$ be the length of the ciphertext generated by encoding $\msg^{lb}$ with $\Pi_{\ae}.\enc$. While the input messages have length $L_{\msg}$, the messages client sent to the server have length $L_{\ct}$. We will take $L = L_{\ct}$ in the PIR scheme.
+Let $L_{\msglb}$ denote the length of the labeled message, and let $L_{\ct}$ be the length of the ciphertext generated by encoding $\msg^{lb}$ with $\Pi_{\ae}.\enc$. While the input messages have length $L_{\msg}$, the messages client sent to the server have length $L_{\ct}$. We set parameter $L_{\ae} = L_{\msglb}$ in the AE scheme, and $L_{\pir} = L_{\ct}$ in the PIR scheme.
 \subsection{Potential Security Vulnerability}
-\label{sec:security-vulnerable}
+\label{subsec:security-vulnerable}
+\todo{Move this elsewhere}.
+
 In this section, we describe several previously unobserved security vulnerabilities we discovered while writing this document. These vulnerabilities show that even with a secure PIR implementation, the security of the whole system is not straightforward.
 
-\textbf{The Impersonation Attack} The first new attack vector is the trust establishment system. Due to a lack of central authorities, our system uses the registration information $\reg$ as the unique identifier of a client / user. The registration information is a tuple $\reg = (i, kx^P)$ containing the index $i$ of the client in the PIR database, and the key exchange public key $kx^P$ of the client. This information is intended to be posted on the client / user's social media, so that others can verify that the registration info indeed belongs to the person.
+\textbf{The Impersonation Attack} The first new attack vector is the trust establishment system. Due to a lack of central authorities, our system uses the registration information $\reg$ as the unique identifier of a client / user. The registration information is a tuple $\reg = (i, \kx^P)$ containing the index $i$ of the client in the PIR database, and the key exchange public key $\kx^P$ of the client. This information is intended to be posted on the client / user's social media, so that others can verify that the registration info indeed belongs to the person.
 
-Suppose user $A, B$ are friends, and their registration informations are $\reg_A = (i_A, kx^P_A)$ and $\reg_B = (i_B, kx^P_B)$ respectively. Then a malicious user $C$ can declare on their webpage that their registration information is $\reg_C = (i_C, kx^P_B)$. If user $A$ establishes trust with user $C$, then user $B$ will ``overhear" all conversations between user $A$ and user $C$, since the way $B$ decides if a message from $A$ is meant for them is by decrypting user $A$'s ciphertext with their shared public key $\sk_{AB}$. By letting $\sk_{AC} = \sk_{AB}$, user $C$ compromised the integrity of user $A$ and $B$'s conversation.
+Suppose user $A, B$ are friends, and their registration informations are $\reg_A = (i_A, \kx^P_A)$ and $\reg_B = (i_B, \kx^P_B)$ respectively. Then a malicious user $C$ can declare on their webpage that their registration information is $\reg_C = (i_C, \kx^P_B)$. If user $A$ establishes trust with user $C$, then user $B$ will ``overhear" all conversations between user $A$ and user $C$, since the way $B$ decides if a message from $A$ is meant for them is by decrypting user $A$'s ciphertext with their shared public key $\sk_{AB}$. By letting $\sk_{AC} = \sk_{AB}$, user $C$ compromised the integrity of user $A$ and $B$'s conversation.
 
 There are many ways to resolve this issue. The most straightforward solution is for users to sign their registration information with their secret key. However, this will make the registration information too long to be put in e.g. a twitter profile. Another solution is to label each message with their intended recipient; we are planning to incorporate this solution ASAP.
 
@@ -183,14 +186,14 @@ This attack can be easily prevented by changing the PIR keypair each round. Howe
 \todo{I'm going to stick to our actual implementation as closely as possible, please point out anything that doesn't agree with the current protocol, greatly appreciate it.}
 
 We first recall some notations.
-\begin{enumerate}
+\begin{itemize}
     \item $\lambda$ is the security parameter.
     \item $N$ is the number of users.
     \item $T$ is the number of timesteps our protocol is run.
     \item $L_{\msg}$ is the length of each message we send.
     \item $\Pi_{\ae}$ is an AE scheme satisfying \cref{defn:AE-correctness}, \cref{defn:AE-eval-security} and \cref{defn:AE-unforgability}.
     \item $\Pi_{\pir}$ is a PIR scheme satisfying \cref{defn:PIR-correctness} and \cref{defn:PIR-SIM-security}.
-\end{enumerate}
+\end{itemize}
 We can now formally define Anysphere's core protocol.
 \begin{definition}
 \label{defn:asphr-code}
@@ -202,27 +205,27 @@ $\mathbf{\Pi_{\asphr}.C.\mathsf{Register}}(1^{\lambda}, i, N)$
 \hrule
 \vspace{5pt}
 \begin{enumerate}
-    \item Initialize empty map $\frienddb$. The map take registration info as keys, and the following fields as values.
+    \item Initialize empty map $\frienddb$. The map take registration info as keys, and the following fields as values.    \footnote{These fields are currently implicit. They are made explicit here for simplicity}
     \begin{itemize}
         \item $\mathsf{sk}$, the secret key.
         \item $\seqs$, the sequence number of the current message being broadcasted to the friend.
-        \item $\seqe$, the highest sequence number ever assigned to the friend.
+        \item $\seqe$, the highest sequence number ever assigned to messages to the friend.
         \item $\seqr$, the highest sequence number received from the friends.
     \end{itemize}
-    \todo{These fields are currently implicit. Included for simplicity}
+
     \arvid{a bit confused between seqend and seqstart...}
     \stzh{in other words, the inbox contains messages in [seqstart, seqend].}
     \item Initialize empty maps $\inb, \outb$. The maps take registration info as keys, and arrays of messages as values.\footnote{They are named Friend, Inbox, Outbox in our code. Our code is slightly more complicated to support features like sending to multiple friends and chunking.}
     \item Set a transmission schedule $T_{\trans}$. The user can customize this parameter. We assume $T_{\trans}$ is upper bounded by a constant $T_{\trans}^U$.
-    \item $(kx^P, kx^S) \leftarrow \gen(1^{\lambda})$. 
-    \item Return $\reg \leftarrow (i, kx^P)$.
+    \item $(\kx^P, \kx^S) \leftarrow \Pi_{\ae}.\gen(1^{\lambda})$. 
+    \item Return $\reg = (i, \kx^P)$.
 \end{enumerate}
 \vspace{10pt}
 $\mathbf{\Pi_{\asphr}.S.\mathsf{InitServer}}(1^{\lambda}, N)$.
 \vspace{5pt}
 \hrule
 \vspace{5pt}
-Initialize arrays $\msgdb, \ackdb$ of length $N$. Fill them with random strings.
+Initialize arrays $\msgdb, \ackdb$ of length $N$ with entries of length $L_{\ct}$. Fill them with random strings.
 
 \vspace{10pt}
 $\mathbf{\Pi_{\asphr}.C.\mathsf{Input}}(t, \cI)$
@@ -248,8 +251,8 @@ If $\cI = \send(\reg, \msg)$,
 If $\cI = \trust(\reg)$.
 \begin{enumerate}
     \item Check if $\reg$ is in $\frienddb$. If so, skip to Phase 2.
-    \item $(i, kx_f^P) \leftarrow \reg$.
-    \item $sk \leftarrow \Pi_{\ae}.\KX(1^{\lambda}, kx_f^P, kx^S).$
+    \item $(i, \kx_f^P) \leftarrow \reg$.
+    \item $sk \leftarrow \Pi_{\ae}.\KX(\kx_f^P, \kx^S).$
     \item $\frienddb[\reg] \leftarrow \{\sk: sk,  \seqs: 1, \seqe: 0, \seqr: 0\}$.
 \end{enumerate}
 
@@ -270,7 +273,7 @@ Phase 2:
         \item $\ct_{\query}, \sk_{\pir} \leftarrow \Pi_{\pir}.\query(1^{\lambda}, i_r).$
     \end{itemize}
     \item return $\req = (\ct_{\msg}, \ct_{\ack}, \ct_{\query})$.
-    \item Remember $\reg_r$.
+    \item Remember $\reg_r$ and $\sk_{\pir}$.
 \end{enumerate}
 \vspace{10pt}
 $\mathbf{\Pi_{\asphr}.S.\mathsf{ClientRPC}}(t, \{\req_i\}_{i = 1}^N)$
@@ -298,19 +301,19 @@ $\mathbf{\Pi_{\asphr}.C.\mathsf{ServerRPC}}(t, \resp)$
     \item Parse $\resp = (a_{\msg}, a_{\ack})$. Let $\reg_r, \sk_{\pir}$ be defined in the last call to $\Pi_{\asphr}.C.\mathsf{Input}$.
     \item $\ct_{\msg} \leftarrow \Pi_{\pir}.\Dec(1^{\lambda}, \sk_{\pir}, a_{\msg}).$
     \item $\ct_{\ack} \leftarrow \Pi_{\pir}.\Dec(1^{\lambda}, \sk_{\pir}, a_{\ack}).$
-    \item $\sk \leftarrow \frienddb[\reg_r].\sk$.
+    \item $\sk_{\ae} \leftarrow \frienddb[\reg_r].\sk$.
     \item Decipher the message.
     \begin{enumerate}
-        \item $\msg^{lb} \leftarrow \Pi_{\ae}.\Dec(1^{\lambda}, \sk, \ct_{\msg})$.
-        \item If $\msg^{lb} = \bot$ or $\msg^{lb}[0]$ is not $\frienddb[\reg_r].\seqr + 1$, ignore the message.
+        \item $\msg^{lb} \leftarrow \Pi_{\ae}.\Dec(\sk_{\ae}, \ct_{\msg})$.
+        \item If $\msg^{lb} = \bot$ or $\msg^{lb}[0]$ is not $\frienddb[\reg_r].\seqr + 1$, skip the next two steps.
         \item Add $1$ to $\frienddb[\reg_r].\seqr$. 
         \item Let $\msg$ be $\msg^{lb}[1]$. Push $\msg$ to $\inb[\reg_r]$.
     \end{enumerate}
     \item Decipher the ACK.
     \begin{enumerate}
-        \item $\ack \leftarrow \Pi_{\ae}.\Dec(1^{\lambda}, \sk, \ct_{\ack})$.
-        \item If $\ack = \bot$ or $\ack$ is not the form $\ACK(k)$ for some $k$, ignore the ack.
-        \item Let $\ack = \ACK(k)$. If $k < \frienddb[\reg_r].\seqs$, ignore the ack.
+        \item $\ack \leftarrow \Pi_{\ae}.\Dec(1^{\lambda}, \sk_{\ae}, \ct_{\ack})$.
+        \item If $\ack = \bot$ or $\ack$ is not the form $\ACK(k)$ for some $k$, return.
+        \item Let $\ack = \ACK(k)$. If $k < \frienddb[\reg_r].\seqs$, return.
         \item $\frienddb[\reg_r].\seqs \leftarrow k + 1$. Remove the message with sequence number $k$ from $\outb[\reg_r]$.
     \end{enumerate}
 \end{enumerate}
