@@ -4,7 +4,14 @@
 //
 
 import path from "path";
-import { app, BrowserWindow, session, shell, Notification } from "electron";
+import {
+  app,
+  dialog,
+  BrowserWindow,
+  session,
+  shell,
+  Notification,
+} from "electron";
 import MenuBuilder from "./menu";
 import { resolveHtmlPath } from "./util";
 import { autoUpdater } from "electron-updater";
@@ -29,6 +36,16 @@ const isDevelopment =
 if (process.env["NODE_ENV"] === "production") {
   const sourceMapSupport = require("source-map-support");
   sourceMapSupport.install();
+}
+
+if (process.defaultApp) {
+  if (process.argv.length >= 2 && process.argv[1] != null) {
+    app.setAsDefaultProtocolClient("anysphere", process.execPath, [
+      path.resolve(process.argv[1]),
+    ]);
+  }
+} else {
+  app.setAsDefaultProtocolClient("anysphere");
 }
 
 function setupLogger(): void {
@@ -139,7 +156,7 @@ async function installExtensions(): Promise<void> {
     .catch(logger.log);
 }
 
-const createWindow = async () => {
+const createWindow = async (publicID?: string): Promise<void> => {
   if (isDevelopment) {
     await installExtensions();
   }
@@ -168,7 +185,12 @@ const createWindow = async () => {
     },
   });
 
-  mainWindow.loadURL(resolveHtmlPath("index.html"));
+  let loadURL = resolveHtmlPath("index.html");
+  if (publicID != null) {
+    loadURL = resolveHtmlPath(`index.html?publicID=${publicID}`);
+  }
+
+  mainWindow.loadURL(loadURL);
 
   mainWindow.on("ready-to-show", () => {
     if (process.env["START_MINIMIZED"] === "true") {
@@ -269,4 +291,16 @@ app.on("web-contents-created", (event, contents) => {
     event.preventDefault();
     shell.openExternal(navigationUrl);
   });
+});
+
+// Handle the protocol. In this case, we choose to show an Error Box.
+app.on("open-url", (event, url) => {
+  const publicID = url.split("/").pop();
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow(publicID);
+  } else {
+    BrowserWindow.getAllWindows()[0].loadURL(
+      resolveHtmlPath("index.html?publicID=" + publicID)
+    );
+  }
 });

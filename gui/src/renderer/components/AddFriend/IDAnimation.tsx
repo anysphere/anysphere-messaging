@@ -4,13 +4,9 @@
 //
 
 import seedrandom from "seedrandom";
-import { motion } from "framer-motion";
 import { useState, useEffect, useMemo } from "react";
-import { classNames } from "../../utils";
 import { sha256string, randint } from "./utils";
-
-const DEBUG_COLORS = false;
-// const DEBUG_COLORS = true;
+import React from "react"; // needed for idpage
 
 // IDAnimation is used to provide a visual version of the public ID string.
 // It has the following requirements:
@@ -88,10 +84,7 @@ export function IDAnimation({
   return (
     <>
       <div
-        className={classNames(
-          "absolute h-full w-full overflow-clip rounded-full",
-          DEBUG_COLORS ? "bg-green-100" : ""
-        )}
+        className="absolute h-full w-full overflow-clip rounded-full"
         style={{
           backgroundColor: background,
           willChange: "opacity",

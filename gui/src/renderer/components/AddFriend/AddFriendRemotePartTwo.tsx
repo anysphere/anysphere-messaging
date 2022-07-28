@@ -124,6 +124,11 @@ export default function AddFriendRemotePartTwo({
                     );
                   }
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setProgress(1);
+                  }
+                }}
                 value={displayName}
                 placeholder="First Last"
               />
