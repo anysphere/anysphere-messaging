@@ -55,6 +55,7 @@ message AddAsyncInvitationInfo {
   int32 index = 1;
   bytes invitation = 2;
   string authentication_token = 3;
+  bytes invitation_public_key = 4;
 }
 
 message AddAsyncInvitationResponse {}
