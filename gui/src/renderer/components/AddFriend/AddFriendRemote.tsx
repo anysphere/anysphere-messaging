@@ -7,6 +7,7 @@ import { StatusProps } from "../Status";
 import { classNames } from "../../utils";
 import { useEffect, useState } from "react";
 import { IDAnimation } from "./IDAnimation";
+import { truncate } from "../../utils";
 
 const DEBUG_COLORS = false;
 // const DEBUG_COLORS = true;
@@ -84,9 +85,23 @@ export default function AddFriendRemote({
               <IDAnimation seed={publicId} bordersize={4} />
             </div>
             <div></div>
-            <h2 className="text-xs" style={{ userSelect: "text" }}>
-              anysphere.id/#{publicId}
-            </h2>
+            <div className="flex h-fit flex-row items-center gap-4">
+              <h2 className="text-xl font-bold" style={{ userSelect: "text" }}>
+                anysphere.id/#{truncate(publicId, 12)}
+              </h2>
+              <button
+                className="unselectable rounded-lg bg-asbrown-100 px-3 py-1 text-asbrown-light"
+                onClick={() => {
+                  window.copyToClipboard(`anysphere.id/#${publicId}`);
+                  setStatus({
+                    message: "Copied to clipboard.",
+                    actionName: null,
+                  });
+                }}
+              >
+                Copy
+              </button>
+            </div>
             <div></div>
             <div></div>
             <div></div>

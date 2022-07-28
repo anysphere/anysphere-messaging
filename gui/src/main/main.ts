@@ -156,11 +156,7 @@ async function installExtensions(): Promise<void> {
     .catch(logger.log);
 }
 
-const createWindow = async ({
-  publicID,
-}: {
-  publicID?: string;
-}): Promise<void> => {
+const createWindow = async (publicID?: string): Promise<void> => {
   if (isDevelopment) {
     await installExtensions();
   }
@@ -301,7 +297,7 @@ app.on("web-contents-created", (event, contents) => {
 app.on("open-url", (event, url) => {
   const publicID = url.split("/").pop();
   if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow({ publicID });
+    createWindow(publicID);
   } else {
     BrowserWindow.getAllWindows()[0].loadURL(
       resolveHtmlPath("index.html?publicID=" + publicID)
