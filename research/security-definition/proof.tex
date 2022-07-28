@@ -5,9 +5,9 @@
 
 \section{Proofs}
 \label{sec:proofs}
-In this section, we prove that our messaging scheme satisfies \cref{defn:correctness}, \cref{defn:messaging-security}, and \cref{defn:messaging-integrity}. These definitions establish correctness, security, and integrity respectively.
+In this section, we prove that our messaging scheme satisfies \cref{defn:messaging-correctness}, \cref{defn:messaging-security}, and \cref{defn:messaging-integrity}. These definitions establish correctness, security, and integrity respectively.
 \subsection{Proof of Correctness}
-To show \cref{defn:correctness}, we need to show our two consistency models: Consistent Prefix and Eventual Consistency.
+To show \cref{defn:messaging-correctness}, we need to show our two consistency models: Consistent Prefix and Eventual Consistency.
 
 We first introduce some notations for convenience. Define
 \begin{multline*}
@@ -91,7 +91,7 @@ Thus, the desired properties still hold.
 
 We have proven that the desired properties hold at the end of timestep $t$ with probability $1 - \negl(\lambda)$.
 \end{proof}
-We can now prove Consistent Prefix as defined in \cref{defn:correctness}. We use the notation of \cref{lem:correctness-main}. Let $(\cF, \cM) = C_j.\mathsf{GetView}()$. We take $t(j) = T_0$. Unpacking the definition of $\cF$ and $\cM$, we need to verify that for each $i \in [N]$, with probability $1 - \negl(\lambda)$ there exists a $t(i) \leq T_0$ such that
+We can now prove Consistent Prefix as defined in \cref{defn:messaging-correctness}. We use the notation of \cref{lem:correctness-main}. Let $(\cF, \cM) = C_j.\mathsf{GetView}()$. We take $t(j) = T_0$. Unpacking the definition of $\cF$ and $\cM$, we need to verify that for each $i \in [N]$, with probability $1 - \negl(\lambda)$ there exists a $t(i) \leq T_0$ such that
  
  a) $\reg_i \in C_j.\frienddb$ if and only if there exists a $t \leq T_0$ such that 
  $$\trust(\reg_i) = \cI_{j, t}.$$
@@ -127,7 +127,7 @@ as desired. The proof for the latter possibility is analogous. Thus, we have dem
 \subsection{Proof of Security}
 In this section we show that our scheme is SIM secure. The security of our system is essentially implied by the IND-CPA security of the underlying symmetric key protocol $\Pi_{\sym}$ and the SIM security of the pir protocol $\Pi_{\pir}$. We now justify this by constructing a simulator $\Sim_{\asphr}$ that satisfied \cref{defn:messaging-security}.
 
-Let $N$ be the number of honest clients, and take $R = 2N(\lambda)T(\lambda)$. Let $\Sim_{\sym}$ and $\Sim_{\pir}$ be the simulators defined in \cref{defn:AE-eval-security} and \cref{defn:pir-security} respectively, with parameters $N$ and $R$. At step (2), (4.a), and (4.c) of \cref{defn:messaging-ideal-world-experiment}, our simulator will run modified versions of the corresponding client methods in the respective steps of \cref{defn:messaging-real-world-experiment} for each $i \in \cH$. The important modifications involve replacing all lines that involve unleaked information.
+Let $N$ be the number of honest clients, and take $R = 2N(\lambda)T(\lambda)$. Let $\Sim_{\sym}$ and $\Sim_{\pir}$ be the simulators defined in \cref{defn:AE-eval-security} and \cref{defn:PIR-SIM-security} respectively, with parameters $N$ and $R$. At step (2), (4.a), and (4.c) of \cref{defn:messaging-ideal-world-experiment}, our simulator will run modified versions of the corresponding client methods in the respective steps of \cref{defn:messaging-real-world-experiment} for each $i \in \cH$. The important modifications involve replacing all lines that involve unleaked information.
 
 We now describe these modifications. Changes are marked in red.
 \todo{Hard-coded. Please modify if the $\Pi_{\asphr}$ methods get changed.}
@@ -286,13 +286,13 @@ $$\Hyb_1 \equiv_c \Hyb_{1'}.$$
 
 Second Hybrid: We add the statements marked Hybrid 2, and run the experiment in \cref{defn:messaging-real-world-experiment}. We call this modified experiment $\Hyb_{2}$.
 
-We now show that $\Hyb_{1'}$ and $\Hyb_{2}$ are indistinguishable. Suppose on the contrary that an adversary $\cA$ and a distinguisher $\cD$ can $\Hyb_{1'}$ and $\Hyb_{2}$. Then we can build an adversary $\cA_2$ and a distinguisher $\cD'$ breaking \cref{defn:pir-security}. 
+We now show that $\Hyb_{1'}$ and $\Hyb_{2}$ are indistinguishable. Suppose on the contrary that an adversary $\cA$ and a distinguisher $\cD$ can $\Hyb_{1'}$ and $\Hyb_{2}$. Then we can build an adversary $\cA_2$ and a distinguisher $\cD'$ breaking \cref{defn:PIR-SIM-security}. 
 
-$\cA_2$ simulates a modified version of $\Hyb_1$. $\cA_2$ simulates line (1, 2, 3, 4b, 4c) in \cref{defn:messaging-real-world-experiment} verbatim as in both $\Hyb_{1'}$ and $\Hyb_2$. On line (4a), $\cA_2$ simulates everything but Phase 2 step (7) verbatim. When it reaches Phase 2 step (7), if $\reg_r \notin \reg_{\cH}$ then it simulates this step verbatim as well. If $\reg_r \in \reg_{\cH}$, then $\cA_2$ returns $i_r$ and exits line (1a) of the experiment in \cref{defn:pir-security}. Let $\ct^b_r$ be the return value of line (1b). $\cA_2$ sets $\ct_{\query} = \ct^b_r$ and continues simulation.
+$\cA_2$ simulates a modified version of $\Hyb_1$. $\cA_2$ simulates line (1, 2, 3, 4b, 4c) in \cref{defn:messaging-real-world-experiment} verbatim as in both $\Hyb_{1'}$ and $\Hyb_2$. On line (4a), $\cA_2$ simulates everything but Phase 2 step (7) verbatim. When it reaches Phase 2 step (7), if $\reg_r \notin \reg_{\cH}$ then it simulates this step verbatim as well. If $\reg_r \in \reg_{\cH}$, then $\cA_2$ returns $i_r$ and exits line (1a) of the experiment in \cref{defn:PIR-SIM-security}. Let $\ct^b_r$ be the return value of line (1b). $\cA_2$ sets $\ct_{\query} = \ct^b_r$ and continues simulation.
 
 Note that contrary to the previous scenario, $\cA_2$ knows all the key exchange secret keys. Furthermore, if $\reg_r \notin \reg_{\cH}$, $\cA_2$ knows $\sk_{\pir}$ generated by $\Pi_{\asphr}.C.\mathsf{Input}$. If $\reg_r \notin \reg_{\cH}$, then $\cA_2$ does not know the $\sk_{\pir}$, but this $\sk_{\pir}$ will never be used since Hybrid 1' ensures that $\Pi_{\asphr}.C.\mathsf{ServerRPC}$ is skipped. Thus, we conclude that $\cA_2$ can complete the simulation.
 
-Note that in the real world experiment of \cref{defn:pir-security}, $\cA_2$ simulates $\Hyb_{1'}$ verbatim, while in the ideal world experiment of $\cref{defn:pir-security}$, $\cA_2$ simulates $\Hyb_2$ verbatim. Thus, $\cA_2$ just need to output the view of $\cA$ at the end of the simulation, and the same distinguisher $\cD' = \cD$ is able to distinguish between the views of $\cA_1$ in the real and ideal world. This contradicts our assumption that $\Pi_{\pir}$ satisfies \cref{defn:pir-security}. Therefore, we conclude that
+Note that in the real world experiment of \cref{defn:PIR-SIM-security}, $\cA_2$ simulates $\Hyb_{1'}$ verbatim, while in the ideal world experiment of $\cref{defn:PIR-SIM-security}$, $\cA_2$ simulates $\Hyb_2$ verbatim. Thus, $\cA_2$ just need to output the view of $\cA$ at the end of the simulation, and the same distinguisher $\cD' = \cD$ is able to distinguish between the views of $\cA_1$ in the real and ideal world. This contradicts our assumption that $\Pi_{\pir}$ satisfies \cref{defn:PIR-SIM-security}. Therefore, we conclude that
 $$\Hyb_{1'} \equiv_c \Hyb_2.$$
 Third Hybrid: We add the statements marked Hybrid 3, and run the experiment in \cref{defn:messaging-real-world-experiment}. We call this modified experiment $\Hyb_{3}$. This modification does not change the view of the adversary at all: after all the changes in Hybrid 1, 1' and 2, for any $\reg \in \reg_{\cH}$, the contents of $\frienddb[\reg], \inb[\reg], \outb[\reg]$ does not affect the client's output. In particular, the way $\reg_s$ and $\reg_r$ are selected ensures that whether $\reg$ lies in $\frienddb$ or not does not affect the distribution of $\reg_s$ or $\reg_r$. For any $\reg \notin \reg_{\cH}$, Hybrid 3 does not affect how $\frienddb[\reg], \inb[\reg], \outb[\reg]$ are updated. So we have shown
 $$\Hyb_{2} \equiv_c \Hyb_3.$$

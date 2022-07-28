@@ -66,7 +66,7 @@ Let $N, R$ be polynomial in $\lambda$. Consider the two experiments defined in \
 \label{expr:AE-real-ideal-world}
 \end{figure}
 
-Then we say the encryption scheme is \textbf{Eval-Secure} if there exists a p.p.t simulator $\Sim$ such that for any polynomial-time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^{L}$ and any p.p.t adversary with oracle $\cA^O$, the real world experiment and the ideal world experiment are computationally indistinguishable.
+Then we say the AE scheme is \textbf{Eval-Secure} if there exists a p.p.t simulator $\Sim$ such that for any polynomial-time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^{L}$ and any p.p.t adversary with oracle $\cA^O$, the real world experiment and the ideal world experiment are computationally indistinguishable.
 \end{definition}
 
 Note that $\Sim$ does not depend on $f$ or $\cA$. If we use symmetric key encryption with pre-distributed secret keys (assumed in \cite{angel2016unobservable}), then Eval-Security is implied by IK-CCA(\cite[Definition 1]{BBDP01keyprivate}). Since we do not have pre-distributed secret keys, we need to show that the key exchange step is secure as well. In \cref{sec:IND-CCPKA}, we define a new security requirement called IND-CCPKA  and show that Eval-Security is a corollary of IND-CCPKA security. We believe most existing AEAD system should be IND-CCPKA secure, though we are unable to rigorously demonstrate this.\todo{Well... Can we?}
@@ -89,7 +89,7 @@ Consider the forging experiment described in \cref{expr:AE-forging}.
 
 For each $A_{ij}$, let $\ct_{\query, ij}$ be the set of output of queries to the Eval oracle of the form $\Eval_f(\kx_i^S, \kx_j^P, \cdot)$ or $\Eval_f(\kx_j^S, \kx_i^P, \cdot)$.
 
-We say the encryption scheme is \textbf{Eval-Unforgable} if there exists a p.p.t simulator $\Sim$ such that for any polynomial-time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^{L}$ and any p.p.t adversary with oracle $\cA^O$, we have
+We say the AE scheme is \textbf{Eval-Unforgable} if there exists a p.p.t simulator $\Sim$ such that for any polynomial-time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^{L}$ and any p.p.t adversary with oracle $\cA^O$, we have
 $$\PP(\dec(\KX(\kx_i^S, \kx_j^P), m) \neq \bot \land m \notin \ct_{\query, ij}) = \negl(\lambda).$$
 \end{definition}
 \todo{Does there exist problem with this definition? I'm fairly certain this gives what we want, but not 100\% sure this is actually correct.}
@@ -99,7 +99,7 @@ $$\PP(\dec(\KX(\kx_i^S, \kx_j^P), m) \neq \bot \land m \notin \ct_{\query, ij}) 
 Central to our application is the Private Information Retrieval(PIR) scheme. It consists of three efficient algorithms
 \begin{itemize}
     \item $\query(1^{\lambda}, i) \to (\ct, \sk)$.
-    \item $\answer^{DB}(1^{\lambda}, \ct) \to a$.
+    \item $\answer^{\DB}(1^{\lambda}, \ct) \to a$.
     \item $\dec(1^{\lambda}, \sk, a) \to x_i$.
 \end{itemize}
 % \arvid{Another PIR syntax, which I believe might be more standard?}
@@ -109,21 +109,21 @@ Central to our application is the Private Information Retrieval(PIR) scheme. It 
 %     \item $\dec_n(1^{\lambda}, \mathsf{st}, a) \to d$.
 % \end{itemize}
 % Nevermind! We are recycling the secret key for the PIR queries, because generating the keys is computationally expensive, and it does not affect security (it just becomes slightly less clean)
-where $D$ is a length $n$ database with int64 entries, and $n$ is upper bounded by some polynomial $n(\lambda)$. It must satisfy
-\begin{definition}[Correctness]
-For any database $DB$ of length $n$ with int64 entries, and any message $\ct$ of length $L_{\msg}$, if we run
+where $\DB$ is a length $N$ database with int64 entries, and $N$ is a parameter bounded by some polynomial $N(\lambda)$. It must satisfy
+\begin{definition}
+\label{defn:PIR-correctness}
+For any database $\DB$ of length $N$ with entries of length $L_{\msg}$, consider the experiment
 \begin{enumerate}
     \item $(\ct, \sk) \leftarrow \query(1^{\lambda}, i)$.
-    \item $a \leftarrow \answer^{DB}(1^{\lambda}, \ct)$.
+    \item $a \leftarrow \answer^{\DB}(1^{\lambda}, \ct)$.
     \item $x_i \leftarrow \dec(1^{\lambda}, \sk, a)$.
 \end{enumerate}
-then $x_i = DB[i]$.
+We say the PIR scheme is \textbf{correct} if $x_i = DB[i]$ with probability $1$.
 \end{definition}
-\begin{definition}[SIM Security]
-\label{defn:pir-security}
-Let $n, R$ be polynomially bounded in $\lambda$. Consider the following two experiments. Then we say the PIR scheme is \textbf{secure} if there exists a p.p.t simulator $\Sim$ such that for any stated p.p.t adversary $\cA$, the view of $\cA$ under the real world experiment and the ideal world experiment are computationally indistinguishable. 
+\begin{definition}
+\label{defn:PIR-SIM-security}
+Let $n, R$ be polynomially bounded in $\lambda$. Consider the experiments in \cref{expr:pir-real-ideal-world}. We say the PIR scheme is \textbf{SIM-Secure} if there exists a p.p.t simulator $\Sim$ such that for any stated p.p.t adversary $\cA$, the view of $\cA$ under the real world experiment and the ideal world experiment are computationally indistinguishable. 
 
-\todo{This definition is equivalent to https://eprint.iacr.org/2022/081.pdf, Experiment 2.2. The definition over there is IND. May want to add a note here.}
 \begin{figure}[h!]
 \begin{framed}
 \textbf{Real World Experiment}
@@ -145,11 +145,13 @@ Let $n, R$ be polynomially bounded in $\lambda$. Consider the following two expe
     \end{enumerate}
 \end{enumerate}
 \end{framed}
+\caption{Real and Ideal World Experiment for PIR Scheme}
+\label{expr:pir-real-ideal-world}
 \end{figure}
 \end{definition}
-For our implementation, we use libsodium's key exchange functionality as the $\KX$ function, as libsodium's secret key AEAD for the $\enc$ and $\dec$ functions. We conjecture that this AE scheme satisfies IND-CCPKA security as in \cref{defn:AE-CCPKA}, thus satisfies \cref{defn:AE-eval-security}. We use Addra as the PIR protocol.
+For our implementation, we use libsodium's key exchange functionality as the $\gen$ and $\KX$ functions, and libsodium's secret key AEAD for the $\enc$ and $\dec$ functions(\cite{libsodium}). We conjecture that this AE scheme satisfies IND-CCPKA security as in \cref{defn:AE-CCPKA}, thus satisfies \cref{defn:AE-eval-security}. We use Addra's FastPIR as the PIR protocol. The definition, correctness, and security proof of FastPIR can be found in \cite[Section 4]{ahmad2021addra}.
 \subsection{Messages, Sequence numbers, ACK}
-To guarantee the consistent prefix property, each client $i$ labels all messages to be sent to another client $j$ with a sequence number. In the order client $i$ receives $\send$ inputs to client $j$, client $i$ label the messages with sequence number $1,2,\cdots$. The client will transmit the labeled message\footnote{Called chunk in the code.} $\msg^{lb} = (k, \msg)$, where $k$ is the sequence number and $\msg$ is the actual message. 
+To guarantee the consistent prefix property in \cref{defn:messaging-correctness}, each client $i$ labels all messages to be sent to another client $j$ with a sequence number. In the order client $i$ receives $\send$ inputs to client $j$, client $i$ label the messages with sequence number $1,2,\cdots$. The client will transmit the labeled message\footnote{Called chunk in the code.} $\msg^{lb} = (k, \msg)$, where $k$ is the sequence number and $\msg$ is the actual message. 
 
 Critical to both consistent prefix and eventual consistency is the ACK messages. An ACK message is a special type of messages denoted $\ACK(k)$.\todo{In the whitepaper an additional chunk number is used. Since this definition does not use chunking, I'll ignore it}. When client $j$ sends $\ACK(k)$ to client $i$, it means ``I have read all messages up to message $k$ from you". As we will soon define rigorously, user $i$ will keep broadcasting message $k$ until user $j$ sends $\ACK(k)$, in which case they begin broadcasting message $k + 1$. 
 
@@ -182,7 +184,7 @@ Let's first recap and summarize what we have defined so far. Recall that
     \item $T$ is the number of timesteps our protocol is run.
     \item $L_{\msg}$ is the length of each message we send.
     \item We use a  $\Pi_{\sym}$.
-    \item We use a PIR protocol $\Pi_{\pir}$ satisfying \cref{defn:pir-security}.
+    \item We use a PIR protocol $\Pi_{\pir}$ satisfying \cref{defn:PIR-SIM-security}.
 \end{enumerate}
 We can now formally define Anysphere's core protocol.
 \begin{definition}[The Anysphere Core Protocol]

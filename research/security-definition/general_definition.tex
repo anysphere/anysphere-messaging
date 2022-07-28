@@ -1,5 +1,5 @@
 \todo{General comment: standardize labeling convention, and name the 20+ experiments}
-\todo{Label Convention: Definition related to messaging should be named defn:messaging-xxx}
+\todo{Label Convention: Definition related to messaging should be named defn:messaging-xxx. Definition related to AE should be named defn:AE-xxx. Definition related to PIR should be named defn:PIR-xxx.}
 \section{General Definitions}
 \label{sec:general-defn}
 In this section, we design a security definition for a messaging application that is as general as possible. We start from the following basic principles.
@@ -132,7 +132,7 @@ In the definition, if user $k$ tries to send user $j$ before user $j$ adds user 
 
 Since the GUI can query the client at any time, we expect the client's view to be ``correct" all the time. There is a caveat: due to the lack of synchronous rounds, the clients do not immediately read all messages sent by their friends. Thus, the strongest correctness notion of sequential consistency might not be satisfied. Instead, we settle for a pair of weaker consistency models defined in \cite{doug13Consistency}. 
 \begin{definition}
-\label{defn:correctness}
+\label{defn:messaging-correctness}
  We say a messaging system is \textbf{correct} if the following consistency model is satisfied with probability $1 - \negl(\lambda)$.
  
  Take any choice of parameters of the honest world experiment, any $j \in [N]$, and any positive integer $T_0 \leq T$. Let $V_j \leftarrow C_j.\mathsf{GetView}()$ be the view of client $j$ after timestep $T_0$ of the Honest World Experiment. Then we must have
@@ -154,7 +154,7 @@ We first define the real world experiment.
 
 \begin{definition}
 \label{defn:messaging-real-world-experiment}
-The real world experiment use the parameters $\lambda, N, T$ as in \cref{defn:messaging-honest-server-experiment}. Furthermore, let $\cA$ be a stateful p.p.t. adversary. Let $\cH$ denote the set of honest clients the adversary chooses. Denote $\reg_{\cH} = \{\reg_i\}_{i \in\cH}$ to be the registration info of honest clients. The experiment is described below.
+The real world experiment use the parameters $\lambda, N, T$ as in \cref{defn:messaging-honest-server-experiment}. Furthermore, let $\cA$ be a stateful p.p.t. adversary. Let $\cH$ denote the set of honest clients the adversary chooses. Denote $\reg_{\cH} = \{\reg_i\}_{i \in\cH}$ to be the registration info of honest clients. The experiment is described in \cref{expr:messaging-real-world}.
 \end{definition}
 
 \begin{figure}[!ht]
@@ -197,7 +197,7 @@ $$\Leak_m = \{(i, t): \mathsf{SendMessage}(\reg, \msg) = \cI_{i, t}, \reg \notin
 % \stzh{Resolved.}
 \begin{definition}
 \label{defn:messaging-ideal-world-experiment}
-We use the same parameters and notations as \cref{defn:messaging-real-world-experiment}. Furthermore, let $\Sim$ be a stateful simulator. The ideal-world experiment $\mathsf{Ideal}^{\cA, \Sim}(1^{\lambda})$ is described below.
+We use the same parameters and notations as \cref{defn:messaging-real-world-experiment}. Furthermore, let $\Sim$ be a stateful simulator. The ideal-world experiment $\mathsf{Ideal}^{\cA, \Sim}(1^{\lambda})$ is described in \cref{expr:messaging-ideal-world}.
 \begin{figure}[h]
 \begin{framed}
 \textbf{Ideal World Experiment}
@@ -265,7 +265,7 @@ We say the adversary $\cA$ is \textbf{admissible} if with probability $1$ we hav
 We say a messaging system is \textbf{IND-metadata secure} if for any $N$ and $T$ polynomially bounded in $\lambda$, and any admissible adversary $\cA$, the IND experiments $\Ind_0^{\cA}$ and $\Ind_1^{\cA}$ are indistinguishable.
 \end{definition}
 
-Using the argument in \cite{shi2021non}, we can show that IND-metadata secure is equivalent to SIM-metadata secure.
+Using the argument in \cite[Appendix A]{shi2021non}, we can show that IND-metadata security is equivalent to SIM-metadata security.
 
 Finally, we define the notion of integrity. Informally, while a malicious server can DoS users, it shouldn't be able to forge messages  or selectively omit messages between honest users. In other words, the system must guarantee consistent prefix, but not eventual consistency.
 \begin{definition}
