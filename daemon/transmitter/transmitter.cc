@@ -215,8 +215,14 @@ auto Transmitter::retrieve() -> void {
   for (auto& r : receive_addresses) {
     friends_to_receive_from += std::to_string(r.uid) + ",";
   }
+
+  // log real name as well as uid
+  auto friends_address = string("");
+  for (auto& r : receive_addresses) {
+    friends_address += std::to_string(r.read_index) + ",";
+  }
   ASPHR_LOG_INFO("Receiving messages from the following friends.", friend_uids,
-                 friends_to_receive_from);
+                 friends_to_receive_from, friend_address, friends_address);
 
   // -----
   // Step 2: execute the PIR queries
@@ -376,12 +382,17 @@ auto Transmitter::retrieve() -> void {
           }
         }
       } else {
+        std::stringstream ss;
+        for (auto& c : decoded) {
+          ss << std::hex << (int)c;
+        }
         ASPHR_LOG_INFO(
             "Failed to decrypt message (message was probably not for us, "
             "which "
             "is okay).",
-            decrypted_error_code, decrypted.status().code(),
-            decrypted_error_message, decrypted.status().message());
+            raw_message, ss.str(), decrypted_error_code,
+            decrypted.status().code(), decrypted_error_message,
+            decrypted.status().message());
       }
     } else {
       ASPHR_LOG_ERR("Could not retrieve PIR reply from server.", friend_uid,

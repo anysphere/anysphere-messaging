@@ -612,6 +612,9 @@ pub mod ffi {
     fn get_friend_address(&self, uid: i32) -> Result<Address>;
     // fails if no such friend exists
     fn get_random_enabled_friend_address_excluding(&self, uids: Vec<i32>) -> Result<Address>;
+    // DO NOT USE OUTSIDE OF TESTING
+    // returns the sequence number of the last ACKed message from the friend
+    fn test_only_get_ack_seq_num(&self, uid: i32) -> Result<i32>; 
 
     // this exists as a helper function if you need it. They take a connection
     // fn get_friend_from_public_id(&self, public_id: &str) -> Result<CompleteFriend>;
@@ -2159,6 +2162,7 @@ impl DB {
     q.first(conn)
   }
 
+
   /// Get a friend from the database, given their public ID.
   ///
   /// Arguments:
@@ -2250,6 +2254,23 @@ impl DB {
       };
       let new_seqnum = old_seqnum + 1;
       Ok(new_seqnum)
+    })
+  }
+
+  // Get the newest sequence number ACKed by the friend.
+  // There should be no reason to use this outside of testing
+  pub fn test_only_get_ack_seq_num(&self, uid: i32) -> Result<i32, anyhow::Error> 
+  { 
+    use crate::schema::transmission;
+
+    let mut conn = self.connect()?;
+    conn.transaction::<_, anyhow::Error, _>(|conn_b| {
+      let ack_seq_num = transmission::table
+        .find(uid)
+        .select(transmission::sent_acked_seqnum)
+        .first::<i32>(conn_b)
+        .context("get_ack_seq_num, failed to find seqnum from the transmission table")?;
+      Ok(ack_seq_num)
     })
   }
 
