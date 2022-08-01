@@ -2,7 +2,7 @@
 \label{sec:proofs}
 In this section, we prove that our messaging scheme satisfies \cref{defn:messaging-correctness}, \cref{defn:messaging-security}, and \cref{defn:messaging-integrity}. These definitions establish correctness, security, and integrity respectively.
 \subsection{Proof of Correctness}
-To show \cref{defn:messaging-correctness}, we need to show our two consistency models: Consistent Prefix and Eventual Consistency.
+We show Consistent Prefix and Eventual Consistency as defined in \cref{defn:messaging-correctness}.
 
 We first introduce some notations for convenience. Define
 \begin{multline*}
@@ -14,9 +14,9 @@ Let $\msg_{ij}(\ell)$ be the $\ell$-th message in $\MSGS(t_0, i, j)$ sorted by t
 \textbf{Consistent Prefix}: We prove a key lemma.
 \begin{lemma}
 \label{lem:messaging-correctness-main}
-Consider the honest server experiment in \cref{expr:messaging-honest-server}. Then with probability $1 - \negl(\lambda)$, for any pair $i \neq j \in [N]$ and any $t \leq T$.the proposition below holds.
+Consider the honest server experiment in \cref{expr:messaging-honest-server}. Then with probability $1 - \negl(\lambda)$, for any pair $i \neq j \in [N]$ and any $t \leq T$, the property below holds.
 
-\textbf{Proposition: }One of the following holds at the end of timestep $t$.
+\textbf{Property: }One of the following holds at the end of timestep $t$.
 
 1) $\reg_j \notin C_i.\frienddb, C_i.\outb[\reg_j] = C_j.\inb[\reg_i] = \emptyset$.
 
@@ -40,10 +40,10 @@ Phase 1 of $C_i.\Userinput$
 \hrule
 If 1) holds before timestep $t$ starts, then unless 
 $$\cI = \trust(\reg_j),$$
-none of the variable will be changed. Otherwise, we will have $S_t = 1, E_t = E_t = 0$, and both $C_i.\outb[\reg_j] = C_j.\inb[\reg_i] = \emptyset$, which satisfies 2).
+none of the variables are changed. Otherwise, we have $S_t = 1, E_t = R_t = 0$, and both $C_i.\outb[\reg_j] = C_j.\inb[\reg_i] = \emptyset$, which satisfies 2).
 
-If 2) holds before timestep $t$ starts, then unless $\cI = \send(\reg_j, \msg)$ none of the variable will be changed. Otherwise, $E_t = E_{t - 1} + 1$. We can check that
-$\MSGS(t, i, j) = \MSGS(t, i, j) + (t, \msg).$
+If 2) holds before timestep $t$ starts, then unless $\cI = \send(\reg_j, \msg)$ none of the variable are changed. Otherwise, $E_t = E_{t - 1} + 1$. We can check that
+$$\MSGS(t, i, j) = \MSGS(t - 1, i, j) + (t, \msg).$$
 Thus we have
 $$\abs{\MSGS(t, i, j)} = \abs{\MSGS(t - 1, i, j)} + 1 = E_t.$$
 Furthermore, we have $\msg = \msg_{ij}(E_t)$, and it will be labeled with sequence number $E_t$ by step (3). Thus $\msg^{lb} = \msg^{lb}_{ij}(E_t)$, so the equality with $C_i.\outb[\reg_j]$ is maintained. All the other variables remain unchanged, thus all the desired properties remain true.
@@ -61,7 +61,7 @@ Let $t'$ be the last time user $j$ sends a nonempty request the server, and supp
 $$\ct_{\ack} = \Pi_{\ae}.\Enc(sk_{ji'}, a)$$
 where $\sk_{ji'} = \Pi_{\ae}.\mathsf{KX}(kx_{i'}^P, kx_{j}^S)$, and $a$ is the ACK message. Thus, in step (1) of ACK decipher, we have
 $$\ack = \Pi_{\ae}.\Dec(sk_{ij}, \Pi_{\ae}.\Enc(sk_{ji'}, a)).$$
-If $i' \neq i$, we have $sk_{ij} \neq sk_{ji'}$ with probability $1 - \negl(\lambda)$ by the security of $\Pi_{\ae}$. In this case, $\ack = \bot$ by the correctness of $\Pi_{\ae}$, so no relevant variable is changed. 
+If $i' \neq i$, we have $\ack = \bot$ with probability $1 - \negl(\lambda)$ by the unforgability of $\Pi_{\ae}$, so no relevant variable is changed. 
 
 If $i' = i$, by the correctness of $\Pi_{\ae}$ we have $\ack = a$. By the protocol definition, we conclude that
 $$\ack = \ACK(R_{t' - 1}).$$
@@ -116,15 +116,16 @@ We can now prove Consistent Prefix as defined in \cref{defn:messaging-correctnes
  $$X_{k} - \max(Y_{k - 1}, T_1) > \lambda B^2 T^U_{\mathsf{trans}}$$
  with negligible probability. To see the former possibility, for each timestep $t$ between $X_k$ and $X_{k + 1}$ such that $t$ divides $C_i.T_{\mathsf{trans}}$, let $j_t$ be the $i_r$ that $C_i$ chooses, and let $i_t$ be the $i_s$ that $C_j$ chooses for their last non-empty request to the server before timestep $t + 1$. If $(i_t, j_t) = (i, j)$, we must have $S_{t} \geq k + 1$ by the protocol definition. Furthermore, if we let $K = \ceil{T^U_{\mathsf{trans}} / C_i.T_{\mathsf{trans}}}C_i.T_{\mathsf{trans}}$, then the random variables
  $$(i_t, j_t), (i_{t + K}, j_{t + K}), \cdots$$
-are independent of each other, since both $i$ and $j$ must have both made a non-empty request to the server between timestep $(t, t + K]$. Therefore, the probability that $Y_k - X_k > \lambda B^2 T^U_{\mathsf{trans}}$ is at most
+are independent of each other, since both client $i$ and client $j$ must have both made a non-empty request to the server between timestep $(t, t + K]$. Therefore, the probability that $Y_k - X_k > \lambda B^2 T^U_{\mathsf{trans}}$ is at most
 $$(1 - B^{-2})^{\lambda B^2 T^U_{\mathsf{trans}} / K} = \negl(\lambda)$$
 as desired. The proof for the latter possibility is analogous. Thus, we have demonstrated eventual consistency for the Anysphere protocol.
 \subsection{Proof of Security}
-In this section we show that our scheme is SIM secure. The security of our system is essentially implied by the IND-CPA security of the underlying symmetric key protocol $\Pi_{\ae}$ and the SIM security of the pir protocol $\Pi_{\pir}$. We now justify this by constructing a simulator $\Sim_{\asphr}$ that satisfied \cref{defn:messaging-security}.
+In this section we construct a simulator $\Sim_{\asphr}$ that shows $\Pi_{\asphr}$ satisfies \cref{defn:messaging-security}. 
 
-Let $N$ be the number of honest clients, and take $R = 2N(\lambda)T(\lambda)$. Let $\Sim_{\sym}$ and $\Sim_{\pir}$ be the simulators defined in \cref{defn:AE-eval-security} and \cref{defn:PIR-SIM-security} respectively, with parameters $N$ and $R$. At step (2), (4.a), and (4.c) of \cref{defn:messaging-ideal-world-experiment}, our simulator will run modified versions of the corresponding client methods in the respective steps of \cref{defn:messaging-real-world-experiment} for each $i \in \cH$. The important modifications involve replacing all lines that involve unleaked information.
+Let $R(\lambda) = 2N(\lambda)T(\lambda)$. Let $\Sim_{\sym}$ and $\Sim_{\pir}$ be the simulators defined in \cref{defn:AE-eval-security} and \cref{defn:PIR-SIM-security} respectively, with parameters $(N, R) = (N(\lambda), R(\lambda))$. At step (2), (4.a), and (4.c) of \cref{expr:messaging-ideal-world}, the simulator $\Pi_{\asphr}$ runs modified versions of the client methods in the corresponding steps of \cref{expr:messaging-real-world} for each $i \in \cH$. 
 
-We now describe these modifications. Changes are marked in red.
+We now describe these modifications, which involve changing all cryptography involving unleaked information to simulations. Modifications are marked in red.
+
 \todo{Hard-coded. Please modify if the $\Pi_{\asphr}$ methods get changed.}
 
 \vspace{10pt}
@@ -133,7 +134,7 @@ $\mathbf{\Sim_{\asphr}.\Register}(1^{\lambda}, i, N)$
 \vspace{5pt}
 \hrule
 \vspace{5pt}
-No modification. For each $i$, let $kx^P_i$ be $\reg[1]$ for client $i$.
+No modification. For each $i$, denote $kx^P_i = \reg_i[1]$.
 \vspace{10pt}
 
 $\mathbf{\Sim_{\asphr}.\Userinput}(t, i, {\color{red} \textbf{Hybrid 3:} \text{replace $\cI$ with $\Leak$}})$
@@ -295,4 +296,5 @@ We can now conclude that
 $$\Hyb_0 \equiv_c \Hyb_3$$
 Note that $\Hyb_0$ is equal to the real world experiment, and $\Hyb_3$ is equal to the ideal world experiment. Therefore, $\Pi_{\asphr}$ satisfies \cref{defn:messaging-security} as desired. 
 
-
+\subsection{Proof of Integrity}
+TBD
