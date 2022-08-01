@@ -7,12 +7,13 @@ A key problem with existing security definitions is that they only guarantee sec
 Recall that we are using a AE scheme $\Pi_{\ae}$ consisting of algorithms $(\gen, \KX, \enc, \dec)$ with syntax defined in \cref{subsec:AE}. We first define two oracles for convenience.
 
 \begin{definition}
-The key-exchange-and-encrypt(KXE) oracle $\KXE(kx^S, \cdot)$ takes as input a public key $kx_m^P$ and a message $m$, and computes
+\label{defn:AE-kxe-oracles}
+The key-exchange-encrypt(KXE) oracle $\KXE(kx^S, \cdot)$ takes as input a public key $kx_m^P$ and a message $m$, and computes
 $$\sk \leftarrow \KX(kx^S, kx_m^P),$$
 $$\ct \leftarrow \enc(\sk, m).$$
 It outputs $\ct$.
 
-The key-exchange-and-decrypt(KXD) oracle $\KXD(kx^S, \cdot)$ takes as input a public key $kx_m^P$ and a ciphertext $\ct$, and computes
+The key-exchange-decrypt(KXD) oracle $\KXD(kx^S, \cdot)$ takes as input a public key $kx_m^P$ and a ciphertext $\ct$, and computes
 $$\sk \leftarrow \KX(kx^S, kx_m^P),$$
 $$m \leftarrow \dec(\sk, \ct).$$
 It outputs $m$.
@@ -77,7 +78,7 @@ We recall the relevant definitions. We take our simulator to simply outputs $\en
 \end{figure}
 To show the views of $\cA$ are indistinguishable, we use the hybridizing argument. First, we need to hybridize the $\Eval_f$ oracle so it can be simulated under the restrictions of \cref{defn:AE-CCPKA}. 
 \begin{definition}
-We define the oracle $\widetilde{\Eval_{j, f}}(\{kx_i^P, kx_i^S\}, \cdot)$ as follows. For the first $j$ time it behaves exactly the same as $\Eval_f(kx_i^S, \cdot)$. After $j$ calls, it checks if the argument key $k$ is a member of $\{kx_i^P\}$. If not, it behaves exactly the same as $\Eval_f(\{kx_i^S\}, \cdot)$. If $k = kx_i^P$ for some $i$, it directly outputs $\KXE(\{kx_i^S\}, k, f(\emptyset, \emptyset))$.
+We define the oracle $\widetilde{\Eval_{j, f}}(\{kx_i^P, kx_i^S\}, \cdot)$ as follows. For the first $j$ time it behaves exactly the same as $\Eval_f(\{kx_i^S\}, \cdot)$. After $j$ calls, it checks if the argument key $k$ is a member of $\{kx_i^P\}$. If not, it behaves exactly the same as $\Eval_f(\{kx_i^S\}, \cdot)$. If $k = kx_i^P$ for some $i$, it directly outputs $\KXE(\{kx_i^S\}, k, f(\emptyset, \emptyset))$.
 
     For each $j$, define $\Hyb_{\Eval, j, \Real}$ as the Real World Experiment with $\Eval_f(\{kx_i^S\}, \cdot)$ replaced by $\widetilde{\Eval_{j, f}}(\{kx_i^P, kx_i^S\}, \Eval, \cdot)$. Define $\Hyb_{\Eval, j, \Ideal}$ analogously for the Ideal World Experiment. 
 \end{definition}

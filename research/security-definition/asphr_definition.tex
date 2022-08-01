@@ -4,7 +4,7 @@ In this section, we define in detail the Anysphere core protocol described in ou
 \subsection{Cryptography Primitives}
 Anysphere relies on two cryptographical primitives: a symmetric key authenticated encryption(AE) system, and a PIR scheme. We outline formal simulator-based security definitions of the two.
 
-It turns out that our security definition of the PIR scheme is standard and well-documented in literature. However, existing security definitions on the AE, including IND-CCA2 or even IK-CCA(\cite{BBDP01keyprivate}), are not sufficient. In this section, we introduce a security requirement, called Eval Security, that is sufficient to establish the security of our system.
+It turns out that our security definition of the PIR scheme is standard and well-documented in literature. However, existing security definitions on the AE system , including IND-CCA2 or even IK-CCA(\cite{BBDP01keyprivate}), are not sufficient. In this section, we introduce a security requirement, called Eval Security, that is sufficient to establish the security of our system.
 \subsubsection{Authenticated Encryption System}
 \label{subsec:AE}
 Our AE scheme consists of a quadruple of algorithms $(\gen, \KX, \enc, \dec)$ with specifications
@@ -69,8 +69,7 @@ Let $N, R$ be polynomial in $\lambda$. Consider the two experiments defined in \
 
 Then we say the AE scheme is \textbf{Eval-Secure} if there exists a p.p.t simulator $\Sim$ such that for any polynomial-time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^{L_{\ae}}$ and any p.p.t adversary with oracle $\cA^O$, the real world experiment and the ideal world experiment are computationally indistinguishable.
 \end{definition}
-
-Note that $\Sim$ does not depend on $f$ or $\cA$. If we use symmetric key encryption with pre-distributed secret keys (assumed in \cite{angel2016unobservable}), then Eval-Security is implied by IK-CCA(\cite[Definition 1]{BBDP01keyprivate}). Since we do not have pre-distributed secret keys, we need to show that the key exchange step is secure as well. In \cref{sec:IND-CCPKA}, we define a new security requirement called IND-CCPKA  and show that Eval-Security is a corollary of IND-CCPKA security. We believe most existing AEAD system should be IND-CCPKA secure, though we are unable to rigorously demonstrate this.\todo{Well... Can we?}
+If we use symmetric key encryption with pre-distributed secret keys (assumed in \cite{angel2016unobservable}), then Eval-Security is implied by IK-CCA(\cite[Definition 1]{BBDP01keyprivate}). Since we do not have pre-distributed secret keys, we need to show that the key exchange step is secure as well. In \cref{sec:IND-CCPKA}, we define a new security requirement called IND-CCPKA  and show that Eval-Security is a corollary of IND-CCPKA security. We believe most existing AEAD system should be IND-CCPKA secure, though we are unable to rigorously demonstrate this.\todo{Well... Can we?}
 
 \begin{definition}
 \label{defn:AE-unforgability}
@@ -88,10 +87,10 @@ Consider the forging experiment described in \cref{expr:AE-forging}.
 \label{expr:AE-forging}
 \end{figure}
 
-For each $A_{ij}$, let $\ct_{\query, ij}$ be the set of output of queries to the Eval oracle of the form $\Eval_f(\kx_i^S, \kx_j^P, \cdot)$ or $\Eval_f(\kx_j^S, \kx_i^P, \cdot)$.
+Let $\ct_{\query, ij}$ be the set of output from queries to the Eval oracle of the form $\Eval_f(\kx_i^S, \kx_j^P, \cdot)$ or $\Eval_f(\kx_j^S, \kx_i^P, \cdot)$.
 
 We say the AE scheme is \textbf{Eval-Unforgable} if there exists a p.p.t simulator $\Sim$ such that for any polynomial-time computable function $f: \Sigma^* \times \Sigma^* \to \Sigma^{L_{\ae}}$ and any p.p.t adversary with oracle $\cA^O$, we have
-$$\PP(\dec(\KX(\kx_i^S, \kx_j^P), m) \neq \bot \land m \notin \ct_{\query, ij}) = \negl(\lambda).$$
+$$\PP(\dec(\KX(\kx_i^S, \kx_j^P), \ct) \neq \bot \land m \notin \ct_{\query, ij}) = \negl(\lambda).$$
 \end{definition}
 \todo{Does there exist problem with this definition? I'm fairly certain this gives what we want, but not 100\% sure this is actually correct.}
 
@@ -153,19 +152,19 @@ Let $n, R$ be polynomially bounded in $\lambda$. Consider the experiments in \cr
 \label{expr:pir-real-ideal-world}
 \end{figure}
 \end{definition}
-For our implementation, we use libsodium's key exchange functionality as the $\gen$ and $\KX$ functions, and libsodium's secret key AEAD for the $\enc$ and $\dec$ functions(\cite{libsodium}). We conjecture that this AE scheme satisfies IND-CCPKA security as in \cref{defn:AE-CCPKA}, thus satisfies \cref{defn:AE-eval-security}. We use Addra's FastPIR as the PIR protocol. The definition, correctness, and security proof of FastPIR can be found in \cite[Section 4]{ahmad2021addra}.
+For our implementation, we use libsodium's key exchange functionality as the $\gen$ and $\KX$ functions, and libsodium's secret key AEAD for the $\enc$ and $\dec$ functions(\cite{libsodium}). We conjecture that this AE scheme satisfies IND-CCPKA security as in \cref{defn:AE-CCPKA}, thus satisfies \cref{defn:AE-eval-security}. We use Addra's FastPIR as the PIR protocol. The definition, correctness, and security proof of FastPIR can be found in \cite[Section 4]{ahmad2021addra} and in more detail \cite{angel2018thesis}.
 
 Throughout the rest of the document, we denote the AE scheme $\Pi_{\ae}$, and the PIR scheme $\Pi_{\pir}$.
 \subsection{Messages, Sequence numbers, ACKs}
-Recall that we assume users input messages of length $L_{\msg}$. We now describe how this message 
+Our integrity definition \cref{defn:messaging-integrity} requires protection against replay attacks. In this section, we describe how our system adopts TCP's Acknowledgement system to offer such protection.
 
-To guarantee the consistent prefix property in \cref{defn:messaging-correctness}, each client $i$ labels all messages to be sent to another client $j$ with a sequence number. In the order client $i$ receives $\send$ inputs to client $j$, client $i$ label the messages with sequence number $1,2,\cdots$. The client will transmit the labeled message\footnote{Called chunk in the implementation.} $\msg^{lb} = (k, \msg)$, where $k$ is the sequence number and $\msg$ is the actual message. 
+Each client $i$ labels all messages to be sent to another client $j$ with a sequence number. In the order client $i$ receives $\send$ inputs to client $j$, client $i$ label the messages with sequence number $1,2,\cdots$. The client will transmit the labeled message\footnote{Called chunk in the implementation.} $\msg^{lb} = (k, \msg)$, where $k$ is the sequence number and $\msg$ is the actual message. 
 
 Critical to both consistent prefix and eventual consistency is the ACK messages. An ACK message is a special type of messages denoted $\ACK(k)$, encoding a single integer $k$.\footnote{In our implementation, the ACK message is slightly more complicated to take chunking into account.}. When client $j$ sends $\ACK(k)$ to client $i$, it means ``I have read all messages up to message $k$ from you". As we will soon define rigorously, user $i$ will keep broadcasting message $k$ until user $j$ sends $\ACK(k)$, in which case they begin broadcasting message $k + 1$. 
 
 To prevent replay attack, we ensure any ACK message is distinct from any labeled messages generated from user input.\footnote{In our implementation, ACKs and Chunks use different protobuf structs to guarantee this.}
 
-Let $L_{\msglb}$ denote the length of the labeled message, and let $L_{\ct}$ be the length of the ciphertext generated by encoding $\msg^{lb}$ with $\Pi_{\ae}.\enc$. While the input messages have length $L_{\msg}$, the messages client sent to the server have length $L_{\ct}$. We set parameter $L_{\ae} = L_{\msglb}$ in the AE scheme, and $L_{\pir} = L_{\ct}$ in the PIR scheme.
+We finish by detailing a subtlety on the length of messages. Let $L_{\msglb}$ denote the length of a labeled message $\msg^lb$, and let $L_{\ct}$ be the length of a ciphertext generated by encoding $\msg^{lb}$ with $\Pi_{\ae}.\enc$. While the input messages have length $L_{\msg}$, the messages client sent to the server have length $L_{\ct}$. We set parameter $L_{\ae} = L_{\msglb}$ in the AE scheme, and $L_{\pir} = L_{\ct}$ in the PIR scheme.
 \subsection{Potential Security Vulnerability}
 \label{subsec:security-vulnerable}
 \todo{Move this elsewhere}.

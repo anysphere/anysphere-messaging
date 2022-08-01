@@ -1,5 +1,5 @@
 \todo{General comment: standardize labeling convention, and name the 20+ experiments}
-\todo{Label Convention: Definition related to messaging should be named defn:messaging-xxx. Definition related to AE should be named defn:AE-xxx. Definition related to PIR should be named defn:PIR-xxx.}
+\todo{Label Convention: Definition related to messaging should be named defn:messaging-xxx. Definition related to AE should be named defn:AE-xxx. Definition related to PIR should be named defn:PIR-xxx.  Definition specific to ASPHR should be named defn:asphr-xxx.}
 \section{General Definitions}
 \label{sec:general-defn}
 In this section, we design a security definition for a messaging application that is as general as possible. We start from the following basic principles.
@@ -10,23 +10,25 @@ In this section, we design a security definition for a messaging application tha
 \end{enumerate}
 We now translate these principles into mathematical definitions that describe a general messaging system.
 \begin{definition}
-\label{defn:timestep}
-A \textbf{timestep} is a basic unit of time in our system. This is different from ``rounds" used in most MPM security definitions, since clients do not necessarily transmit real or fake messages at every timestep. Instead, a timestep plays a similar role as a clock cycle in computer hardware. We assume that the system starts on timestep $t = 1$. Methods are executed on positive integer timesteps.
+\label{defn:messaging-timestep}
+A \textbf{timestep} is a basic unit of time in our system. This is different from ``rounds" used in most MPM security definitions, since clients do not necessarily transmit real or fake messages at every timestep. Instead, a timestep plays a similar role as a clock cycle in computer hardware — think of it as being 1 nanosecond. We assume that the system starts on timestep $t = 1$. Methods are executed on positive integer timesteps.
 \end{definition}
 \begin{definition}
-\label{defn:client-view}
-The \textbf{view} of a client is a tuple consisting of
+\label{defn:messaging-client-view}
+The \textbf{view} of a client is a tuple $(\cF, \cM)$ consisting of
 
 1. A list of friends $\cF$ of the client.
 
 2. A list of messages $\cM$ received by the client, including the sender and content of the messages.
 \end{definition}
+\textbf{Remark}: For simplicity, the view does not include sent messages. This is because the frontend GUI can simply store such messages locally and display them to the user.
 \begin{definition}
+\label{defn:messaging-registration-info}
 The \textbf{registration information}, denoted $\reg$ in this paper, is the unique identifier of a user.
 \end{definition}
-\textbf{Remark: }Throughout the rest of the paper, we will always use the registration info as the identifier in the messaging system. For example, we will makes friends with and send messages to a registration info. Registration info is ubiquitous in practical messaging systems: in Messenger, it is the Facebook handle. In Signal, it is the email address. In Anysphere, it is the ``public ID" as defined in \cite[Figure 6]{whitepaper}.
+\textbf{Remark: }Throughout the rest of the paper, we will always use the registration info as the identifier in the messaging system. For example, we will make friends with and send messages to a registration info. Registration info is ubiquitous in practical messaging systems: in Messenger, it is the Facebook handle. In Signal, it is the phone number. In Anysphere, it is the ``public ID" as defined in \cite[Figure 6]{whitepaper}.
 \begin{definition}
-\label{defn:user-input}
+\label{defn:messaging-user-input}
 A \textbf{user input} is a command the user can issue to the client. In our current protocol, it can take one of the following values.
 \begin{itemize}
     \item $\emptyset$: noop.
@@ -41,9 +43,9 @@ Without loss of generality, we assume each user issues exactly one input per tim
 \textbf{Remark}:  In our implementation, we take $L_{\msg} \approx 1\mathsf{KB}$. To support variable length messages, we pad short messages and split long messages into chunks of length $L_{\msg}$. This modification does not affect our security definition below.
 \begin{definition}
 \label{defn:messaging-scheme}
-A \textbf{Messaging System/Application/App} consists of the following polynomial time algorithms on stated Turing machines.
+A \textbf{Messaging System} consists of the following polynomial time algorithms.
 
-Client Side Algorithms for client $C$.
+Client Side Algorithms for the stateful client $C$.
 \begin{itemize}
     \item $C.\Register(1^{\lambda}, i, N) \to \reg$. The client registration algorithm takes in a security parameter $\lambda$, the index $i$ of the client, the total number of users $N$, and outputs a public registration info $\reg$. It also initializes client storage and keypairs.
     
@@ -51,10 +53,10 @@ Client Side Algorithms for client $C$.
     
     \item $C.\Serverrpc(t, \resp)$. This algorithm handles the server's response $\resp$ and updates client storage.
     
-    \item $C.\mathsf{GetView}() \to V$. This algorithm outputs the view of the client(\cref{defn:client-view}). Its output is passed to the GUI and displayed to the user.
+    \item $C.\mathsf{GetView}() \to V$. This algorithm outputs the view of the client (\cref{defn:messaging-client-view}). Its output is passed to the GUI and displayed to the user.
 \end{itemize}
 
-Server Side Algorithms for server $S$.
+Server Side Algorithms for the stateful server $S$.
 
 \begin{itemize}
     \item $S.\mathsf{InitServer}(1^{\lambda}, N)$. This algorithm takes in the security parameter $\lambda$, number of clients $N$, and initializes the server side database $D_S$.
@@ -63,11 +65,11 @@ Server Side Algorithms for server $S$.
 \end{definition}
 
 
-Now we know what a messaging system is, we can describe some desired properties. In the rest of this section, we will look at three properties we wish Anysphere to satisfy: Correctness, Metadata Security, and Integrity.
+Now we know what a messaging system is, we can describe some desired properties. In the rest of this section, we will look at three properties we wish Anysphere to satisfy: Correctness, Metadata privacy, and Integrity.
 
 \subsection{Correctness}
 \label{subsec:messaging-correctness}
-First, we describe how the server and clients interact when the application is running normally. We call this scenario the Honest Server Experiment
+First, we describe how the server and clients interact when the application is running normally. We call this scenario the Honest Server Experiment.
 
 \begin{definition}  \hfill\\
 \label{defn:messaging-honest-server-experiment}
@@ -115,25 +117,25 @@ In this case, we expect the client's view to be "correct". First, we need to def
 We state the formal definition.
 \begin{definition}
 \label{defn:client-view-correct}
-Given a set of clients identified by $\{\reg_i\}_{i \in [N]}$, and user inputs $\{\cI_{i, t}\}_{i \in [N], t \in [T]}$, a view $(\cF, \cM)$ of client $j$ is \textbf{correct} if it satisfies
+Given a set of clients identified by $\{\reg_i\}_{i \in [N]}$, and user inputs $\{\cI_{i, t}\}_{i \in [N], t \in [T]}$, a view $(\cF_j, \cM_j)$ of client $j$ is \textbf{correct} if it satisfies
 \begin{multline*}
-\cF \cap \{\reg_i\} = \{\reg_k: \exists t \in [T], \trust(\reg_k) = \cI_{j, t}\},    
+\cF_j \cap \{\reg_i\}_{i \in [N]} = \{\reg_k: \exists t \in [T], \trust(\reg_k) = \cI_{j, t}\},    
 \end{multline*}
 and
 \begin{align*}
- \cM = \{(\reg_k, \msg): &\exists t, \send(\reg_j, \msg) = \cI_{k, t} \land \\
+ \cM_j = \{(\reg_k, \msg): &\exists t, \send(\reg_j, \msg) = \cI_{k, t} \land \\
  &\exists t' < t, \trust(\reg_j) = \cI_{k, t'} \land \\
  &\exists t'', \trust(\reg_k) = \cI_{j, t''}\}.   
 \end{align*}
 \end{definition}
-\textbf{Remark}: Note that we allow $\cF$ to contain friends that are non-existent. Ruling out these friends is a part of the trust establishment mechanism(\cite[Section 4]{whitepaper}), which is beyond the scope of this paper. 
+\textbf{Remark}: Note that we allow $\cF$ to contain friends that are non-existent. Ruling out these friends is a part of the trust establishment mechanism (\cite[Section 4]{whitepaper}), which is beyond the scope of this paper. 
 
 In the definition, if user $k$ tries to send user $j$ before user $j$ adds user $k$ as a friend, user $j$ should be able to receive the message. This is a feature of our system. 
 
 Since the GUI can query the client at any time, we expect the client's view to be ``correct" all the time. There is a caveat: due to the lack of synchronous rounds, the clients do not immediately read all messages sent by their friends. Thus, the strongest correctness notion of sequential consistency might not be satisfied. Instead, we settle for a pair of weaker consistency models defined in \cite{doug13Consistency}. 
 \begin{definition}
 \label{defn:messaging-correctness}
- We say a messaging system is \textbf{correct} if the following consistency model is satisfied with probability $1 - \negl(\lambda)$.
+ We say a messaging system is \textbf{correct} if it satisfies the following consistency model.
  
  Take any choice of parameters of the honest world experiment, any $j \in [N]$, and any positive integer $T_0 \leq T$. Let $V_j \leftarrow C_j.\mathsf{GetView}()$ be the view of client $j$ after timestep $T_0$ of the Honest World Experiment. Then we must have
 
@@ -148,13 +150,13 @@ $$\cI'_{i, t} = \begin{cases}
 
 \subsection{Metadata Security and Integrity}
 \label{subsec:messaging-security-integrity}
-We now turn to security definitions. We write our security definitions following the real world-ideal world paradigm used in \cite[Section 2.2]{shi2021non}. On a high level, the real world experiment is the honest world experiment with an adversarial server who can run arbitrary code. The ideal world experiment is the real world definition with crucial information ``redacted". We say the messaging system is secure if the views of the adversary under the two experiments are indistinguishable.
+We now turn to security definitions. We write our security definitions following the real world-ideal world paradigm used in \cite[Section 2.2]{shi2021non}. On a high level, the real world experiment is the honest world experiment with an adversarial server who can run arbitrary code. The ideal world experiment is the real world definition with crucial information "redacted". We say the messaging system is secure if the views of the adversary under the two experiments are indistinguishable.
 
 We first define the real world experiment.
 
 \begin{definition}
 \label{defn:messaging-real-world-experiment}
-The real world experiment use the parameters $\lambda, N, T$ as in \cref{defn:messaging-honest-server-experiment}. Furthermore, let $\cA$ be a stateful p.p.t. adversary. Let $\cH$ denote the set of honest clients the adversary chooses. Denote $\reg_{\cH} = \{\reg_i\}_{i \in\cH}$ to be the registration info of honest clients. The experiment is described in \cref{expr:messaging-real-world}.
+The real world experiment use the parameters $\lambda, N, T$ as in \cref{defn:messaging-honest-server-experiment}. Furthermore, let $\cA$ be a stateful p.p.t. adversary. Let $\cH$ denote the set of honest clients the adversary chooses. Denote $\reg_{\cH} = \{\reg_i\}_{i \in\cH}$ to be the registration info of honest clients. The experiment $\Real^{\cA}(1^{\lambda})$ is described in \cref{expr:messaging-real-world}.
 \end{definition}
 
 \begin{figure}[!ht]
@@ -209,7 +211,7 @@ We use the same parameters and notations as \cref{defn:messaging-real-world-expe
     \begin{enumerate}
     \item  $\{\req_i\}_{i \in \cH} \leftarrow \Sim(t, \mathsf{Leak}(\{\cI_{i, t}\}, \reg_{\cH}))$.
     
-    \item $\{\resp_i\}_{i \in \cH}, \{\cI_{i, t + 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \reg_{\cH})$.
+    \item $\{\resp_i\}_{i \in \cH}, \{\cI_{i, t + 1}\}_{i \in \cH} \leftarrow \cA(1^{\lambda}, \{\req_i\}_{i \in \cH})$.
     
     \item $\Sim(t, \{\resp_i\}_{i \in \cH})$.
     \end{enumerate}
@@ -227,6 +229,10 @@ Finally, we can state our definition of a metadata secure messaging system.
 \label{defn:messaging-security}
 We say a messaging system is \textbf{SIM-metadata secure} if for any $N$ and $T$ polynomially bounded in $\lambda$, there exists a p.p.t simulator $\Sim$ such that for any p.p.t adversary $\cA$, the view of $\cA$ is indistinguishable in $\mathsf{Real}^{\cA}(1^{\lambda})$ and $\mathsf{Ideal}^{\cA, \mathsf{\Sim}}(1^{\lambda})$.
 \end{definition}
+
+% Arvid's notes because this confused him for several hours.
+% Think of \mathcal{A} as the Distinguisher's right hand! Or, another way of saying it — it is an adversary *against* the Simulator, NOT the adversary that is trying to attack the system in the wild.
+% Suppose X is an NSA spy (i.e., real world adversary). Then, the security definition has shown us that the Simulator is a really really good simulator — even when you try super hard to break it, you cannot. Hence, X's view in the real world will be the same as X's view in a world where everyone else is simulated by the Simulator. This means that X might as well be running in a vacuum, and hence cannot ever learn any information whatsoever.
 
 The simulator based definition is a relatively new way of writing security definitions. For readers more accustomed to indistinguishability-based security definitions, we include an equivalent version below.
 \begin{definition}
@@ -259,7 +265,6 @@ We say the adversary $\cA$ is \textbf{admissible} if with probability $1$ we hav
 = \Leak(\{\cI^{1}_{i, t}\}_{i \in \cH, t \in [T]}, \{\reg_i\}_{i \in \cH}).    
 \end{align*}
 \end{definition}
-
 \begin{definition}
 \label{defn:messaging-IND-security}
 We say a messaging system is \textbf{IND-metadata secure} if for any $N$ and $T$ polynomially bounded in $\lambda$, and any admissible adversary $\cA$, the IND experiments $\Ind_0^{\cA}$ and $\Ind_1^{\cA}$ are indistinguishable.
@@ -273,9 +278,9 @@ Finally, we define the notion of integrity. Informally, while a malicious server
 We run the same real-world experiment in \cref{defn:messaging-real-world-experiment}. For any pair of honest users $i, j \in \cH$, define $V_j = (\cF, \cM) \leftarrow C_j.\mathsf{GetView}()$ at the end of the experiment. Then we say the messaging system \textbf{guarantees integrity} if with probability $1 - \negl(\lambda)$, there exists a $t(i) \in [T]$ such that
 \begin{align*}
      &\{\msg: &&(\reg_i, \msg) \subset \cM\} \\
-      =& \{\msg: &&\exists t \leq t(i), \send(\reg_j, \msg) = \cI_{k, t} \land \\
-          &   &&\exists t' < t, \trust(\reg_j) = \cI_{k, t'} \land \\
-          &   &&\exists t'', \trust(\reg_k) = \cI_{j, t''}\}.
+      =& \{\msg: &&\exists t \leq t(i), \send(\reg_j, \msg) = \cI_{i, t} \land \\
+          &   &&\exists t' < t, \trust(\reg_j) = \cI_{i, t'} \land \\
+          &   &&\exists t'', \trust(\reg_i) = \cI_{j, t''}\}.
 \end{align*}
 \end{definition}
 
