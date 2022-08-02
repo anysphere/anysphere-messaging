@@ -24,8 +24,11 @@ auto generate_dummy_address(const db::Registration& reg) -> db::Address {
   // convert dummy_read_write_keys to a rust::Vec<uint8_t>
   auto read_key_vec_rust = string_to_rust_u8Vec(dummy_read_write_keys.first);
   auto write_key_vec_rust = string_to_rust_u8Vec(dummy_read_write_keys.second);
-
-  return (db::Address){-1, 0, read_key_vec_rust, write_key_vec_rust, 0};
+  // The dummy PIR index is designed to not coincide
+  // with any other index. Since it is very very
+  // large, it will result in an all zero PIR query.
+  return (db::Address){-1, DUMMY_INDEX, read_key_vec_rust, write_key_vec_rust,
+                       DUMMY_INDEX};
 }
 
 auto generate_dummy_async_invitation() -> db::OutgoingAsyncInvitation {
@@ -49,8 +52,7 @@ auto generate_dummy_async_invitation() -> db::OutgoingAsyncInvitation {
       .invitation_public_key = invitation_public_key_rust,
       .kx_public_key = kx_public_key_rust,
       .message = "Hello dummy",
-      .sent_at = 0,
-  };
+      .sent_at = 0};
 }
 
 Transmitter::Transmitter(Global& G, shared_ptr<asphrserver::Server::Stub> stub)
@@ -67,9 +69,7 @@ auto Transmitter::setup_registration_caching() -> void {
   if (!cached_pir_client.has_value() ||
       cached_pir_client_secret_key.value() != pir_secret_key_str) {
     auto reg = G.db->get_registration();
-    cached_pir_client = std::optional(std::make_unique<FastPIRClient>(
-        rust_u8Vec_to_string(reg.pir_secret_key),
-        rust_u8Vec_to_string(reg.pir_galois_key)));
+    cached_pir_client = std::optional(std::make_unique<FastPIRClient>());
 
     cached_pir_client_secret_key = rust_u8Vec_to_string(reg.pir_secret_key);
     dummy_address = generate_dummy_address(reg);
@@ -215,8 +215,14 @@ auto Transmitter::retrieve() -> void {
   for (auto& r : receive_addresses) {
     friends_to_receive_from += std::to_string(r.uid) + ",";
   }
+
+  // log real name as well as uid
+  auto friends_address = string("");
+  for (auto& r : receive_addresses) {
+    friends_address += std::to_string(r.read_index) + ",";
+  }
   ASPHR_LOG_INFO("Receiving messages from the following friends.", friend_uids,
-                 friends_to_receive_from);
+                 friends_to_receive_from, friend_address, friends_address);
 
   // -----
   // Step 2: execute the PIR queries
@@ -376,12 +382,17 @@ auto Transmitter::retrieve() -> void {
           }
         }
       } else {
+        std::stringstream ss;
+        for (auto& c : decoded) {
+          ss << std::hex << (int)c;
+        }
         ASPHR_LOG_INFO(
             "Failed to decrypt message (message was probably not for us, "
             "which "
             "is okay).",
-            decrypted_error_code, decrypted.status().code(),
-            decrypted_error_message, decrypted.status().message());
+            raw_message, ss.str(), decrypted_error_code,
+            decrypted.status().code(), decrypted_error_message,
+            decrypted.status().message());
       }
     } else {
       ASPHR_LOG_ERR("Could not retrieve PIR reply from server.", friend_uid,
