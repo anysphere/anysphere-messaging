@@ -360,6 +360,10 @@ pub mod ffi {
     pub authentication_token: String,
     pub public_id: String,
   }
+
+  // Note, that the pir_secret_key and pir_galois_key are not deprecated since they are regenereated
+  // on every request. We have them here for consistency.
+  // TOOD(sualeh, arvid220u): remove them if we need to.
   #[derive(Insertable)]
   #[diesel(table_name = crate::schema::registration)]
   struct RegistrationFragment {
