@@ -28,7 +28,12 @@ const configuration: webpack.Configuration = {
 
   target: "electron-renderer",
 
-  externals: ["fsevents", "crypto-browserify"],
+  externals: [
+    "fsevents",
+    "crypto-browserify",
+    "@lexical/react",
+    "@heroicons/react",
+  ],
 
   /**
    * Use `module` from `webpack.config.renderer.dev.js`

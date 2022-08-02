@@ -93,7 +93,10 @@ int main(int argc, char** argv) {
     kProfile_.set_beta_key(beta_key);
 
     kProfile_.add(stub);
-  } else if (command == "init-friend") {
+  }
+  // TODO: currently disabled due to API change
+  // TODO: rewrite the corresponding commands
+  /**else if (command == "init-friend") {
     auto status = cmd_line.getArgument(2);
     if (!status.ok()) {
       cout << status.status() << endl;
@@ -117,7 +120,8 @@ int main(int argc, char** argv) {
     cout << "When they give you back their shared key, you can then add them "
             "with the command add-friend {their key}"
          << endl;
-  } else if (command == "add-friend") {
+  } */
+  /**else if (command == "add-friend") {
     auto status = cmd_line.getArgument(2);
     auto key_status = cmd_line.getArgument(3);
     if (!status.ok() || !key_status.ok()) {
@@ -149,8 +153,9 @@ int main(int argc, char** argv) {
     cout << "Yipppeeee!" << endl;
     cout << "You can now talk to them with the command 'message' {their name}"
          << endl;
-  } else if (command == "s" || command == "m" || command == "send" ||
-             command == "msg" || command == "message") {
+  } */
+  else if (command == "s" || command == "m" || command == "send" ||
+           command == "msg" || command == "message") {
     auto status = cmd_line.getArgument(2);
     auto message_status = cmd_line.getArgument(3);
     if (!status.ok() || !message_status.ok()) {
@@ -211,7 +216,7 @@ int main(int argc, char** argv) {
 
     grpc::Status status = stub->Kill(&context, request, &response);
 
-    if (!status.ok()) {
+    if (!status.ok() && status.error_message() != "Socket closed") {
       cout << "kill failed: " << status.error_message() << endl;
       return 0;
     }
@@ -245,6 +250,20 @@ int main(int argc, char** argv) {
     }
     cout << "Successfully changed latency to " << latency << " seconds!"
          << endl;
+
+  } else if (command == "story") {
+    grpc::ClientContext context;
+    asphrdaemon::GetMyPublicIDRequest request;
+    asphrdaemon::GetMyPublicIDResponse response;
+
+    grpc::Status status = stub->GetMyPublicID(&context, request, &response);
+
+    if (!status.ok()) {
+      cout << "failed to get my public ID: " << status.error_message() << endl;
+      return 0;
+    }
+
+    cout << "Story: " << response.story() << endl;
 
   } else {
     cout << "Unknown command: " << command << endl;

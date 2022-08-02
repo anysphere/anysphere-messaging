@@ -13,7 +13,7 @@ void Message::send(unique_ptr<asphrdaemon::Daemon::Stub>& stub) {
   asphrdaemon::SendMessageResponse reply;
 
   request.set_message(msg_);
-  request.set_name(to_);
+  request.add_unique_name(to_);
 
   grpc::Status status = stub->SendMessage(&context, request, &reply);
 

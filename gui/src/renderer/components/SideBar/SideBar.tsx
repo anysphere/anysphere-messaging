@@ -26,7 +26,7 @@ export function SideBarItem(props: SideBarItemProps) {
   let active = props.active;
   return (
     <div
-      className={`py-1 rounded-md text-asbrown-dark px-4 ${
+      className={`rounded-md py-1 px-4 text-asbrown-dark ${
         active ? "bg-asbeige" : ""
       }`}
       onClick={props.onClick}
@@ -64,7 +64,7 @@ export function HeadlessSlideOver({
           >
             <Dialog.Overlay className="absolute inset-0 bg-asbrown-100 bg-opacity-75 transition-opacity" />
           </Transition.Child>
-          <div className="fixed inset-y-0 left-0 pr-8 max-w-full flex">
+          <div className="fixed inset-y-0 left-0 flex max-w-full pr-8">
             <Transition.Child
               as={React.Fragment}
               enter="transform transition ease-in-out duration-120"
@@ -84,7 +84,7 @@ export function HeadlessSlideOver({
                   leaveFrom="opacity-100"
                   leaveTo="opacity-0"
                 >
-                  <div className="absolute top-0 right-0 ml-8 pt-4 pr-2 flex sm:ml-10 sm:pr-4">
+                  <div className="absolute top-0 right-0 ml-8 flex pt-4 pr-2 sm:ml-10 sm:pr-4">
                     <button
                       className="rounded-md text-gray-300 hover:text-asbrown-dark focus:outline-none focus:ring-2 focus:ring-asbrown-light focus:ring-opacity-50"
                       onClick={() => setOpen(false)}
@@ -94,13 +94,13 @@ export function HeadlessSlideOver({
                     </button>
                   </div>
                 </Transition.Child>
-                <div className="h-full flex flex-col py-6 bg-white shadow-xl overflow-y-scroll">
+                <div className="flex h-full flex-col overflow-y-scroll bg-white py-6 shadow-xl">
                   <div className="px-4 sm:px-6">
                     <Dialog.Title className="text-lg  font-medium text-gray-900">
                       {title}
                     </Dialog.Title>
                   </div>
-                  <div className="mt-6 relative flex-1 px-0 sm:px-6">
+                  <div className="relative mt-6 flex-1 px-0 sm:px-6">
                     {/* Where the children live*/}
                     {children}
                   </div>
@@ -151,6 +151,28 @@ export function SideBar(props: SideBarProps) {
       data: {
         type: "item",
         name: "Sent",
+      },
+    },
+    // "Sent",
+    {
+      id: "add-friend",
+      action: () => {
+        console.log("add friend");
+        props.sideBarCallback(SideBarButton.ADD_FRIEND);
+      },
+      data: {
+        type: "item",
+        name: "Add Friend",
+      },
+    },
+    {
+      id: "invitations",
+      action: () => {
+        props.sideBarCallback(SideBarButton.INVITATIONS);
+      },
+      data: {
+        type: "item",
+        name: "Invitations",
       },
     },
   ];

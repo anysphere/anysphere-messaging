@@ -1,19 +1,19 @@
 # Anysphere Client
 
-This repository, along with [anysphere/asphr](https://github.com/anysphere/asphr), contains all client-side code run by Anysphere! Feel free to poke around. If you have any questions or concerns, please email us at `founders@anysphere.co`.
+This repository, along with [anysphere/asphr](https://github.com/anysphere/asphr), contains all client-side code run by Anysphere! Feel free to poke around. If you have any questions or concerns, please email us at `info@anysphere.co`.
 
 ## Build
 
 Clone anysphere/asphr and anysphere/client and put them in a directory side-by-side. Then, in the `client` directory, run:
 
 ```bash
-bazel build //...
+bazelisk build //...
 ```
 
 to build, and
 
 ```bash
-bazel test //...
+bazelisk test //...
 ```
 
 to test.
@@ -53,7 +53,7 @@ Let `.env` contain the environment variables specified by `helpers/scripts/packa
 Build:
 
 ```bash
-bazel build //...
+bazelisk build //...
 ```
 
 In one terminal, run normal daemon:
@@ -79,3 +79,23 @@ To connect to daemon 2, run:
 ```bash
 ./wrap2.sh ./bazel-bin/cli/asphr [command]
 ```
+
+For the gui, run:
+
+```bash
+./wrap2.sh ./gui/start.sh
+```
+
+## Installing the CLI
+
+Run:
+
+```bash
+sudo mkdir -p /usr/local/bin
+sudo ln -sf /Applications/Anysphere.app/Contents/Resources/bin/anysphere /usr/local/bin/anysphere
+cat << EOF >> ~/.zprofile
+export PATH="\$PATH:/usr/local/bin"
+EOF
+```
+
+Replace `.zprofile` with `.bash_profile` if you use bash instead.

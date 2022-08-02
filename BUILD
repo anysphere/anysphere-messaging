@@ -7,6 +7,6 @@ filegroup(
     name = "asphr-release",
     srcs = [
         "//cli:asphr",
-        "//daemon",
+        "//daemon:main",
     ],
 )

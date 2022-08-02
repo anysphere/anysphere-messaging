@@ -5,9 +5,9 @@
 
 import * as React from "react";
 
-interface StatusProps {
+export interface StatusProps {
   message: string;
-  action: () => void;
+  action?: () => void;
   actionName: string | null;
 }
 
@@ -18,17 +18,30 @@ interface StatusInterface {
   setVisible: () => void;
 }
 
-export const StatusContext = React.createContext<StatusInterface>(
-  {} as StatusInterface
-);
+export const statusContext = React.createContext<StatusInterface>({
+  status: {
+    message: "",
+    actionName: null,
+  },
+  setStatus: () => {
+    console.log("first setStatus");
+  },
+  display: false,
+  setVisible: () => {
+    console.log("first setVisible");
+  },
+});
 
-export function Status(props: { status: StatusProps; onClose: () => void }) {
+export function Status(props: {
+  status: StatusProps;
+  onClose: () => void;
+}): JSX.Element {
   return (
     <div
-      className={`z-50 flex gap-1 flex-row fixed bottom-5 left-4 text-sm bg-asbrown-100 text-asbrown-light px-2 py-2 unselectable rounded-md`}
+      className={`unselectable fixed bottom-5 left-4 z-50 flex flex-row gap-1 rounded-md bg-asbrown-100 px-2 py-2 text-sm text-asbrown-light`}
     >
       <div className="pl-1">{props.status.message}</div>
-      <div className={`place-content-center grid`}>
+      <div className={`grid place-content-center`}>
         <div
           className="codicon codicon-close"
           onClick={(event) => {
@@ -41,10 +54,11 @@ export function Status(props: { status: StatusProps; onClose: () => void }) {
   );
 }
 
-export function StatusHandler(props: { children: React.ReactNode }) {
+export function StatusHandler(props: {
+  children: React.ReactNode;
+}): JSX.Element {
   const [status, setStatus] = React.useState<StatusProps>({
     message: "",
-    action: () => {},
     actionName: null,
   });
 
@@ -67,7 +81,7 @@ export function StatusHandler(props: { children: React.ReactNode }) {
           }}
         />
       )}
-      <StatusContext.Provider
+      <statusContext.Provider
         value={{
           status,
           setStatus,
@@ -76,7 +90,7 @@ export function StatusHandler(props: { children: React.ReactNode }) {
         }}
       >
         {props.children}
-      </StatusContext.Provider>
+      </statusContext.Provider>
     </div>
   );
 }

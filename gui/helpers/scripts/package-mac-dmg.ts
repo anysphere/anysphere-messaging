@@ -18,16 +18,16 @@ const exec = promisify(execNonPromisified);
 // - MAC_DONT_NOTARIZE: true to skip notarization
 require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
 
-function base_dir(rel: string) {
+function baseDir(rel: string): string {
   return path.join(path.resolve(__dirname, "../../"), rel);
 }
 
-function assets_dir(rel: string) {
-  return base_dir(path.join("assets", rel));
+function assetsDir(rel: string): string {
+  return baseDir(path.join("assets", rel));
 }
 
-function release_dir(rel: string) {
-  return base_dir(path.join("release", rel));
+function releaseDir(rel: string): string {
+  return baseDir(path.join("release", rel));
 }
 
 // function binaries_dir(rel: string) {
@@ -38,8 +38,8 @@ function release_dir(rel: string) {
 //   return base_dir(path.join("binaries", "${arch}", rel));
 // }
 
-function mac_arch() {
-  return process.env.MAC_ARCH;
+function macArch(): string {
+  return process.env["MAC_ARCH"] ?? "arm64";
 }
 
 const config = {
@@ -50,9 +50,9 @@ const config = {
   asarUnpack: "**\\*.{node,dll}",
 
   directories: {
-    app: release_dir("app"),
-    buildResources: base_dir("assets"),
-    output: release_dir("build"),
+    app: releaseDir("app"),
+    buildResources: baseDir("assets"),
+    output: releaseDir("build"),
   },
 
   publish: ["github"],
@@ -71,19 +71,27 @@ const config = {
     }
   },
 
+  protocols: [
+    {
+      name: "Anysphere URL",
+      schemes: ["anysphere"],
+      role: "Editor",
+    },
+  ],
+
   mac: {
     target: {
       target: "default",
-      arch: mac_arch() === "both" ? ["x64", "arm64"] : mac_arch(),
+      arch: macArch() === "both" ? ["x64", "arm64"] : macArch(),
     },
     category: "public.app-category.productivity",
     hardenedRuntime: true,
-    icon: assets_dir("icon.icns"),
-    entitlements: assets_dir("entitlements.mac.plist"),
+    icon: assetsDir("icon.icns"),
+    entitlements: assetsDir("entitlements.mac.plist"),
     gatekeeperAssess: false,
     extraResources: [
       {
-        from: path.join(base_dir("binaries")), // daemon and CLI
+        from: path.join(baseDir("binaries")), // daemon and CLI
         to: ".",
         filter: ["${arch}"],
       },
@@ -96,18 +104,19 @@ const config = {
   },
 };
 
-function package_mac() {
-  if (process.env.MAC_DONT_NOTARIZE === "true") {
+function packageMac() {
+  if (process.env["MAC_DONT_NOTARIZE"] === "true") {
     console.log("WARNING! Skipping notarization");
   }
 
-  const do_publish = process.env.PUBLISH_ASPHR === "true" ? "always" : "never";
+  const doPublish =
+    process.env["PUBLISH_ASPHR"] === "true" ? "always" : "never";
 
-  process.stdout.write(`DO PUBLISH: ${do_publish}\n`);
+  process.stdout.write(`DO PUBLISH: ${doPublish}\n`);
 
   return builder.build({
     targets: builder.Platform.MAC.createTarget(),
-    publish: do_publish,
+    publish: doPublish,
     config: {
       ...config,
       afterPack: async (context: AfterPackContext) => {
@@ -148,23 +157,23 @@ function package_mac() {
       afterSign: async (context: AfterPackContext) => {
         const out_dir = context.appOutDir;
 
-        if (process.env.MAC_DONT_NOTARIZE !== "true") {
+        if (process.env["MAC_DONT_NOTARIZE"] !== "true") {
           const appName = context.packager.appInfo.productFilename;
-          await notarize_mac(path.join(out_dir, `${appName}.app`));
+          await notarizeMac(path.join(out_dir, `${appName}.app`));
         }
       },
     },
   });
 }
 
-function notarize_mac(app_path: string) {
+function notarizeMac(app_path: string) {
   console.log("Notarizing " + app_path);
   return notarize({
     tool: "notarytool",
     appPath: app_path,
-    keychain: `${process.env.HOME}/Library/Keychains/login.keychain-db`,
+    keychain: `${process.env["HOME"]}/Library/Keychains/login.keychain-db`,
     keychainProfile: "anysphere-gui-profile",
   });
 }
 
-package_mac();
+packageMac();

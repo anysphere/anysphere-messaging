@@ -1,12 +1,23 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 //
 // Copyright 2022 Anysphere, Inc.
 // SPDX-License-Identifier: GPL-3.0-only
 //
 
+/** @type {import('tailwindcss').Config} */
 module.exports = {
   purge: ["./src/**/*.{js,jsx,ts,tsx}"],
+  plugins: [require("@tailwindcss/forms"), require("@tailwindcss/typography")],
   theme: {
     extend: {
+      typography: ({ theme }) => ({
+        stonex: {
+          css: {
+            // "--tw-prose-bullets": theme("colors.asbrown['dark']"),
+            "--tw-prose-bullets": theme("colors.asbrown[light]"),
+          },
+        },
+      }),
       colors: {
         asbrown: {
           100: "#E4DFD2",
@@ -20,6 +31,7 @@ module.exports = {
           dark: "#194F39",
         },
         asbeige: "#F9F7F1",
+        asbeige2: "#FCFBF8",
         asyellow: {
           light: "#FECA6F",
           500: "#E2A924",
@@ -34,6 +46,7 @@ module.exports = {
         sendmsg: "sendmsg 10s linear infinite",
         retrievemsg: "retrievemsg 10s linear infinite",
         slideunderline: "slideunderline 1s ease-out",
+        blob: "blob 7s infinite",
       },
       keyframes: {
         wiggle: {
@@ -107,8 +120,21 @@ module.exports = {
             transform: "translate(0.5em, 0)",
           },
         },
+        blob: {
+          "0%": {
+            transform: "translate(0px, 0px) scale(1)",
+          },
+          "33%": {
+            transform: "translate(30px, -50px) scale(1.1)",
+          },
+          "66%": {
+            transform: "translate(-20px, 20px) scale(0.9)",
+          },
+          "100%": {
+            transform: "tranlate(0px, 0px) scale(1)",
+          },
+        },
       },
     },
   },
-  plugins: [],
 };

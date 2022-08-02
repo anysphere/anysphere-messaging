@@ -1,20 +1,25 @@
 version: 0.1
 cli:
-  version: 0.9.3-beta
-lint:
-  enabled:
-    - actionlint@1.6.4
-    - buildifier@4.0.1
-    - clang-format@13.0.0
-    - clang-tidy@13.0.0
-    - gitleaks@7.6.1
-    - markdownlint@0.29.0
-    - prettier@2.4.1
-    - shellcheck@0.7.2
-    - shfmt@3.4.0
+  version: 0.15.1-beta
 repo:
   repo:
     host: github.com
     owner: anysphere
     name: client
   trunk_branch: origin/main
+lint:
+  ignore:
+    - linters: [ALL]
+      paths:
+        - gui/src/daemon/schema/** # generated
+  enabled:
+    - actionlint@1.6.4
+    - buildifier@4.0.1
+    - clang-format@13.0.0
+    - clang-tidy@13.0.0
+    - markdownlint@0.29.0
+    - prettier@2.4.1
+    - shellcheck@0.7.2
+    - shfmt@3.4.0
+    - rustfmt@1.58.1
+    - eslint@8.19.0

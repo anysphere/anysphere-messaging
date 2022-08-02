@@ -9,7 +9,7 @@ import * as React from "react";
 export interface Tab {
   type: TabType;
   name: string;
-  data: any;
+  data: unknown;
   unclosable: boolean;
   id: string;
 }
@@ -21,6 +21,7 @@ export enum TabType {
   Write = "write",
   Outbox = "outbox",
   Sent = "sent",
+  Invitations = "invitations",
 }
 
 export function TabElem({
@@ -33,11 +34,11 @@ export function TabElem({
   onClick: () => void;
   onClose: () => void;
   tab: Tab;
-}) {
+}): JSX.Element {
   const [hovering, setHovering] = React.useState(false);
   const closeButton = (
     <div
-      className={`place-content-center grid ${
+      className={`grid place-content-center ${
         hovering || selected ? "" : "invisible"
       }`}
     >
@@ -53,7 +54,7 @@ export function TabElem({
 
   return (
     <div
-      className={`px-2 flex flex-row content-center py-1 unselectable text-sm hover:cursor-pointer ${
+      className={`unselectable flex flex-row content-center px-2 py-1 text-sm hover:cursor-pointer ${
         selected ? "text-black" : "text-asbrown-200"
       }`}
       onClick={onClick}
@@ -76,11 +77,11 @@ export function TabContainer(props: {
   previousTab: () => void;
   selectedTab: Tab;
   hidden: boolean;
-}) {
+}): JSX.Element {
   const [hovering, setHovering] = React.useState(false);
 
   React.useEffect(() => {
-    const handler = (event: any) => {
+    const handler = (event: KeyboardEvent): void => {
       if (event.ctrlKey && event.shiftKey && event.key === "Tab") {
         event.preventDefault();
         props.previousTab();
@@ -107,7 +108,7 @@ export function TabContainer(props: {
       onMouseOut={() => setHovering(false)}
     >
       <div
-        className={`flex-1 mb-1 ${
+        className={`mb-1 flex-1 ${
           props.hidden && !hovering ? "invisible" : ""
         }`}
       >
@@ -142,21 +143,19 @@ export function useTabs(
 ] {
   const defaultTab = initial[0];
   const [tabs, setTabs] = React.useState<Tab[]>(initial);
+
   const [previousSelectedTab, setPreviousSelectedTab] = React.useState<string>(
     defaultTab.id
   );
   const [selectedTab, setSelectedTab] = React.useState<string>(defaultTab.id);
 
-  const pushTab = React.useCallback(
-    (tab: Tab) => {
-      setTabs((tabs) => [...tabs, tab]);
-      setSelectedTab((selectedTab) => {
-        setPreviousSelectedTab(selectedTab);
-        return tab.id;
-      });
-    },
-    [selectedTab]
-  );
+  const pushTab = React.useCallback((tab: Tab) => {
+    setTabs((tabs) => [...tabs, tab]);
+    setSelectedTab((selectedTab) => {
+      setPreviousSelectedTab(selectedTab);
+      return tab.id;
+    });
+  }, []);
 
   const closeTab = React.useCallback(
     (id: string) => {
@@ -180,7 +179,7 @@ export function useTabs(
         return newTabs;
       });
     },
-    [selectedTab, previousSelectedTab]
+    [previousSelectedTab, defaultTab.id]
   );
 
   const nextTab = React.useCallback(() => {
@@ -189,7 +188,7 @@ export function useTabs(
       const index = tabs.findIndex((tab) => tab.id === selectedTab);
       return tabs[(index + 1) % tabs.length].id;
     });
-  }, [tabs, selectedTab]);
+  }, [tabs]);
 
   const previousTab = React.useCallback(() => {
     setSelectedTab((selectedTab) => {
@@ -197,7 +196,7 @@ export function useTabs(
       const index = tabs.findIndex((tab) => tab.id === selectedTab);
       return tabs[(index - 1 + tabs.length) % tabs.length].id;
     });
-  }, [tabs, selectedTab]);
+  }, [tabs]);
 
   const switchTab = React.useCallback((id: string) => {
     setSelectedTab((selectedTab) => {
@@ -209,14 +208,11 @@ export function useTabs(
   const selectedActualTab = React.useMemo(() => {
     const tab = tabs.find((tab) => tab.id === selectedTab);
     return tab ? tab : defaultTab;
-  }, [tabs, selectedTab]);
+  }, [tabs, selectedTab, defaultTab]);
 
-  const updateTab = React.useCallback(
-    (tab: Tab) => {
-      setTabs((tabs) => tabs.map((tabb) => (tabb.id === tab.id ? tab : tabb)));
-    },
-    [tabs]
-  );
+  const updateTab = React.useCallback((tab: Tab) => {
+    setTabs((tabs) => tabs.map((tabb) => (tabb.id === tab.id ? tab : tabb)));
+  }, []);
 
   return [
     selectedActualTab,
