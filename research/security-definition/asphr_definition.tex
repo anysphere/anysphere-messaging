@@ -179,11 +179,18 @@ There are many ways to resolve this issue. The most straightforward solution is 
 
 \textbf{The PIR Request Replay Attack} Another new attack vector is the ACK system. While the ACK messages are essential to ensure our consistency model, it introduces a way for an adversarial server to get ``feedback" on their malicious responses to the client. We describe one way to exploit this.
 
-Most PIR schemes nowadays use an underlying homomorphic public key cryptosystem, and generating the public-private keypair is expensive. Some MPM systems such as Addra\footnote{Pung actually does rotate PIR key.} generate a keypair $(\pk_{\pir}, \sk_{\pir})$ once for each client and use them in all PIR queries $\ct = \query(1^{\lambda}, \sk_{\pir}, i)$. While this design poses no problem for Addra, which has no ACK system, it creates a serious security hole in our system. 
+Most PIR schemes nowadays use an underlying homomorphic public key cryptosystem, and generating the public-private keypair is expensive. For the sake of performance, some MPM systems such as Addra generate a keypair $(\pk_{\pir}, \sk_{\pir})$ once for each client and use them in all PIR queries $\ct = \query(1^{\lambda}, \sk_{\pir}, i)$. This design creates a serious security hole in many messaging system, as we detail below.
 
-Suppose honest user $A$ is friend with malicious user $C$. User $C$ is interested if $A$ is communicating with honest user $B$ at index $i_B$. Suppose user $A$ generates a query $\ct = \query(1^{\lambda}, \sk_{\pir}, i)$. A malicious server can formulate a response $\resp = \answer^{DB'}(1^{\lambda}, \ct)$, where $DB'[i_B]$ is a valid message from $C$ to $A$ and $DB'[i] = 0$ for any $i \neq i_B$. The malicious server returns $\resp$ for $A$'s subsequent queries the database. If $\ct$ is a query to $i_B$, and $A$ uses the same PIR keypair for all queries, $A$ will receive the message from $C$ the next time it queries $C$'s index, and send an ACK to $C$. Otherwise, $A$ will never receive a message from $C$ and send an ACK to $C$. Therefore, the adversary can learn if $\ct$ is a query to $i_B$ or not, and subsequently learn if $A$ and $B$ are communicating.
+Suppose at time $T_0$, honest user $A$ sends a PIR request $\ct$ to the server. Malicious user $C$, colluding with the server, wishes to know if $\ct$ is a query to honest user $B$'s mailbox at index $i_B$. The attack depends on three requirements.
+\begin{itemize}
+    \item User $A$ is going to have a conversation with a malicious user $C$ at a future time $T_1 > T_0$. 
+    \item Honest user $A$ does not switch PIR keypair between time $T_0$ and $T_1$.
+    \item Honest user $A$ will provide "feedback" $f(m)$ to user $C$'s messages $m$. This could be an $\ACK$ message in our system, or simply a verbal response to $C$'s message.  
+\end{itemize}
 
-This attack can be easily prevented by changing the PIR keypair each round. However, it provides evidence that a secure PIR system does not guarantee metadata security of the whole system.
+The attack goes as follows. At time $T_0$, the server stores $\ct$, and continue to serve $A$ honestly until time $T_1$. During $A$ and $C$'s conversation, the server formulates a response $\resp = \answer^{DB'}(1^{\lambda}, \ct)$, where $DB'[i_B]$ is a valid message from $C$ to $A$, and $DB'[i] = 0$ for any $i \neq i_B$. If $\ct$ is a query to $i_B$, $A$ will receive the message from $C$, and send a feedback to $C$. Otherwise, $A$ will not receive a message from $C$ and not send an ACK to $C$. Therefore, $C$ can observe $A$'s feedback and learn if $\ct$ is a query to $i_B$ or not.
+
+This attack can be prevented by changing the PIR keypair each round, which is ok for Anysphere because of our low clientside computation . However, it provides evidence that a secure PIR system does not guarantee metadata security of the whole system.
 \subsection{The Anysphere Core Protocol}
 \todo{I'm going to stick to our actual implementation as closely as possible, please point out anything that doesn't agree with the current protocol, greatly appreciate it.}
 
