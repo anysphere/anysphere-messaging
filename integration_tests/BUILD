@@ -16,8 +16,27 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "attack_setup",
+    hdrs = [
+        "daemon_setup.hpp",
+        "test_helpers.hpp",
+        "//integration_tests/attack_tests:attacker_template.hpp",
+    ],
+    linkstatic = True,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//server/pir/fast_pir:server_fast_pir_lib",
+        "//server/src:as_server_lib",
+        "@client//daemon:main_lib",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
 all_tests_in_folder(folder = "daemon_tests")
 
 all_tests_in_folder(folder = "multiple_friends_tests")
 
 all_tests_in_folder(folder = "invitation_tests")
+
+#all_tests_in_folder(folder = "playground_tests")

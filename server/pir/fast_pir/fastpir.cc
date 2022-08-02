@@ -3,6 +3,7 @@
 auto FastPIR::set_value(pir_index_t index, pir_value_t value) noexcept -> void {
   // this assert is guaranteed by the fact that the index is a valid index
   // access
+
   assert(index < db_rows);
   std::copy(value.begin(), value.end(), db.begin() + index * MESSAGE_SIZE);
   update_seal_db(index);
@@ -81,13 +82,14 @@ auto FastPIR::allocate() noexcept -> pir_index_t {
   return new_index;
 }
 
+// note: Performance engineered this method.
 auto FastPIR::allocate_to_max(pir_index_t max_index) noexcept -> void {
   assert(db_rows == 0);
   db_rows = max_index + 1;
   db.resize(db_rows * MESSAGE_SIZE);
   // TODO: performance-optimize this. it is not in the critical path tho, so not
   // super important. but affects uptime
-  for (pir_index_t i = 0; i <= max_index; i++) {
+  for (pir_index_t i = 0; i <= max_index; i += seal_slot_count) {
     update_seal_db(i);
   }
   check_rep();
