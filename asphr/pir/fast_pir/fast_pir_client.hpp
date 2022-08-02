@@ -14,11 +14,19 @@
 using std::array;
 using std::bitset;
 
+#define DUMMY_INDEX 1'000'000
+
 struct Galois_string {
   Galois_string(const string& s) : galois_string(s) {}
 
   string galois_string;
   auto save(std::ostream& os) const -> void { os << galois_string; }
+};
+
+// struct of data needs to be switched each encryption
+struct keys {
+  seal::SecretKey secret_key;
+  Galois_string galois_keys;
 };
 
 auto generate_keys() -> std::pair<std::string, std::string>;
@@ -32,8 +40,7 @@ class FastPIRClient {
   using pir_query_t =
       FastPIRQuery<seal::Serializable<seal::Ciphertext>, Galois_string>;
   using pir_answer_t = FastPIRAnswer;
-
-  // TODO: fix this absolute mess of initializers???
+  using pir_map = std::map<pir_index_t, keys>;
 
   FastPIRClient() : FastPIRClient(create_context_params()) {
     ASPHR_LOG_INFO("Creating FastPIRClient.", from, "base");
@@ -45,41 +52,26 @@ class FastPIRClient {
   }
 
   FastPIRClient(seal::SEALContext sc, seal::KeyGenerator keygen)
-      : FastPIRClient(sc, keygen.secret_key(),
-                      gen_galois_keys(keygen.create_galois_keys())) {
-    ASPHR_LOG_INFO("Creating FastPIRClient.", from, "context params, keygen");
-  }
-
-  FastPIRClient(string secret_key, string galois_keys)
-      : FastPIRClient(seal::SEALContext(create_context_params()), secret_key,
-                      galois_keys) {
-    ASPHR_LOG_INFO("Creating FastPIRClient.", from, "secret key, galois keys");
-  }
-
-  FastPIRClient(seal::SEALContext sc, string secret_key, string galois_keys)
-      : FastPIRClient(sc, deserialize_secret_key(sc, secret_key), galois_keys) {
-    ASPHR_LOG_INFO("Creating FastPIRClient.", from,
-                   "context params, "
-                   "secret key, galois keys");
-  }
-
-  FastPIRClient(seal::SecretKey secret_key, string galois_keys)
-      : FastPIRClient(seal::SEALContext(create_context_params()), secret_key,
-                      galois_keys) {}
-
-  FastPIRClient(seal::SEALContext sc, seal::SecretKey secret_key,
-                string galois_keys)
       : sc(sc),
         batch_encoder(sc),
         seal_slot_count(batch_encoder.slot_count()),
-        secret_key(secret_key),
-        galois_keys(galois_keys),
-        encryptor(sc, secret_key),
-        decryptor(sc, secret_key),
-        evaluator(sc) {}
+        evaluator(sc),
+        keys_map({}) {
+    ASPHR_LOG_INFO("Creating FastPIRClient.", from, "context params, keygen");
+  }
 
-  auto query(pir_index_t index, size_t db_rows) const -> pir_query_t {
-    assert(index < db_rows);
+  auto query(pir_index_t index, size_t db_rows) -> pir_query_t {
+    // reinitialize the secret key to deal with the pir replay attack
+    const auto new_keys = generate_keys();
+    const auto secret_key = this->deserialize_secret_key(sc, new_keys.first);
+    const auto galois_keys = Galois_string(new_keys.second);
+    // assign new keys to the keys map
+    // note: you can save some time for the dummy index here.
+    keys_map.insert_or_assign(index, keys{secret_key, galois_keys});
+    // initialize encryptor
+    auto encryptor = seal::Encryptor(sc, secret_key);
+    // create the query
+    assert(index < db_rows || index == DUMMY_INDEX);
     vector<seal::Serializable<seal::Ciphertext>> query;
     auto seal_db_rows = CEIL_DIV(db_rows, seal_slot_count);
     query.reserve(seal_db_rows);
@@ -116,6 +108,8 @@ class FastPIRClient {
 
   auto decode(pir_answer_t answer, pir_index_t index) -> pir_value_t {
     seal::Plaintext plain_answer;
+    // obtain the last decryptor for this query.
+    auto decryptor = seal::Decryptor(sc, keys_map.at(index).secret_key);
     decryptor.decrypt(answer.answer, plain_answer);
 
     vector<uint64_t> message_coefficients;
@@ -169,11 +163,12 @@ class FastPIRClient {
   seal::BatchEncoder batch_encoder;
   // number of slots in the plaintext
   const size_t seal_slot_count;
-  seal::SecretKey secret_key;
-  Galois_string galois_keys;
-  seal::Encryptor encryptor;
-  seal::Decryptor decryptor;
   seal::Evaluator evaluator;
+
+  // because we "batch" PIR encryption together, we need to know the keypair
+  // corresponding to each index.
+  // A Map (index -> keypair)
+  pir_map keys_map;
 
   auto deserialize_secret_key(seal::SEALContext sc, string secret_key)
       -> seal::SecretKey {
