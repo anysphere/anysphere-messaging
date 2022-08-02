@@ -55,6 +55,7 @@ int main(int argc, char** argv) {
     socket_address = cmd_line.getOptionValue("socket", socket_address).value();
   }
 
+  std::cout << "Using socket address: " << socket_address << std::endl;
   // connect to the anysphere daemon
   auto channel =
       grpc::CreateChannel(socket_address, grpc::InsecureChannelCredentials());
