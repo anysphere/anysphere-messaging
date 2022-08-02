@@ -199,7 +199,7 @@ We first recall some notations.
     \item $\lambda$ is the security parameter.
     \item $N$ is the number of users.
     \item $T$ is the number of timesteps our protocol is run.
-    \item $L_{\msg}$ is the length of each message we send.
+    \item $L_{\msg}$ is the length of the raw message.
     \item $\Pi_{\ae}$ is an AE scheme satisfying \cref{defn:AE-correctness}, \cref{defn:AE-eval-security} and \cref{defn:AE-unforgability}.
     \item $\Pi_{\pir}$ is a PIR scheme satisfying \cref{defn:PIR-correctness} and \cref{defn:PIR-SIM-security}.
 \end{itemize}
@@ -250,7 +250,6 @@ If $\cI = \emptyset$, do nothing.
 If $\cI = \send(\reg, \msg)$, 
 
 \begin{enumerate}
-    \item Check that $\msg$ has length $L_{\msg}$. If not, skip to Phase 2.
     \item Check that $\reg$ is in $\frienddb$. If not, skip to Phase 2.
     \item If $\reg$ is the registration of $C_i$ itself, append $\msg$ to $\inb[\reg]$, and skip to Phase 2. \footnote{Skipping this step breaks consistent prefix.}
     \item Add $1$ to $\frienddb[\reg].\seqe$. 

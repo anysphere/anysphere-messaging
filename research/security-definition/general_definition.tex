@@ -33,7 +33,7 @@ A \textbf{user input} is a command the user can issue to the client. In our curr
 \begin{itemize}
     \item $\emptyset$: noop.
     \item $\trust(\reg)$: Add the user identified by $\reg$ as a friend, and enable the two parties to start a conversation.
-    \item $\send(\reg, \msg)$: Send the message $\msg$ to the client identified by $\reg$. We assume that $\msg$ has a constant length $L_{\msg}$.
+    \item $\send(\reg, \msg)$: Send the message $\msg$ to the client identified by $\reg$. We assume that $\msg$ always has a constant length $L_{\msg}$.\footnote{For simplicity, we assume this holds even for adversarial inputs.}
 \end{itemize}
 
 \todo{We could do a ``setparameter" method here to allow clients to customize their transmission schedule, etc.}

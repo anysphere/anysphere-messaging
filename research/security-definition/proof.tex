@@ -163,7 +163,6 @@ If $\cI = \emptyset$, do nothing.
 If $\cI = \send(\reg, \msg)$, 
 
 \begin{enumerate}
-    \item Check that $\msg$ has length $L_{\msg}$. If not, skip to Phase 2.
     \item Check that $\reg$ is in $\frienddb$. If not, skip to Phase 2.
     \item If $\reg$ is the registration of $C_i$ itself, append $\msg$ to $\inb[\reg]$, and skip to Phase 2. \footnote{Skipping this step breaks consistent prefix.}
     \item Add $1$ to $\frienddb[\reg].\seqe$. 
