@@ -169,6 +169,8 @@ We finish by detailing a subtlety on the length of messages. Let $L_{\msglb}$ de
 \label{subsec:security-vulnerable}
 \todo{Move this elsewhere}.
 
+\todo{Compare with simplePIR paper: our scheme works for general PIR schemes?}
+
 In this section, we describe several previously unobserved security vulnerabilities we discovered while writing this document. These vulnerabilities show that even with a secure PIR implementation, the security of the whole system is not straightforward.
 
 \textbf{The Impersonation Attack} The first new attack vector is the trust establishment system. Due to a lack of central authorities, our system uses the registration information $\reg$ as the unique identifier of a client / user. The registration information is a tuple $\reg = (i, \kx^P)$ containing the index $i$ of the client in the PIR database, and the key exchange public key $\kx^P$ of the client. This information is intended to be posted on the client / user's social media, so that others can verify that the registration info indeed belongs to the person.
