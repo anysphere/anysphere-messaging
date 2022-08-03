@@ -80,7 +80,7 @@ auto main_cc_impl(rust::Vec<rust::String> args) -> void {
   socket_address = StrCat("unix://", socket_address);
 
   ASPHR_LOG_INFO("Parsed args.", db_address, db_address, socket_address,
-                 socket_address)
+                 socket_address);
 
   // Promise: G is NEVER destructed. That is, we promise that the main
   // thread will never die before any other threads die.
@@ -90,7 +90,7 @@ auto main_cc_impl(rust::Vec<rust::String> args) -> void {
     server_address = std::string(G.db->get_server_address());
   }
 
-  ASPHR_LOG_INFO("Querying server.", server_address, server_address)
+  ASPHR_LOG_INFO("Querying server.", server_address, server_address);
 
   auto channel_creds = grpc::SslCredentials(
       grpc::SslCredentialsOptions{.pem_root_certs = AMAZON_ROOT_CERTS});
