@@ -180,7 +180,7 @@ If $\cI = \trust(\reg)$.
 Phase 2:
 \begin{enumerate}
     \item If $t$ is not divisible by $T_{\trans}$, return $\emptyset$.
-    \item Let $\{\reg_1, \cdots, \reg_k\}$ be the keys of $\frienddb$, with $k\leq B$. Construct $S = [\reg_1,\cdots, \reg_k, \reg, \cdots, \reg]$, where we add $B - k$ copies of $\reg$, our own registration info. Sample $\reg_s, \reg_r$ uniformly and independently at random from $S$. 
+    \item Let $\{\reg_1, \cdots, \reg_k\}$ be the keys of $\frienddb$, with $k\leq B$. Construct $S = [\reg_1,\cdots, \reg_k, \reg, \cdots, \reg]$, where we add $B - k$ copies of $\reg$,a dummy registration info with $\reg[0] = 0$ and $\reg[1]$ a randomly generated public key. Sample $\reg_s, \reg_r$ uniformly and independently at random from $S$. 
     \item Let $\msg$ be the (labeled) message with sequence number $\frienddb[\reg_s].\seqs$ in $\outb[\reg_s]$. If $\outb[\reg_s]$ is empty, let $\msg = (-1, 0^{L_{\msg}})$.
     \item $\sk \leftarrow \frienddb[\reg_s].\sk$. If $\reg_s$ does not exist in $\frienddb$, randomly generate a secret key $\_, \sk \leftarrow \Pi_{\ae}.\gen(1^{\lambda}).$
     \item $\seqr \leftarrow \frienddb[\reg_s].\seqr$.
