@@ -1,4 +1,3 @@
-\todo{General comment: standardize labeling convention, and name the 20+ experiments}
 \todo{Label Convention: Definition related to messaging should be named defn:messaging-xxx. Definition related to AE should be named defn:AE-xxx. Definition related to PIR should be named defn:PIR-xxx.  Definition specific to ASPHR should be named defn:asphr-xxx.}
 \section{General Definitions}
 \label{sec:general-defn}
@@ -286,7 +285,7 @@ We run the same real-world experiment in \cref{defn:messaging-real-world-experim
 
 \subsection{A weaker Security Definition}
 \label{subsec:messaging-security-weaker}
-Unfortunately, Anysphere does not support the strongest security notion in \cref{defn:messaging-security}. In fact, the CF attack paper \cite{angel2018cf} argues that this security notion is very hard to satisfy in general. For the threat model in our whitepaper, we assume that no friends are compromised. We now define a weaker security notion with this additional hypothesis.
+Unfortunately, Anysphere does not support the strongest security notion in \cref{defn:messaging-security}. In fact, the CF attack paper \cite{angel2018cf} argues that this security notion is very hard to satisfy in general. For the threat model in our whitepaper \cite{whitepaper}, we argued security based on the strong assumption that no friends are compromised. In reality, this assumption is almost impossible to guarantee. In this section, we formally define what it means for no friends to be compromised. We also define a weaker assumption which allows a small number of compromised friends, yet still theoretically guarantees security.
 
 \arvid{Another path to explore here would be to create a new leak function, say LeakCF, which contains the exact information leaked for the CF attack. For example, one potentially useful leak function would be one that contains the current number of friends, or perhaps the number of friends but rounded to the nearest 10. In the worst case (such as our current prioritization case), we would leak the timing that a message actually gets sent to the server, which might be very hard to model here... Hmmmm}
 
@@ -295,8 +294,10 @@ Unfortunately, Anysphere does not support the strongest security notion in \cref
 \todo{We need to figure out what to do here ASAP before putting this out.}
 
 \begin{definition}
+\label{defn:messaging-security-weaker}
 We say that a set of input $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ satisfy \textbf{no compromised friends} if for any $i \in \cH, j \in \cK$ and $t \in [T]$, we have
 $$\trust(\reg_j) \neq \cI_{i, t}.$$
+
 We say that a set of input $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ satisfy \textbf{$B$-bounded friends} if for any $i \in \cH$, the set
 $$\{\reg: \exists t, \trust(\reg) = \cI_{i, t}\}$$
 has cardinality at most $B$.
@@ -305,4 +306,4 @@ We say a messaging scheme is correct with $B$-bounded friends if for any paramet
 
 We say a messaging scheme is SIM-secure with no compromised friends / $B$-bounded friends if for any polynomial upper bounds on $N$ and $T$, there exists a p.p.t simulator $\Sim$ such that for any p.p.t adversary $\cA$, the view of $\cA$ is indistinguishable in $\mathsf{Real}^{\cA}(1^{\lambda})$ and $\mathsf{Ideal}^{\cA, \mathsf{\Sim}}(1^{\lambda})$, provided that the input set $\{\cI_{i, t}\}_{i \in \cH, t \in [T]}$ satisfies no compromised friends / $B$-bounded friends.
 \end{definition}
-\textbf{Remark}: It is possible to bypass CF attacks under either $B$-bounded friends or no compromised friends model. We'll assume the $B$-bounded friends for now. Currently we have $B = 2$.
+The Anysphere core protocol described below satisfies SIM-security under with either $B$-bounded friends or no compromised friends model. The no compromised friends case essentially follows from \cite[Appendix C]{angel2018thesis}. On the other hand, the $B$-bounded friends case is much more subtle. The next section explains why.
