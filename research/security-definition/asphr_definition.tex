@@ -112,7 +112,7 @@ Central to our application is the Private Information Retrieval(PIR) scheme. It 
 %     \item $\dec_n(1^{\lambda}, \mathsf{st}, a) \to d$.
 % \end{itemize}
 % Nevermind! We are recycling the secret key for the PIR queries, because generating the keys is computationally expensive, and it does not affect security (it just becomes slightly less clean)
-where $\DB$ is a length $N$ database with int64 entries, and $N$ is a parameter bounded by some polynomial $N(\lambda)$. It must satisfy correctness and security as defined below.
+where $\DB$ is a length $N$ database with int64 entries, and $N$ is a parameter bounded by some polynomial $N(\lambda)$. It should satisfy the following standard correctness and security definitions \cite{kushilevitz1997replication}.
 \begin{definition}
 \label{defn:PIR-correctness}
 For any database $\DB$ of length $N$ with entries of length $L_{\pir}$, consider the experiment
