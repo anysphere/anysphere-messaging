@@ -14,6 +14,9 @@ server:
 	echo "WARNING: THE server.Dockerfile IS OUT OF DATE. PLEASE UPDATE IT, TAKING INSPIRATION FROM minimal-server.Dockerfile."
 	DOCKER_BUILDKIT=1 docker build -f server.Dockerfile -t server .
 
+landing-server: 
+	DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -f landing-server.Dockerfile -t landing-server .
+
 minimal-server: 
 	bazelisk build //server/src:as_server -c opt
 	rm -f as_server
@@ -34,6 +37,11 @@ push-minimal: minimal-server
 	echo "Now update infra/aws/variables.tf to include the new sha256 in the asphr_server_image_tag variable!"
 	echo "Now do cd infra/aws && terraform apply"
 
+push-landing: landing-server
+	docker tag landing-server 946207870883.dkr.ecr.us-east-1.amazonaws.com/asphr-landing-server
+	docker push 946207870883.dkr.ecr.us-east-1.amazonaws.com/asphr-landing-server
+	echo "Now update infra/aws/variables.tf to include the new sha256 in the asphr_landing_server_image_tag variable!"
+	echo "Now do cd infra/aws && terraform apply"
 
 # the OLD package functions use .pkg and publish to s3
 package-mac-arm64-OLD:

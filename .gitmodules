@@ -10,3 +10,6 @@
 [submodule "website/anysphere-id-pages"]
 	path = website/anysphere-id-pages
 	url = git@github.com:anysphere/anysphere-id-pages
+[submodule "website/anysphere-me-pages"]
+	path = website/anysphere-me-pages
+	url = git@github.com:anysphere/anysphere-me-pages
