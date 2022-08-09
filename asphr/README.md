@@ -1,3 +1,3 @@
-# asphr
+# Anysphere Asphr
 
-Shared code between the Anysphere client and server.
+This repository contains shared code between the Anysphere client and server. See [anysphere/client](https://github.com/anysphere/client) for more details.
