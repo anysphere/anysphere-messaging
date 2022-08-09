@@ -6,7 +6,7 @@ This repository, along with [anysphere/asphr](https://github.com/anysphere/asphr
 
 ### Warm-up: building the daemon
 
-The daemon runs in the background and interacts with the Anysphere server. For more details on the high-level architecture, read [our whitepaper](https://anysphere.co/anysphere-whitepaper.pdf).
+The daemon runs in the background and interacts with the Anysphere server. For more details on the high-level architecture, read section 5 of [our whitepaper](https://anysphere.co/anysphere-whitepaper.pdf).
 
 1. [Install Bazel using Bazelisk](https://bazel.build/install/bazelisk).
 2. Clone [anysphere/asphr](https://github.com/anysphere/asphr) and [anysphere/client](https://github.com/anysphere/client) and put them in a directory side-by-side.
