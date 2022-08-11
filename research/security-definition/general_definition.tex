@@ -1,7 +1,9 @@
-\todo{Label Convention: Definition related to messaging should be named defn:messaging-xxx. Definition related to AE should be named defn:AE-xxx. Definition related to PIR should be named defn:PIR-xxx.  Definition specific to ASPHR should be named defn:asphr-xxx.}
+% \todo{Label Convention: Definition related to messaging should be named defn:messaging-xxx. Definition related to AE should be named defn:AE-xxx. Definition related to PIR should be named defn:PIR-xxx.  Definition specific to ASPHR should be named defn:asphr-xxx.}
 \section{General Definitions}
 \label{sec:general-defn}
-In this section, we design a security definition for a messaging application that is as general as possible. We start from the following basic principles.
+In this section, we design a security definition for a messaging application that is as general as possible. Our definition shares many similarities with Canetti and Krawczyk's foundational CK model \cite{CK2001keyexchange} for analyzing key exchange protocols over untrusted channels. However, we find it difficult to adapt the CK models, especially the authenticated-links model(AM), directly to account for metadata privacy. Therefore, we design our security definition from scratch.
+
+We start from the following basic principles.
 \begin{enumerate}
     \item The messaging system has a centralized server in charge of storing and routing messages. We do not consider decentralized messaging systems in this paper.
     \item The messaging system has a large number of users, interacting with "client" software on their computers. The client software should allow the user to register, add friends, and send messages at any time. It should display received messages to the user.
@@ -290,8 +292,6 @@ Unfortunately, Anysphere does not support the strongest security notion in \cref
 \arvid{Another path to explore here would be to create a new leak function, say LeakCF, which contains the exact information leaked for the CF attack. For example, one potentially useful leak function would be one that contains the current number of friends, or perhaps the number of friends but rounded to the nearest 10. In the worst case (such as our current prioritization case), we would leak the timing that a message actually gets sent to the server, which might be very hard to model here... Hmmmm}
 
 \stzh{I agree. This remains unresolved. We need to figure out what to do here.}
-
-\todo{We need to figure out what to do here ASAP before putting this out.}
 
 \begin{definition}
 \label{defn:messaging-security-weaker}

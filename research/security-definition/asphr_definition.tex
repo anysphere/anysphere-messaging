@@ -2,7 +2,7 @@
 \label{sec:asphr-defn}
 In this section, we formally define the Anysphere core protocol described in our whitepaper \cite{whitepaper}. 
 \subsection{Cryptography Primitives}
-Anysphere relies on two cryptographical primitives: a symmetric key authenticated encryption(AE) system, and a PIR scheme. We outline formal simulator-based security definitions of the two.
+Anysphere relies on two cryptographical primitives: an authenticated encryption(AE) system, and a PIR scheme. We outline formal simulator-based security definitions of the two.
 
 It turns out that our security definition of the PIR scheme is standard and well-documented in literature. However, existing security definitions on the AE system , including IND-CCA2 or even IK-CCA(\cite{BBDP01keyprivate}), are not sufficient. In this section, we introduce a security requirement, called Eval Security, that is sufficient to establish the security of our system.
 \subsubsection{Authenticated Encryption System}

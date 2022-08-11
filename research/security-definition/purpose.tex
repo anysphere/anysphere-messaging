@@ -1,12 +1,10 @@
 \section{Purpose}
 \label{sec:purpose}
-Anysphere is a metadata-private messaging (MPM) system. In Anysphere's whitepaper \cite[Section 3]{whitepaper}, we describe Anysphere's core protocol at a high level. We write this document to rigorously show that Anysphere's core protocol satisfies the metadata privacy we promise. 
-% Most private messaging systems deployed in practice, such as Signal, lack formal security definitions and proofs, which has led to vulnerabilities being discovered later \cite{wichelmann2021help}. % not a good example. just an edge case. we have a lot of edge cases here that we are ignoring (eg trust establishment)
-\arvid{bash existing systems (eg signal) for not having security definitions. problem is that signal was proven to be secure later, so it is actually not a good example.}
+Anysphere is a metadata-private messaging (MPM) system. In Anysphere's whitepaper \cite[Section 3]{whitepaper}, we describe our core protocol at a high level. This document contains a security definition and a proof to rigorously show that Anysphere's core protocol satisfies the metadata privacy we promise.
 
-Existing security proof on MPM (such as \cite{corrigan2010dissent, corrigan2015riposte, angel2016unobservable, ahmad2021addra}) have shown the privacy of a private information retrieval(PIR) system where users can deposit and retrieve information without revealing metadata to the server. We find these proofs unsatisfying for several reasons.
+Existing security proofs of MPMs (such as \cite{corrigan2010dissent, corrigan2015riposte, angel2016unobservable, ahmad2021addra}) have shown the privacy of a private information retrieval (PIR) system where users can deposit and retrieve information without revealing metadata to the server. We find these proofs unsatisfying for several reasons.
 \begin{itemize}
-    \item The security of the PIR system does not guarantee the security of the messaging system as a whole. A well-known example illustrating this is the Compromised Friend(CF) attack proposed by Angel, Lazar and Tzialla(\cite{angel2018cf}). They show that if an honest user makes friend with a malicious user, then the metadata of conversations between honest users might be compromised even with a secure PIR system. To our knowledge, no proofs exist that show immunity against CF attacks\footnote{Pung's security proof \cite[Appendix C]{angel2018thesis} did establish the security of the messaging system, but under the strong assumption that honest users only ever talk to honest users.}. In fact, we found a more powerful CF attack, described in \cref{sec:security-vulnerable}, as we write this paper.
+    \item The security of the PIR system does not guarantee the security of the messaging system as a whole. A well-known example illustrating this is the Compromised Friend (CF) attack proposed by Angel, Lazar and Tzialla (\cite{angel2018cf}). They show that if an honest user makes friend with a malicious user, then the metadata of conversations between honest users might be compromised even with a secure PIR system. To our knowledge, no proofs exist that show immunity against CF attacks\footnote{Pung's security proof \cite[Appendix C]{angel2018thesis} did establish the security of the messaging system, but under the strong assumption that honest users only ever talk to honest users.}. In fact, we found a more powerful CF attack, described in \cref{sec:security-vulnerable}, as we write this paper.
     
     \item Our system uses Addra(\cite{ahmad2021addra}) as the PIR system. Addra is originally designed for users to hold exactly one conversation at a time. In our application, clients may hold many different conversations at the same time. We need to ensure that our adaptation does not introduce new vulnerabilities.
     
@@ -26,7 +24,7 @@ In \cref{sec:asphr-defn}, we describe the Anysphere core protocol in pseudocode.
 %\todo{Also, CF attack is a huge problem! What should we do about it?}
 
 \section{Conventions}
-We list some notational conventions used throughout the article.
+We use the following notational conventions.
 \begin{itemize}
     \item When we write $f(\cdot)$, the dot might hide several variables.
     
@@ -36,5 +34,3 @@ We list some notational conventions used throughout the article.
     
     \item When machines "return" in a method, they do not execute any subsequent commands and exit the method immediately.
 \end{itemize}
-
-\sualeh{we need }
