@@ -45,15 +45,16 @@ export const SYSTEMD_UNIT_CONTENTS = (
   logPath: string
 ): string => {
   return `[Unit]
-Description=Anysphere daemon
+Description=Anysphere daemon.
 After=network.target
 
 [Service]
 Type=simple
-User=${process.env["USER"]}
-WorkingDirectory=${pkgPath}
+WorkingDirectory=~
 ExecStart=${pkgPath}/bin/anysphered
-Restart=on-failure
+StandardOutput=append:${logPath}/anysphered.log
+StandardError=append:${logPath}/anysphered.err
+Restart=always
 RestartSec=10
 
 [Install]
