@@ -13,3 +13,6 @@
 [submodule "website/anysphere-me-pages"]
 	path = website/anysphere-me-pages
 	url = git@github.com:anysphere/anysphere-me-pages
+[submodule "research/security-definition"]
+	path = research/security-definition
+	url = git@github.com:anysphere/security-definition
