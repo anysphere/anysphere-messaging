@@ -56,15 +56,11 @@ publish-alpha-OLD: package-mac-arm64 package-mac-x86_64
 	./publish.sh arm64 x86_64
 	echo "Client successfully published to s3! Download from URL above."
 
-# the NEW package functions use .dmg and publish to github
-publish-mac-arm64: loadenv
-	pushd client/gui && npm install && PUBLISH_ASPHR=true npm run package-mac-arm64 && popd
-
-publish-mac-x86_64: loadenv
-	pushd client/gui && npm install && PUBLISH_ASPHR=true npm run package-mac-x86_64 && popd
-
 publish-mac: loadenv
 	./publish-mac.sh
+
+publish-linux: loadenv
+	./publish-linux.sh
 
 publish-landing:
 	pushd website/landing && ./deploy.sh && popd
