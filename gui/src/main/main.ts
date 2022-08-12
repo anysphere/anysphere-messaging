@@ -213,6 +213,13 @@ async function startDaemonIfNeeded(pkgPath: string): Promise<void> {
         logger.error(response.stderr);
         exit(1);
       }
+      const startresponse = await exec(
+        "systemctl start --user co.anysphere.anysphered.service"
+      );
+      if (startresponse.stderr) {
+        console.error(startresponse.stderr);
+        exit(1);
+      }
       logger.log("Successfully started the anysphere daemon.");
     }
   }
