@@ -30,7 +30,7 @@ rust_cxx_bridge(
     name = "main_bridge",
     src = "main.rs",
     deps = [
-        ":main_lib",  # TODO: shouldnt be this??
+        ":cpp_include",
     ],
 )
 
