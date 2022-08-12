@@ -160,34 +160,32 @@ async function startDaemonIfNeeded(pkgPath: string): Promise<void> {
         "x64",
         "anysphered"
       );
+      const newDaemonPath = path.join(getConfigDir(), "anysphered");
       const cliPath = path.join(
         process.env["APPDIR"],
         "resources",
         "x64",
         "anysphere"
       );
+      const newCliPath = path.join(getConfigDir(), "anysphere");
       const mkdir = await exec(`mkdir -p ${getConfigDir()}`);
       if (mkdir.stderr) {
         console.error(mkdir.stderr);
       }
-      const cpdaemon = await exec(
-        `cp ${daemonPath} ${path.join(getConfigDir(), "anysphered")}`
-      );
+      const cpdaemon = await exec(`cp ${daemonPath} ${newDaemonPath}`);
       if (cpdaemon.stderr) {
         console.error(cpdaemon.stderr);
       }
-      const cpclient = await exec(
-        `cp ${cliPath} ${path.join(getConfigDir(), "anysphere")}`
-      );
+      const cpclient = await exec(`cp ${cliPath} ${newCliPath}`);
       if (cpclient.stderr) {
         console.error(cpclient.stderr);
       }
       // updates need the files to be writable
-      const chmoddaemon = await exec(`chmod u+w ${daemonPath}`);
+      const chmoddaemon = await exec(`chmod u+w ${newDaemonPath}`);
       if (chmoddaemon.stderr) {
         console.error(chmoddaemon.stderr);
       }
-      const chmodclient = await exec(`chmod u+w ${cliPath}`);
+      const chmodclient = await exec(`chmod u+w ${newCliPath}`);
       if (chmodclient.stderr) {
         console.error(chmodclient.stderr);
       }
