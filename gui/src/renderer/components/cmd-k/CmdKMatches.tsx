@@ -7,7 +7,7 @@ import * as React from "react";
 import { matchSorter } from "match-sorter";
 
 import type { ActionImpl } from "./types";
-import { useKBar } from "./useKBar";
+import { useKBar } from "./UseKBar";
 import { useThrottledValue } from "./utils";
 
 export const NO_GROUP = "none";

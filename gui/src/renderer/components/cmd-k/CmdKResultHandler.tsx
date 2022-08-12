@@ -8,7 +8,7 @@ import { useVirtual } from "react-virtual";
 
 import { ActionImpl } from "./types";
 import { getListboxItemId, KBAR_LISTBOX } from "./CmdKSearch";
-import { useKBar } from "./useKBar";
+import { useKBar } from "./UseKBar";
 import { usePointerMovedSinceMount } from "../../utils";
 
 const START_INDEX = 0;
@@ -134,7 +134,7 @@ export const CmdKResultHandler: React.FC<KBarResultsProps> = (props) => {
 
   return (
     <div>
-      <div ref={parentRef} className="relative overflow-auto max-h-full">
+      <div ref={parentRef} className="relative max-h-full overflow-auto">
         <div
           role="listbox"
           id={KBAR_LISTBOX}
@@ -164,7 +164,7 @@ export const CmdKResultHandler: React.FC<KBarResultsProps> = (props) => {
                 role="option"
                 aria-selected={active}
                 key={virtualRow.index}
-                className="absolute top-0 left-0 w-full text-asbrown-light h-8"
+                className="absolute top-0 left-0 h-8 w-full text-asbrown-light"
                 style={{
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
