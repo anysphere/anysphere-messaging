@@ -164,7 +164,7 @@ async function startDaemonIfNeeded(pkgPath: string): Promise<void> {
         process.env["APPDIR"],
         "resources",
         "x64",
-        "anysphered"
+        "anysphere"
       );
       const mkdir = await exec(`mkdir -p ${getConfigDir()}`);
       if (mkdir.stderr) {
@@ -177,7 +177,7 @@ async function startDaemonIfNeeded(pkgPath: string): Promise<void> {
         console.error(cpdaemon.stderr);
       }
       const cpclient = await exec(
-        `cp ${daemonPath} ${path.join(getConfigDir(), "anysphere")}`
+        `cp ${cliPath} ${path.join(getConfigDir(), "anysphere")}`
       );
       if (cpclient.stderr) {
         console.error(cpclient.stderr);
