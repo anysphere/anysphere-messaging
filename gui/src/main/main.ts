@@ -182,6 +182,15 @@ async function startDaemonIfNeeded(pkgPath: string): Promise<void> {
       if (cpclient.stderr) {
         console.error(cpclient.stderr);
       }
+      // updates need the files to be writable
+      const chmoddaemon = await exec(`chmod u+w ${daemonPath}`);
+      if (chmoddaemon.stderr) {
+        console.error(chmoddaemon.stderr);
+      }
+      const chmodclient = await exec(`chmod u+w ${cliPath}`);
+      if (chmodclient.stderr) {
+        console.error(chmodclient.stderr);
+      }
 
       const servicePath = path.join(
         getConfigDir(),
