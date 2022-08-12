@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 //
 
-import builder from "electron-builder";
+const builder = require("electron-builder");
 import path from "path";
 import { config } from "./package-shared";
 

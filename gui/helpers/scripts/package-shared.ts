@@ -1,6 +1,8 @@
 import { ArchType } from "builder-util";
-import { Configuration, PackagerOptions } from "electron-builder";
+import { Configuration } from "electron-builder";
+import { AfterPackContext } from "electron-builder";
 import path from "path";
+import fs from "fs";
 
 function baseDir(rel: string): string {
   return path.join(path.resolve(__dirname, "../../"), rel);
@@ -46,10 +48,14 @@ export const config: Configuration = {
 
   // Make sure that all files declared in "extraResources" exists and abort if they don't.
   afterPack: (context: AfterPackContext) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const resources =
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       context.packager.platformSpecificBuildOptions.extraResources;
     for (const resource of resources) {
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument
       if (!fs.existsSync(resource.from)) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         throw new Error(`Can't find file: ${resource.from}`);
       }
     }

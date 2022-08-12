@@ -4,7 +4,7 @@
 //
 
 import { AfterPackContext, BuildResult, Arch } from "electron-builder";
-import builder from "electron-builder";
+const builder = require("electron-builder");
 import path from "path";
 import { notarize } from "electron-notarize";
 import { promisify } from "util";
