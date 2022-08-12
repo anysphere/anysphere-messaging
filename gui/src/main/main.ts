@@ -201,10 +201,17 @@ async function startDaemonIfNeeded(pkgPath: string): Promise<void> {
       if (mkdir2.stderr) {
         console.error(mkdir2.stderr);
       }
+      // first stop the service. don't care if fails
+      await exec("systemctl stop --user co.anysphere.anysphered.service");
       // 1: create the service file
       const logPath = app.getPath("logs");
       const contents = SYSTEMD_UNIT_CONTENTS(getConfigDir(), logPath);
       await fs.promises.writeFile(servicePath, contents);
+      // now reload systemctl
+      const rr = await exec("systemctl --user daemon-reload");
+      if (rr.stderr) {
+        console.error(rr.stderr);
+      }
       // 2: enable the service in user mode, and run it
       const response = await exec(
         "systemctl enable --now --user " + servicePath
