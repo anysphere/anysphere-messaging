@@ -302,6 +302,18 @@ app
         const files = fs.readdirSync(appdir);
         for (const file of files) {
           console.log(file);
+          if (file === "resources") {
+            const resources = fs.readdirSync(path.join(appdir, file));
+            for (const resource of resources) {
+              console.log(resource);
+              if (resource === "x64") {
+                const x64 = fs.readdirSync(path.join(appdir, file, resource));
+                for (const x of x64) {
+                  console.log(x);
+                }
+              }
+            }
+          }
         }
       } else {
         console.log("APPDIR not set");
