@@ -295,6 +295,19 @@ app
   .then(() => {
     setupLogger();
 
+    if (process.platform === "linux") {
+      // list all files in $AppDir for AppImage
+      const appdir = process.env["APPDIR"];
+      if (appdir != null) {
+        const files = fs.readdirSync(appdir);
+        for (const file of files) {
+          console.log(file);
+        }
+      } else {
+        console.log("APPDIR not set");
+      }
+    }
+
     autoUpdater.checkForUpdatesAndNotify();
 
     startDaemonIfNeeded(path.dirname(app.getAppPath()));
