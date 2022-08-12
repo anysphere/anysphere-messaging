@@ -51,7 +51,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=~
-ExecStart=${pkgPath}/bin/anysphered
+ExecStart=${pkgPath}/anysphered
 StandardOutput=append:${logPath}/anysphered.log
 StandardError=append:${logPath}/anysphered.err
 Restart=always

@@ -11,6 +11,7 @@ import {
   session,
   shell,
   Notification,
+  systemPreferences,
 } from "electron";
 import MenuBuilder from "./menu";
 import { resolveHtmlPath } from "./util";
@@ -148,18 +149,52 @@ async function startDaemonIfNeeded(pkgPath: string): Promise<void> {
       }
       logger.log("Successfully loaded the new plist.");
     } else if (process.platform === "linux") {
+      // first we copy the daemon to the .anysphere folder
+      if (process.env["APPDIR"] === undefined) {
+        console.error("APPDIR not set!");
+        exit(1);
+      }
+      const daemonPath = path.join(
+        process.env["APPDIR"],
+        "resources",
+        "x64",
+        "anysphered"
+      );
+      const cliPath = path.join(
+        process.env["APPDIR"],
+        "resources",
+        "x64",
+        "anysphered"
+      );
+      const mkdir = await exec(`mkdir -p ${getConfigDir()}`);
+      if (mkdir.stderr) {
+        console.error(mkdir.stderr);
+      }
+      const cpdaemon = await exec(
+        `cp ${daemonPath} ${path.join(getConfigDir(), "anysphered")}`
+      );
+      if (cpdaemon.stderr) {
+        console.error(cpdaemon.stderr);
+      }
+      const cpclient = await exec(
+        `cp ${daemonPath} ${path.join(getConfigDir(), "anysphere")}`
+      );
+      if (cpclient.stderr) {
+        console.error(cpclient.stderr);
+      }
+
       const servicePath = path.join(
         getConfigDir(),
         "co.anysphere.anysphered.service"
       );
       // 0: create the directory
-      const mkdir = await exec(`mkdir -p ${path.dirname(servicePath)}`);
-      if (mkdir.stderr) {
-        logger.error(mkdir.stderr);
+      const mkdir2 = await exec(`mkdir -p ${path.dirname(servicePath)}`);
+      if (mkdir2.stderr) {
+        console.error(mkdir2.stderr);
       }
       // 1: create the service file
       const logPath = app.getPath("logs");
-      const contents = SYSTEMD_UNIT_CONTENTS(pkgPath, logPath);
+      const contents = SYSTEMD_UNIT_CONTENTS(getConfigDir(), logPath);
       await fs.promises.writeFile(servicePath, contents);
       // 2: enable the service in user mode, and run it
       const response = await exec(
