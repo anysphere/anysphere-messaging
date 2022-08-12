@@ -42,8 +42,6 @@ build --cxxopt=-Wpointer-arith
 build:linuxopt -c opt
 build:linuxopt --cxxopt=-fPIC
 build:linuxopt --linkopt=-fPIC
-# build:linuxopt --cxxopt=-Wl,-z,notext
-# build:linuxopt --cxxopt=-Wno-error
 build:linuxopt --linkopt="-z notext"
 build:linuxopt --force_pic
 
