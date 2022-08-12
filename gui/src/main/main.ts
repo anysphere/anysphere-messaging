@@ -134,7 +134,11 @@ async function startDaemonIfNeeded(pkgPath: string): Promise<void> {
       }
       logger.log("Successfully created the plist directory.");
       // 1: unload plist
-      await exec("launchctl unload " + plistPath); // we don't care if it fails or not!
+      try {
+        await exec("launchctl unload " + plistPath); // we don't care if it fails or not!
+      } catch {
+        // ignore
+      }
       const logPath = app.getPath("logs");
       const contents = PLIST_CONTENTS(pkgPath, logPath);
       logger.log("Successfully unloaded the plist.");
@@ -200,7 +204,11 @@ async function startDaemonIfNeeded(pkgPath: string): Promise<void> {
         console.error(mkdir2.stderr);
       }
       // first stop the service. don't care if fails
-      await exec("systemctl stop --user co.anysphere.anysphered.service");
+      try {
+        await exec("systemctl stop --user co.anysphere.anysphered.service");
+      } catch {
+        // ignore
+      }
       // 1: create the service file
       const logPath = app.getPath("logs");
       const contents = SYSTEMD_UNIT_CONTENTS(getConfigDir(), logPath);
