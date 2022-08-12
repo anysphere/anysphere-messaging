@@ -3,15 +3,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 //
 
-import { AfterPackContext, BuildResult, Arch } from "electron-builder";
 import builder from "electron-builder";
 import path from "path";
-import { notarize } from "electron-notarize";
-import { promisify } from "util";
-import { exec as execNonPromisified } from "child_process";
-import { exit } from "process";
 import { config } from "./package-shared";
-const exec = promisify(execNonPromisified);
 
 // environment variable options:
 // - LINUX_ARCH: TODO.
