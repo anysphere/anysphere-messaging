@@ -5,7 +5,7 @@
 
 import * as React from "react";
 import { VisualState } from "./types";
-import { useKBar } from "./useKBar";
+import { useKBar } from "./UseKBar";
 
 export const KBAR_LISTBOX = "kbar-listbox";
 export const getListboxItemId = (id: number) => `kbar-listbox-item-${id}`;
@@ -49,7 +49,7 @@ export function CmdKSearch(
   return (
     <div className="flex flex-row">
       <input
-        className="focus:outline-none flex-grow pl-2 mb-2 placeholder:text-asbrown-100"
+        className="mb-2 flex-grow pl-2 placeholder:text-asbrown-100 focus:outline-none"
         ref={ownRef}
         autoFocus
         autoComplete="off"

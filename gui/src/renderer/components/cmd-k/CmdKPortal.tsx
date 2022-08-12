@@ -7,7 +7,7 @@ import { NONAME } from "dns";
 import * as React from "react";
 import Modal from "../Modal";
 import { VisualState } from "./types";
-import { useKBar } from "./useKBar";
+import { useKBar } from "./UseKBar";
 
 interface Props {
   children: React.ReactNode;

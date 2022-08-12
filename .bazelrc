@@ -15,11 +15,11 @@ try-import %workspace%/../.buildbuddy.bazelrc
 try-import %workspace%/.user.bazelrc
 
 # setting up remote caching
-# build --bes_results_url=https://app.buildbuddy.io/invocation/
-# build --bes_backend=grpcs://remote.buildbuddy.io
-# build --remote_cache=grpcs://remote.buildbuddy.io
-# build --remote_upload_local_results
-# build --remote_timeout=3600
+build --bes_results_url=https://app.buildbuddy.io/invocation/
+build --bes_backend=grpcs://remote.buildbuddy.io
+build --remote_cache=grpcs://remote.buildbuddy.io
+build --remote_upload_local_results
+build --remote_timeout=3600
 # build --experimental_remote_cache_compression
 # build --experimental_remote_cache_async
 # build --remote_download_toplevel
@@ -36,6 +36,14 @@ build --cxxopt=-Wextra
 # build --cxxopt=-Wcast-qual
 build --cxxopt=-Wno-unused-parameter
 build --cxxopt=-Wpointer-arith
+
+# TODO: figure out how to not have fPIC on linux...
+# this is to avoid a linker bug
+build:linuxopt -c opt
+build:linuxopt --cxxopt=-fPIC
+build:linuxopt --linkopt=-fPIC
+build:linuxopt --linkopt="-z notext"
+build:linuxopt --force_pic
 
 # Address sanitizer
 # CC=clang bazel build --config asan

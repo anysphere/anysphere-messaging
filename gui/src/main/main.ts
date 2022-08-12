@@ -11,6 +11,7 @@ import {
   session,
   shell,
   Notification,
+  systemPreferences,
 } from "electron";
 import MenuBuilder from "./menu";
 import { resolveHtmlPath } from "./util";
@@ -19,10 +20,15 @@ import { promisify } from "util";
 import { exec as execNonPromisified } from "child_process";
 const exec = promisify(execNonPromisified);
 
-import { truncate, DaemonImpl } from "./daemon";
+import { truncate, DaemonImpl, getConfigDir } from "./daemon";
 import { IncomingMessage } from "../types";
 import * as daemon_pb from "../daemon/schema/daemon_pb";
-import { PLIST_CONTENTS, PLIST_PATH, RELEASE_COMMIT_HASH } from "./constants";
+import {
+  PLIST_CONTENTS,
+  PLIST_PATH,
+  RELEASE_COMMIT_HASH,
+  SYSTEMD_UNIT_CONTENTS,
+} from "./constants";
 import { exit } from "process";
 import fs from "fs";
 import { Console } from "console";
@@ -115,31 +121,120 @@ async function startDaemonIfNeeded(pkgPath: string): Promise<void> {
     // }
     // logger.log("Successfully linked the CLI.");
 
-    // TODO(arvid): handle windows and linux too
-    // possible problem, so let's start the daemon!
-    // unload the plist if it exists.
-    const plistPath = PLIST_PATH();
-    // 0: create the directory
-    const mkdirPlist = await exec(`mkdir -p ${path.dirname(plistPath)}`);
-    if (mkdirPlist.stderr) {
-      logger.error(mkdirPlist.stderr);
+    // TODO(arvid): handle windows
+
+    if (process.platform === "darwin") {
+      // possible problem, so let's start the daemon!
+      // unload the plist if it exists.
+      const plistPath = PLIST_PATH();
+      // 0: create the directory
+      const mkdirPlist = await exec(`mkdir -p ${path.dirname(plistPath)}`);
+      if (mkdirPlist.stderr) {
+        logger.error(mkdirPlist.stderr);
+      }
+      logger.log("Successfully created the plist directory.");
+      // 1: unload plist
+      try {
+        await exec("launchctl unload " + plistPath); // we don't care if it fails or not!
+      } catch {
+        // ignore
+      }
+      const logPath = app.getPath("logs");
+      const contents = PLIST_CONTENTS(pkgPath, logPath);
+      logger.log("Successfully unloaded the plist.");
+      // 2: write plist
+      await fs.promises.writeFile(plistPath, contents);
+      logger.log("Successfully wrote the new plist.");
+      // 3: load plist
+      const response = await exec("launchctl load " + plistPath);
+      if (response.stderr) {
+        logger.error(response.stderr);
+        exit(1);
+      }
+      logger.log("Successfully loaded the new plist.");
+    } else if (process.platform === "linux") {
+      // first we copy the daemon to the .anysphere folder
+      if (process.env["APPDIR"] === undefined) {
+        console.error("APPDIR not set!");
+        exit(1);
+      }
+      const daemonPath = path.join(
+        process.env["APPDIR"],
+        "resources",
+        "x64",
+        "anysphered"
+      );
+      const newDaemonPath = path.join(getConfigDir(), "anysphered");
+      const cliPath = path.join(
+        process.env["APPDIR"],
+        "resources",
+        "x64",
+        "anysphere"
+      );
+      const newCliPath = path.join(getConfigDir(), "anysphere");
+      const mkdir = await exec(`mkdir -p ${getConfigDir()}`);
+      if (mkdir.stderr) {
+        console.error(mkdir.stderr);
+      }
+      const cpdaemon = await exec(`cp ${daemonPath} ${newDaemonPath}`);
+      if (cpdaemon.stderr) {
+        console.error(cpdaemon.stderr);
+      }
+      const cpclient = await exec(`cp ${cliPath} ${newCliPath}`);
+      if (cpclient.stderr) {
+        console.error(cpclient.stderr);
+      }
+      // updates need the files to be writable
+      const chmoddaemon = await exec(`chmod u+w ${newDaemonPath}`);
+      if (chmoddaemon.stderr) {
+        console.error(chmoddaemon.stderr);
+      }
+      const chmodclient = await exec(`chmod u+w ${newCliPath}`);
+      if (chmodclient.stderr) {
+        console.error(chmodclient.stderr);
+      }
+
+      const servicePath = path.join(
+        getConfigDir(),
+        "co.anysphere.anysphered.service"
+      );
+      // 0: create the directory
+      const mkdir2 = await exec(`mkdir -p ${path.dirname(servicePath)}`);
+      if (mkdir2.stderr) {
+        console.error(mkdir2.stderr);
+      }
+      // first stop the service. don't care if fails
+      try {
+        await exec("systemctl stop --user co.anysphere.anysphered.service");
+      } catch {
+        // ignore
+      }
+      // 1: create the service file
+      const logPath = app.getPath("logs");
+      const contents = SYSTEMD_UNIT_CONTENTS(getConfigDir(), logPath);
+      await fs.promises.writeFile(servicePath, contents);
+      // now reload systemctl
+      const rr = await exec("systemctl --user daemon-reload");
+      if (rr.stderr) {
+        console.error(rr.stderr);
+      }
+      // 2: enable the service in user mode, and run it
+      const response = await exec(
+        "systemctl enable --now --user " + servicePath
+      );
+      if (response.stderr) {
+        logger.error(response.stderr);
+        exit(1);
+      }
+      const startresponse = await exec(
+        "systemctl start --user co.anysphere.anysphered.service"
+      );
+      if (startresponse.stderr) {
+        console.error(startresponse.stderr);
+        exit(1);
+      }
+      logger.log("Successfully started the anysphere daemon.");
     }
-    logger.log("Successfully created the plist directory.");
-    // 1: unload plist
-    await exec("launchctl unload " + plistPath); // we don't care if it fails or not!
-    const logPath = app.getPath("logs");
-    const contents = PLIST_CONTENTS(pkgPath, logPath);
-    logger.log("Successfully unloaded the plist.");
-    // 2: write plist
-    await fs.promises.writeFile(plistPath, contents);
-    logger.log("Successfully wrote the new plist.");
-    // 3: load plist
-    const response = await exec("launchctl load " + plistPath);
-    if (response.stderr) {
-      logger.error(response.stderr);
-      exit(1);
-    }
-    logger.log("Successfully loaded the new plist.");
   }
 }
 
@@ -263,6 +358,31 @@ app
   .whenReady()
   .then(() => {
     setupLogger();
+
+    if (process.platform === "linux") {
+      // list all files in $AppDir for AppImage
+      const appdir = process.env["APPDIR"];
+      if (appdir != null) {
+        const files = fs.readdirSync(appdir);
+        for (const file of files) {
+          console.log(file);
+          if (file === "resources") {
+            const resources = fs.readdirSync(path.join(appdir, file));
+            for (const resource of resources) {
+              console.log(resource);
+              if (resource === "x64") {
+                const x64 = fs.readdirSync(path.join(appdir, file, resource));
+                for (const x of x64) {
+                  console.log(x);
+                }
+              }
+            }
+          }
+        }
+      } else {
+        console.log("APPDIR not set");
+      }
+    }
 
     autoUpdater.checkForUpdatesAndNotify();
 

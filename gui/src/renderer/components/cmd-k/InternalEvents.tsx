@@ -5,7 +5,7 @@
 
 import * as React from "react";
 import { VisualState } from "./types";
-import { useKBar } from "./useKBar";
+import { useKBar } from "./UseKBar";
 import { isModKey, shouldRejectKeystrokes } from "./utils";
 
 type Timeout = ReturnType<typeof setTimeout>;

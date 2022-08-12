@@ -30,7 +30,7 @@ rust_cxx_bridge(
     name = "main_bridge",
     src = "main.rs",
     deps = [
-        ":main_lib",  # TODO: shouldnt be this??
+        ":cpp_include",
     ],
 )
 
@@ -126,6 +126,7 @@ cc_library(
     linkstatic = True,
     visibility = ["//visibility:public"],  # for integration tests
     deps = [
+        ":main_bridge/include",
         ":rpc_lib",
         ":transmitter_lib",
     ],
