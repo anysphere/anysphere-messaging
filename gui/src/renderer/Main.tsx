@@ -262,42 +262,49 @@ function Main({
   }
 
   React.useEffect(() => {
+    const displayRegisterModal = () => {
+      setModal(
+        <RegisterModal
+          onClose={() => {
+            console.log(
+              "// should not be able to close modal by clicking outside"
+            );
+          }}
+          onRegister={(username: string, key: string) => {
+            window
+              .registerUser({ name: username, betaKey: key })
+              .then(() => {
+                closeModal();
+                statusState.setStatus({
+                  message: `Registered!`,
+                  actionName: null,
+                });
+                statusState.setVisible();
+              })
+              .catch((e) => {
+                console.error(e);
+                statusState.setStatus({
+                  message: `Unable to register. Perhaps incorrect access key?`,
+                  actionName: null,
+                });
+                statusState.setVisible();
+              });
+          }}
+        />
+      );
+    };
+
     window
       .hasRegistered()
       .then((registered: boolean) => {
         if (!registered) {
-          setModal(
-            <RegisterModal
-              onClose={() => {
-                console.log(
-                  "// should not be able to close modal by clicking outside"
-                );
-              }}
-              onRegister={(username: string, key: string) => {
-                window
-                  .registerUser({ name: username, betaKey: key })
-                  .then(() => {
-                    closeModal();
-                    statusState.setStatus({
-                      message: `Registered!`,
-                      actionName: null,
-                    });
-                    statusState.setVisible();
-                  })
-                  .catch((e) => {
-                    console.error(e);
-                    statusState.setStatus({
-                      message: `Unable to register. Perhaps incorrect access key?`,
-                      actionName: null,
-                    });
-                    statusState.setVisible();
-                  });
-              }}
-            />
-          );
+          displayRegisterModal();
         }
       })
-      .catch(console.error);
+      .catch((err) => {
+        console.error(err);
+        displayRegisterModal();
+      });
   }, [closeModal, statusState]);
 
   const openOutbox = React.useCallback(() => {
