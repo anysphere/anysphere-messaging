@@ -37,6 +37,16 @@ build --cxxopt=-Wextra
 build --cxxopt=-Wno-unused-parameter
 build --cxxopt=-Wpointer-arith
 
+# TODO: figure out how to not have fPIC on linux...
+# this is to avoid a linker bug
+build:linuxopt -c opt
+build:linuxopt --cxxopt=-fPIC
+build:linuxopt --linkopt=-fPIC
+# build:linuxopt --cxxopt=-Wl,-z,notext
+# build:linuxopt --cxxopt=-Wno-error
+build:linuxopt --linkopt="-z notext"
+build:linuxopt --force_pic
+
 # Address sanitizer
 # CC=clang bazel build --config asan
 build:asan --strip=never

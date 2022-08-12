@@ -126,6 +126,7 @@ cc_library(
     linkstatic = True,
     visibility = ["//visibility:public"],  # for integration tests
     deps = [
+        ":main_bridge/include",
         ":rpc_lib",
         ":transmitter_lib",
     ],
