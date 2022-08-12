@@ -102,6 +102,9 @@ export default function AddFriendRemote({
                 Copy
               </button>
             </div>
+            <div className="text-xs" style={{ userSelect: "text" }}>
+              anysphere.id/#{publicId}
+            </div>
             <div></div>
             <div></div>
             <div></div>
