@@ -59,7 +59,7 @@ constexpr auto DEFAULT_ROUND_DELAY_SECONDS = 60;
 constexpr auto DEFAULT_SERVER_ADDRESS = "server1.anysphere.co:443";
 
 // this commit hash will be automatically updated by gui/package.json.
-constexpr auto RELEASE_COMMIT_HASH = "fe62959fc0017b9ad75ccbf82664c5ff955a7d19";
+constexpr auto RELEASE_COMMIT_HASH = "bd2849b3b44d13bad92d9977204bf012dd08bff6";
 
 // this is the number of friends that will be received from in each round
 // (ideally, they can all be received in a single PIR request using batch PIR)
