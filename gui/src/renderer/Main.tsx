@@ -451,8 +451,8 @@ cat << EOF >> ~/.zprofile
 export PATH="\\$PATH:/usr/local/bin"
 EOF`
                         : `sudo mkdir -p /usr/local/bin
-sudo ln -sf /Applications/Anysphere.app/Contents/Resources/bin/anysphere /usr/local/bin/anysphere
-cat << EOF >> ~/.zprofile
+sudo ln -sf /\\$HOME/.anysphere/anysphere /usr/local/bin/anysphere
+cat << EOF >> ~/.bash_profile
 export PATH="\\$PATH:/usr/local/bin"
 EOF`}
                     </code>
