@@ -4,21 +4,20 @@
 //
 
 import { AfterPackContext, BuildResult, Arch } from "electron-builder";
-import builder from "electron-builder";
+const builder = require("electron-builder");
 import path from "path";
+import fs from "fs";
 import { notarize } from "electron-notarize";
 import { promisify } from "util";
 import { exec as execNonPromisified } from "child_process";
 import { exit } from "process";
-import { config } from "./package-shared";
 const exec = promisify(execNonPromisified);
 
 // environment variable options:
-// - MAC_ARCH: "universal", "x64", "arm64", "both" or undefined for the current architecture
-// - MAC_DONT_NOTARIZE: true to skip notarization
+// - LINUX_ARCH: TODO
 require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
 
-function packageMac(): Promise<Array<string>> {
+function packageMac() {
   if (process.env["MAC_DONT_NOTARIZE"] === "true") {
     console.log("WARNING! Skipping notarization");
   }
@@ -80,11 +79,11 @@ function packageMac(): Promise<Array<string>> {
   });
 }
 
-function notarizeMac(appPath: string): Promise<void> {
-  console.log("Notarizing " + appPath);
+function notarizeMac(app_path: string) {
+  console.log("Notarizing " + app_path);
   return notarize({
     tool: "notarytool",
-    appPath: appPath,
+    appPath: app_path,
     keychain: `${process.env["HOME"]}/Library/Keychains/login.keychain-db`,
     keychainProfile: "anysphere-gui-profile",
   });

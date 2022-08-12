@@ -26,7 +26,6 @@ import {
   PLIST_CONTENTS,
   PLIST_PATH,
   RELEASE_COMMIT_HASH,
-  SYSTEMD_PATH,
   SYSTEMD_UNIT_CONTENTS,
 } from "./constants";
 import { exit } from "process";
