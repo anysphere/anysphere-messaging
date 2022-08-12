@@ -60,12 +60,3 @@ RestartSec=10
 [Install]
 WantedBy=multi-user.target`;
 };
-
-export const SYSTEMD_PATH = (): string => {
-  if (process.platform === "linux") {
-    return "/etc/systemd/system/co.anysphere.anysphered.service";
-  } else {
-    process.stderr.write("Platform not supported");
-    exit(1);
-  }
-};

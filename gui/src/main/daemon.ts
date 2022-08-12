@@ -13,33 +13,29 @@ import { RELEASE_COMMIT_HASH } from "./constants";
 
 const FAKE_DATA = process.env["ASPHR_FAKE_DATA"] === "true";
 
-function getSocketPath(): string {
+function getRuntimeDir(): string {
   if (process.env["XDG_RUNTIME_DIR"] != null) {
-    return path.join(
-      process.env["XDG_RUNTIME_DIR"],
-      "anysphere",
-      "anysphere.sock"
-    );
-  } else if (process.env["XDG_CONFIG_HOME"] != null) {
-    return path.join(
-      process.env["XDG_CONFIG_HOME"],
-      "anysphere",
-      "run",
-      "anysphere.sock"
-    );
+    return path.join(process.env["XDG_RUNTIME_DIR"], "anysphere");
+  } else {
+    return path.join(getConfigDir(), "run");
+  }
+}
+
+export function getConfigDir(): string {
+  if (process.env["XDG_CONFIG_HOME"] != null) {
+    return path.join(process.env["XDG_CONFIG_HOME"], "anysphere");
   } else if (process.env["HOME"] != null) {
-    return path.join(
-      process.env["HOME"],
-      ".anysphere",
-      "run",
-      "anysphere.sock"
-    );
+    return path.join(process.env["HOME"], ".anysphere");
   } else {
     process.stderr.write(
-      "$HOME or $XDG_CONFIG_HOME or $XDG_RUNTIME_DIR not set! Cannot find socket, aborting. :("
+      "$HOME or $XDG_CONFIG_HOME or not set! Cannot find config directory, aborting. :("
     );
-    throw new Error("$HOME or $XDG_CONFIG_HOME or $XDG_RUNTIME_DIR not set!");
+    throw new Error("$HOME or $XDG_CONFIG_HOME or not set!");
   }
+}
+
+function getSocketPath(): string {
+  return path.join(getRuntimeDir(), "anysphere.sock");
 }
 
 function getSocketAddress(): string {

@@ -19,10 +19,16 @@ import { promisify } from "util";
 import { exec as execNonPromisified } from "child_process";
 const exec = promisify(execNonPromisified);
 
-import { truncate, DaemonImpl } from "./daemon";
+import { truncate, DaemonImpl, getConfigDir } from "./daemon";
 import { IncomingMessage } from "../types";
 import * as daemon_pb from "../daemon/schema/daemon_pb";
-import { PLIST_CONTENTS, PLIST_PATH, RELEASE_COMMIT_HASH } from "./constants";
+import {
+  PLIST_CONTENTS,
+  PLIST_PATH,
+  RELEASE_COMMIT_HASH,
+  SYSTEMD_PATH,
+  SYSTEMD_UNIT_CONTENTS,
+} from "./constants";
 import { exit } from "process";
 import fs from "fs";
 import { Console } from "console";
@@ -115,31 +121,57 @@ async function startDaemonIfNeeded(pkgPath: string): Promise<void> {
     // }
     // logger.log("Successfully linked the CLI.");
 
-    // TODO(arvid): handle windows and linux too
-    // possible problem, so let's start the daemon!
-    // unload the plist if it exists.
-    const plistPath = PLIST_PATH();
-    // 0: create the directory
-    const mkdirPlist = await exec(`mkdir -p ${path.dirname(plistPath)}`);
-    if (mkdirPlist.stderr) {
-      logger.error(mkdirPlist.stderr);
+    // TODO(arvid): handle windows
+
+    if (process.platform === "darwin") {
+      // possible problem, so let's start the daemon!
+      // unload the plist if it exists.
+      const plistPath = PLIST_PATH();
+      // 0: create the directory
+      const mkdirPlist = await exec(`mkdir -p ${path.dirname(plistPath)}`);
+      if (mkdirPlist.stderr) {
+        logger.error(mkdirPlist.stderr);
+      }
+      logger.log("Successfully created the plist directory.");
+      // 1: unload plist
+      await exec("launchctl unload " + plistPath); // we don't care if it fails or not!
+      const logPath = app.getPath("logs");
+      const contents = PLIST_CONTENTS(pkgPath, logPath);
+      logger.log("Successfully unloaded the plist.");
+      // 2: write plist
+      await fs.promises.writeFile(plistPath, contents);
+      logger.log("Successfully wrote the new plist.");
+      // 3: load plist
+      const response = await exec("launchctl load " + plistPath);
+      if (response.stderr) {
+        logger.error(response.stderr);
+        exit(1);
+      }
+      logger.log("Successfully loaded the new plist.");
+    } else if (process.platform === "linux") {
+      const servicePath = path.join(
+        getConfigDir(),
+        "co.anysphere.anysphered.service"
+      );
+      // 0: create the directory
+      const mkdir = await exec(`mkdir -p ${path.dirname(servicePath)}`);
+      if (mkdir.stderr) {
+        logger.error(mkdir.stderr);
+      }
+      // 1: create the service file
+      const logPath = app.getPath("logs");
+      const contents = SYSTEMD_UNIT_CONTENTS(pkgPath, logPath);
+      await fs.promises.writeFile(servicePath, contents);
+      // 2: enable the service in user mode, and run it
+      const response = await exec(
+        "systemctl enable --now --user " + servicePath
+      );
+      if (response.stderr) {
+        logger.error(response.stderr);
+        exit(1);
+      }
+      logger.log("Successfully started the anysphere daemon.");
     }
-    logger.log("Successfully created the plist directory.");
-    // 1: unload plist
-    await exec("launchctl unload " + plistPath); // we don't care if it fails or not!
-    const logPath = app.getPath("logs");
-    const contents = PLIST_CONTENTS(pkgPath, logPath);
-    logger.log("Successfully unloaded the plist.");
-    // 2: write plist
-    await fs.promises.writeFile(plistPath, contents);
-    logger.log("Successfully wrote the new plist.");
-    // 3: load plist
-    const response = await exec("launchctl load " + plistPath);
-    if (response.stderr) {
-      logger.error(response.stderr);
-      exit(1);
-    }
-    logger.log("Successfully loaded the new plist.");
   }
 }
 
