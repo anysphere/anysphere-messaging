@@ -1,5 +1,7 @@
 # Anysphere Client
 
+_Apply for Anysphere here: [anysphere.co](https://anysphere.co)._
+
 This repository, along with [anysphere/asphr](https://github.com/anysphere/asphr), contains all client-side code run by Anysphere. You can download Anysphere [here](https://anysphere.co/download), or build your own identical Anysphere client from source by following the instructions below. If you have any questions, please reach out to us at [anysphere.id/#85dG6DNNv...](https://anysphere.id/#85dG6DNNvNQeCNSMXyJ5j3YprmRkmQDe7QcbEuHgoyw81UBLAAAA3NfN3fJgkNUMtrt8vxQBx3wfLn1cg3MJUac99XRwN9rVbn) or `hello@anysphere.co`.
 
 ## Build from source
