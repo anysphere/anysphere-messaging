@@ -27,9 +27,9 @@ It should print something like the following if successful:
 This builds the full app, which is what you can also download from [anysphere.co/download](https://anysphere.co/download).
 
 1. Go to the `gui` directory: `cd gui`.
-2. Run `npm run package-mac`.
+2. Run `npm run package-mac` if you're on Mac, and `npm run package-linux` if you're on Linux.
 
-Linux and Windows support will be added soon.
+Windows support will be added soon.
 
 ## Developing
 
