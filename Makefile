@@ -25,6 +25,14 @@ minimal-server:
 	DOCKER_BUILDKIT=1 docker build -f minimal-server.Dockerfile -t minimal-server .
 	rm -f as_server
 
+minimal-server-showhn:
+	bazelisk build //server/src:as_server -c opt --define hn_beta=true
+	rm -f as_server
+	# do echo "$(bazelisk info output_path)/k8-opt/bin/server/src/as_server"; makefile doesn't support $() syntax
+	cp /workspace/root_bazel_output_base/execroot/__main__/bazel-out/k8-opt/bin/server/src/as_server as_server
+	DOCKER_BUILDKIT=1 docker build -f minimal-server.Dockerfile -t minimal-server-showhn .
+	rm -f as_server
+
 push: server
 	docker tag server 946207870883.dkr.ecr.us-east-1.amazonaws.com/asphr-server
 	docker push 946207870883.dkr.ecr.us-east-1.amazonaws.com/asphr-server
@@ -35,6 +43,12 @@ push-minimal: minimal-server
 	docker tag minimal-server 946207870883.dkr.ecr.us-east-1.amazonaws.com/asphr-server
 	docker push 946207870883.dkr.ecr.us-east-1.amazonaws.com/asphr-server
 	echo "Now update infra/aws/variables.tf to include the new sha256 in the asphr_server_image_tag variable!"
+	echo "Now do cd infra/aws && terraform apply"
+
+push-minimal-showhn: minimal-server-showhn
+	docker tag minimal-server-showhn 946207870883.dkr.ecr.us-east-1.amazonaws.com/asphr-showhn-server
+	docker push 946207870883.dkr.ecr.us-east-1.amazonaws.com/asphr-showhn-server
+	echo "Now update infra/aws/variables.tf to include the new sha256 in the asphr_showhn_server_image_tag variable!"
 	echo "Now do cd infra/aws && terraform apply"
 
 push-landing: landing-server

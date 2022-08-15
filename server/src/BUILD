@@ -9,6 +9,16 @@ package(
 )
 
 cc_library(
+    name = "beta_key_lib",
+    hdrs = ["beta_key_auth.hpp"],
+    defines = select({
+        ":hn_beta_key": ["USE_HN_BETA_KEY"],
+        "//conditions:default": [],
+    }),
+    deps = ["@asphr//asphr:asphr_lib"]
+)
+
+cc_library(
     name = "as_server_lib",
     srcs = [
         "async_invitation_database.cc",
@@ -16,7 +26,6 @@ cc_library(
     hdrs = [
         "account_manager.hpp",
         "async_invitation_database.hpp",
-        "beta_key_auth.hpp",
         "server_constants.hpp",
         "server_rpc.cc",
         "server_rpc.hpp",
@@ -33,6 +42,7 @@ cc_library(
     deps = [
         "//server/pir/fast_pir:server_fast_pir_lib",
         "//server/pir/nonprivate:nonprivate_pir_lib",
+        ":beta_key_lib",
         "@asphr//asphr:asphr_lib",
         "@asphr//schema:server_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
@@ -73,6 +83,11 @@ config_setting(
 config_setting(
     name = "postgres_tests",
     values = {"define": "postgres_tests=true"},
+)
+
+config_setting(
+    name = "hn_beta_key",
+    values = {"define": "hn_beta=true"},
 )
 
 # container_image(
