@@ -1,5 +1,7 @@
 # Anysphere Client
 
+_Apply for Anysphere [here](https://anysphere.co/#apply)._
+
 This repository, along with [anysphere/asphr](https://github.com/anysphere/asphr), contains all client-side code run by Anysphere. You can download Anysphere [here](https://anysphere.co/download), or build your own identical Anysphere client from source by following the instructions below. If you have any questions, please reach out to us at [anysphere.id/#85dG6DNNv...](https://anysphere.id/#85dG6DNNvNQeCNSMXyJ5j3YprmRkmQDe7QcbEuHgoyw81UBLAAAA3NfN3fJgkNUMtrt8vxQBx3wfLn1cg3MJUac99XRwN9rVbn) or `hello@anysphere.co`.
 
 ## Build from source
@@ -25,9 +27,9 @@ It should print something like the following if successful:
 This builds the full app, which is what you can also download from [anysphere.co/download](https://anysphere.co/download).
 
 1. Go to the `gui` directory: `cd gui`.
-2. Run `npm run package-mac`.
+2. Run `npm run package-mac` if you're on Mac, and `npm run package-linux` if you're on Linux.
 
-Linux and Windows support will be added soon.
+Windows support will be added soon.
 
 ## Developing
 
