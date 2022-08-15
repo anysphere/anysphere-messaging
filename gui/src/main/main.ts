@@ -272,7 +272,6 @@ const createWindow = async (publicID?: string): Promise<void> => {
     height: 728,
     backgroundColor: "#F9F7F1",
     icon: getAssetPath("icon.png"),
-    autoHideMenuBar: true,
     titleBarStyle: "hidden",
     webPreferences: {
       preload: app.isPackaged
