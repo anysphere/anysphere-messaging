@@ -413,7 +413,6 @@ app.on("web-contents-created", (event, contents) => {
   });
 });
 
-// Handle the protocol. In this case, we choose to show an Error Box.
 app.on("open-url", (event, url) => {
   const publicID = url.split("/").pop();
   if (BrowserWindow.getAllWindows().length === 0) {

@@ -38,6 +38,9 @@ export default class MenuBuilder {
 
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
+    if (process.platform !== "darwin") {
+      Menu.setApplicationMenu(null);
+    }
 
     return menu;
   }

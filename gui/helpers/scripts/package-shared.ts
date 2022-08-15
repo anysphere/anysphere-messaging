@@ -95,6 +95,11 @@ export const config: Configuration = {
       arch: "x64", // TODO: support arm64
     },
     category: "public.app-category.productivity",
+    icon: assetsDir("icon.png"),
+    mimeTypes: ["x-scheme-handler/anysphere"],
+    desktop: {
+      exec: "anysphere %u",
+    },
     extraResources: [
       {
         from: path.join(baseDir("binaries")), // daemon and CLI
