@@ -7,7 +7,7 @@ import { contextBridge, clipboard } from "electron";
 import { DaemonImpl } from "./daemon";
 
 contextBridge.exposeInMainWorld("copyToClipboard", (s: string) => {
-  clipboard.writeText(s, "selection");
+  clipboard.writeText(s);
 });
 
 contextBridge.exposeInMainWorld("isPlatformMac", () => {
