@@ -95,6 +95,7 @@ export const config: Configuration = {
       arch: "x64", // TODO: support arm64
     },
     category: "public.app-category.productivity",
+    icon: assetsDir("icon.icns"),
     extraResources: [
       {
         from: path.join(baseDir("binaries")), // daemon and CLI
