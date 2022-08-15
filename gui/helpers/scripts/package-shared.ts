@@ -96,6 +96,10 @@ export const config: Configuration = {
     },
     category: "public.app-category.productivity",
     icon: assetsDir("icon.icns"),
+    mimeTypes: ["x-scheme-handler/anysphere"],
+    desktop: {
+      exec: "anysphere %u",
+    },
     extraResources: [
       {
         from: path.join(baseDir("binaries")), // daemon and CLI
