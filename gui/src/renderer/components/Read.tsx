@@ -13,9 +13,11 @@ import DOMPurify from "dompurify";
 function Read({
   message,
   onClose,
+  onRespond,
 }: {
   message: IncomingMessage | OutgoingMessage;
   onClose: () => void;
+  onRespond: (time: string, sender: string, message: string) => void;
 }): JSX.Element {
   React.useEffect(() => {
     const handler = (event: KeyboardEvent): void => {
@@ -69,6 +71,18 @@ function Read({
             {"fromDisplayName" in message ? message.fromDisplayName : "me"}
           </div>
           <div className="flex-1"></div>
+          <button className="bg-grey" onClick={
+            // Respond button
+            () => {
+              // respond to incoming message
+              if (typeof message == "object" && "fromDisplayName" in message) {
+                onRespond(timestampString, message.fromDisplayName, message.message);
+              }
+              // "respond" to outgoing message
+              else {
+                onRespond(timestampString, message.toFriendsList.toString(), message.message);
+              }
+          }}> Respond </button>
         </div>
         <div className="flex flex-row content-center pb-2 pt-1 text-xs text-asbrown-300">
           <div className="grid place-content-center">

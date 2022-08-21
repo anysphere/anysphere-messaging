@@ -27,11 +27,20 @@ export type MultiSelectData = {
   text: string;
 };
 
+export type ResponseData = {
+  timeStamp: string;
+  sender: string;
+  content: string;
+};
+
 export type WriteData = {
   content: string;
   multiSelectState: MultiSelectData;
   focus: "content" | "to";
+  response: ResponseData | undefined;
 };
+
+
 
 function MultiSelect(props: {
   options: WriteFriend[];
@@ -197,6 +206,9 @@ function Write({
 
   const editorStateRef = React.useRef<EditorState>(null);
 
+  const [loaded, setLoad] = React.useState<boolean>(false); // set to true when the friend list finish loading
+  // otherwise there is a race condition where the editor state is set before the friend list is loaded
+
   React.useEffect(() => {
     // get both the complete friends and the sync invitations
     // the sync invitations have verified each other so it is safe to treat as a real friend
@@ -214,11 +226,35 @@ function Write({
             };
           }),
         ]);
+        // if we are writing a response, add the senders to data.multiSelectState
+        // currently only support one friend
+        // we could support list of friends in the future
+        if (typeof data.response != "undefined") {
+          const displayName = data.response.sender;
+          // search displayName in friends
+          const friend = friends.find((f) => f.displayName === displayName);
+          if (typeof friend != "undefined") {
+            data.multiSelectState.friends = [...data.multiSelectState.friends, {
+              uniqueName: friend.uniqueName,
+              displayName: friend.displayName,
+              publicId: friend.publicId,
+            }];
+            // focus on the text editing area
+            data.focus = "content";
+          }
+          else {
+            // did not find the sender in the friend list
+            data.multiSelectState.text = displayName;
+          }
+          console.log("friends loaded");
+          setLoad(true);
+        }
       })
       .catch((err) => {
         console.error(err);
       });
   }, []);
+
   React.useEffect(() => {
     // get both the complete friends and the sync invitations
     // the sync invitations have verified each other so it is safe to treat as a real friend
@@ -314,6 +350,7 @@ function Write({
     data.multiSelectState.friends,
     setStatus,
     onDone,
+    loaded
   ]);
 
   React.useEffect(() => {
@@ -337,8 +374,9 @@ function Write({
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [data, edit, onClose, send]);
+  }, [data, edit, onClose, send, loaded]);
 
+  console.log(data.focus);
   return (
     <div
       className={classNames(
@@ -373,7 +411,10 @@ function Write({
                   focus: "content",
                 })
               }
-              multiSelectState={data.multiSelectState}
+              multiSelectState={
+                // wait for friend list to load.
+                loaded?data.multiSelectState:{friends:[], text:"loading..."}
+              }
               focused={data.focus === "to"}
               onClick={() => {
                 edit({
@@ -395,6 +436,7 @@ function Write({
             });
           }}
           editorStateRef={editorStateRef}
+          responseTemplate={data.response}
         />
         <div className="flex flex-row content-center py-2">
           <div className="flex-1"></div>

@@ -4,11 +4,12 @@
 //
 
 import { MutableRefObject, useEffect } from "react";
-import { COMMAND_PRIORITY_LOW, EditorState, FOCUS_COMMAND } from "lexical";
+import { $getRoot, $getSelection, $createParagraphNode, $createTextNode,
+  $createLineBreakNode, COMMAND_PRIORITY_LOW, EditorState, FOCUS_COMMAND } from "lexical";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { PlainTextPlugin } from "@lexical/react/LexicalPlainTextPlugin";
-import { HeadingNode, QuoteNode } from "@lexical/rich-text";
+import { HeadingNode, QuoteNode, $createQuoteNode} from "@lexical/rich-text";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
@@ -23,6 +24,9 @@ import AsphrAutoLinkPlugin from "./Plugins/AsphrAutoLinkPlugin";
 
 import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
 import { TRANSFORMERS } from "@lexical/markdown";
+
+import { ResponseData } from "./Write";
+import { root } from "postcss";
 
 const prose = "prose-stone";
 
@@ -85,10 +89,12 @@ export function Editor({
   focused,
   onFocus,
   editorStateRef,
+  responseTemplate,
 }: {
   focused: boolean;
   onFocus: () => void;
   editorStateRef: MutableRefObject<EditorState | null>;
+  responseTemplate: ResponseData | undefined;
 }): JSX.Element {
   const initialConfig = {
     namespace: "MyEditor",
@@ -116,13 +122,44 @@ export function Editor({
           contentEditable={
             <ContentEditable className="min-h-[100px] text-sm outline-none" />
           }
+          initialEditorState={      // Put some initial text in the message if there is none
+            () => {
+              // mimics https://github.com/facebook/lexical/blob/b804f2a3eeb407a58d2b78b91d51cab62ed09bd0/packages/lexical-playground/src/App.tsx
+              const root = $getRoot();
+              // if responseTemplate is not undefined,
+              // prefill responseTemplate into the editor
+              if (typeof responseTemplate != "undefined") {
+                const paragraph = $createParagraphNode();
+                // first line of response
+                const header = "On " + responseTemplate.timeStamp + ", " + responseTemplate.sender + " wrote:";
+                const headerNode = $createTextNode(header);
+                // put line breaks before the header
+                const lineBreak1 = $createLineBreakNode();
+                const lineBreak2 = $createLineBreakNode();
+                const lineBreak3 = $createLineBreakNode();
+                paragraph.append(lineBreak1);
+                paragraph.append(lineBreak2);
+                paragraph.append(lineBreak3);
+                paragraph.append(headerNode);
+                root.append(paragraph);
+                const quote = $createQuoteNode(); 
+                const text = $createTextNode(responseTemplate.content);
+                text.setStyle("color: #BEBEBE");
+                quote.append(text);
+                root.append(quote);
+              }
+          }}
           placeholder=""
         />
         <OnChangePlugin
           onChange={(editorState) => (editorStateRef.current = editorState)}
         />
         <HistoryPlugin />
-        <FocusPlugin focused={focused} onFocus={onFocus} />
+        <FocusPlugin focused={focused} onFocus={() => {
+          onFocus();
+          // put the cursor at the start of the editor
+          $getRoot().selectStart();
+        }} />
         <AsphrAutoLinkPlugin />
         <LinkPlugin />
         <ListPlugin />

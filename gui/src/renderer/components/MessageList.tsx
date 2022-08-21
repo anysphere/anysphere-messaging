@@ -86,9 +86,11 @@ function OutgoingMessageBlurb({
 export function IncomingMessageList({
   type,
   readCallback,
+  name,
 }: {
   type: "new" | "all";
   readCallback: (message: IncomingMessage) => void;
+  name: String | undefined;
 }): JSX.Element {
   const [messages, setMessages] = React.useState<IncomingMessage[]>([]);
 
@@ -124,6 +126,9 @@ export function IncomingMessageList({
       const cancel = window.getMessagesStreamed(
         { filter: daemon_pb.GetMessagesRequest.Filter.ALL },
         (messages: IncomingMessage[]) => {
+          if (typeof name != "undefined") {
+            messages = messages.filter((x) => x.fromDisplayName == name);
+          }
           setMessages((prev: IncomingMessage[]) => {
             // merge new messages with old messages, and sort them by timestamp
             const newMessages = messages.concat(prev);
@@ -150,7 +155,7 @@ export function IncomingMessageList({
 
     // Error out
     throw new Error("Invalid messages type");
-  }, [type]);
+  }, [type, name]);
 
   return (
     <div>

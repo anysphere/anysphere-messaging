@@ -10,7 +10,7 @@ import {
   OutgoingMessageList,
 } from "./components/MessageList";
 import Read from "./components/Read";
-import Write from "./components/Compose/Write";
+import Write, { ResponseData } from "./components/Compose/Write";
 import { WriteData } from "./components/Compose/Write";
 import { RegisterModal } from "./components/RegisterModal";
 import { IncomingMessage, OutgoingMessage } from "../types";
@@ -27,6 +27,8 @@ import { SideBarButton } from "./components/SideBar/SideBarProps";
 import { Invitations } from "./components/Invitations";
 import AddFriend, { AddFriendScreen } from "./components/AddFriend/AddFriend";
 import Modal from "./components/Modal";
+import { unwatchFile } from "fs";
+import { Response } from "webpack-dev-server";
 
 const defaultTabs: Tab[] = [
   { type: TabType.New, name: "New", data: null, unclosable: true, id: "new" },
@@ -70,6 +72,8 @@ function Main({
   ] = useTabs(defaultTabs);
   const [modal, setModal] = React.useState<JSX.Element | null>(null);
   const [hasShownInitialModal, setHasShownInitialModal] = React.useState(false);
+
+  const [filterName, setFilterName] = React.useState<string | undefined>(undefined);
 
   const statusState = React.useContext(statusContext);
 
@@ -120,6 +124,7 @@ function Main({
       },
       content: "",
       focus: "to",
+      response: undefined,
     };
     const writeTab: Tab = {
       type: TabType.Write,
@@ -181,6 +186,7 @@ function Main({
         <IncomingMessageList
           readCallback={(m: IncomingMessage) => readMessage(m, "new")}
           type="new"
+          name={filterName}
         />
       );
       break;
@@ -189,6 +195,7 @@ function Main({
         <IncomingMessageList
           readCallback={(m: IncomingMessage) => readMessage(m, "all")}
           type="all"
+          name={filterName}
         />
       );
       break;
@@ -214,6 +221,33 @@ function Main({
           message={selectedTab.data}
           onClose={() => {
             closeTab(selectedTab.id);
+          }}
+          onRespond={(time: string, displayName: string, message: string) => {
+            // open a compose tab
+            let TabID = "write-" + randomString(10);
+            // formulate a response
+            let response: ResponseData = {
+              timeStamp: time,
+              sender: displayName,
+              content: message,
+            };
+
+            pushTab({
+              type: TabType.Write,
+              name: "Compose",
+              data: {
+                multiSelectState: {
+                  text: "",
+                  friends: [],
+                },
+                content: "",
+                focus: "to",
+                response: response,
+              },
+              unclosable: false,
+              id: TabID,
+            });
+            switchTab(TabID);
           }}
         />
       );
@@ -514,6 +548,22 @@ EOF`}
             (selectedTab.type === TabType.Write ||
               selectedTab.type === TabType.Read)
           }
+        />
+        <input type="text" 
+          className="placeholder:text-asbrown-200 flex-row height-full py-1 text-sm" 
+          autoFocus 
+          value={filterName}
+          onChange={
+            (e) => {
+              if (e.target.value.length > 0) {
+                setFilterName(e.target.value);
+              }
+              else {
+                setFilterName(undefined);
+              }
+            }
+          }
+          placeholder="filter by name"
         />
         <button
           className="unselectable rounded-md bg-asbrown-100 px-2 text-asbrown-light "
