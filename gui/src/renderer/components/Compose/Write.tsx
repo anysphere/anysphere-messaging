@@ -246,9 +246,9 @@ function Write({
             // did not find the sender in the friend list
             data.multiSelectState.text = displayName;
           }
-          console.log("friends loaded");
-          setLoad(true);
         }
+        console.log("friends loaded");
+        setLoad(true);
       })
       .catch((err) => {
         console.error(err);
