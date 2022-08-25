@@ -1,12 +1,12 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 authors:
-- family-names: "Asif"
-  given-names: "Sualeh"
 - family-names: "Lunnemark"
   given-names: "Arvid"
 - family-names: "Zhang"
   given-names: "Shengtong"
+- family-names: "Asif"
+  given-names: "Sualeh"
 
 title: "Anysphere Client"
 version: 0.1.15
