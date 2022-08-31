@@ -1,5 +1,5 @@
 # Anysphere Messaging
-![](https://...)
+![](https://github.com/anysphere/anysphere-messaging/blob/main/anysphere-messaging-logo.png?raw=true)
 
 *The world's first completely private messenger. For freedom.*
 
