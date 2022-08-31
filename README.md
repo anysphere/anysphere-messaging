@@ -1,108 +1,72 @@
-# anysphere
+# Anysphere Messaging
+![](https://...)
 
-The world's first completely private messenger. For freedom.
+*The world's first completely private messenger. For freedom.*
 
-Clone: `git clone git@github.com:anysphere/anysphere && cd anysphere && ./setupgit.sh`
-
-## Git
-
-I recommend using the following git aliases:
-
-1. `git ll` for recursive pulling
-2. `git pp` for recursive pushing
-3. `git ss` for recursive status
-4. `git cc` for recursive committing
-5. `git ca` for recursive committing all
-
-(look in the `githooks` folder for an exhaustive list of these)
-
-To get these working, you need to run `./setupgit.sh` and follow its instructions.
-
-## Updating schema
-
-After updating the schema in `asphr/schema`, run the following on a Linux machine:
-
-```bash
-make update-gui-repo
-```
-
-in this directory. Then commit and push! This updates the generated schema for the gui.
-
-## Testing
-
-```bash
-bazelisk test //...
-```
-
-Testing with address sanitizer is also recommended:
-
-```bash
-bazelisk test --config=asan //...
-```
+A metadata-private communication system deployed in the real world. Using private information retrieval based on homomorphic encryption, our system guarantees metadata privacy even if all of our servers are compromised and any number of the users and network observers are malicious.
 
 ## GitPod
-
+We support and use gitpod often. You can start here if you would like to try it out.
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/anysphere/anysphere)
 
-## Build for x86
 
-Install `x86brew`:
+-----
 
-```bash
-arch --x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-```
+# [Bazel](https://bazel.build)
 
-Create alias: add `alias x86brew='arch --x86_64 /usr/local/Homebrew/bin/brew'` to your `.bashrc`.
-Install `x86bazelisk`:
+*{Fast, Correct} - Choose two*
 
-```bash
-x86brew install bazelisk
-```
+Build and test software of any size, quickly and reliably.
 
-Create alias: add `alias x86bazelisk='arch --x86_64 /usr/local/bin/bazelisk` to your `.bashrc`.
-Make sure `which bazelisk` is the `/opt/homebrew/...` version, and make sure `x86bazelisk` is the right thing too.
+* **Speed up your builds and tests**:
+  Bazel rebuilds only what is necessary.
+  With advanced local and distributed caching, optimized dependency analysis and
+  parallel execution, you get fast and incremental builds.
 
-## Release
+* **One tool, multiple languages**: Build and test Java, C++, Android, iOS, Go,
+  and a wide variety of other language platforms. Bazel runs on Windows, macOS,
+  and Linux.
 
-Make a new draft release on GitHub in the client repo. Pick a new version number and give the tag `vX.X.X`.
+* **Scalable**: Bazel helps you scale your organization, codebase, and
+  continuous integration solution. It handles codebases of any size, in multiple
+  repositories or a huge monorepo.
 
-Run
+* **Extensible to your needs**: Easily add support for new languages and
+  platforms with Bazel's familiar extension language. Share and re-use language
+  rules written by the growing Bazel community.
 
-```bash
-ASPHR_VERSION=X.X.X make publish-mac
-```
+## Getting Started
 
-Publish the release on GitHub.
+  * [Install Bazel](https://bazel.build/install)
+  * [Get started with Bazel](https://bazel.build/contribute/getting-started)
+  * Follow our tutorials:
 
-Deploy the landing page:
+    - [Build C++](https://bazel.build/tutorials/cpp)
+    - [Build Java](https://bazel.build/tutorials/java)
+    - [Android](https://bazel.build/tutorials/android-app)
+    - [iOS](https://bazel.build/tutorials/ios-app)
 
-```bash
-make publish-landing
-```
+## Documentation
 
-### One-time setup
+  * [Bazel command line](https://bazel.build/docs/user-manual)
+  * [Rule reference](https://bazel.build/reference/be/overview)
+  * [Use the query command](https://bazel.build/reference/query)
+  * [Extend Bazel](https://bazel.build/rules/concepts)
+  * [Write tests](https://bazel.build/reference/test-encyclopedia)
+  * [Roadmap](https://bazel.build/community/roadmaps)
+  * [Who is using Bazel?](https://github.com/bazelbuild/bazel/wiki/Bazel-Users)
 
-Create a GH access token with the full repo scope. Put it in `.env` as `GH_TOKEN=ghp_xxxxxxxx`. Then run `make publish-mac`.
+## Reporting a Vulnerability
 
-To debug, check `~/Library/Caches/co.anysphere.Anysphere.ShipIt`.
+To report a security issue, please email security@bazel.build with a description
+of the issue, the steps you took to create the issue, affected versions, and, if
+known, mitigations for the issue. Our vulnerability management team will respond
+within 3 working days of your email. If the issue is confirmed as a
+vulnerability, we will open a Security Advisory. This project follows a 90 day
+disclosure timeline.
 
-# Profiling
+## Contributing to Bazel
 
-First the simple usage to profile a binary:
+See [CONTRIBUTING.md](CONTRIBUTING.md)
 
-### Simple Usage
-
-1. `bazelisk build //... --config perf`
-2. `perf record ${binary} // The binary can be found in the bazel-bin directory`
-3. `perf report`
-
-### Perf errors about not having enough access to CPU counter
-
-```
-# set "kernel.perf_event_paranoid = 0" in "/etc/sysctl.conf" which allows profiler to access symbols.
-echo "Setting kernel.perf_event_paranoid = 0"
-sudo echo "kernel.perf_event_paranoid = 0" >> /etc/sysctl.conf # you might have to do this manually.
-
-# Restart the service.
-sudo sysctl --system &> /dev/null
-```
+[![Build status](https://badge.buildkite.com/1fd282f8ad98c3fb10758a821e5313576356709dd7d11e9618.svg?status=master)](https://buildkite.com/bazel/bazel-bazel)
