@@ -7,12 +7,13 @@ A metadata-private communication system deployed in the real world. Using privat
 
 ## GitPod
 We support and use gitpod often. You can start here if you would like to try it out.
+
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/anysphere/anysphere)
 
 ## Getting Started
 
   * [Install and start](/START.md)
-  * [Testing](/Testing.md)
+  * [Testing](/TESTING.md)
   
 ## Reporting a Vulnerability
 
