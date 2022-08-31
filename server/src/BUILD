@@ -15,7 +15,7 @@ cc_library(
         ":hn_beta_key": ["USE_HN_BETA_KEY"],
         "//conditions:default": [],
     }),
-    deps = ["@asphr//asphr:asphr_lib"]
+    deps = ["//asphr/asphr:asphr_lib"]
 )
 
 cc_library(
@@ -43,8 +43,8 @@ cc_library(
         "//server/pir/fast_pir:server_fast_pir_lib",
         "//server/pir/nonprivate:nonprivate_pir_lib",
         ":beta_key_lib",
-        "@asphr//asphr:asphr_lib",
-        "@asphr//schema:server_cc_grpc",
+        "//asphr/asphr:asphr_lib",
+        "//asphr/schema:server_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
     ] + select({
         ":in_memory_db": [],

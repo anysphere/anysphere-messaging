@@ -80,7 +80,7 @@ cc_library(
         "//client_lib",
         "//daemon/crypto:crypto_lib",
         "//daemon/identifier",
-        "@asphr//asphr:asphr_lib",
+        "//asphr/asphr:asphr_lib",
     ],
 )
 
@@ -95,10 +95,10 @@ cc_library(
     linkstatic = True,
     deps = [
         ":core_lib",
-        "@asphr//pir/fast_pir:fast_pir_lib",
-        "@asphr//schema:daemon_cc_grpc",
-        "@asphr//schema:message_proto_cc",
-        "@asphr//schema:server_cc_grpc",
+        "//asphr/pir/fast_pir:fast_pir_lib",
+        "//asphr/schema:daemon_cc_grpc",
+        "//asphr/schema:message_proto_cc",
+        "//asphr/schema:server_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
     ],
 )
@@ -114,7 +114,7 @@ cc_library(
     linkstatic = True,
     deps = [
         ":core_lib",
-        "@asphr//pir/fast_pir:fast_pir_lib",
+        "//asphr/pir/fast_pir:fast_pir_lib",
     ],
 )
 
@@ -154,8 +154,8 @@ cc_library(
     deps = [
         ":cpp_db_lib",
         ":db_bridge",
-        "@asphr//asphr:asphr_lib",
-        "@asphr//schema:message_proto_cc",
+        "//asphr/asphr:asphr_lib",
+        "//asphr/schema:message_proto_cc",
     ],
 )
 
@@ -168,7 +168,7 @@ cc_library(
     ],
     linkstatic = True,
     deps = [
-        "@asphr//asphr:asphr_lib",
+        "//asphr/asphr:asphr_lib",
         "@cxx.rs//:core",
     ],
 )

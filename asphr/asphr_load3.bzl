@@ -10,4 +10,3 @@ load("@rules_rust//crate_universe:repositories.bzl", "crate_universe_dependencie
 def load_asphr_repos3():
     """Loads the remaining repositories for the asphr project (those that depend on load_asphr_repos2())."""
 
-    crate_universe_dependencies()

@@ -18,27 +18,3 @@ load(":asphr_load.bzl", "RUST_VERSION")
 
 def load_asphr_repos2():
     """Loads the remaining repositories for the asphr project (those that depend on load_asphr_repos())."""
-
-    bazel_toolchain_dependencies()
-    llvm_toolchain(
-        name = "llvm_toolchain",
-        llvm_version = "13.0.0",
-    )
-
-    rules_proto_grpc_js_repos()
-
-    rules_foreign_cc_dependencies(
-        register_built_tools = True,
-    )
-
-    rules_proto_dependencies()
-
-    grpc_deps()
-
-    boost_deps()
-
-    rules_rust_dependencies()
-
-    rust_register_toolchains(version = RUST_VERSION, edition = "2021")
-
-    rust_analyzer_deps()

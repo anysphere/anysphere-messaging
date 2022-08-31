@@ -16,7 +16,7 @@ cc_library(
     linkstatic = True,
     visibility = ["//visibility:public"],
     deps = [
-        "//asphr:asphr_lib",
-        "//third_party/seal",
+        "//asphr/asphr:asphr_lib",
+        "//asphr/third_party/seal",
     ],
 )

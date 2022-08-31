@@ -14,8 +14,8 @@ cc_library(
     linkstatic = True,
     visibility = ["//visibility:public"],
     deps = [
-        "@asphr//asphr:asphr_lib",
-        "@asphr//third_party/libsodium",
+        "//asphr/asphr:asphr_lib",
+        "//asphr/third_party/libsodium",
         "@com_google_absl//absl/hash",
         "@com_google_absl//absl/random",
         "@com_google_absl//absl/strings",

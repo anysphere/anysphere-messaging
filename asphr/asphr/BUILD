@@ -16,7 +16,7 @@ cc_library(
         ":assert",
         ":log",
         ":utils",
-        "//third_party/json",
+        "//asphr/third_party/json",
         "@com_google_absl//absl/hash",
         "@com_google_absl//absl/random",
         "@com_google_absl//absl/status",

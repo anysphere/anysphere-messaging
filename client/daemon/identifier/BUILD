@@ -10,7 +10,7 @@ cc_library(
     srcs = ["base58.cc"],
     hdrs = ["base58.hpp"],
     deps = [
-        "@asphr//asphr:asphr_lib",
+        "//asphr/asphr:asphr_lib",
     ],
 )
 
@@ -34,8 +34,8 @@ cc_library(
     deps = [
         ":base58",
         "//daemon/crypto:crypto_lib",
-        "@asphr//asphr:asphr_lib",
-        "@asphr//schema:identifier_proto_cc",
+        "//asphr/asphr:asphr_lib",
+        "//asphr/schema:identifier_proto_cc",
     ],
 )
 
@@ -50,8 +50,8 @@ cc_library(
     deps = [
         ":base58",
         "//daemon/crypto:crypto_lib",
-        "@asphr//asphr:asphr_lib",
-        "@asphr//schema:identifier_proto_cc",
+        "//asphr/asphr:asphr_lib",
+        "//asphr/schema:identifier_proto_cc",
     ],
 )
 

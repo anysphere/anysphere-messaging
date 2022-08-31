@@ -18,27 +18,3 @@ def setup_asphr(asphr_path):
     Args:
         asphr_path: The path to the asphr repository.
     """
-
-    llvm_register_toolchains()
-
-    grpc_extra_deps()
-
-    rules_proto_toolchains()
-
-    rules_proto_grpc_toolchains()
-
-    # M1 Macs require Node 16+
-    # Note that anything that grpc tools currently fail on M1 macs. see this issue: https://github.com/grpc/grpc-node/issues/1405
-    # Hence, bazel build //... in asphr will fail on M1 macs. this is expected!
-    node_repositories(
-        node_version = "16.6.2",
-    )
-    # it's fine if yarn_install fails on M1 macs; see above
-    yarn_install(
-        name = "npm",
-        package_json = asphr_path + "//schema:package.json",
-        yarn_lock = asphr_path + "//schema:yarn.lock",
-    )
-
-    crate_repositories()
-

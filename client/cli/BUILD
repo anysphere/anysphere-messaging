@@ -21,9 +21,9 @@ cc_binary(
     linkstatic = True,
     visibility = ["//:__pkg__"],
     deps = [
-        "//client_lib",
-        "@asphr//asphr:asphr_lib",
-        "@asphr//schema:daemon_cc_grpc",
+        "//client/client_lib",
+        "//asphr/asphr:asphr_lib",
+        "//asphr/schema:daemon_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
     ],
 )

@@ -7,11 +7,7 @@
         "${workspaceFolder}/bazel-anysphere/external/**/**",
         "${workspaceFolder}/bazel-out/**/**",
         "${workspaceFolder}/bazel-bin/external/**/**",
-        "${workspaceFolder}/bazel-bin/external/asphr/third_party/**/**",
-        "/opt/homebrew/opt/libpqxx/include",
-        "${workspaceFolder}/bazel-out/darwin_arm64-fastbuild/bin/external/asphr/third_party/seal/copy_seal/seal/include",
-        "${workspaceFolder}/bazel-out/darwin_arm64-fastbuild/bin/external/**/**/**/**",
-        "${workspaceFolder}/client/bazel-out/darwin_arm64-fastbuild/bin/daemon/**/**/**/**",
+        "${workspaceFolder}/bazel-bin/asphr/third_party/**/**",
         "/home/gitpod/.cache/bazel/_bazel_gitpod/**"
       ],
       "defines": [],

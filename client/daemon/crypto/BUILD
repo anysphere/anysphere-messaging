@@ -15,12 +15,12 @@ cc_library(
     linkstatic = True,
     visibility = ["//daemon:__subpackages__"],
     deps = [
-        "@asphr//asphr:asphr_lib",
-        "@asphr//schema:asyncinvitation_proto_cc",
-        "@asphr//schema:daemon_cc_grpc",
-        "@asphr//schema:message_proto_cc",
-        "@asphr//schema:server_cc_grpc",
-        "@asphr//third_party/libsodium",
+        "//asphr/asphr:asphr_lib",
+        "//asphr/schema:asyncinvitation_proto_cc",
+        "//asphr/schema:daemon_cc_grpc",
+        "//asphr/schema:message_proto_cc",
+        "//asphr/schema:server_cc_grpc",
+        "//asphr/third_party/libsodium",
         "@com_github_grpc_grpc//:grpc++",
     ],
 )
@@ -31,8 +31,8 @@ cc_test(
         "crypto_test.cc",
     ],
     deps = [
-        ":crypto_lib",
-        "//daemon/identifier",
+        "//client:crypto_lib",
+        "//client/daemon/identifier",
         "@com_google_googletest//:gtest_main",
     ],
 )

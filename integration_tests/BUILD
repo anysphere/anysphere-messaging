@@ -11,7 +11,7 @@ cc_library(
     deps = [
         "//server/pir/fast_pir:server_fast_pir_lib",
         "//server/src:as_server_lib",
-        "@client//daemon:main_lib",
+        "//client/daemon:main_lib",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -28,7 +28,7 @@ cc_library(
     deps = [
         "//server/pir/fast_pir:server_fast_pir_lib",
         "//server/src:as_server_lib",
-        "@client//daemon:main_lib",
+        "//client/daemon:main_lib",
         "@com_google_googletest//:gtest_main",
     ],
 )
