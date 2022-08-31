@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 //
 
-#include "asphr/asphr.hpp"
+#include "asphr/asphr/asphr.hpp"
 #include "identifier.hpp"
 
 int main(int argc, char** argv) {

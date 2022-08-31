@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 //
 
-#include "asphr/asphr.hpp"
+#include "asphr/asphr/asphr.hpp"
 
 struct CommandLine {
   int argc;

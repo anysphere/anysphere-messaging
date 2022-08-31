@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "daemon/db/db.rs.h"
+#include "client/daemon/db/db.rs.h"
 #include "rust/cxx.h"
 
 // TODO: check that they are moved.

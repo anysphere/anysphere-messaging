@@ -10,9 +10,9 @@
 #include <stdexcept>
 #include <string>
 
+#include "asphr/schema/asyncinvitation.pb.h"
+#include "asphr/schema/message.pb.h"
 #include "constants.hpp"
-#include "schema/asyncinvitation.pb.h"
-#include "schema/message.pb.h"
 
 /* Crypto implements an IND-CCA2 secure scheme.
 

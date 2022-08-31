@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "asphr/asphr.hpp"
-#include "daemon/db/db.rs.h"
+#include "asphr/asphr/asphr.hpp"
+#include "client/daemon/db/db.rs.h"
 #include "rust/cxx.h"
 
 namespace chunk_handler {

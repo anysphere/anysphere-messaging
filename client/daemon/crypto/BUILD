@@ -13,7 +13,7 @@ cc_library(
         "crypto.hpp",
     ],
     linkstatic = True,
-    visibility = ["//daemon:__subpackages__"],
+    visibility = ["//client/daemon:__subpackages__"],
     deps = [
         "//asphr/asphr:asphr_lib",
         "//asphr/schema:asyncinvitation_proto_cc",
@@ -31,7 +31,7 @@ cc_test(
         "crypto_test.cc",
     ],
     deps = [
-        "//client:crypto_lib",
+        ":crypto_lib",
         "//client/daemon/identifier",
         "@com_google_googletest//:gtest_main",
     ],

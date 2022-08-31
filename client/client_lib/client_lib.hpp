@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "asphr/asphr.hpp"
+#include "asphr/asphr/asphr.hpp"
 
 using Msg = string;
 using PublicKey = string;

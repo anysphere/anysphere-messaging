@@ -5,13 +5,13 @@
 
 #pragma once
 
-#include "asphr/asphr.hpp"
-#include "daemon/crypto/crypto.hpp"
-#include "daemon/db/db.hpp"
-#include "daemon/global.hpp"
-#include "pir/fast_pir/fast_pir_client.hpp"
-#include "schema/daemon.grpc.pb.h"
-#include "schema/server.grpc.pb.h"
+#include "asphr/asphr/asphr.hpp"
+#include "asphr/pir/fast_pir/fast_pir_client.hpp"
+#include "asphr/schema/daemon.grpc.pb.h"
+#include "asphr/schema/server.grpc.pb.h"
+#include "client/daemon/crypto/crypto.hpp"
+#include "client/daemon/db/db.hpp"
+#include "client/daemon/global.hpp"
 
 /**
  * @brief Transmitter manages sending and receiving messages.

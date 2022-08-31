@@ -13,7 +13,7 @@ fn main() {
 #[cxx::bridge]
 mod ffi {
   unsafe extern "C++" {
-    include!("daemon/main.hpp");
+    include!("client/daemon/main.hpp");
     fn main_cc(args: Vec<String>);
   }
 }

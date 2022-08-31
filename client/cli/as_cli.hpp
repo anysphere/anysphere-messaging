@@ -7,10 +7,10 @@
 
 #include <grpcpp/grpcpp.h>
 
-#include "asphr/asphr.hpp"
-#include "client_lib/client_lib.hpp"
+#include "asphr/asphr/asphr.hpp"
+#include "asphr/schema/daemon.grpc.pb.h"
+#include "client/client_lib/client_lib.hpp"
 #include "parse_command_line.hpp"
-#include "schema/daemon.grpc.pb.h"
 
 using std::cin;
 using std::make_unique;

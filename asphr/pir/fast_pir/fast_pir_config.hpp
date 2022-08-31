@@ -11,7 +11,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "asphr/asphr.hpp"
+#include "asphr/asphr/asphr.hpp"
 
 // these parameters are taken from
 // https://github.com/ishtiyaque/FastPIR/blob/master/src/bfvparams.h

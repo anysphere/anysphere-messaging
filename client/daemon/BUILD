@@ -77,9 +77,9 @@ cc_library(
         ":cpp_include",
         ":db_bridge",
         ":db_lib",
-        "//client_lib",
-        "//daemon/crypto:crypto_lib",
-        "//daemon/identifier",
+        "//client/client_lib",
+        "//client/daemon/crypto:crypto_lib",
+        "//client/daemon/identifier",
         "//asphr/asphr:asphr_lib",
     ],
 )

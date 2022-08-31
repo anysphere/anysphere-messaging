@@ -7,12 +7,12 @@
 
 #include <grpcpp/grpcpp.h>
 
-#include "asphr/asphr.hpp"
-#include "client_lib/client_lib.hpp"
-#include "daemon/db/db.hpp"
+#include "asphr/asphr/asphr.hpp"
+#include "asphr/schema/server.grpc.pb.h"
+#include "client/client_lib/client_lib.hpp"
+#include "client/daemon/db/db.hpp"
 #include "global.hpp"
 #include "rpc/daemon_rpc.hpp"
-#include "schema/server.grpc.pb.h"
 #include "transmitter/transmitter.hpp"
 
 auto get_db_address() noexcept(false) -> std::filesystem::path {

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "asphr/asphr.hpp"
+#include "asphr/asphr/asphr.hpp"
 
 auto append_checksum(string data) -> string;
 auto remove_checksum(string bytes) -> asphr::StatusOr<string>;

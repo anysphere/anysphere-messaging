@@ -117,7 +117,7 @@ mod util {
   unsafe extern "C++" {
     // we use absl::Time because it is SUCH a well-thought out library
     // we trust it more than chrono or rust's time
-    include!("daemon/util.hpp");
+    include!("client/daemon/util.hpp");
     fn unix_micros_now() -> i64;
   }
 }
@@ -133,7 +133,7 @@ pub mod chunk_handler {
   }
 
   unsafe extern "C++" {
-    include!("daemon/chunk_handler/chunk_handler.hpp");
+    include!("client/daemon/chunk_handler/chunk_handler.hpp");
 
     // the message is serialized to and from a bytes array
     // using Protobuf. We do not want to depend on protobuf

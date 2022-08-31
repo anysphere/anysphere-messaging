@@ -1,7 +1,7 @@
 #include "chunk_handler.hpp"
 
-#include "daemon/db/db.hpp"
-#include "schema/message.pb.h"
+#include "asphr/schema/message.pb.h"
+#include "client/daemon/db/db.hpp"
 
 namespace chunk_handler {
 

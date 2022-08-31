@@ -8,7 +8,7 @@
 #include <array>
 #include <bitset>
 
-#include "asphr/asphr.hpp"
+#include "asphr/asphr/asphr.hpp"
 #include "fast_pir.hpp"
 
 using std::array;

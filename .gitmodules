@@ -1,18 +1,13 @@
-[submodule "website/anysphere-pages"]
-	path = website/anysphere-pages
-	url = git@github.com:anysphere/anysphere-pages
-[submodule "non_code/emails/kerberi"]
-	path = non_code/emails/kerberi
-	url = git@github.com:arvid220u/kerberi
 [submodule "research/whitepaper"]
 	path = research/whitepaper
 	url = git@github.com:anysphere/whitepaper
-[submodule "website/anysphere-id-pages"]
-	path = website/anysphere-id-pages
-	url = git@github.com:anysphere/anysphere-id-pages
-[submodule "website/anysphere-me-pages"]
-	path = website/anysphere-me-pages
-	url = git@github.com:anysphere/anysphere-me-pages
 [submodule "research/security-definition"]
 	path = research/security-definition
 	url = git@github.com:anysphere/security-definition
+[submodule "third_party/seal/SEAL"]
+	path = asphr/third_party/seal/SEAL
+	url = https://github.com/anysphere/SEAL
+[submodule "third_party/libsodium/libsodium"]
+	path = asphr/third_party/libsodium/libsodium
+	url = https://github.com/anysphere/libsodium
+

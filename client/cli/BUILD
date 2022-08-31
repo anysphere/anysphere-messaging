@@ -19,7 +19,7 @@ cc_binary(
     ],
     linkopts = ["-lpthread"],
     linkstatic = True,
-    visibility = ["//:__pkg__"],
+    visibility = ["//client:__pkg__"],
     deps = [
         "//client/client_lib",
         "//asphr/asphr:asphr_lib",

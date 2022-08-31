@@ -5,9 +5,9 @@
 
 #include "identifier.hpp"
 
+#include "asphr/schema/identifier.pb.h"
 #include "base58.hpp"
-#include "daemon/crypto/crypto.hpp"
-#include "schema/identifier.pb.h"
+#include "client/daemon/crypto/crypto.hpp"
 #include "wordlist.hpp"
 
 // append_checksum adds a checksum to the end of the string

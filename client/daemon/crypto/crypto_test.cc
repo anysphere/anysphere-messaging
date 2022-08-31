@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include "daemon/identifier/identifier.hpp"
+#include "client/daemon/identifier/identifier.hpp"
 
 TEST(CryptoTest, EncryptDecrypt) {
   crypto::init();

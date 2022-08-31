@@ -5,7 +5,7 @@
 
 #include "daemon_rpc.hpp"
 
-#include "daemon/identifier/identifier.hpp"
+#include "client/daemon/identifier/identifier.hpp"
 #include "google/protobuf/util/time_util.h"
 
 using grpc::ServerContext;

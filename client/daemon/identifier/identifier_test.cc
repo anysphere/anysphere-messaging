@@ -7,9 +7,9 @@
 
 #include <gtest/gtest.h>
 
+#include "asphr/schema/identifier.pb.h"
 #include "base58.hpp"
 #include "identifier_helpers_private.hpp"
-#include "schema/identifier.pb.h"
 
 using namespace std::string_literals;
 

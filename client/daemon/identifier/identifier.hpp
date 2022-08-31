@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "asphr/asphr.hpp"
+#include "asphr/asphr/asphr.hpp"
 
 struct PublicIdentifier {
   PublicIdentifier(int index, string kx_public_key,

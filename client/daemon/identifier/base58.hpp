@@ -25,7 +25,7 @@
  * alphanumeric.
  */
 
-#include "asphr/asphr.hpp"
+#include "asphr/asphr/asphr.hpp"
 
 namespace base58 {
 

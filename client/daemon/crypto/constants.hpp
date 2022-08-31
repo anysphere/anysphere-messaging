@@ -4,7 +4,7 @@
 //
 
 #pragma once
-#include "asphr/asphr.hpp"
+#include "asphr/asphr/asphr.hpp"
 #include "sodium.h"
 
 // MAC bytes

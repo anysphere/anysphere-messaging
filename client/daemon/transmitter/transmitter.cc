@@ -7,8 +7,8 @@
 
 #include <algorithm>
 
-#include "daemon/identifier/identifier.hpp"
-#include "schema/server.grpc.pb.h"
+#include "asphr/schema/server.grpc.pb.h"
+#include "client/daemon/identifier/identifier.hpp"
 
 auto generate_dummy_address(const db::Registration& reg) -> db::Address {
   auto dummy_friend_keypair = crypto::generate_kx_keypair();

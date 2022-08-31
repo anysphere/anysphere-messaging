@@ -30,10 +30,10 @@ cc_library(
         "identifier.hpp",
         "wordlist.hpp",
     ],
-    visibility = ["//daemon:__subpackages__"],
+    visibility = ["//client/daemon:__subpackages__"],
     deps = [
         ":base58",
-        "//daemon/crypto:crypto_lib",
+        "//client/daemon/crypto:crypto_lib",
         "//asphr/asphr:asphr_lib",
         "//asphr/schema:identifier_proto_cc",
     ],
@@ -49,7 +49,7 @@ cc_library(
     ],
     deps = [
         ":base58",
-        "//daemon/crypto:crypto_lib",
+        "//client/daemon/crypto:crypto_lib",
         "//asphr/asphr:asphr_lib",
         "//asphr/schema:identifier_proto_cc",
     ],

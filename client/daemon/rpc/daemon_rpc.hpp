@@ -5,12 +5,12 @@
 
 #pragma once
 
-#include "daemon/crypto/crypto.hpp"
-#include "daemon/global.hpp"
-#include "daemon/identifier/identifier.hpp"
-#include "pir/fast_pir/fast_pir_client.hpp"
-#include "schema/daemon.grpc.pb.h"
-#include "schema/server.grpc.pb.h"
+#include "asphr/pir/fast_pir/fast_pir_client.hpp"
+#include "asphr/schema/daemon.grpc.pb.h"
+#include "asphr/schema/server.grpc.pb.h"
+#include "client/daemon/crypto/crypto.hpp"
+#include "client/daemon/global.hpp"
+#include "client/daemon/identifier/identifier.hpp"
 
 class DaemonRpc final : public asphrdaemon::Daemon::Service {
  public:
