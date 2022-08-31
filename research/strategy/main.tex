@@ -1,0 +1,159 @@
+\documentclass[sigconf, nonacm, balance=false, natbib=false]{acmart}
+\input{preamble}
+
+
+\title{\textbf{Anysphere: History and Strategy} \\ \vspace{0.4cm} {\huge \normalfont A look into the world of long-distance communication}}
+\def\dateinfo{June 30, 2022\\ \vspace{0.3cm} \textit{Last updated:} \today}
+\date{\dateinfo}
+\author{Arvid Lunnemark \hspace{0.7cm} Shengtong Zhang \hspace{0.7cm} Sualeh Asif \\ \vspace{0.1cm} \nolinkurl{{arvid, stzh1555, sualeh}@anysphere.co} \\ \vspace{0.4cm} \dateinfo}
+
+\setshorttitle{Anysphere: History and Strategy}
+\setshortauthors{Arvid Lunnemark, Shengtong Zhang, Sualeh Asif}
+
+\definecolor{pagecolor}{rgb}{0.95, 0.99,0.96}
+
+\begin{document}
+
+\pagecolor{pagecolor}
+
+\begin{abstract}
+    Our goal: \textbf{everyone can communicate privately}.
+
+    The big question: \textit{how?}
+
+    Our whitepaper answers the question in terms of cryptography. This document tries to answer it in terms of everything else: network effects, money, customers, marketing. To do so, we look at the history of electronic communication platforms and explore different distribution ideas.
+\end{abstract}
+
+\maketitle
+
+\tableofcontents
+
+\section{Goal}
+
+Before we answer the \textit{how}, it will help to clarify and justify the goal.
+
+It starts with freedom. We take freedom as a fundamental good. We also believe that one of the biggest threats against freedom is totalitarian power. It follows that the best way to defend freedom is to make totalitarian power \textit{technically impossible}. One way to do this is to make sure that individuals can always communicate privately.
+
+This doesn't mean that everyone \textit{has} to communicate privately all the time. Sometimes convenience will win. But it should always be possible, and when you need it, it should be easy. Privacy only comes in numbers, so we need billions of people using our platform, even if not everyone is using it to achieve complete privacy.
+
+It should be noted that there are many other ways to justify the existence of a private communication platform. Some aren't even freedom-related. For example, businesses need to keep secrets to function well, so you can also base your argument on wanting businesses to succeed.
+
+\section{History}
+
+We are not the first to try to change how people communicate. Let's learn from history.
+
+Physically talking to people will always be the best way to communicate in person. Hence, we will focus on the history of long-distance communication, putting most of the weight on recent electronic communication.
+
+\subsection{Mail}
+
+Physical mail is generally state-run. In the mid 19th century, global mail was organized through bilateral treaties. This was annoying, so the Universal Postal Union was established as part of the UN.
+
+Why is mail run by the government and not be businesses? It is unclear. Many are arguing for the privatization of the USPS (\href{https://fee.org/articles/the-postal-monopoly/}{example}). It seems like it could be a business should governments let it be one.
+
+\subsection{Telegraph}
+
+The telegraph made it possible to transmit information across long distance instantly, for the first time. It was used for things that are now handled by the internet: conveying information about prices, for example.
+
+\subsection{Telephone}
+
+Telephones are essentially telegraphs but faster.
+
+\subsection{Email}
+
+Email is interesting, because it is the first time usage moved to a less capable medium. Email allows you to transmit less information than the telephone. Rather, the rise of email is because of the shape of the communication. The fact that you can conveniently send an asynchronous message to anyone without additional hardware.
+
+\subsection{Instant messengers}
+
+A big, big field.
+
+\subsubsection{Signal}
+
+Good source: \href{https://increment.com/security/story-of-signal/}{The Story of Signal}.
+
+Essentially, it seems like Signal started out with a small group of people and then just grew organically, often spurred by hacks or big news events.
+
+\subsubsection{Telegram}
+
+Started in 2013. Built by ex-VK people. It seems like a big contributor to its early success was the fame of the founder Pavel Durov, especially in Russia.
+
+\subsubsection{Matrix}
+
+Started in 2014. The French government contacted them, not the other way around. It seems like they initially targeted the coding community interested in running their own homeserver.
+
+\subsubsection{Wickr}
+
+Used by the US government and military.
+
+Their \href{https://wickr.com/wp-content/uploads/2019/12/WhitePaper_WickrMessagingProtocol.pdf}{whitepaper} claims they ``protect metadata'' which simply is not true. Bryan Krebs of KrebsOnSecurity uses it, which makes me curious.
+
+The app makes you sign up with a username. That is kind of weird.
+
+\subsection{Privacy tools}
+
+\subsubsection{Tor}
+
+\subsubsection{Nym, Session, XX Messenger}
+
+\subsubsection{Skiff}
+
+\subsection{Miscellaneous}
+
+\subsubsection{Kivra}
+
+\section{Use cases}
+
+``Communication'' is vague. Is it even possible to build a general communication platform, or are there irreconcilable differences between different kinds of communication?
+
+\subsection{Business}
+
+\subsubsection{External company}
+
+Requires: many one-off contacts, fluid groupchats (cc-ing).
+
+\subsubsection{Internal company}
+
+
+\subsection{Personal}
+
+\subsubsection{Real-world friend}
+
+Requires:
+
+\subsubsection{Friend groups}
+
+Requires:
+
+\subsubsection{Stranger}
+
+Think discussions about topics you like talking about.
+
+\subsubsection{Institutional notices} % better name here? things like government mail
+
+\subsubsection{Receipts}
+
+\subsection{Government}
+
+\subsubsection{Secret services}
+
+\section{Strategies}
+
+\subsection{Modern-era postal service}
+
+It is curious that email hasn't replaced postal services. Why is that?
+
+Look into: Kivra.
+
+\subsection{Fixed supply, trading, exclusivity}
+
+Credit to Samo Burja. What if the right 1M people could communicate privately?
+
+What's the exit strategy here?
+
+\subsection{Consumers, mostly crypto, a la Skiff}
+
+\subsection{Businesses}
+
+\printbibliography
+
+
+\end{document}

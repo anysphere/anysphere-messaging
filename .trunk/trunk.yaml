@@ -1,0 +1,26 @@
+version: 0.1
+cli:
+  version: 0.14.1-beta
+lint:
+  enabled:
+    - gitleaks@8.8.7
+    - svgo@2.8.0
+    - buildifier@5.1.0
+    - clang-format@14.0.0
+    - clang-tidy@14.0.0
+    - gofmt@1.16.7
+    - golangci-lint@1.46.2
+    - hadolint@2.10.0
+    - markdownlint@0.31.1
+    - prettier@2.7.1
+    - shellcheck@0.8.0
+    - shfmt@3.5.0
+    - terraform-validate@1.1.0
+    - tflint@0.35.0
+    - rustfmt@1.58.1
+repo:
+  repo:
+    host: github.com
+    owner: anysphere
+    name: anysphere
+  trunk_branch: origin/main

@@ -1,0 +1,27 @@
+{
+  "configurations": [
+    {
+      "name": "Mac",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "${workspaceFolder}/bazel-anysphere/external/**/**",
+        "${workspaceFolder}/bazel-out/**/**",
+        "${workspaceFolder}/bazel-bin/external/**/**",
+        "${workspaceFolder}/bazel-bin/external/asphr/third_party/**/**",
+        "/opt/homebrew/opt/libpqxx/include",
+        "${workspaceFolder}/bazel-out/darwin_arm64-fastbuild/bin/external/asphr/third_party/seal/copy_seal/seal/include",
+        "${workspaceFolder}/bazel-out/darwin_arm64-fastbuild/bin/external/**/**/**/**",
+        "${workspaceFolder}/client/bazel-out/darwin_arm64-fastbuild/bin/daemon/**/**/**/**",
+        "/home/gitpod/.cache/bazel/_bazel_gitpod/**"
+      ],
+      "defines": [],
+      "macFrameworkPath": [],
+      "compilerPath": "/usr/bin/clang++",
+      "cStandard": "c17",
+      "cppStandard": "c++20",
+      "intelliSenseMode": "${default}",
+      "compilerArgs": []
+    }
+  ],
+  "version": 4
+}

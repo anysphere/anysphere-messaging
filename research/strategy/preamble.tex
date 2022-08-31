@@ -1,0 +1,44 @@
+
+% \usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+% \usepackage{amsfonts}
+% \usepackage[pdfstartview=FitH,colorlinks,urlcolor=black,linkcolor=black,citecolor=black,pdfpagelabels,bookmarksdepth=2,bookmarksopen=true,bookmarksnumbered]{hyperref}
+\hypersetup{
+    colorlinks=false,
+    linkcolor=blue,
+    filecolor=magenta,
+    pdfborderstyle={/S/U/W 1},
+    allbordercolors=[RGB]{50,100,70},
+    urlcolor=[RGB]{50,100,70},
+}
+
+\usepackage[notcomma,notperiod,notquote,notcolon,notexcl,notquery,notscolon]{hanging}
+
+\usepackage[capitalise,noabbrev]{cleveref}
+%\usepackage[margin=1.5in]{geometry}
+\usepackage[parfill]{parskip}
+\usepackage[normalem]{ulem}
+\usepackage{framed}
+
+\input{latexdefs}
+
+
+\usepackage[lambda,adversary,advantage,asymptotics,sets,landau,probability,
+    operators]{cryptocode}
+\usepackage[style=alphabetic,backend=bibtex]{biblatex}
+\addbibresource{bib.bib}
+\usepackage[toc]{appendix}
+\usepackage{ulem}
+
+\createpseudocodeblock{pcb}{center, boxed}{}{}{}
+\createprocedureblock{pcbexp}{center, boxed}{}{$\mathrm{Experiment}$\ }{}
+
+\newcommand{\hcg}[1]{{\color{blue}[\textbf{HCG}: #1]}}
+\newcommand{\oldhcg}[1]{{\color{gray}[\textbf{HCG}: #1]}}
+\newcommand{\arvid}[1]{{\color{violet}[\textbf{AL}: #1]}}
+
+\setcounter{tocdepth}{3}
+
+
+\renewcommand{\contentsnamefont}{\Large\raggedright\bfseries\MakeTextUppercase}

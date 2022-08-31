@@ -1,0 +1,37 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "debugBuild",
+      "type": "shell",
+      "command": "./debug-build.sh"
+    },
+    {
+      "label": "Generate rust-project.json",
+      "command": "bazelisk",
+      "args": [
+        "run",
+        "@rules_rust//tools/rust_analyzer:gen_rust_project"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "panel": "dedicated"
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    },
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "./build.sh"
+    }
+  ]
+}
