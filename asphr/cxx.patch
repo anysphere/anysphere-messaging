@@ -1,0 +1,60 @@
+diff --git a/syntax/attrs.rs b/syntax/attrs.rs
+index cb40295b..1690535c 100644
+--- a/syntax/attrs.rs
++++ b/syntax/attrs.rs
+@@ -65,9 +65,17 @@ pub fn parse(cx: &mut Errors, attrs: Vec<Attribute>, mut parser: Parser) -> Othe
+             }
+         } else if attr.path.is_ident("derive") {
+             match attr.parse_args_with(|attr: ParseStream| parse_derive_attribute(cx, attr)) {
+-                Ok(attr) => {
+-                    if let Some(derives) = &mut parser.derives {
+-                        derives.extend(attr);
++                Ok((attr_if_ok, ok)) => {
++                    if ok {
++                        if let Some(derives) = &mut parser.derives {
++                            derives.extend(attr_if_ok);
++                            continue;
++                        }
++                    } else {
++                        // If the derive attribute is not valid, we pass it through. Then, it will be available
++                        // in Rust but not in C++. This is often fine.
++                        // For the traits that you do want to derive in C++, provide them in a separate #[derive(...)]
++                        passthrough_attrs.push(attr);
+                         continue;
+                     }
+                 }
+@@ -76,6 +84,9 @@ pub fn parse(cx: &mut Errors, attrs: Vec<Attribute>, mut parser: Parser) -> Othe
+                     break;
+                 }
+             }
++        } else if attr.path.is_ident("diesel") {
++            passthrough_attrs.push(attr);
++            continue;
+         } else if attr.path.is_ident("repr") {
+             match attr.parse_args_with(parse_repr_attribute) {
+                 Ok(attr) => {
+@@ -208,10 +219,11 @@ fn parse_doc_attribute(input: ParseStream) -> Result<DocAttribute> {
+     }
+ }
+ 
+-fn parse_derive_attribute(cx: &mut Errors, input: ParseStream) -> Result<Vec<Derive>> {
++fn parse_derive_attribute(_cx: &mut Errors, input: ParseStream) -> Result<(Vec<Derive>, bool)> {
+     let paths = input.parse_terminated::<Path, Token![,]>(Path::parse_mod_style)?;
+ 
+     let mut derives = Vec::new();
++    let mut ok = true;
+     for path in paths {
+         if let Some(ident) = path.get_ident() {
+             if let Some(derive) = Derive::from(ident) {
+@@ -219,9 +231,9 @@ fn parse_derive_attribute(cx: &mut Errors, input: ParseStream) -> Result<Vec<Der
+                 continue;
+             }
+         }
+-        cx.error(path, "unsupported derive");
++        ok = false;
+     }
+-    Ok(derives)
++    Ok((derives, ok))
+ }
+ 
+ fn parse_repr_attribute(input: ParseStream) -> Result<Atom> {

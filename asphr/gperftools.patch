@@ -1,0 +1,13 @@
+diff --git a/benchmark/malloc_bench.cc b/benchmark/malloc_bench.cc
+index 371b8c6..55461b9 100644
+--- a/benchmark/malloc_bench.cc
++++ b/benchmark/malloc_bench.cc
+@@ -233,7 +233,7 @@ void randomize_one_size_class(size_t size) {
+   for (int i = 0; i < count; i++) {
+     randomize_buffer[i] = malloc(size);
+   }
+-  std::random_shuffle(randomize_buffer, randomize_buffer + count);
++  // std::random_shuffle(randomize_buffer, randomize_buffer + count);
+   for (int i = 0; i < count; i++) {
+     free(randomize_buffer[i]);
+   }

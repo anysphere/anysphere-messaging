@@ -1,0 +1,64 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: GPL-3.0-only
+//
+
+/*
+message.proto contains the protobuf for the messages exchanged between clients.
+the server only ever sees encrypted versions of these messages, and hence, this
+file should ONLY be depended on by the client.
+*/
+
+syntax = "proto3";
+
+package asphrclient;
+
+// keep this in sync with db.rs, SystemMessage
+enum SystemMessage { OUTGOING_INVITATION = 0; }
+
+// this message protobuf contains everything needed in
+// a message. currently, messages only support a utf-8 message content
+// as well as a list of cc-ed recipients. in the future, we may
+// want to add pictures here, and more.
+message Message {
+  repeated string other_recipients = 1;
+  string msg = 2;
+}
+
+// Given that we have a very very limited bandwidth, our goal is to define a
+// Message type that is as small as possible.
+//
+// TODO: allow a message to transparently flow into the next message. this is
+// problematic, though, because the next message can only be sent after the
+// first message has been acked, unless multiple channels are used.
+//
+// IMPORTANT: update GUARANTEED_MESSAGE_SIZE in client_lib.hpp whenever this is
+// updated.
+message Chunk {
+  // sequence_number is a unique id for the message. it is unique for a <sender,
+  // receiver> ordered pair. if the id is 0, then the message is a dummy
+  // message, with no actual msg to display to the user.
+  // TODO: to optimize space usage, we should merge the id here and the nonce
+  // used for encryption. this requires some careful thought with dummy
+  // messages.
+  uint32 sequence_number = 1;
+  // msg is a chunk of a byte sequence that alltogether form the serialization
+  // of a Message, defined above. this msg has a maximum length.
+  bytes msg = 2;
+  // if the message is a long message, this field contains the number of parts
+  // it has this field is not set if the message isn't long.
+  uint32 num_chunks = 3;
+  // if the message is a long message, this field contains the start id of the
+  // long message. the index in this message in the long message is
+  // (sequence_number - chunks_start_sequence_number) this field is not set if
+  // the message isn't long.
+  uint32 chunks_start_sequence_number = 4;
+
+  // system messages below. none of the fields below will be set for actual
+  // messages.
+  //
+  // true iff this message is a system message
+  bool system = 5;
+  SystemMessage system_message = 6;
+  string system_message_data = 7; // optional data for the system message
+}
