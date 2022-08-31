@@ -7,8 +7,8 @@
 #include <string>
 #include <vector>
 
-#include "asphr/asphr.hpp"
-#include "pir/fast_pir/fast_pir.hpp"
+#include "asphr/asphr/asphr.hpp"
+#include "asphr/pir/fast_pir/fast_pir.hpp"
 
 // TODO: add thread safety argument
 // probablyyyy all races are benign.
