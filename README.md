@@ -10,6 +10,9 @@ We support and use gitpod often. You can start here if you would like to try it 
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/anysphere/anysphere)
 
+## Status
+**THIS PROJECT IS CURRENTLY IN MAINTENANCE MODE. It will not receive any feature updates.**
+
 ## Getting Started
 
   * [Install and start](/START.md)
