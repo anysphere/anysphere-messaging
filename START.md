@@ -1,3 +1,16 @@
+# Getting Started
+
+Clone the repo, including all submodules:
+
+```
+git clone --recursive git@github.com:anysphere/anysphere-messaging
+```
+
+## GitPod
+
+We support and use gitpod often. You can start here if you would like to try it out.
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/anysphere/anysphere)
 
 ## Updating schema
 
