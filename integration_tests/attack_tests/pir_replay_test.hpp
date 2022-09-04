@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: MIT
+//
+
 #include "attacker_template.hpp"
 
 // Simulates a PIR replay attack.

@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: MIT
+//
+
 #include "account_manager.hpp"
 #include "server/pir/fast_pir/fastpir.hpp"
 #include "server/pir/nonprivate/nonprivate_pir.hpp"

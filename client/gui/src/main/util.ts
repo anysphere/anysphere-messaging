@@ -1,6 +1,6 @@
 //
 // Copyright 2022 Anysphere, Inc.
-// SPDX-License-Identifier: GPL-3.0-only
+// SPDX-License-Identifier: MIT
 //
 
 /* eslint import/prefer-default-export: off, import/no-mutable-exports: off */

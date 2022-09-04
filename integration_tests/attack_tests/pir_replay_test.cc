@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: MIT
+//
+
 #include "pir_replay_test.hpp"
 
 using namespace asphrdaemon;

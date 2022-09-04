@@ -1,6 +1,9 @@
-
-
 #!/bin/bash
+
+#
+# Copyright 2022 Anysphere, Inc.
+# SPDX-License-Identifier: MIT
+#
 
 # This script will be run bazel when building process starts to
 # generate key-value information that represents the status of the

@@ -1,13 +1,17 @@
 #
 # Copyright 2022 Anysphere, Inc.
+# SPDX-License-Identifier: MIT
 #
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 RUST_VERSION = "1.61.0"
+
 BAZEL_TOOLCHAIN_TAG = "0.6.3"
+
 BAZEL_TOOLCHAIN_SHA = "da607faed78c4cb5a5637ef74a36fdd2286f85ca5192222c4664efec2d529bb8"
+
 asphr_path = "//asphr"
 
 http_archive(
@@ -82,24 +86,24 @@ http_archive(
 
 http_archive(
     name = "rules_foreign_cc",
+    patch_args = ["-p1"],
+    patches = [asphr_path + ":rules_foreign_cc.0.7.1.patch"],  # from https://github.com/bazelbuild/rules_foreign_cc/issues/859#issuecomment-1058361769
     sha256 = "62e364a05370059f07313ec46ae4205af23deb00e41f786f3233a98098c7e636",
     strip_prefix = "rules_foreign_cc-ae4ff42901354e2da8285dac4be8329eea2ea96a",
     url = "https://github.com/bazelbuild/rules_foreign_cc/archive/ae4ff42901354e2da8285dac4be8329eea2ea96a.tar.gz",  # v 0.7.1
-    patch_args = ["-p1"],
-    patches = [asphr_path + ":rules_foreign_cc.0.7.1.patch"],  # from https://github.com/bazelbuild/rules_foreign_cc/issues/859#issuecomment-1058361769
 )
 
 _RULES_BOOST_COMMIT = "ef58870fe00ecb8047cd34324b8c21221387d5fc"
 
 http_archive(
     name = "com_github_nelhage_rules_boost",
+    patch_args = ["-p1"],
+    patches = [asphr_path + ":rules_boost.patch"],  # issue: https://github.com/nelhage/rules_boost/issues/160 (on certain linux distros, clang cannot find backtrace.h. see https://www.boost.org/doc/libs/1_71_0/doc/html/stacktrace/configuration_and_build.html#stacktrace.configuration_and_build.f3)
     sha256 = "1557e4e1f2d009f14919dbf49b167f6616136d0cef1ca1cfada6ce0d4e3d6146",
     strip_prefix = "rules_boost-%s" % _RULES_BOOST_COMMIT,
     urls = [
         "https://github.com/nelhage/rules_boost/archive/%s.tar.gz" % _RULES_BOOST_COMMIT,
     ],
-    patch_args = ["-p1"],
-    patches = [asphr_path + ":rules_boost.patch"],  # issue: https://github.com/nelhage/rules_boost/issues/160 (on certain linux distros, clang cannot find backtrace.h. see https://www.boost.org/doc/libs/1_71_0/doc/html/stacktrace/configuration_and_build.html#stacktrace.configuration_and_build.f3)
 )
 
 # To find additional information on this release or newer ones visit:
@@ -115,20 +119,19 @@ http_archive(
 
 http_archive(
     name = "cxx.rs",
+    patch_args = ["-p1"],
+    patches = [asphr_path + ":cxx.patch"],  # issue: we want to derive custom traits in Rust that C++ doesn't necessarily need to know about!
     sha256 = "6fed9ef1c64a37c343727368b38c27fa4e15b27ca9924c6672a6a5496080c832",
     strip_prefix = "cxx-1.0.68",
     urls = ["https://github.com/dtolnay/cxx/archive/refs/tags/1.0.68.tar.gz"],
-    patch_args = ["-p1"],
-    patches = [asphr_path + ":cxx.patch"],  # issue: we want to derive custom traits in Rust that C++ doesn't necessarily need to know about!
 )
-
 
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 load("@com_grail_bazel_toolchain//toolchain:deps.bzl", "bazel_toolchain_dependencies")
 load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
-load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
 load("@rules_proto_grpc//js:repositories.bzl", rules_proto_grpc_js_repos = "js_repos")
 load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
 load("@rules_rust//tools/rust_analyzer:deps.bzl", "rust_analyzer_deps")
@@ -153,7 +156,12 @@ grpc_deps()
 boost_deps()
 
 rules_rust_dependencies()
-rust_register_toolchains(version = RUST_VERSION, edition = "2021")
+
+rust_register_toolchains(
+    edition = "2021",
+    version = RUST_VERSION,
+)
+
 rust_analyzer_deps()
 
 load("@rules_rust//crate_universe:repositories.bzl", "crate_universe_dependencies")
@@ -175,16 +183,19 @@ crates_repository(
             version = "1.0",
         ),
         "diesel": crate.spec(
+            features = [
+                "sqlite",
+                "returning_clauses_for_sqlite_3_35",
+            ],
             version = "2.0.0-rc.0",
-            features = ["sqlite", "returning_clauses_for_sqlite_3_35"],
         ),
         "diesel_migrations": crate.spec(
-            version = "2.0.0-rc.0",
             features = ["sqlite"],
+            version = "2.0.0-rc.0",
         ),
         "libsqlite3-sys": crate.spec(
-            version = "0.24.2",
             features = ["bundled"],
+            version = "0.24.2",
         ),
         "rand": crate.spec(
             version = "0.8.5",
@@ -204,8 +215,6 @@ rust_cxx_vendor(
     lockfile = "@cxx.rs//third-party:Cargo.lock",
 )
 
-
-load("@rules_proto//proto:repositories.bzl", "rules_proto_toolchains")
 load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
 load("@rules_proto_grpc//:repositories.bzl", "rules_proto_grpc_toolchains")
 load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "yarn_install")
@@ -226,6 +235,7 @@ rules_proto_grpc_toolchains()
 node_repositories(
     node_version = "16.6.2",
 )
+
 # it's fine if yarn_install fails on M1 macs; see above
 yarn_install(
     name = "npm",

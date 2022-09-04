@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: MIT
+//
+
 #include "server/pir/fast_pir/fastpir.hpp"
 
 #include <gtest/gtest.h>

@@ -1,5 +1,6 @@
 #
 # Copyright 2022 Anysphere, Inc.
+# SPDX-License-Identifier: MIT
 #
 
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")

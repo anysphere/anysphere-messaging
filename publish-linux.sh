@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+#
+# Copyright 2022 Anysphere, Inc.
+# SPDX-License-Identifier: MIT
+#
+
 if [[ -z ${ASPHR_VERSION} ]]; then
 	echo "ASPHR_VERSION is empty. Please set it to the version of asphr you want to publish."
 	exit 1

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 //
 // Copyright 2022 Anysphere, Inc.
-// SPDX-License-Identifier: GPL-3.0-only
+// SPDX-License-Identifier: MIT
 //
 
 /** @type {import('tailwindcss').Config} */

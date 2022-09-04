@@ -1,3 +1,8 @@
+#
+# Copyright 2022 Anysphere, Inc.
+# SPDX-License-Identifier: MIT
+#
+
 load("@rules_cc//cc:defs.bzl", "cc_library")
 load(":helper.bzl", "all_tests_in_folder")
 
@@ -9,9 +14,9 @@ cc_library(
     ],
     linkstatic = True,
     deps = [
+        "//client/daemon:main_lib",
         "//server/pir/fast_pir:server_fast_pir_lib",
         "//server/src:as_server_lib",
-        "//client/daemon:main_lib",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -26,9 +31,9 @@ cc_library(
     linkstatic = True,
     visibility = ["//visibility:public"],
     deps = [
+        "//client/daemon:main_lib",
         "//server/pir/fast_pir:server_fast_pir_lib",
         "//server/src:as_server_lib",
-        "//client/daemon:main_lib",
         "@com_google_googletest//:gtest_main",
     ],
 )

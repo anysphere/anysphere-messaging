@@ -1,6 +1,6 @@
 #
 # Copyright 2022 Anysphere, Inc.
-# SPDX-License-Identifier: GPL-3.0-only
+# SPDX-License-Identifier: MIT
 #
 
 load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")

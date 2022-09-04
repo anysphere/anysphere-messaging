@@ -1,5 +1,10 @@
 .PHONY: server minimal-server push push-minimal package-mac publish-mac-alpha update-gui-proto clean
 
+#
+# Copyright 2022 Anysphere, Inc.
+# SPDX-License-Identifier: MIT
+#
+
 define load_env
     $(eval ENV_FILE := .env)
     @echo " - setup env $(ENV_FILE)"

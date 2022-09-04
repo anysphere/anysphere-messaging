@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: MIT
+//
+
 
 #include "async_invitation_database.hpp"
 

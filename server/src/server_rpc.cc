@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: MIT
+//
+
 #include "server_rpc.hpp"
 
 #include "beta_key_auth.hpp"

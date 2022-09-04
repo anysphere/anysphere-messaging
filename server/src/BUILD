@@ -1,3 +1,8 @@
+#
+# Copyright 2022 Anysphere, Inc.
+# SPDX-License-Identifier: MIT
+#
+
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 # load("@io_bazel_rules_docker//cc:image.bzl", "cc_image")
 # load(
@@ -15,7 +20,7 @@ cc_library(
         ":hn_beta_key": ["USE_HN_BETA_KEY"],
         "//conditions:default": [],
     }),
-    deps = ["//asphr/asphr:asphr_lib"]
+    deps = ["//asphr/asphr:asphr_lib"],
 )
 
 cc_library(

@@ -1,3 +1,8 @@
+#
+# Copyright 2022 Anysphere, Inc.
+# SPDX-License-Identifier: MIT
+#
+
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
 exports_files(["attacker_template.hpp"])

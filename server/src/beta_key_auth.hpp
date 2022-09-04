@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: MIT
+//
+
 #include "asphr/asphr.hpp"
 
 inline auto beta_key_authenticator(const std::string& beta_key) -> bool {

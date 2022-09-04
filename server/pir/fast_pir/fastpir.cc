@@ -1,3 +1,8 @@
+//
+// Copyright 2022 Anysphere, Inc.
+// SPDX-License-Identifier: MIT
+//
+
 #include "./fastpir.hpp"
 
 auto FastPIR::set_value(pir_index_t index, pir_value_t value) noexcept -> void {

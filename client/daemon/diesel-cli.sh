@@ -2,7 +2,7 @@
 
 #
 # Copyright 2022 Anysphere, Inc.
-# SPDX-License-Identifier: GPL-3.0-only
+# SPDX-License-Identifier: MIT
 #
 
 if [[ $(diesel --version || true) != *"diesel 2.0.0-rc.0"* ]]; then
