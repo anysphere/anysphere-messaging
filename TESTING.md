@@ -10,6 +10,12 @@ Testing with address sanitizer is also recommended:
 bazelisk test --config=asan //...
 ```
 
+For non-Linux machines, you probably want to (1) not build the gRPC schema for JavaScript, and (2) not build libpqxx. The following should work:
+
+```bash
+baselizk test //integration_tests/... --define memdb=true
+```
+
 # Profiling
 
 First the simple usage to profile a binary:
@@ -36,4 +42,3 @@ sudo sysctl --system &> /dev/null
 Create a GH access token with the full repo scope. Put it in `.env` as `GH_TOKEN=ghp_xxxxxxxx`. Then run `make publish-mac`.
 
 To debug, check `~/Library/Caches/co.anysphere.Anysphere.ShipIt`.
-
