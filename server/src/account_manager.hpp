@@ -11,7 +11,7 @@
 
 #include <random>
 
-#include "asphr/asphr.hpp"
+#include "asphr/asphr/asphr.hpp"
 
 using std::cout;
 using std::endl;

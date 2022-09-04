@@ -7,11 +7,11 @@
 
 #include <gtest/gtest.h>
 
-#include "asphr/asphr.hpp"
-#include "daemon/db/db.hpp"
-#include "daemon/global.hpp"
-#include "daemon/rpc/daemon_rpc.hpp"
-#include "daemon/transmitter/transmitter.hpp"
+#include "asphr/asphr/asphr.hpp"
+#include "client/daemon/db/db.hpp"
+#include "client/daemon/global.hpp"
+#include "client/daemon/rpc/daemon_rpc.hpp"
+#include "client/daemon/transmitter/transmitter.hpp"
 #include "google/protobuf/util/time_util.h"
 #include "server/pir/fast_pir/fastpir.hpp"
 #include "server/src/server_rpc.hpp"

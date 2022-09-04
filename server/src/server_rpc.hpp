@@ -13,9 +13,9 @@
 #include <string>
 
 #include "account_manager.hpp"
-#include "asphr/asphr.hpp"
+#include "asphr/asphr/asphr.hpp"
+#include "asphr/schema/server.grpc.pb.h"
 #include "async_invitation_database.hpp"
-#include "schema/server.grpc.pb.h"
 
 template <typename PIR, typename AccountManager>
 class ServerRpc final : public asphrserver::Server::Service {

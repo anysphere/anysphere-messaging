@@ -4,7 +4,7 @@
 //
 
 #pragma once
-#include "asphr/asphr.hpp"
+#include "asphr/asphr/asphr.hpp"
 
 // Cap invitation length at 4KB to make sure we don't get things that are too
 // big

@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-#include "asphr/asphr.hpp"
+#include "asphr/asphr/asphr.hpp"
 
 inline auto beta_key_authenticator(const std::string& beta_key) -> bool {
 #ifdef USE_HN_BETA_KEY
